@@ -151,6 +151,29 @@ def test_get_character_count_of_content(content, prefix, expected_length, expect
         ('a' * 459, 3),
         ('a' * 460, 4),
         ('a' * 461, 4),
+        (
+            (
+                "L'avantage d'utiliser le lorem ipsum est bien "
+                "évidemment de pouvoir créer des maquettes ou de "
+                "remplir un site internet de contenus qui présentent "
+                "un rendu s'approchant un maximum du rendu final."
+            ),
+            2
+        ),
+        (
+            """
+Τη γλώσσα μου έδωσαν ελληνική
+
+το σπίτι φτωχικό στις αμμουδιές του Ομήρου.
+
+Μονάχη έγνοια η γλώσσα μου στις αμμουδιές του Ομήρου.
+
+από το Άξιον Εστί
+
+του Οδυσσέα Ελύτη
+            """.strip(),
+            3
+        )
     ])
 def test_sms_fragment_count(content, expected_sms_fragment_count):
     template = SMSMessageTemplate({'content': content})
