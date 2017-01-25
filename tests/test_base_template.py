@@ -141,25 +141,20 @@ def test_get_character_count_of_content(content, prefix, expected_length, expect
 
 
 @pytest.mark.parametrize(
-    "char_count, expected_sms_fragment_count",
+    "content, expected_sms_fragment_count",
     [
-        (159, 1),
-        (160, 1),
-        (161, 2),
-        (306, 2),
-        (307, 3),
-        (459, 3),
-        (460, 4),
-        (461, 4)
+        ('a' * 159, 1),
+        ('a' * 160, 1),
+        ('a' * 161, 2),
+        ('a' * 306, 2),
+        ('a' * 307, 3),
+        ('a' * 459, 3),
+        ('a' * 460, 4),
+        ('a' * 461, 4),
     ])
-def test_sms_fragment_count(char_count, expected_sms_fragment_count):
-    with patch(
-        'notifications_utils.template.SMSMessageTemplate.content_count',
-        new_callable=PropertyMock
-    ) as mocked:
-        mocked.return_value = char_count
-        template = SMSMessageTemplate({'content': 'faked', 'template_type': 'sms'})
-        assert template.fragment_count == expected_sms_fragment_count
+def test_sms_fragment_count(content, expected_sms_fragment_count):
+    template = SMSMessageTemplate({'content': content})
+    assert template.fragment_count == expected_sms_fragment_count
 
 
 def test_random_variable_retrieve():
