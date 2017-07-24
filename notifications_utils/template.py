@@ -139,10 +139,10 @@ class SMSMessageTemplate(Template):
 
     @property
     def content_count(self):
-        return len((
+        return len(
             # we always want to call SMSMessageTemplate.__str__ regardless of subclass, to avoid any html formatting
-            SMSMessageTemplate.__str__(self)
-        ).encode(self.encoding))
+            SMSMessageTemplate.__str__(self).encode(self.encoding)
+        )
 
     @property
     def fragment_count(self):
