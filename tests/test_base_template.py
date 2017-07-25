@@ -121,7 +121,7 @@ def test_extracting_placeholders(template_content, template_subject, expected):
 
 @pytest.mark.parametrize('template_cls', [SMSMessageTemplate, SMSPreviewTemplate])
 @pytest.mark.parametrize(
-    "content,prefix, expected_length, expected_replaced_length",
+    "content, prefix, expected_length, expected_replaced_length",
     [
         ("The quick brown fox jumped over the lazy dog", None, 44, 44),
         # should be replaced with a ?
