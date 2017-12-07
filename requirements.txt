@@ -13,5 +13,5 @@ pyyaml==3.12
 phonenumbers==8.8.7
 pytz==2017.3
 # fork of smartypants with improved regex performance
-regex==2017.11.9
+regex==2017.12.05
 git+https://github.com/leohemsted/smartypants.py.git@regex-speedup#egg=smartypants==2.1.0
