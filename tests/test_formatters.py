@@ -348,7 +348,7 @@ def test_hrule(markdown_function, expected):
     [
         notify_email_markdown,
         (
-            '<table role="presentation" style="padding: 0 0 20px 0;">'
+            '<table role="presentation" style="padding: 0 0 20px 0; border: none">'
             '<tr>'
             '<td style="font-family: Helvetica, Arial, sans-serif;">'
             '<ol style="Margin: 0 0 0 20px; padding: 0; list-style-type: decimal;">'
@@ -402,7 +402,7 @@ def test_ordered_list(markdown_function, expected):
     [
         notify_email_markdown,
         (
-            '<table role="presentation" style="padding: 0 0 20px 0;">'
+            '<table role="presentation" style="padding: 0 0 20px 0; border: none">'
             '<tr>'
             '<td style="font-family: Helvetica, Arial, sans-serif;">'
             '<ul style="Margin: 0 0 0 20px; padding: 0; list-style-type: disc;">'

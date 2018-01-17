@@ -364,7 +364,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
 
     def list(self, body, ordered=True):
         return (
-            '<table role="presentation" style="padding: 0 0 20px 0;">'
+            '<table role="presentation" style="padding: 0 0 20px 0; border: none">'
             '<tr>'
             '<td style="font-family: Helvetica, Arial, sans-serif;">'
             '<ol style="Margin: 0 0 0 20px; padding: 0; list-style-type: decimal;">'
@@ -376,7 +376,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         ).format(
             body
         ) if ordered else (
-            '<table role="presentation" style="padding: 0 0 20px 0;">'
+            '<table role="presentation" style="padding: 0 0 20px 0; border: none">'
             '<tr>'
             '<td style="font-family: Helvetica, Arial, sans-serif;">'
             '<ul style="Margin: 0 0 0 20px; padding: 0; list-style-type: disc;">'
