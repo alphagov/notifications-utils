@@ -2,8 +2,6 @@
 SHELL := /bin/bash
 DATE = $(shell date +%Y-%m-%d:%H:%M:%S)
 
-PIP_ACCEL_CACHE ?= ${CURDIR}/cache/pip-accel
-
 BUILD_TAG ?= notifications-utils-manual
 DOCKER_BUILDER_IMAGE_NAME = govuk/notifications-utils-builder
 DOCKER_CONTAINER_PREFIX = ${USER}-${BUILD_TAG}
@@ -20,9 +18,7 @@ venv/bin/activate:
 
 .PHONY: dependencies
 dependencies: venv ## Install build dependencies
-	./venv/bin/pip install pip-accel
-	mkdir -p ${PIP_ACCEL_CACHE}
-	PIP_ACCEL_CACHE=${PIP_ACCEL_CACHE} ./venv/bin/pip-accel install -r requirements_for_test.txt
+	./venv/bin/pip install -r requirements_for_test.txt
 
 .PHONY: build
 build: dependencies ## Build project
@@ -33,7 +29,6 @@ test: venv ## Run tests
 
 .PHONY: prepare-docker-build-image
 prepare-docker-build-image: ## Prepare the Docker builder image
-	mkdir -p ${PIP_ACCEL_CACHE}
 	make -C docker build
 
 .PHONY: build-with-docker
@@ -41,7 +36,6 @@ build-with-docker: prepare-docker-build-image ## Build inside a Docker container
 	@docker run -i --rm \
 		--name "${DOCKER_CONTAINER_PREFIX}-build" \
 		-v "`pwd`:/var/project" \
-		-v "${PIP_ACCEL_CACHE}:/var/project/cache/pip-accel" \
 		-e http_proxy="${HTTP_PROXY}" \
 		-e HTTP_PROXY="${HTTP_PROXY}" \
 		-e https_proxy="${HTTPS_PROXY}" \
