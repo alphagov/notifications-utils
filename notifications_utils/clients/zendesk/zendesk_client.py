@@ -27,6 +27,11 @@ class ZendeskClient():
     # Organization: GDS
     NOTIFY_ORG_ID = 21891972
 
+    # the account used to authenticate with. If no requester is provided, the ticket will come from this account.
+    NOTIFY_ZENDESK_EMAIL = 'zd-api-notify@digital.cabinet-office.gov.uk'
+
+    ZENDESK_TICKET_URL = 'https://govuk.zendesk.com/api/v2/tickets.json'
+
     def __init__(self):
         self.api_key = None
         self.api_host = None
@@ -53,10 +58,10 @@ class ZendeskClient():
                 'comment': {
                     'body': message
                 },
-                'group_id': ZendeskClient.NOTIFY_GROUP_ID,
-                'organization_id': ZendeskClient.NOTIFY_ORG_ID,
-                'priority': ZendeskClient.PRIORITY_URGENT if p1 else ZendeskClient.PRIORITY_NORMAL,
-                'tags': ZendeskClient.TAGS_P1 if p1 else ZendeskClient.TAGS_P2,
+                'group_id': self.NOTIFY_GROUP_ID,
+                'organization_id': self.NOTIFY_ORG_ID,
+                'priority': self.PRIORITY_URGENT if p1 else self.PRIORITY_NORMAL,
+                'tags': self.TAGS_P1 if p1 else self.TAGS_P2,
                 'type': ticket_type
             }
         }
@@ -69,10 +74,10 @@ class ZendeskClient():
             }
 
         response = requests.post(
-            'https://govuk.zendesk.com/api/v2/tickets.json',
+            self.ZENDESK_TICKET_URL,
             json=data,
             auth=(
-                'zd-api-notify@digital.cabinet-office.gov.uk/token',
+                '{}/token'.format(self.NOTIFY_ZENDESK_EMAIL),
                 self.api_key
             )
         )
