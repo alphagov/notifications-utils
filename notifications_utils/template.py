@@ -404,6 +404,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
+        self.date = datetime.utcnow()
 
     def __str__(self):
         return Markup(self.jinja_template.render({
@@ -469,7 +470,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
             ).then(
                 strip_pipes
             ),
-            'date': datetime.utcnow().strftime('%-d %B %Y')
+            'date': self.date.strftime('%-d %B %Y'),
         }))
 
     @property
