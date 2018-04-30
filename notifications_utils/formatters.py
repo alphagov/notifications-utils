@@ -1,3 +1,4 @@
+import string
 import re
 import urllib
 
@@ -7,6 +8,17 @@ from itertools import count
 from flask import Markup
 from notifications_utils import gsm
 import smartypants
+
+
+OBSCURE_WHITESPACE = (
+    '\u180E'  # Mongolian vowel separator
+    '\u200B'  # zero width space
+    '\u200C'  # zero width non-joiner
+    '\u200D'  # zero width joiner
+    '\u2060'  # word joiner
+    '\uFEFF'  # zero width non-breaking space
+)
+
 
 mistune._block_quote_leading_pattern = re.compile(r'^ *\^ ?', flags=re.M)
 mistune.BlockGrammar.block_quote = re.compile(r'^( *\^[^\n]+(\n[^\n]+)*\n*)+')
@@ -247,6 +259,12 @@ def remove_trailing_linebreak(value):
         )
     else:
         return value
+
+
+def strip_whitespace(value):
+    if value is not None and hasattr(value, 'strip'):
+        return value.strip(string.whitespace + OBSCURE_WHITESPACE)
+    return value
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):

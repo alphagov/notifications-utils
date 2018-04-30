@@ -1,3 +1,4 @@
+import string
 import re
 import sys
 import csv
@@ -10,7 +11,7 @@ from orderedset import OrderedSet
 
 from flask import current_app
 
-from notifications_utils.formatters import formatted_list
+from notifications_utils.formatters import formatted_list, strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
 from notifications_utils.international_billing_rates import (
@@ -329,7 +330,7 @@ class InvalidAddressError(InvalidEmailError):
 
 def normalise_phone_number(number):
 
-    for character in ['(', ')', ' ', '-', '+']:
+    for character in string.whitespace + OBSCURE_WHITESPACE + '()-+':
         number = number.replace(character, '')
 
     try:
@@ -440,7 +441,7 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
     # almost exactly the same as by https://github.com/wtforms/wtforms/blob/master/wtforms/validators.py,
     # with minor tweaks for SES compatibility - to avoid complications we are a lot stricter with the local part
     # than neccessary - we don't allow any double quotes or semicolons to prevent SES Technical Failures
-    email_address = email_address.strip()
+    email_address = strip_whitespace(email_address)
     match = re.match(email_regex, email_address)
 
     # not an email
@@ -476,7 +477,7 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
 
 
 def format_email_address(email_address):
-    return email_address.lower()
+    return strip_whitespace(email_address.lower())
 
 
 def validate_and_format_email_address(email_address):
@@ -495,7 +496,7 @@ def validate_address(address_line, column):
         return address_line
     if Columns.make_key(column) not in Columns.from_keys(first_column_headings['letter']).keys():
         raise TypeError
-    if not address_line or not address_line.strip():
+    if not address_line or not strip_whitespace(address_line):
         raise InvalidAddressError('Missing')
     return address_line
 
