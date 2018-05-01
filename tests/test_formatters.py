@@ -19,6 +19,7 @@ from notifications_utils.formatters import (
     tweak_dvla_list_markup,
     remove_trailing_linebreak,
     nl2li,
+    strip_whitespace,
 )
 from notifications_utils.template import (
     HTMLEmailTemplate,
@@ -976,3 +977,15 @@ def test_make_list_from_linebreaks():
         '<li>c</li>'
         '</ul>'
     )
+
+
+@pytest.mark.parametrize('value', [
+    'bar',
+    ' bar ',
+    """
+        \t    bar
+    """,
+    ' \u180E\u200B \u200C bar \u200D \u2060\uFEFF ',
+])
+def test_strip_whitespace(value):
+    assert strip_whitespace(value) == 'bar'

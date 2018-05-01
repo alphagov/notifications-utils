@@ -30,7 +30,8 @@ valid_uk_phone_numbers = [
     '00 44 7123456789',
     '+447123456789',
     '+44 7123 456 789',
-    '+44 (0)7123 456 789'
+    '+44 (0)7123 456 789',
+    '\u200B\t\t+44 (0)7123 \uFEFF 456 789 \r\n',
 ]
 
 
@@ -43,7 +44,7 @@ valid_international_phone_numbers = [
     '23051234567',  # Mauritius,
     '+682 12345',  # Cook islands
     '+3312345678',
-    '003312345678'
+    '003312345678',
 ]
 
 
@@ -304,8 +305,14 @@ def test_validate_email_address_accepts_valid(email_address):
         pytest.fail('Unexpected InvalidEmailError')
 
 
-def test_validate_email_address_strips_whitespace():
-    assert validate_email_address('email@domain.com ') == 'email@domain.com'
+@pytest.mark.parametrize('email', [
+    ' email@domain.com ',
+    '\temail@domain.com',
+    '\temail@domain.com\n',
+    '\u200Bemail@domain.com\u200B',
+])
+def test_validate_email_address_strips_whitespace(email):
+    assert validate_email_address(email) == 'email@domain.com'
 
 
 @pytest.mark.parametrize("email_address", invalid_email_addresses)
