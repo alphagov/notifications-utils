@@ -273,6 +273,20 @@ def test_big_list():
     assert big_csv.has_errors
 
 
+def test_overly_big_list():
+    big_csv = RecipientCSV(
+        "phonenumber,name\n" + ("07700900123,example\n" * (RecipientCSV.max_rows + 1)),
+        template_type='sms',
+        placeholders=['name'],
+    )
+    assert len(big_csv) == 50001
+    assert big_csv.too_many_rows is True
+    assert big_csv.has_errors is True
+    assert list(big_csv.rows_with_missing_data) == []
+    assert list(big_csv.rows_with_bad_recipients) == []
+    assert list(big_csv.rows_with_message_too_long) == []
+
+
 @pytest.mark.parametrize(
     "file_contents,template_type,placeholders,expected_recipients,expected_personalisation",
     [
