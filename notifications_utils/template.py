@@ -399,11 +399,13 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         admin_base_url='http://localhost:6012',
         logo_file_name='hm-government.svg',
         redact_missing_personalisation=False,
+        date=None,
     ):
         self.contact_block = (contact_block or '').strip()
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
+        self.date = date or datetime.utcnow()
 
     def __str__(self):
         return Markup(self.jinja_template.render({
@@ -469,7 +471,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
             ).then(
                 strip_pipes
             ),
-            'date': datetime.utcnow().strftime('%-d %B %Y')
+            'date': self.date.strftime('%-d %B %Y'),
         }))
 
     @property

@@ -1,3 +1,4 @@
+import datetime
 import os
 import pytest
 
@@ -375,7 +376,7 @@ def test_sms_message_normalises_newlines(content):
     )
 
 
-@freeze_time("2001-01-01 12:00:00.000000")
+@freeze_time("2012-12-12 12:12:12")
 @mock.patch('notifications_utils.template.LetterPreviewTemplate.jinja_template.render')
 @mock.patch('notifications_utils.template.remove_empty_lines', return_value='123 Street')
 @mock.patch('notifications_utils.template.unlink_govuk_escaped')
@@ -453,6 +454,11 @@ def test_sms_message_normalises_newlines(content):
     ({}, 'hm-government.svg'),
     ({'logo_file_name': 'example.jpg'}, 'example.jpg'),
 ])
+@pytest.mark.parametrize('additional_extra_args, expected_date', [
+    ({}, '12 December 2012'),
+    ({'date': None}, '12 December 2012'),
+    ({'date': datetime.date.fromtimestamp(0)}, '1 January 1970'),
+])
 def test_letter_preview_renderer(
     strip_pipes,
     letter_markdown,
@@ -465,7 +471,10 @@ def test_letter_preview_renderer(
     expected_rendered_contact_block,
     extra_args,
     expected_logo_file_name,
+    additional_extra_args,
+    expected_date,
 ):
+    extra_args.update(additional_extra_args)
     str(LetterPreviewTemplate(
         {'content': 'Foo', 'subject': 'Subject'},
         values,
@@ -477,7 +486,7 @@ def test_letter_preview_renderer(
         'address': '<ul><li>123 Street</li></ul>',
         'subject': 'Subject',
         'message': 'Bar',
-        'date': '1 January 2001',
+        'date': expected_date,
         'contact_block': expected_rendered_contact_block,
         'admin_base_url': 'http://localhost:6012',
         'logo_file_name': expected_logo_file_name,
