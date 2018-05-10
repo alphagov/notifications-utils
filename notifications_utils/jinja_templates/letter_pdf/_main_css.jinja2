@@ -111,6 +111,9 @@
     line-height: {{ line_height }};
     margin: 0 0 {{ line_height }} 0;
   }
+  p br:last-child, p br:first-child {
+    display: none;
+  }
   #content ul,
   #content ol {
     font-size: 12.5pt;
@@ -134,23 +137,6 @@
   #content ol ul {
     margin-left: -0.6em;
   }
-
-  .linebreak {
-    display: block;
-    width: 0.01em;
-    height: 0.01em;
-    overflow: hidden;
-  }
-
-  .linebreak + .linebreak,
-  .block-linebreak {
-    display: block;
-    overflow: hidden;
-    margin: 0;
-    width: 0.01em;
-    height: {{ line_height }};
-  }
-
   .placeholder {
     display: inline;
     background-color: #FFBF47;

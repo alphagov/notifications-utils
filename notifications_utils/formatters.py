@@ -247,20 +247,6 @@ def tweak_dvla_list_markup(value):
     return value.replace('<cr><cr><np>', '<cr><np>').replace('<p><cr><p><cr>', '<p><cr>')
 
 
-def remove_trailing_linebreak(value):
-
-    block_linebreak = NotifyLetterMarkdownPreviewRenderer.block_linebreak(None)
-
-    if value.endswith(block_linebreak):
-        return remove_trailing_linebreak(
-            value[:(
-                -1 * len(block_linebreak)
-            )].rstrip()
-        )
-    else:
-        return value
-
-
 def strip_whitespace(value):
     if value is not None and hasattr(value, 'strip'):
         return value.strip(string.whitespace + OBSCURE_WHITESPACE)
@@ -285,7 +271,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def paragraph(self, text):
         if text.strip():
-            return '{}{}'.format(text, self.block_linebreak())
+            return '<p>{}</p>'.format(text)
         return ''
 
     def table(self, header, body):
@@ -308,11 +294,8 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def image(self, src, title, alt_text):
         return ""
 
-    def block_linebreak(self):
-        return "<div class='linebreak-block'>&nbsp;</div>"
-
     def linebreak(self):
-        return "<div class='linebreak'>&nbsp;</div>"
+        return "<br>"
 
     def newline(self):
         return self.linebreak()
