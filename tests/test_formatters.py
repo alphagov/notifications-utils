@@ -17,6 +17,7 @@ from notifications_utils.formatters import (
     make_markdown_take_notice_of_multiple_newlines,
     strip_characters_inserted_to_force_newlines,
     tweak_dvla_list_markup,
+    remove_trailing_linebreak,
     nl2li,
     strip_whitespace,
 )
@@ -239,7 +240,8 @@ def test_block_code(markdown_function, expected):
     [
         notify_letter_preview_markdown,
         (
-            '<p>inset text</p>'
+            'inset text'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],
     [
@@ -299,7 +301,7 @@ def test_level_1_header(markdown_function, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>inset text</p>'
+        'inset text<div class=\'linebreak-block\'>&nbsp;</div>'
     ],
     [
         notify_email_markdown,
@@ -321,8 +323,8 @@ def test_level_2_header(markdown_function, expected):
     [
         notify_letter_preview_markdown,
         (
-            '<p>a</p>'
-            '<p>b</p>'
+            'a<div class=\'linebreak-block\'>&nbsp;</div>'
+            'b<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],
     [
@@ -460,13 +462,11 @@ def test_unordered_list(markdown_function, expected):
     [
         notify_letter_preview_markdown,
         (
-            '<p>'
-            'line one<br>'
+            'line one<div class=\'linebreak\'>&nbsp;</div>'
             'line two'
-            '</p>'
-            '<p>'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
             'new paragraph'
-            '</p>'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],
     [
@@ -501,8 +501,10 @@ def test_paragraphs(markdown_function, expected):
     [
         notify_letter_preview_markdown,
         (
-            '<p>before</p>'
-            '<p>after</p>'
+            'before'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
+            'after'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],
     [
@@ -545,7 +547,8 @@ def test_table(markdown_function):
     [
         notify_letter_preview_markdown,
         'http://example.com',
-        '<p><strong>example.com</strong></p>'
+        '<strong>example.com</strong>'
+        '<div class=\'linebreak-block\'>&nbsp;</div>'
     ],
     [
         notify_email_markdown,
@@ -583,7 +586,7 @@ def test_autolink(markdown_function, link, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>variable called thing</p>'
+        'variable called thing<div class=\'linebreak-block\'>&nbsp;</div>'
     ],
     [
         notify_email_markdown,
@@ -603,7 +606,7 @@ def test_codespan(markdown_function, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>something important</p>'
+        'something important<div class=\'linebreak-block\'>&nbsp;</div>'
     ],
     [
         notify_email_markdown,
@@ -623,7 +626,7 @@ def test_double_emphasis(markdown_function, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>something important</p>'
+        'something important<div class=\'linebreak-block\'>&nbsp;</div>'
     ],
     [
         notify_email_markdown,
@@ -671,7 +674,8 @@ def test_image(markdown_function):
     [
         notify_letter_preview_markdown,
         (
-            '<p>Example: <strong>example.com</strong></p>'
+            'Example: <strong>example.com</strong>'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],
     [
@@ -701,7 +705,8 @@ def test_link(markdown_function, expected):
     [
         notify_letter_preview_markdown,
         (
-            '<p>Example: <strong>example.com</strong></p>'
+            'Example: <strong>example.com</strong>'
+            '<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],
     [
@@ -730,7 +735,7 @@ def test_link_with_title(markdown_function, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>Strike</p>'
+        'Strike<div class=\'linebreak-block\'>&nbsp;</div>'
     ],
     [
         notify_email_markdown,
@@ -944,6 +949,20 @@ def test_removing_sequence_used_to_force_newlines(raw, expected_output):
 ])
 def test_tweaking_dvla_list_markup(markup, expected_fixed):
     assert tweak_dvla_list_markup(markup) == expected_fixed
+
+
+@pytest.mark.parametrize('content', [
+    'foo bar baz',
+    'foo bar baz<div class=\'linebreak-block\'>&nbsp;</div>',
+    'foo bar baz<div class=\'linebreak-block\'>&nbsp;</div><div class=\'linebreak-block\'>&nbsp;</div>',
+    'foo bar baz <div class=\'linebreak-block\'>&nbsp;</div> <div class=\'linebreak-block\'>&nbsp;</div>',
+])
+def test_remove_trailing_linebreak(content):
+    assert remove_trailing_linebreak(
+        content
+    ) == (
+        'foo bar baz'
+    )
 
 
 def test_make_list_from_linebreaks():

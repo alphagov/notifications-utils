@@ -521,7 +521,7 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
         '</ul>'
     )
     assert jinja_template_locals['subject'] == 'Subject'
-    assert jinja_template_locals['message'] == "<p>Foo</p>"
+    assert jinja_template_locals['message'] == "Foo"
     assert jinja_template_locals['date'] == '1 January 2001'
     assert jinja_template_locals['contact_block'] == ''
     assert jinja_template_locals['admin_base_url'] == 'http://localhost:6012'
@@ -723,7 +723,7 @@ def test_templates_handle_html_and_redacting(
     ]),
     (LetterPreviewTemplate, {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
-        mock.call(Markup('<p>content</p>')),
+        mock.call(Markup('content<div class=\'linebreak-block\'>&nbsp;</div>')),
         mock.call((
             "<span class='placeholder-no-brackets'>address line 1</span>\n"
             "<span class='placeholder-no-brackets'>address line 2</span>\n"
@@ -782,7 +782,7 @@ def test_templates_remove_whitespace_before_punctuation(
     ]),
     (LetterPreviewTemplate, {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
-        mock.call(Markup('<p>content</p>')),
+        mock.call(Markup('content<div class=\'linebreak-block\'>&nbsp;</div>')),
     ]),
 ])
 @mock.patch('notifications_utils.template.make_quotes_smart', side_effect=lambda x: x)
@@ -1452,7 +1452,7 @@ def test_letter_address_format(address, expected):
             '<li>two</li>\n'
             '<li>three</li>\n'
             '</ul>\n'
-            '<p>New paragraph</p>\n'
+            'New paragraph\n'
         )
     ),
     (
@@ -1481,7 +1481,7 @@ def test_letter_address_format(address, expected):
             '3. three\n'
         ),
         (
-            '<p>Here’s an ordered list:</p><ol>\n'
+            'Here’s an ordered list:<div class=\'linebreak‑block\'>&nbsp;</div><ol>\n'
             '<li>one</li>\n'
             '<li>two</li>\n'
             '<li>three</li>\n'
@@ -1527,8 +1527,10 @@ def test_non_sms_ignores_message_too_long(template_class, kwargs):
         (
             'a\n\n\nb',
             (
-                '<p>a</p>'
-                '<p><br>b</p>'
+                'a'
+                '<div class=\'linebreak‑block\'>&nbsp;</div>'
+                '<div class=\'linebreak\'>&nbsp;</div>'
+                'b'
             ),
         ),
         (
@@ -1546,12 +1548,15 @@ def test_non_sms_ignores_message_too_long(template_class, kwargs):
                 'foo'
             ),
             (
-                '<p>a</p><ul>\n'
+                'a<div class=\'linebreak‑block\'>&nbsp;</div><ul>\n'
                 '<li>one</li>\n'
                 '<li>two</li>\n'
-                '<li>three<br>and a half</li>\n'
+                '<li>three<div class=\'linebreak\'>&nbsp;</div>and a half</li>\n'
                 '</ul>\n'
-                '<p><br><br><br>foo</p>'
+                '<div class=\'linebreak\'>&nbsp;</div>'
+                '<div class=\'linebreak\'>&nbsp;</div>'
+                '<div class=\'linebreak\'>&nbsp;</div>'
+                'foo'
             ),
         ),
     ]
@@ -1645,7 +1650,7 @@ def test_nested_lists_in_lettr_markup():
         '      <h1>\n'
         '        foo\n'
         '      </h1>\n'
-        '      <p>nested list:</p><ol>\n'
+        '      nested list:<div class=\'linebreak‑block\'>&nbsp;</div><ol>\n'
         '<li>one</li>\n'
         '<li>two</li>\n'
         '<li>three<ul>\n'
