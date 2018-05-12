@@ -324,6 +324,7 @@ def test_level_2_header(markdown_function, expected):
         notify_letter_preview_markdown,
         (
             'a<div class=\'linebreak-block\'>&nbsp;</div>'
+            '<div class="page-break">&nbsp;</div>'
             'b<div class=\'linebreak-block\'>&nbsp;</div>'
         )
     ],

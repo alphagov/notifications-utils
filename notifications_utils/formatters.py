@@ -281,7 +281,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return self.paragraph(text)
 
     def hrule(self):
-        return ""
+        return '<div class="page-break">&nbsp;</div>'
 
     def paragraph(self, text):
         if text.strip():
