@@ -110,6 +110,7 @@
     font-size: 12.5pt;
     line-height: {{ line_height }};
     margin: 0 0 {{ line_height }} 0;
+    orphans: 4;
   }
   #content ul,
   #content ol {
@@ -134,21 +135,8 @@
   #content ol ul {
     margin-left: -0.6em;
   }
-
-  .linebreak {
-    display: block;
-    width: 0.01em;
-    height: 0.01em;
-    overflow: hidden;
-  }
-
-  .linebreak + .linebreak,
-  .block-linebreak {
-    display: block;
-    overflow: hidden;
-    margin: 0;
-    width: 0.01em;
-    height: {{ line_height }};
+  #content *:last-child {
+    margin-bottom: 0;
   }
 
   .page‑break {

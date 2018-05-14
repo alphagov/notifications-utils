@@ -217,24 +217,6 @@ def normalise_newlines(value):
     return '\n'.join(value.splitlines())
 
 
-def make_markdown_take_notice_of_multiple_newlines(value):
-    return re.sub(
-        multiple_newlines,
-        lambda match: '\n\n{}'.format(
-            (MAGIC_SEQUENCE + '\n') * (len(match.group(1)) - 2)
-        ),
-        normalise_newlines(value)
-    )
-
-
-def strip_characters_inserted_to_force_newlines(value):
-    return re.sub(
-        magic_sequence_regex,
-        '',
-        value
-    )
-
-
 def strip_leading_whitespace(value):
     return value.lstrip()
 
@@ -245,20 +227,6 @@ def add_trailing_newline(value):
 
 def tweak_dvla_list_markup(value):
     return value.replace('<cr><cr><np>', '<cr><np>').replace('<p><cr><p><cr>', '<p><cr>')
-
-
-def remove_trailing_linebreak(value):
-
-    block_linebreak = NotifyLetterMarkdownPreviewRenderer.block_linebreak(None)
-
-    if value.endswith(block_linebreak):
-        return remove_trailing_linebreak(
-            value[:(
-                -1 * len(block_linebreak)
-            )].rstrip()
-        )
-    else:
-        return value
 
 
 def strip_whitespace(value):
@@ -285,7 +253,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def paragraph(self, text):
         if text.strip():
-            return '{}{}'.format(text, self.block_linebreak())
+            return '<p>{}</p>'.format(text)
         return ''
 
     def table(self, header, body):
@@ -308,11 +276,8 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def image(self, src, title, alt_text):
         return ""
 
-    def block_linebreak(self):
-        return "<div class='linebreak-block'>&nbsp;</div>"
-
     def linebreak(self):
-        return "<div class='linebreak'>&nbsp;</div>"
+        return "<br>"
 
     def newline(self):
         return self.linebreak()

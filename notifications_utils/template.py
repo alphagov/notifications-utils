@@ -25,11 +25,8 @@ from notifications_utils.formatters import (
     remove_whitespace_before_punctuation,
     make_quotes_smart,
     replace_hyphens_with_en_dashes,
-    make_markdown_take_notice_of_multiple_newlines,
-    strip_characters_inserted_to_force_newlines,
     replace_hyphens_with_non_breaking_hyphens,
     tweak_dvla_list_markup,
-    remove_trailing_linebreak,
     strip_leading_whitespace,
     add_trailing_newline,
     normalise_newlines,
@@ -421,15 +418,9 @@ class LetterPreviewTemplate(WithSubjectTemplate):
             )).then(
                 strip_pipes
             ).then(
-                make_markdown_take_notice_of_multiple_newlines
-            ).then(
                 notify_letter_preview_markdown
             ).then(
-                strip_characters_inserted_to_force_newlines
-            ).then(
                 do_nice_typography
-            ).then(
-                remove_trailing_linebreak
             ).then(
                 replace_hyphens_with_non_breaking_hyphens
             ).then(
