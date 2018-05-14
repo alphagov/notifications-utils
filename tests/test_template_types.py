@@ -1528,7 +1528,7 @@ def test_non_sms_ignores_message_too_long(template_class, kwargs):
             'a\n\n\nb',
             (
                 '<p>a</p>'
-                '<p><br>b</p>'
+                '<p>b</p>'
             ),
         ),
         (
@@ -1551,7 +1551,7 @@ def test_non_sms_ignores_message_too_long(template_class, kwargs):
                 '<li>two</li>\n'
                 '<li>three<br>and a half</li>\n'
                 '</ul>\n'
-                '<p><br><br><br>foo</p>'
+                '<p>foo</p>'
             ),
         ),
     ]
