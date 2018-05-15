@@ -39,3 +39,16 @@ def s3upload(filedata, region, bucket_name, file_location, content_type='binary/
         put_args['Tagging'] = tags
 
     key.put(**put_args)
+
+
+class S3ObjectNotFound(botocore.exceptions.ClientError):
+    pass
+
+
+def s3download(bucket_name, filename):
+    try:
+        s3 = resource('s3')
+        key = s3.Object(bucket_name, filename)
+        return key.get()['Body']
+    except botocore.exceptions.ClientError as error:
+        raise S3ObjectNotFound(error.response, error.operation_name)
