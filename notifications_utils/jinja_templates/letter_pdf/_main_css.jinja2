@@ -110,9 +110,7 @@
     font-size: 12.5pt;
     line-height: {{ line_height }};
     margin: 0 0 {{ line_height }} 0;
-  }
-  p br:last-child, p br:first-child {
-    display: none;
+    orphans: 4;
   }
   #content ul,
   #content ol {
@@ -137,6 +135,15 @@
   #content ol ul {
     margin-left: -0.6em;
   }
+  #content *:last-child {
+    margin-bottom: 0;
+  }
+
+  .page‑break {
+    page-break-after: always;
+    height: 0;
+  }
+
   .placeholder {
     display: inline;
     background-color: #FFBF47;

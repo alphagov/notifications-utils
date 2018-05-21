@@ -3,7 +3,7 @@ from urllib.parse import parse_qs
 import botocore
 import pytest
 
-from notifications_utils.s3 import s3upload
+from notifications_utils.s3 import s3download, s3upload, S3ObjectNotFound
 
 contents = 'some file data'
 region = 'eu-west-1'
@@ -82,3 +82,23 @@ def test_s3upload_save_file_to_bucket_with_urlencoded_tags(mocker):
     # make sure tags were a urlencoded query string
     encoded_tags = mocked_put.call_args[1]['Tagging']
     assert parse_qs(encoded_tags) == {'a': ['1/2'], 'b': ['x y']}
+
+
+def test_s3download_gets_file(mocker):
+    mocked = mocker.patch('notifications_utils.s3.resource')
+    mocked_object = mocked.return_value.Object
+    mocked_get = mocked.return_value.Object.return_value.get
+    s3download('bucket', 'location.file')
+    mocked_object.assert_called_once_with('bucket', 'location.file')
+    mocked_get.assert_called_once_with()
+
+
+def test_s3download_raises_on_error(mocker):
+    mocked = mocker.patch('notifications_utils.s3.resource')
+    mocked.return_value.Object.side_effect = botocore.exceptions.ClientError(
+        {'Error': {'Code': 404}},
+        'Bad exception',
+    )
+
+    with pytest.raises(S3ObjectNotFound):
+        s3download('bucket', 'location.file')

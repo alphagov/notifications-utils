@@ -217,24 +217,6 @@ def normalise_newlines(value):
     return '\n'.join(value.splitlines())
 
 
-def make_markdown_take_notice_of_multiple_newlines(value):
-    return re.sub(
-        multiple_newlines,
-        lambda match: '\n\n{}'.format(
-            (MAGIC_SEQUENCE + '\n') * (len(match.group(1)) - 2)
-        ),
-        normalise_newlines(value)
-    )
-
-
-def strip_characters_inserted_to_force_newlines(value):
-    return re.sub(
-        magic_sequence_regex,
-        '',
-        value
-    )
-
-
 def strip_leading_whitespace(value):
     return value.lstrip()
 
@@ -267,7 +249,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return self.paragraph(text)
 
     def hrule(self):
-        return ""
+        return '<div class="page-break">&nbsp;</div>'
 
     def paragraph(self, text):
         if text.strip():
