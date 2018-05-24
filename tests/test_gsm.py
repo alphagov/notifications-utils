@@ -1,6 +1,6 @@
 import pytest
 
-from notifications_utils import gsm
+from notifications_utils.sanitise_text import SanitiseGSM
 
 
 params, ids = zip(
@@ -32,7 +32,7 @@ params, ids = zip(
 
 @pytest.mark.parametrize('char, expected', params, ids=ids)
 def test_encode_char(char, expected):
-    assert gsm.encode_char(char) == expected
+    assert SanitiseGSM.encode_char(char) == expected
 
 
 @pytest.mark.parametrize('codepoint, char', [
@@ -40,7 +40,7 @@ def test_encode_char(char, expected):
     ('0061', 'a'),
 ])
 def test_get_unicode_char_from_codepoint(codepoint, char):
-    assert gsm.get_unicode_char_from_codepoint(codepoint) == char
+    assert SanitiseGSM.get_unicode_char_from_codepoint(codepoint) == char
 
 
 @pytest.mark.parametrize('bad_input', [
@@ -51,7 +51,7 @@ def test_get_unicode_char_from_codepoint(codepoint, char):
 ])
 def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
     with pytest.raises(ValueError):
-        gsm.get_unicode_char_from_codepoint(bad_input)
+        SanitiseGSM.get_unicode_char_from_codepoint(bad_input)
 
 
 @pytest.mark.parametrize('content, expected', [
@@ -59,7 +59,7 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
     ('The quick brown fox jumps over the lazy dog', 'The quick brown fox jumps over the lazy dog'),
 ])
 def test_encode_string(content, expected):
-    assert gsm.encode(content) == expected
+    assert SanitiseGSM.encode(content) == expected
 
 
 @pytest.mark.parametrize('content, expected', [
@@ -68,4 +68,4 @@ def test_encode_string(content, expected):
     ('Need more 🐮🔔', {'🐮', '🔔'})
 ])
 def test_get_non_gsm_compatible_characters(content, expected):
-    assert gsm.get_non_gsm_compatible_characters(content) == expected
+    assert SanitiseGSM.get_non_gsm_compatible_characters(content) == expected
