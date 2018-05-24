@@ -1,18 +1,12 @@
 import pytest
 
-from notifications_utils.sanitise_text import SanitiseGSM
+from notifications_utils.sanitise_text import SanitiseText, SanitiseGSM, SanitiseASCII
 
 
 params, ids = zip(
     (('a', 'a'), 'ascii char (a)'),
-    # ascii control chars (in GSM)
-    (('\n', '\n'), 'ascii control char in gsm (newline)'),
-    (('\r', '\r'), 'ascii control char in gsm (return)'),
     # ascii control char (not in GSM)
     (('\t', ' '), 'ascii control char not in gsm (tab)'),
-    # this is in GSM charset so is preserved
-    (('à', 'à'), 'non-ascii gsm char (a with accent)'),
-    (('€', '€'), 'non-ascii gsm char (euro)'),
     # thes are not in GSM charset so are downgraded
     (('â', 'a'), 'decomposed unicode char (a with hat)'),
     (('ç', 'c'), 'decomposed unicode char (C with cedilla)'),
@@ -31,8 +25,25 @@ params, ids = zip(
 
 
 @pytest.mark.parametrize('char, expected', params, ids=ids)
-def test_encode_char(char, expected):
-    assert SanitiseGSM.encode_char(char) == expected
+@pytest.mark.parametrize('cls', [SanitiseGSM, SanitiseASCII])
+def test_encode_chars_the_same_for_ascii_and_gsm(char, expected, cls):
+    assert cls.encode_char(char) == expected
+
+
+params, ids = zip(
+    # ascii control chars are allowed in GSM but not in ASCII
+    (('\n', '\n', '?'), 'ascii control char in gsm (newline)'),
+    (('\r', '\r', '?'), 'ascii control char in gsm (return)'),
+    # These characters are present in GSM but not in ascii
+    (('à', 'à', 'a'), 'non-ascii gsm char (a with accent)'),
+    (('€', '€', '?'), 'non-ascii gsm char (euro)'),
+)
+
+
+@pytest.mark.parametrize('char, expected_gsm, expected_ascii', params, ids=ids)
+def test_encode_chars_different_between_ascii_gsm(char, expected_gsm, expected_ascii):
+    assert SanitiseGSM.encode_char(char) == expected_gsm
+    assert SanitiseASCII.encode_char(char) == expected_ascii
 
 
 @pytest.mark.parametrize('codepoint, char', [
@@ -40,7 +51,7 @@ def test_encode_char(char, expected):
     ('0061', 'a'),
 ])
 def test_get_unicode_char_from_codepoint(codepoint, char):
-    assert SanitiseGSM.get_unicode_char_from_codepoint(codepoint) == char
+    assert SanitiseText.get_unicode_char_from_codepoint(codepoint) == char
 
 
 @pytest.mark.parametrize('bad_input', [
@@ -51,7 +62,7 @@ def test_get_unicode_char_from_codepoint(codepoint, char):
 ])
 def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
     with pytest.raises(ValueError):
-        SanitiseGSM.get_unicode_char_from_codepoint(bad_input)
+        SanitiseText.get_unicode_char_from_codepoint(bad_input)
 
 
 @pytest.mark.parametrize('content, expected', [
@@ -60,12 +71,15 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
 ])
 def test_encode_string(content, expected):
     assert SanitiseGSM.encode(content) == expected
+    assert SanitiseASCII.encode(content) == expected
 
 
-@pytest.mark.parametrize('content, expected', [
-    ('The quick brown fox jumps over the lazy dog', set()),
-    ('The “quick” brown fox has some downgradable characters', set()),
-    ('Need more 🐮🔔', {'🐮', '🔔'})
+@pytest.mark.parametrize('content, cls, expected', [
+    ('The quick brown fox jumps over the lazy dog', SanitiseGSM, set()),
+    ('The “quick” brown fox has some downgradable characters', SanitiseGSM, set()),
+    ('Need more 🐮🔔', SanitiseGSM, {'🐮', '🔔'}),
+    ('Lots of GSM chars that arent ascii compatible:\n\r€', SanitiseGSM, set()),
+    ('Lots of GSM chars that arent ascii compatible:\n\r€', SanitiseASCII, {'\n', '\r', '€'}),
 ])
-def test_get_non_gsm_compatible_characters(content, expected):
-    assert SanitiseGSM.get_non_gsm_compatible_characters(content) == expected
+def test_gsm_get_non_compatible_characters(content, cls, expected):
+    assert cls.get_non_compatible_characters(content) == expected

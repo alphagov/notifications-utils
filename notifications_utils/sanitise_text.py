@@ -29,8 +29,8 @@ class SanitiseText:
         """
         return set(c for c in content if c not in cls.ALLOWED_CHARACTERS and cls.downgrade_character(c) is None)
 
-    @classmethod
-    def get_unicode_char_from_codepoint(cls, codepoint):
+    @staticmethod
+    def get_unicode_char_from_codepoint(codepoint):
         """
         Given a unicode codepoint (eg 002E for '.', 0061 for 'a', etc), return that actual unicode character.
 
@@ -97,4 +97,11 @@ class SanitiseGSM(SanitiseText):
 
 
 class SanitiseASCII(SanitiseText):
-    ALLOWED_CHARACTERS = set('all printable ascii characters')
+    """
+    As GSM above, but the allowed characters are printable ascii, from character range 32 to 126 inclusive.
+    [chr(x) for x in range(32, 127)]
+    """
+    ALLOWED_CHARACTERS = set(
+        ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+        '[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+    )
