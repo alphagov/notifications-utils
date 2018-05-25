@@ -6,7 +6,7 @@ import mistune
 import bleach
 from itertools import count
 from flask import Markup
-from notifications_utils import gsm
+from notifications_utils.sanitise_text import SanitiseGSM
 import smartypants
 
 
@@ -102,7 +102,7 @@ def remove_empty_lines(lines):
 
 
 def gsm_encode(content):
-    return gsm.encode(content)
+    return SanitiseGSM.encode(content)
 
 
 def strip_html(value):
