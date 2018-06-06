@@ -11,7 +11,7 @@ from orderedset import OrderedSet
 
 from flask import current_app
 
-from notifications_utils.formatters import formatted_list, strip_whitespace, OBSCURE_WHITESPACE
+from notifications_utils.formatters import strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
 from notifications_utils.international_billing_rates import (
@@ -485,13 +485,6 @@ def validate_and_format_email_address(email_address):
 
 
 def validate_address(address_line, column):
-    if address_line:
-        invalid_chars = sorted(set(c for c in address_line if ord(c) > 255))
-        if invalid_chars:
-            raise InvalidAddressError(
-                "Can’t include {}".format(
-                    formatted_list(items=invalid_chars, before_each='', after_each='', conjunction='or')))
-
     if Columns.make_key(column) in Columns.from_keys(optional_address_columns).keys():
         return address_line
     if Columns.make_key(column) not in Columns.from_keys(first_column_headings['letter']).keys():
