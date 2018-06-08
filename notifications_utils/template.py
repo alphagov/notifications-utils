@@ -408,6 +408,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         return Markup(self.jinja_template.render({
             'admin_base_url': self.admin_base_url,
             'logo_file_name': self.logo_file_name,
+            'logo_class': 'svg' if self.logo_file_name.lower().endswith('svg') else 'png',
             'subject': self.subject,
             'message': Take(Field(
                 strip_dvla_markup(self.content),
