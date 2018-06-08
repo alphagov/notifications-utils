@@ -16,6 +16,9 @@ class Columns(dict):
     def __getitem__(self, key):
         return super().get(Columns.make_key(key))
 
+    def __contains__(self, key):
+        return Columns.make_key(key) in super().copy()
+
     def get(self, key, default=None):
         return self[key] if self[key] is not None else default
 
