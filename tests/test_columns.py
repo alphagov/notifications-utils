@@ -1,3 +1,5 @@
+import pytest
+
 from functools import partial
 from notifications_utils.columns import Columns, Row, Cell
 
@@ -38,3 +40,17 @@ def test_missing_data():
     assert partial_row()['foo'] == Cell()
     assert partial_row().get('foo') == Cell()
     assert partial_row().get('foo', 'bar') == 'bar'
+
+
+@pytest.mark.parametrize('in_dictionary', [
+    {'foo': 'bar'},
+    {'F_O O': 'bar'},
+])
+@pytest.mark.parametrize('key, should_be_present', [
+    ('foo', True),
+    ('f_o_o', True),
+    ('F O O', True),
+    ('bar', False),
+])
+def test_lookup(key, should_be_present, in_dictionary):
+    assert (key in Columns(in_dictionary)) == should_be_present
