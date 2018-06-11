@@ -450,9 +450,9 @@ def test_sms_message_normalises_newlines(content):
         )
     )
 ])
-@pytest.mark.parametrize('extra_args, expected_logo_file_name', [
-    ({}, 'hm-government.svg'),
-    ({'logo_file_name': 'example.jpg'}, 'example.jpg'),
+@pytest.mark.parametrize('extra_args, expected_logo_file_name, expected_logo_class', [
+    ({}, 'hm-government.svg', 'svg'),
+    ({'logo_file_name': 'example.jpg'}, 'example.jpg', 'png'),
 ])
 @pytest.mark.parametrize('additional_extra_args, expected_date', [
     ({}, '12 December 2012'),
@@ -471,6 +471,7 @@ def test_letter_preview_renderer(
     expected_rendered_contact_block,
     extra_args,
     expected_logo_file_name,
+    expected_logo_class,
     additional_extra_args,
     expected_date,
 ):
@@ -490,6 +491,7 @@ def test_letter_preview_renderer(
         'contact_block': expected_rendered_contact_block,
         'admin_base_url': 'http://localhost:6012',
         'logo_file_name': expected_logo_file_name,
+        'logo_class': expected_logo_class,
     })
     letter_markdown.assert_called_once_with(Markup('Foo'))
     unlink_govuk.assert_not_called()
@@ -1711,3 +1713,18 @@ def test_plain_text_email_whitespace():
         '1. one not four\n'
         '2. two not five\n'
     )
+
+
+@pytest.mark.parametrize("template_class", [
+    LetterPreviewTemplate,
+    LetterPrintTemplate,
+])
+@pytest.mark.parametrize("filename, expected_html_class", [
+    ('example.png', 'class="png"'),
+    ('example.svg', 'class="svg"'),
+])
+def test_image_class_applied_to_logo(template_class, filename, expected_html_class):
+    assert expected_html_class in str(template_class(
+        {'content': 'Foo', 'subject': 'Subject'},
+        logo_file_name=filename,
+    ))
