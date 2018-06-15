@@ -38,6 +38,8 @@ setup(
         'smartypants==2.0.1',
         'monotonic==1.4',
         'pypdf2==1.26.0',
+        'Pillow==5.0.0',
+        'reportlab==3.4.0',
 
         # required by both api and admin
         'awscli==1.14.62',
