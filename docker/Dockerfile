@@ -17,7 +17,8 @@ RUN \
 		curl \
 		git \
 		build-essential \
-
+		libjpeg-dev \
+		zlib1g-dev \
 	&& echo "Clean up" \
 	&& rm -rf /var/lib/apt/lists/* /tmp/*
 
