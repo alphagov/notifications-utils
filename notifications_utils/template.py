@@ -14,6 +14,7 @@ from notifications_utils.formatters import (
     nl2br,
     nl2li,
     add_prefix,
+    autolink_sms,
     notify_email_markdown,
     notify_plain_text_email_markdown,
     notify_letter_preview_markdown,
@@ -217,6 +218,8 @@ class SMSPreviewTemplate(SMSMessageTemplate):
                 remove_whitespace_before_punctuation
             ).then(
                 nl2br
+            ).then(
+                autolink_sms
             )
         }))
 

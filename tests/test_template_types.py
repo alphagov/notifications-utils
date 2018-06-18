@@ -184,6 +184,13 @@ def test_markdown_in_templates(
 
 
 @pytest.mark.parametrize(
+    'template_class', [
+        HTMLEmailTemplate,
+        EmailPreviewTemplate,
+        SMSPreviewTemplate,
+    ]
+)
+@pytest.mark.parametrize(
     "url, url_with_entities_replaced", [
         ("http://example.com", "http://example.com"),
         ("http://www.gov.uk/", "http://www.gov.uk/"),
@@ -203,12 +210,10 @@ def test_markdown_in_templates(
         pytest.mark.xfail(("mailto:test@example.com", "mailto:test@example.com")),
     ]
 )
-def test_makes_links_out_of_URLs(url, url_with_entities_replaced):
-    link = '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(
+def test_makes_links_out_of_URLs(template_class, url, url_with_entities_replaced):
+    assert '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(
         url_with_entities_replaced, url_with_entities_replaced
-    )
-    assert link in str(HTMLEmailTemplate({'content': url, 'subject': ''}))
-    assert link in str(EmailPreviewTemplate({'content': url, 'subject': ''}))
+    ) in str(template_class({'content': url, 'subject': ''}))
 
 
 def test_HTML_template_has_URLs_replaced_with_links():

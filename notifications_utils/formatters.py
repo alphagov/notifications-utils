@@ -68,6 +68,10 @@ MAGIC_SEQUENCE = "🇬🇧🐦✉️"
 
 magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
 
+# The Mistune URL regex only matches URLs at the start of a string,
+# using `^`, so we slice that off and recompile
+url = re.compile(mistune.InlineGrammar.url.pattern[1:])
+
 
 def unlink_govuk_escaped(message):
     return re.sub(
@@ -91,6 +95,15 @@ def add_prefix(body, prefix=None):
     if prefix:
         return "{}: {}".format(prefix.strip(), body)
     return body
+
+
+def autolink_sms(body):
+    return url.sub(
+        lambda match: '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(
+            match.group(1), match.group(1),
+        ),
+        body,
+    )
 
 
 def prepend_subject(body, subject):
