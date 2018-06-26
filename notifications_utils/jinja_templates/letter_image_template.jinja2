@@ -3,3 +3,28 @@
     <img src="{{ image_url }}?page={{ page_number }}">
   </div>
 {% endfor %}
+
+<div class="visually-hidden">
+  <h3>
+    Recipient address
+  </h3>
+  <p>
+    {{ address }}
+  </p>
+  <h3>
+    Contact block
+  </h3>
+  <p>
+    {{ contact_block }}
+  </p>
+  <h3>
+    Content
+  </h3>
+  <p>
+    {{ date }}
+  </p>
+  <h3>
+    {{ subject }}
+  </h3>
+  {{ message }}
+</div>
