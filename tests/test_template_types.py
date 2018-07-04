@@ -535,16 +535,33 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
     assert jinja_template_locals['logo_file_name'] == 'hm-government.svg'
 
 
+@freeze_time("2012-12-12 12:12:12")
 @mock.patch('notifications_utils.template.LetterImageTemplate.jinja_template.render')
 def test_letter_image_renderer(jinja_template):
     str(LetterImageTemplate(
-        {'content': '', 'subject': ''},
+        {'content': 'Content', 'subject': 'Subject'},
         image_url='http://example.com/endpoint.png',
         page_count=99,
+        contact_block='10 Downing Street',
     ))
     jinja_template.assert_called_once_with({
         'image_url': 'http://example.com/endpoint.png',
         'page_numbers': range(1, 100),
+        'address': (
+            "<ul>"
+            "<li><span class='placeholder-no-brackets'>address line 1</span></li>"
+            "<li><span class='placeholder-no-brackets'>address line 2</span></li>"
+            "<li><span class='placeholder-no-brackets'>address line 3</span></li>"
+            "<li><span class='placeholder-no-brackets'>address line 4</span></li>"
+            "<li><span class='placeholder-no-brackets'>address line 5</span></li>"
+            "<li><span class='placeholder-no-brackets'>address line 6</span></li>"
+            "<li><span class='placeholder-no-brackets'>postcode</span></li>"
+            "</ul>"
+        ),
+        'contact_block': '10 Downing Street',
+        'date': '12 December 2012',
+        'subject': 'Subject',
+        'message': '<p>Content</p>',
     })
 
 
@@ -652,7 +669,21 @@ def test_subject_line_gets_replaced():
         ), {}, with_brackets=False, html='escape'),
         mock.call('www.gov.uk', {}, html='escape', redact_missing_personalisation=False),
     ]),
-    (LetterImageTemplate, {'image_url': 'http://example.com', 'page_count': 1}, [
+    (LetterImageTemplate, {
+        'image_url': 'http://example.com', 'page_count': 1, 'contact_block': 'www.gov.uk'
+    }, [
+        mock.call((
+            '((address line 1))\n'
+            '((address line 2))\n'
+            '((address line 3))\n'
+            '((address line 4))\n'
+            '((address line 5))\n'
+            '((address line 6))\n'
+            '((postcode))'
+        ), {}, with_brackets=False, html='escape'),
+        mock.call('www.gov.uk', {}, html='escape', redact_missing_personalisation=False),
+        mock.call('subject', {}, html='escape', redact_missing_personalisation=False),
+        mock.call('content', {}, html='escape', markdown_lists=True, redact_missing_personalisation=False),
     ]),
     (Template, {'redact_missing_personalisation': True}, [
         mock.call('content', {}, html='escape', redact_missing_personalisation=True),

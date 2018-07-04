@@ -413,60 +413,10 @@ class LetterPreviewTemplate(WithSubjectTemplate):
             'logo_file_name': self.logo_file_name,
             'logo_class': 'svg' if self.logo_file_name.lower().endswith('svg') else 'png',
             'subject': self.subject,
-            'message': Take(Field(
-                strip_dvla_markup(self.content),
-                self.values,
-                html='escape',
-                markdown_lists=True,
-                redact_missing_personalisation=self.redact_missing_personalisation,
-            )).then(
-                strip_pipes
-            ).then(
-                notify_letter_preview_markdown
-            ).then(
-                do_nice_typography
-            ).then(
-                replace_hyphens_with_non_breaking_hyphens
-            ).then(
-                tweak_dvla_list_markup
-            ),
-            'address': Take(Field(
-                self.address_block,
-                (
-                    self.values_with_default_optional_address_lines
-                    if all(Columns(self.values).get(key) for key in {
-                        'address line 1',
-                        'address line 2',
-                        'postcode',
-                    }) else self.values
-                ),
-                html='escape',
-                with_brackets=False
-            )).then(
-                strip_pipes
-            ).then(
-                remove_empty_lines
-            ).then(
-                remove_whitespace_before_punctuation
-            ).then(
-                nl2li
-            ),
-            'contact_block': Take(Field(
-                '\n'.join(
-                    line.strip()
-                    for line in self.contact_block.split('\n')
-                ),
-                self.values,
-                redact_missing_personalisation=self.redact_missing_personalisation,
-                html='escape',
-            )).then(
-                remove_whitespace_before_punctuation
-            ).then(
-                nl2br
-            ).then(
-                strip_pipes
-            ),
-            'date': self.date.strftime('%-d %B %Y'),
+            'message': self._message,
+            'address': self._address_block,
+            'contact_block': self._contact_block,
+            'date': self._date,
         }))
 
     @property
@@ -504,6 +454,72 @@ class LetterPreviewTemplate(WithSubjectTemplate):
             for key in keys
         }
 
+    @property
+    def _address_block(self):
+        return Take(Field(
+            self.address_block,
+            (
+                self.values_with_default_optional_address_lines
+                if all(Columns(self.values).get(key) for key in {
+                    'address line 1',
+                    'address line 2',
+                    'postcode',
+                }) else self.values
+            ),
+            html='escape',
+            with_brackets=False
+        )).then(
+            strip_pipes
+        ).then(
+            remove_empty_lines
+        ).then(
+            remove_whitespace_before_punctuation
+        ).then(
+            nl2li
+        )
+
+    @property
+    def _contact_block(self):
+        return Take(Field(
+            '\n'.join(
+                line.strip()
+                for line in self.contact_block.split('\n')
+            ),
+            self.values,
+            redact_missing_personalisation=self.redact_missing_personalisation,
+            html='escape',
+        )).then(
+            remove_whitespace_before_punctuation
+        ).then(
+            nl2br
+        ).then(
+            strip_pipes
+        )
+
+    @property
+    def _date(self):
+        return self.date.strftime('%-d %B %Y')
+
+    @property
+    def _message(self):
+        return Take(Field(
+            strip_dvla_markup(self.content),
+            self.values,
+            html='escape',
+            markdown_lists=True,
+            redact_missing_personalisation=self.redact_missing_personalisation,
+        )).then(
+            strip_pipes
+        ).then(
+            notify_letter_preview_markdown
+        ).then(
+            do_nice_typography
+        ).then(
+            replace_hyphens_with_non_breaking_hyphens
+        ).then(
+            tweak_dvla_list_markup
+        )
+
 
 class LetterPrintTemplate(LetterPreviewTemplate):
 
@@ -534,6 +550,11 @@ class LetterImageTemplate(LetterPreviewTemplate):
         return Markup(self.jinja_template.render({
             'image_url': self.image_url,
             'page_numbers': range(1, self.page_count + 1),
+            'address': self._address_block,
+            'contact_block': self._contact_block,
+            'date': self._date,
+            'subject': self.subject,
+            'message': self._message,
         }))
 
 
