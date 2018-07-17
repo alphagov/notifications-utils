@@ -6,6 +6,7 @@ import mistune
 import bleach
 from itertools import count
 from flask import Markup
+from . import email_with_smart_quotes_regex
 from notifications_utils.sanitise_text import SanitiseGSM
 import smartypants
 
@@ -240,6 +241,20 @@ def add_trailing_newline(value):
 
 def tweak_dvla_list_markup(value):
     return value.replace('<cr><cr><np>', '<cr><np>').replace('<p><cr><p><cr>', '<p><cr>')
+
+
+def remove_smart_quotes_from_email_addresses(value):
+
+    def remove_smart_quotes(match):
+        value = match.group(0)
+        for character in '‘’':
+            value = value.replace(character, "'")
+        return value
+
+    return email_with_smart_quotes_regex.sub(
+        remove_smart_quotes,
+        value,
+    )
 
 
 def strip_whitespace(value):
