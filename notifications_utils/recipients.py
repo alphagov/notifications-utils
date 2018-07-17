@@ -11,6 +11,7 @@ from orderedset import OrderedSet
 
 from flask import current_app
 
+from . import email_regex, hostname_part, tld_part
 from notifications_utils.formatters import strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
@@ -42,14 +43,6 @@ optional_address_columns = {
     'address line 5',
     'address line 6',
 }
-
-# regexes for use in validate_email_address.
-# Valid characters taken from https://en.wikipedia.org/wiki/Email_address#Local-part
-# Note: Normal apostrophe eg `Firstname-o'surname@domain.com` is allowed.
-VALID_LOCAL_CHARS = r"a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\-"
-email_regex = re.compile(r'^[{}]+@([^.@][^@]+)$'.format(VALID_LOCAL_CHARS))
-hostname_part = re.compile(r'^(xn-|[a-z0-9]+)(-[a-z0-9]+)*$', re.IGNORECASE)
-tld_part = re.compile(r'^([a-z]{2,63}|xn--([a-z0-9]+-)*[a-z0-9]+)$', re.IGNORECASE)
 
 
 class RecipientCSV():

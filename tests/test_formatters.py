@@ -17,6 +17,7 @@ from notifications_utils.formatters import (
     tweak_dvla_list_markup,
     nl2li,
     strip_whitespace,
+    remove_smart_quotes_from_email_addresses,
 )
 from notifications_utils.template import (
     HTMLEmailTemplate,
@@ -950,3 +951,15 @@ def test_make_list_from_linebreaks():
 ])
 def test_strip_whitespace(value):
     assert strip_whitespace(value) == 'bar'
+
+
+def test_remove_smart_quotes_from_email_addresses():
+    assert remove_smart_quotes_from_email_addresses("""
+        line one’s quote
+        first.o’last@example.com is someone’s email address
+        line ‘three’
+    """) == ("""
+        line one’s quote
+        first.o'last@example.com is someone’s email address
+        line ‘three’
+    """)

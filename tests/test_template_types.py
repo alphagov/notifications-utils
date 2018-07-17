@@ -843,6 +843,24 @@ def test_templates_make_quotes_smart_and_dashes_en(
     mock_en_dash_replacement.assert_has_calls(expected_calls)
 
 
+@pytest.mark.parametrize('content', (
+    "first.o'last@example.com",
+    "first.o’last@example.com",
+))
+@pytest.mark.parametrize('template_class', (
+    HTMLEmailTemplate,
+    PlainTextEmailTemplate,
+    EmailPreviewTemplate,
+))
+def test_no_smart_quotes_in_email_addresses(template_class, content):
+    template = template_class({
+        'content': content,
+        'subject': content,
+    })
+    assert "first.o'last@example.com" in str(template)
+    assert template.subject == "first.o'last@example.com"
+
+
 def test_basic_templates_return_markup():
 
     template_dict = {'content': 'content', 'subject': 'subject'}
