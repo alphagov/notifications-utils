@@ -3,7 +3,7 @@ pytest==3.6.3
 pytest-mock==1.10.0
 pytest-cov==2.5.1
 pytest-xdist==1.22.2
-requests-mock==1.5.0
+requests-mock==1.5.1
 freezegun==0.3.10
 flake8==3.5.0
 flake8-print==3.1.0
