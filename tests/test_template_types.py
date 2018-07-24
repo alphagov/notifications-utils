@@ -66,7 +66,7 @@ def test_brand_banner_shows():
         '<td width="10" height="10" valign="middle"></td>'
     ) not in email
     assert (
-        'role="presentation" width="100%" style="min-width: 100%;width: 100% !important;"'
+        'role="presentation" width="100%" style="border-collapse: collapse;min-width: 100%;width: 100% !important;"'
     ) in email
 
 
