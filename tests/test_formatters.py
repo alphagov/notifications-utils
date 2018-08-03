@@ -403,6 +403,43 @@ def test_ordered_list(markdown_function, expected):
     ) == expected
 
 
+@pytest.mark.parametrize('markdown', (
+    (  # no space
+        '*one\n'
+        '*two\n'
+        '*three\n'
+    ),
+    (  # single space
+        '* one\n'
+        '* two\n'
+        '* three\n'
+    ),
+    (  # two spaces
+        '*  one\n'
+        '*  two\n'
+        '*  three\n'
+    ),
+    (  # tab
+        '*  one\n'
+        '*  two\n'
+        '*  three\n'
+    ),
+    (  # dash as bullet
+        '- one\n'
+        '- two\n'
+        '- three\n'
+    ),
+    (  # plus as bullet
+        '+ one\n'
+        '+ two\n'
+        '+ three\n'
+    ),
+    (  # bullet as bullet
+        '• one\n'
+        '• two\n'
+        '• three\n'
+    ),
+))
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
@@ -443,17 +480,8 @@ def test_ordered_list(markdown_function, expected):
         ),
     ],
 ))
-def test_unordered_list(markdown_function, expected):
-    assert markdown_function(
-        '* one\n'
-        '* two\n'
-        '* three\n'
-    ) == expected
-    assert markdown_function(
-        '*one\n'
-        '*two\n'
-        '*three\n'
-    ) == expected
+def test_unordered_list(markdown, markdown_function, expected):
+    assert markdown_function(markdown) == expected
 
 
 @pytest.mark.parametrize('markdown_function, expected', (

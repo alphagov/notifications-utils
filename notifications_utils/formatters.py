@@ -24,14 +24,14 @@ OBSCURE_WHITESPACE = (
 mistune._block_quote_leading_pattern = re.compile(r'^ *\^ ?', flags=re.M)
 mistune.BlockGrammar.block_quote = re.compile(r'^( *\^[^\n]+(\n[^\n]+)*\n*)+')
 mistune.BlockGrammar.list_block = re.compile(
-    r'^( *)([*+-]|\d+\.)[\s\S]+?'
+    r'^( *)([•*+-]|\d+\.)[\s\S]+?'
     r'(?:'
     r'\n+(?=\1?(?:[-*_] *){3,}(?:\n+|$))'  # hrule
     r'|\n+(?=%s)'  # def links
     r'|\n+(?=%s)'  # def footnotes
     r'|\n{2,}'
     r'(?! )'
-    r'(?!\1(?:[*+-]|\d+\.) )\n*'
+    r'(?!\1(?:[•*+-]|\d+\.) )\n*'
     r'|'
     r'\s*$)' % (
         mistune._pure_pattern(mistune.BlockGrammar.def_links),
@@ -39,11 +39,11 @@ mistune.BlockGrammar.list_block = re.compile(
     )
 )
 mistune.BlockGrammar.list_item = re.compile(
-    r'^(( *)(?:[*+-]|\d+\.)[^\n]*'
-    r'(?:\n(?!\2(?:[*+-]|\d+\.))[^\n]*)*)',
+    r'^(( *)(?:[•*+-]|\d+\.)[^\n]*'
+    r'(?:\n(?!\2(?:[•*+-]|\d+\.))[^\n]*)*)',
     flags=re.M
 )
-mistune.BlockGrammar.list_bullet = re.compile(r'^ *(?:[*+-]|\d+\.)')
+mistune.BlockGrammar.list_bullet = re.compile(r'^ *(?:[•*+-]|\d+\.)')
 
 govuk_not_a_link = re.compile(
     r'(?<!\.|\/)(GOV)\.(UK)(?!\/|\?)',
