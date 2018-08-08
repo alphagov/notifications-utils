@@ -50,20 +50,6 @@ class RequestIdRequestMixin(object):
             self._parent_span_id = self._get_first_header(current_app.config['NOTIFY_PARENT_SPAN_ID_HEADERS'])
         return self._parent_span_id
 
-    @property
-    def is_sampled(self):
-        if not hasattr(self, "_is_sampled"):
-            header_value = self._get_first_header(current_app.config['NOTIFY_IS_SAMPLED_HEADERS'])
-            self._is_sampled = self.debug_flag or (None if header_value is None else header_value == "1")
-        return self._is_sampled
-
-    @property
-    def debug_flag(self):
-        if not hasattr(self, "_debug_flag"):
-            header_value = self._get_first_header(current_app.config['NOTIFY_DEBUG_FLAG_HEADERS'])
-            self._debug_flag = None if header_value is None else header_value == "1"
-        return self._debug_flag
-
     def _get_first_header(self, header_names):
         """
         Returns value of request's first present (and Truthy) header from header_names
@@ -76,52 +62,6 @@ class RequestIdRequestMixin(object):
 
     def _get_new_trace_id(self):
         return hex(self._traceid_random.randrange(1 << 128))[2:]
-
-    def _get_new_span_id(self):
-        return hex(self._spanid_random.randrange(1 << 64))[2:]
-
-    def get_onwards_request_headers(self):
-        """
-            Headers to add to any further (internal) http api requests we perform if we want that request to be
-            considered part of this "trace id"
-        """
-        new_span_id = self._get_new_span_id()
-        return dict(chain(
-            (
-                (header_name, self.trace_id)
-                for header_name in current_app.config['NOTIFY_TRACE_ID_HEADERS']
-            ) if self.trace_id else (),
-            (
-                (header_name, new_span_id)
-                for header_name in current_app.config['NOTIFY_SPAN_ID_HEADERS']
-            ) if self.trace_id else (),
-            (
-                (header_name, self.span_id)
-                for header_name in current_app.config['NOTIFY_PARENT_SPAN_ID_HEADERS']
-            ) if self.span_id else (),
-            (
-                (header_name, "1" if self.is_sampled else "0")
-                for header_name in current_app.config['NOTIFY_IS_SAMPLED_HEADERS']
-                # according to zipkin spec we shouldn't propagate the sampling decision if debug_flag is set
-            ) if self.is_sampled is not None and not self.debug_flag else (),
-            (
-                (header_name, "1" if self.debug_flag else "0")
-                for header_name in current_app.config['NOTIFY_DEBUG_FLAG_HEADERS']
-            ) if self.debug_flag is not None else (),
-        ))
-
-    def get_extra_log_context(self):
-        """
-            extra attributes to be made available on a log record based on this request
-        """
-        return {
-            "trace_id": self.trace_id,
-            "span_id": self.span_id,
-            "parent_span_id": self.parent_span_id,
-            # output these as 1|0 strings to match what's easily outputtable by nginx
-            "is_sampled": "1" if self.is_sampled else "0",
-            "debug_flag": "1" if self.debug_flag else "0",
-        }
 
 
 class ResponseHeaderMiddleware(object):
@@ -158,14 +98,6 @@ def init_app(app):
     ))
     app.config.setdefault("NOTIFY_SPAN_ID_HEADERS", ("X-B3-SpanId",))
     app.config.setdefault("NOTIFY_PARENT_SPAN_ID_HEADERS", ("X-B3-ParentSpanId",))
-    app.config.setdefault("NOTIFY_IS_SAMPLED_HEADERS", ("X-B3-Sampled",))
-    app.config.setdefault("NOTIFY_DEBUG_FLAG_HEADERS", ("X-B3-Flags",))
-
-    # we do something a little odd here now - back-populate the first value of NOTIFY_TRACE_ID_HEADERS back to the
-    # NOTIFY_REQUEST_ID_HEADER setting, because it turns out that some components (notably the apiclient) depend on that
-    # setting
-    if app.config.get("NOTIFY_TRACE_ID_HEADERS"):
-        app.config["NOTIFY_REQUEST_ID_HEADER"] = app.config["NOTIFY_TRACE_ID_HEADERS"][0]
 
     # dynamically define this class as we don't necessarily know how request_class may have already been modified by
     # another init_app
