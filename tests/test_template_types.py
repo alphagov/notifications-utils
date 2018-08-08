@@ -1,4 +1,5 @@
 import datetime
+from time import process_time
 import os
 import pytest
 
@@ -859,6 +860,17 @@ def test_no_smart_quotes_in_email_addresses(template_class, content):
     })
     assert "first.o'last@example.com" in str(template)
     assert template.subject == "first.o'last@example.com"
+
+
+def test_smart_quotes_removed_from_long_template_in_under_a_second():
+    long_string = 'a' * 100000
+    template = PlainTextEmailTemplate({'content': long_string, 'subject': ''})
+
+    start_time = process_time()
+
+    str(template)
+
+    assert process_time() - start_time < 1
 
 
 def test_basic_templates_return_markup():

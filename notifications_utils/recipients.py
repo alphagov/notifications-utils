@@ -11,7 +11,7 @@ from orderedset import OrderedSet
 
 from flask import current_app
 
-from . import email_regex, hostname_part, tld_part
+from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 from notifications_utils.formatters import strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
@@ -435,7 +435,7 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
     # with minor tweaks for SES compatibility - to avoid complications we are a lot stricter with the local part
     # than neccessary - we don't allow any double quotes or semicolons to prevent SES Technical Failures
     email_address = strip_whitespace(email_address)
-    match = re.match(email_regex, email_address)
+    match = re.match(EMAIL_REGEX_PATTERN, email_address)
 
     # not an email
     if not match:
