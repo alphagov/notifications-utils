@@ -86,10 +86,7 @@ class ResponseHeaderMiddleware(object):
 
 
 def init_app(app):
-    app.config.setdefault("NOTIFY_TRACE_ID_HEADERS", (
-        (app.config.get("NOTIFY_REQUEST_ID_HEADER") or "Notify-Request-ID"),
-        (app.config.get("NOTIFY_DOWNSTREAM_REQUEST_ID_HEADER") or "X-B3-TraceId"),
-    ))
+    app.config.setdefault("NOTIFY_TRACE_ID_HEADERS", ("X-B3-TraceId",))
     app.config.setdefault("NOTIFY_SPAN_ID_HEADERS", ("X-B3-SpanId",))
     app.config.setdefault("NOTIFY_PARENT_SPAN_ID_HEADERS", ("X-B3-ParentSpanId",))
 
