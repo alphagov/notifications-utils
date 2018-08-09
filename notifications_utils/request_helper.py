@@ -1,13 +1,11 @@
-from itertools import chain
-
 from flask.wrappers import Request
 from flask import request, current_app, abort
 
 
 class NotifyRequest(Request):
     """
-        A mixin intended for use against a flask Request class, implementing extraction (and partly generation) of
-        headers approximately according to the "zipkin" scheme https://github.com/openzipkin/b3-propagation
+        A custom Request class, implementing extraction of zipkin headers used to trace request through cloudfoundry
+        as described here: https://docs.cloudfoundry.org/concepts/http-routing.html#zipkin-headers
     """
 
     @property
@@ -17,13 +15,10 @@ class NotifyRequest(Request):
     @property
     def trace_id(self):
         """
-            The "trace id" (in zipkin terms) assigned to this request. If one was set in the request header, that will
-            be used. Failing that, this will be an id we've generated and assigned ourselves.
+            The "trace id" (in zipkin terms) assigned to this request, if present (None otherwise)
         """
         if not hasattr(self, "_trace_id"):
-            self._trace_id = self._get_first_header(
-                current_app.config['NOTIFY_TRACE_ID_HEADERS']
-            )
+            self._trace_id = self._get_header_value(current_app.config['NOTIFY_TRACE_ID_HEADER'])
         return self._trace_id
 
     @property
@@ -36,7 +31,7 @@ class NotifyRequest(Request):
             # an environment with no span-id-aware request router, and thus would have no intermediary to prevent the
             # propagation of our span id all the way through all our onwards requests much like trace id. and the point
             # of span id is to assign identifiers to each individual request.
-            self._span_id = self._get_first_header(current_app.config['NOTIFY_SPAN_ID_HEADERS'])
+            self._span_id = self._get_header_value(current_app.config['NOTIFY_SPAN_ID_HEADER'])
         return self._span_id
 
     @property
@@ -45,41 +40,34 @@ class NotifyRequest(Request):
             The "parent span id" (in zipkin terms) set in this request's header, if present (None otherwise)
         """
         if not hasattr(self, "_parent_span_id"):
-            self._parent_span_id = self._get_first_header(current_app.config['NOTIFY_PARENT_SPAN_ID_HEADERS'])
+            self._parent_span_id = self._get_header_value(current_app.config['NOTIFY_PARENT_SPAN_ID_HEADER'])
         return self._parent_span_id
 
-    def _get_first_header(self, header_names):
+    def _get_header_value(self, header_name):
         """
-        Returns value of request's first present (and Truthy) header from header_names
+        Returns value of the given header
         """
-        for header_name in header_names:
-            if header_name in self.headers and self.headers[header_name]:
-                return self.headers[header_name]
-        else:
-            return None
+        if header_name in self.headers and self.headers[header_name]:
+            return self.headers[header_name]
+
+        return None
 
 
 class ResponseHeaderMiddleware(object):
-    def __init__(self, app, trace_id_headers, span_id_headers):
+    def __init__(self, app, trace_id_header, span_id_header):
         self.app = app
-        self.trace_id_headers = trace_id_headers
-        self.span_id_headers = span_id_headers
+        self.trace_id_header = trace_id_header
+        self.span_id_header = span_id_header
 
     def __call__(self, environ, start_response):
         def rewrite_response_headers(status, headers, exc_info=None):
             lower_existing_header_names = frozenset(name.lower() for name, value in headers)
-            headers.extend(chain(
-                (
-                    (header_name, str(request.trace_id),)
-                    for header_name in self.trace_id_headers
-                    if header_name.lower() not in lower_existing_header_names
-                ),
-                (
-                    (header_name, str(request.span_id),)
-                    for header_name in self.span_id_headers
-                    if header_name.lower() not in lower_existing_header_names
-                ),
-            ))
+
+            if self.trace_id_header not in lower_existing_header_names:
+                headers.append((self.trace_id_header, str(request.trace_id)))
+
+            if self.span_id_header not in lower_existing_header_names:
+                headers.append((self.span_id_header, str(request.span_id)))
 
             return start_response(status, headers, exc_info)
 
@@ -87,15 +75,15 @@ class ResponseHeaderMiddleware(object):
 
 
 def init_app(app):
-    app.config.setdefault("NOTIFY_TRACE_ID_HEADERS", ("X-B3-TraceId",))
-    app.config.setdefault("NOTIFY_SPAN_ID_HEADERS", ("X-B3-SpanId",))
-    app.config.setdefault("NOTIFY_PARENT_SPAN_ID_HEADERS", ("X-B3-ParentSpanId",))
+    app.config.setdefault("NOTIFY_TRACE_ID_HEADER", "X-B3-TraceId")
+    app.config.setdefault("NOTIFY_SPAN_ID_HEADER", "X-B3-SpanId")
+    app.config.setdefault("NOTIFY_PARENT_SPAN_ID_HEADER", "X-B3-ParentSpanId")
 
     app.request_class = NotifyRequest
     app.wsgi_app = ResponseHeaderMiddleware(
         app.wsgi_app,
-        app.config['NOTIFY_TRACE_ID_HEADERS'],
-        app.config['NOTIFY_SPAN_ID_HEADERS'],
+        app.config['NOTIFY_TRACE_ID_HEADER'],
+        app.config['NOTIFY_SPAN_ID_HEADER'],
     )
 
 
