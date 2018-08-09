@@ -1,9 +1,10 @@
 from itertools import chain
 
+from flask.wrappers import Request
 from flask import request, current_app, abort
 
 
-class RequestIdRequestMixin(object):
+class NotifyRequest(Request):
     """
         A mixin intended for use against a flask Request class, implementing extraction (and partly generation) of
         headers approximately according to the "zipkin" scheme https://github.com/openzipkin/b3-propagation
@@ -90,11 +91,7 @@ def init_app(app):
     app.config.setdefault("NOTIFY_SPAN_ID_HEADERS", ("X-B3-SpanId",))
     app.config.setdefault("NOTIFY_PARENT_SPAN_ID_HEADERS", ("X-B3-ParentSpanId",))
 
-    # dynamically define this class as we don't necessarily know how request_class may have already been modified by
-    # another init_app
-    class _RequestIdRequest(RequestIdRequestMixin, app.request_class):
-        pass
-    app.request_class = _RequestIdRequest
+    app.request_class = NotifyRequest
     app.wsgi_app = ResponseHeaderMiddleware(
         app.wsgi_app,
         app.config['NOTIFY_TRACE_ID_HEADERS'],
