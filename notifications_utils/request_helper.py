@@ -1,6 +1,6 @@
 from itertools import chain
 
-from flask import request, current_app
+from flask import request, current_app, abort
 
 
 class RequestIdRequestMixin(object):

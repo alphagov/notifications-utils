@@ -1,4 +1,3 @@
-from unittest import mock
 from werkzeug.test import EnvironBuilder
 
 from notifications_utils import request_helper
