@@ -1,5 +1,4 @@
 from itertools import chain
-from random import SystemRandom
 
 from flask import request, current_app
 
@@ -9,8 +8,6 @@ class RequestIdRequestMixin(object):
         A mixin intended for use against a flask Request class, implementing extraction (and partly generation) of
         headers approximately according to the "zipkin" scheme https://github.com/openzipkin/b3-propagation
     """
-    # a single class-wide random instance should be good enough for now
-    _spanid_random = _traceid_random = SystemRandom()
 
     @property
     def request_id(self):
@@ -25,7 +22,7 @@ class RequestIdRequestMixin(object):
         if not hasattr(self, "_trace_id"):
             self._trace_id = self._get_first_header(
                 current_app.config['NOTIFY_TRACE_ID_HEADERS']
-            ) or self._get_new_trace_id()
+            )
         return self._trace_id
 
     @property
@@ -59,9 +56,6 @@ class RequestIdRequestMixin(object):
                 return self.headers[header_name]
         else:
             return None
-
-    def _get_new_trace_id(self):
-        return hex(self._traceid_random.randrange(1 << 128))[2:]
 
 
 class ResponseHeaderMiddleware(object):
