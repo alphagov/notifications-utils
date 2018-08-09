@@ -7,12 +7,10 @@ from notifications_utils.request_helper import CustomRequest
 
 def test_get_request_id_from_request_id_header():
     builder = EnvironBuilder()
-    builder.headers['NotifyRequestID'] = 'from-header'
-    builder.headers['NotifyDownstreamNotifyRequestID'] = 'from-downstream'
+    builder.headers['X-B3-TraceId'] = 'from-header'
     request = CustomRequest(builder.get_environ())
 
-    request_id = request._get_request_id('NotifyRequestID',
-                                         'NotifyDownstreamRequestID')
+    request_id = request.request_id()
 
     assert request_id == 'from-header'
 
@@ -22,8 +20,12 @@ def test_request_id_is_set_on_response(app):
     client = app.test_client()
 
     with app.app_context():
-        response = client.get('/', headers={'NotifyRequestID': 'generated'})
-        assert response.headers['NotifyRequestID'] == 'generated'
+        response = client.get('/', headers={
+            'X-B3-TraceId': 'generated',
+            'X-B3-SpanId': 'generated'
+        })
+        assert response.headers['X-B3-TraceId'] == 'generated'
+        assert response.headers['X-B3-SpanId'] == 'generated'
 
 
 def test_request_id_is_set_on_error_response(app):
@@ -37,6 +39,10 @@ def test_request_id_is_set_on_error_response(app):
         raise Exception()
 
     with app.app_context():
-        response = client.get('/', headers={'NotifyRequestID': 'generated'})
+        response = client.get('/', headers={
+            'X-B3-TraceId': 'generated',
+            'X-B3-SpanId': 'generated'
+        })
         assert response.status_code == 500
-        assert response.headers['NotifyRequestID'] == 'generated'
+        assert response.headers['X-B3-TraceId'] == 'generated'
+        assert response.headers['X-B3-SpanId'] == 'generated'
