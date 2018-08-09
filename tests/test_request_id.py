@@ -1,17 +1,4 @@
-from werkzeug.test import EnvironBuilder
-
 from notifications_utils import request_helper
-from notifications_utils.request_helper import CustomRequest
-
-
-def test_get_request_id_from_request_id_header():
-    builder = EnvironBuilder()
-    builder.headers['X-B3-TraceId'] = 'from-header'
-    request = CustomRequest(builder.get_environ())
-
-    request_id = request.request_id()
-
-    assert request_id == 'from-header'
 
 
 def test_request_id_is_set_on_response(app):
