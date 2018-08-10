@@ -132,7 +132,6 @@
           <table role="presentation" width="100%" style="border-collapse: collapse;max-width: 580px;" cellpadding="0" cellspacing="0" border="0" align="center">
             <tr>
               {% if brand_logo %}
-                <td width="10">{{ spacer(10) }}</td>
                 <td
                   width="70"
                   height="{% if brand_name -%} 49 {%- else -%} 76 {%- endif %}"
@@ -142,7 +141,7 @@
                   <img
                     src="{{ brand_logo }}"
                     border="0"
-                    style="display: block; border: 0; Margin-top: 10px; Margin-bottom: 12px;"
+                    style="display: block; border: 0; Margin-top: 10px; Margin-bottom: 12px; Margin-left: 10px;"
                     height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
                     alt=""
                   />
