@@ -3,7 +3,7 @@ from unittest import mock  # noqa
 import pytest
 from werkzeug.test import EnvironBuilder
 
-from notifications_utils.request_helper import CustomRequest, _check_proxy_header_secret
+from notifications_utils.request_helper import NotifyRequest, _check_proxy_header_secret
 
 
 @pytest.mark.parametrize('header,secrets,expected', [
@@ -20,7 +20,7 @@ from notifications_utils.request_helper import CustomRequest, _check_proxy_heade
 def test_request_header_authorization(header, secrets, expected):
     builder = EnvironBuilder()
     builder.headers.extend(header)
-    request = CustomRequest(builder.get_environ())
+    request = NotifyRequest(builder.get_environ())
 
     res = _check_proxy_header_secret(request, secrets, list(header.keys())[0])
     assert res == expected
@@ -31,7 +31,7 @@ def test_request_header_authorization(header, secrets, expected):
 ])
 def test_request_header_authorization_missing_header(secrets, expected):
     builder = EnvironBuilder()
-    request = CustomRequest(builder.get_environ())
+    request = NotifyRequest(builder.get_environ())
 
     res = _check_proxy_header_secret(request, secrets)
     assert res == expected
