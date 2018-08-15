@@ -19,8 +19,10 @@ params, ids = zip(
     (('’', '\''), 'compatibility transform unicode char (RIGHT SINGLE QUOTATION MARK (U+2019)'),
     (('“', '"'), 'compatibility transform unicode char (LEFT DOUBLE QUOTATION MARK (U+201C)	'),
     (('”', '"'), 'compatibility transform unicode char (RIGHT DOUBLE QUOTATION MARK (U+201D)'),
+    (('\xa0', ''), 'nobreak transform unicode char (NO-BREAK SPACE (U+00A0))'),
     # this unicode char is not decomposable
     (('😬', '?'), 'undecomposable unicode char (grimace emoji)'),
+    (('↉', '?'), 'vulgar fraction (↉) that we do not try decomposing')
 )
 
 
@@ -76,7 +78,7 @@ def test_encode_string(content, expected):
 
 @pytest.mark.parametrize('content, cls, expected', [
     ('The quick brown fox jumps over the lazy dog', SanitiseGSM, set()),
-    ('The “quick” brown fox has some downgradable characters', SanitiseGSM, set()),
+    ('The “quick” brown fox has some downgradable characters\xa0', SanitiseGSM, set()),
     ('Need more 🐮🔔', SanitiseGSM, {'🐮', '🔔'}),
     ('Lots of GSM chars that arent ascii compatible:\n\r€', SanitiseGSM, set()),
     ('Lots of GSM chars that arent ascii compatible:\n\r€', SanitiseASCII, {'\n', '\r', '€'}),

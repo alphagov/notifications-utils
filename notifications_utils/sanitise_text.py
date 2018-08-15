@@ -13,6 +13,7 @@ class SanitiseText:
         '“': '"',  # LEFT DOUBLE QUOTATION MARK (U+201C)
         '”': '"',  # RIGHT DOUBLE QUOTATION MARK (U+201D)
         '\u200B': '',  # ZERO WIDTH SPACE (U+200B)
+        '\u00A0': '',  # NON BREAKING WHITE SPACE (U+200B)
         '\t': ' ',  # TAB
     }
 
@@ -44,14 +45,19 @@ class SanitiseText:
     @classmethod
     def downgrade_character(cls, c):
         """
-        Attempt to downgrade a non-compatible character to the allowed character set.
+        Attempt to downgrade a non-compatible character to the allowed character set. May downgrade to multiple
+        characters, eg `… -> ...`
 
         Will return None if character is either already valid or has no known downgrade
         """
         decomposed = unicodedata.decomposition(c)
-        if decomposed != '' and '<compat>' not in decomposed:
-            # if there is a decomposition, which is not a compatibility decomposition (eg … -> ...),
-            # then it's probably a letter with a modifier, eg á
+        if decomposed != '' and '<' not in decomposed:
+            # decomposition lists the unicode code points a character is made up of, if it's made up of multiple
+            # points. For example the á character returns '0061 0301', as in, the character a, followed by a combining
+            # acute accent. The decomposition might, however, also contain a decomposition mapping in angle brackets.
+            # For a full list of the types, see here: https://www.compart.com/en/unicode/decomposition.
+            # If it's got a mapping, we're not sure how best to downgrade it, so just see if it's in the
+            # REPLACEMENT_CHARACTERS map. If not, then it's probably a letter with a modifier, eg á
             # ASSUMPTION: The first character of a combined unicode character (eg 'á' == '0061 0301')
             # will be the ascii char
             return cls.get_unicode_char_from_codepoint(decomposed.split()[0])

@@ -367,7 +367,7 @@ def test_sms_preview_adds_newlines(nl2br):
         'end'
     ),
     (  # A mess
-        '\t\t\n\r one newline\n'
+        '\t\t\n\r one newline\xa0\n'
         'two newlines\r'
         '\r\n'
         'end\n\n  \r \n \t '
