@@ -3,6 +3,7 @@ import itertools
 from functools import partial
 from orderedset import OrderedSet
 
+from notifications_utils import SMS_CHAR_COUNT_LIMIT
 from notifications_utils.recipients import RecipientCSV
 from notifications_utils.template import SMSMessageTemplate
 
@@ -677,9 +678,9 @@ def test_detects_rows_which_result_in_overly_long_messages():
             07700900462,{exactly}
             07700900463,{one_over}
         """.format(
-            one_under='a' * 458,
-            exactly='a' * 459,
-            one_over='a' * 460,
+            one_under='a' * (SMS_CHAR_COUNT_LIMIT - 1),
+            exactly='a' * SMS_CHAR_COUNT_LIMIT,
+            one_over='a' * (SMS_CHAR_COUNT_LIMIT + 1),
         ),
         template_type=template.template_type,
         template=template

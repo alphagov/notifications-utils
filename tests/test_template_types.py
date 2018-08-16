@@ -1569,7 +1569,7 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
     SMSPreviewTemplate,
 ])
 def test_message_too_long(template_class):
-    body = ('b' * 200) + '((foo))'
+    body = ('b' * 400) + '((foo))'
     template = template_class({'content': body}, prefix='a' * 100, values={'foo': 'c' * 200})
     assert template.is_message_too_long() is True
 
