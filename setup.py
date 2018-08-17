@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'bleach==2.1.3',
         'mistune==0.8.3',
-        'requests==2.18.4',
+        'requests==2.19.1',
         'python-json-logger==0.1.8',
         'Flask>=0.12.2',
         'orderedset==2.0.1',
@@ -34,13 +34,13 @@ setup(
         'Flask-Redis==0.3.0',
         'pyyaml==3.12',
         'phonenumbers==8.9.4',
-        'pytz==2018.4',
+        'pytz==2018.5',
         'smartypants==2.0.1',
-        'monotonic==1.4',
+        'monotonic==1.5',
         'pypdf2==1.26.0',
 
         # required by both api and admin
-        'awscli==1.14.62',
+        'awscli==1.15.79',
         'boto3==1.6.16',
     ]
 )
