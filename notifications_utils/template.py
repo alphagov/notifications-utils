@@ -530,6 +530,7 @@ class LetterPrintTemplate(LetterPreviewTemplate):
 class LetterImageTemplate(LetterPreviewTemplate):
 
     jinja_template = template_env.get_template('letter_image_template.jinja2')
+    max_page_count = 10
 
     def __init__(
         self,
@@ -547,10 +548,20 @@ class LetterImageTemplate(LetterPreviewTemplate):
         self.image_url = image_url
         self.page_count = int(page_count)
 
+    @property
+    def page_numbers(self):
+        for i in range(min(self.page_count, self.max_page_count)):
+            yield i + 1
+
+    @property
+    def too_many_pages(self):
+        return self.page_count > self.max_page_count
+
     def __str__(self):
         return Markup(self.jinja_template.render({
             'image_url': self.image_url,
-            'page_numbers': range(1, self.page_count + 1),
+            'page_numbers': list(self.page_numbers),
+            'too_many_pages': self.too_many_pages,
             'address': self._address_block,
             'contact_block': self._contact_block,
             'date': self._date,
