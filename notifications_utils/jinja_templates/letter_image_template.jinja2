@@ -1,3 +1,14 @@
+{% if too_many_pages %}
+  <div class='banner-dangerous bottom-gutter'>
+    <h1 class='banner-title'>
+      This letter is too long
+    </h1>
+    <p>
+      Letters must be {{ page_numbers[-1] }} pages or less
+    </p>
+  </div>
+{% endif %}
+
 {% for page_number in page_numbers %}
   <div class="letter">
     <img src="{{ image_url }}?page={{ page_number }}" alt="">

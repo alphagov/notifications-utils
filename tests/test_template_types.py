@@ -538,16 +538,44 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
 
 @freeze_time("2012-12-12 12:12:12")
 @mock.patch('notifications_utils.template.LetterImageTemplate.jinja_template.render')
-def test_letter_image_renderer(jinja_template):
+@pytest.mark.parametrize('page_count, expected_oversized, expected_page_numbers', [
+    (
+        1, False,
+        [1],
+    ),
+    (
+        5, False,
+        [1, 2, 3, 4, 5],
+    ),
+    (
+        10, False,
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    ),
+    (
+        11, True,
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    ),
+    (
+        99, True,
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    ),
+])
+def test_letter_image_renderer(
+    jinja_template,
+    page_count,
+    expected_page_numbers,
+    expected_oversized,
+):
     str(LetterImageTemplate(
         {'content': 'Content', 'subject': 'Subject'},
         image_url='http://example.com/endpoint.png',
-        page_count=99,
+        page_count=page_count,
         contact_block='10 Downing Street',
     ))
     jinja_template.assert_called_once_with({
         'image_url': 'http://example.com/endpoint.png',
-        'page_numbers': range(1, 100),
+        'page_numbers': expected_page_numbers,
+        'too_many_pages': expected_oversized,
         'address': (
             "<ul>"
             "<li><span class='placeholder-no-brackets'>address line 1</span></li>"
