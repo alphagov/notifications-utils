@@ -16,6 +16,7 @@ from notifications_utils.formatters import (
     add_prefix,
     autolink_sms,
     notify_email_markdown,
+    notify_email_preheader_markdown,
     notify_plain_text_email_markdown,
     notify_letter_preview_markdown,
     remove_empty_lines,
@@ -296,6 +297,8 @@ class HTMLEmailTemplate(WithSubjectTemplate):
 
     jinja_template = template_env.get_template('email_template.jinja2')
 
+    PREHEADER_LENGTH_IN_CHARACTERS = 256
+
     def __init__(
         self,
         template,
@@ -315,12 +318,28 @@ class HTMLEmailTemplate(WithSubjectTemplate):
         self.brand_colour = brand_colour
         self.brand_banner = brand_banner
 
+    @property
+    def preheader(self):
+        return " ".join(Take(Field(
+            self.content,
+            self.values,
+            html='escape',
+            markdown_lists=True,
+        )).then(
+            unlink_govuk_escaped
+        ).then(
+            notify_email_preheader_markdown
+        ).then(
+            do_nice_typography
+        ).split())[:self.PREHEADER_LENGTH_IN_CHARACTERS].strip()
+
     def __str__(self):
 
         return self.jinja_template.render({
             'body': get_html_email_body(
                 self.content, self.values
             ),
+            'preheader': self.preheader,
             'govuk_banner': self.govuk_banner,
             'complete_html': self.complete_html,
             'brand_logo': self.brand_logo,
