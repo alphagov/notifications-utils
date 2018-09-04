@@ -504,6 +504,15 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
         return link
 
 
+class NotifyEmailPreheaderMarkdownRenderer(NotifyPlainTextEmailMarkdownRenderer):
+
+    def header(self, text, level, raw=None):
+        return self.paragraph(text)
+
+    def hrule(self):
+        return ''
+
+
 notify_email_markdown = mistune.Markdown(
     renderer=NotifyEmailMarkdownRenderer(),
     hard_wrap=True,
@@ -511,6 +520,10 @@ notify_email_markdown = mistune.Markdown(
 )
 notify_plain_text_email_markdown = mistune.Markdown(
     renderer=NotifyPlainTextEmailMarkdownRenderer(),
+    hard_wrap=True,
+)
+notify_email_preheader_markdown = mistune.Markdown(
+    renderer=NotifyEmailPreheaderMarkdownRenderer(),
     hard_wrap=True,
 )
 notify_letter_preview_markdown = mistune.Markdown(
