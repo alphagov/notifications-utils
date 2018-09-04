@@ -1,7 +1,7 @@
 -r requirements.txt
 pytest==3.7.4
 pytest-mock==1.10.0
-pytest-cov==2.5.1
+pytest-cov==2.6.0
 pytest-xdist==1.23.0
 requests-mock==1.5.2
 freezegun==0.3.10
