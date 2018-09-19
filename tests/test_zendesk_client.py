@@ -23,13 +23,32 @@ def zendesk_client(app, rmock):
         'normal',
     ),
     (
-        {'p1': False},
+        {
+            'p1': False,
+        },
         ['govuk_notify_support'],
         'normal',
     ),
     (
-        {'p1': True},
+        {
+            'p1': True,
+        },
         ['govuk_notify_emergency'],
+        'urgent',
+    ),
+    (
+        {
+            'tags': ['a', 'b', 'c'],
+        },
+        ['govuk_notify_support', 'a', 'b', 'c'],
+        'normal',
+    ),
+    (
+        {
+            'p1': True,
+            'tags': ['a', 'b', 'c'],
+        },
+        ['govuk_notify_emergency', 'a', 'b', 'c'],
         'urgent',
     ),
 ))
