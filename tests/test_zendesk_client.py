@@ -16,10 +16,33 @@ def zendesk_client(app, rmock):
     return client
 
 
-def test_create_ticket(zendesk_client, rmock):
+@pytest.mark.parametrize('extra_args, expected_tag_list, expected_priority', (
+    (
+        {},
+        ['govuk_notify_support'],
+        'normal',
+    ),
+    (
+        {'p1': False},
+        ['govuk_notify_support'],
+        'normal',
+    ),
+    (
+        {'p1': True},
+        ['govuk_notify_emergency'],
+        'urgent',
+    ),
+))
+def test_create_ticket(
+    zendesk_client,
+    rmock,
+    extra_args,
+    expected_tag_list,
+    expected_priority,
+):
     rmock.request('POST', 'https://govuk.zendesk.com/api/v2/tickets.json', status_code=201, json={})
 
-    zendesk_client.create_ticket('subject', 'message', 'ticket_type')
+    zendesk_client.create_ticket('subject', 'message', 'ticket_type', **extra_args)
 
     assert rmock.last_request.headers['Authorization'][:6] == 'Basic '
     b64_auth = rmock.last_request.headers['Authorization'][6:]
@@ -30,14 +53,14 @@ def test_create_ticket(zendesk_client, rmock):
     assert rmock.last_request.json() == {
         'ticket': {
             'group_id': zendesk_client.NOTIFY_GROUP_ID,
-            'priority': 'normal',
+            'priority': expected_priority,
             'organization_id': zendesk_client.NOTIFY_ORG_ID,
             'comment': {
                 'body': 'message'
             },
             'subject': 'subject',
             'type': 'ticket_type',
-            'tags': ['govuk_notify_support']
+            'tags': expected_tag_list,
         }
     }
 

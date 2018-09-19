@@ -18,8 +18,8 @@ class ZendeskClient():
     TYPE_QUESTION = 'question'
     TYPE_TASK = 'task'
 
-    TAGS_P2 = ['govuk_notify_support']
-    TAGS_P1 = ['govuk_notify_emergency']
+    TAGS_P2 = 'govuk_notify_support'
+    TAGS_P1 = 'govuk_notify_emergency'
 
     # Group: 3rd Line--Notify Support
     NOTIFY_GROUP_ID = 360000036529
@@ -61,7 +61,7 @@ class ZendeskClient():
                 'group_id': self.NOTIFY_GROUP_ID,
                 'organization_id': self.NOTIFY_ORG_ID,
                 'priority': self.PRIORITY_URGENT if p1 else self.PRIORITY_NORMAL,
-                'tags': self.TAGS_P1 if p1 else self.TAGS_P2,
+                'tags': [self.TAGS_P1 if p1 else self.TAGS_P2],
                 'type': ticket_type
             }
         }
