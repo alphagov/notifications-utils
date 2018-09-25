@@ -18,6 +18,7 @@ from notifications_utils.formatters import (
     nl2li,
     strip_whitespace,
     remove_smart_quotes_from_email_addresses,
+    strip_unsupported_characters,
 )
 from notifications_utils.template import (
     HTMLEmailTemplate,
@@ -991,3 +992,7 @@ def test_remove_smart_quotes_from_email_addresses():
         first.o'last@example.com is someone’s email address
         line ‘three’
     """)
+
+
+def test_strip_unsupported_characters():
+    assert strip_unsupported_characters("line one\u2028line two") == ("line oneline two")

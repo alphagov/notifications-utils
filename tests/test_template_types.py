@@ -320,6 +320,13 @@ def test_escaping_govuk_in_email_templates(template_content, expected):
     assert expected in str(HTMLEmailTemplate({'content': template_content, 'subject': ''}))
 
 
+def test_stripping_of_unsupported_characters_in_email_templates():
+    template_content = "line one\u2028line two"
+    expected = "line oneline two"
+    assert expected in str(PlainTextEmailTemplate({'content': template_content, 'subject': ''}))
+    assert expected in str(HTMLEmailTemplate({'content': template_content, 'subject': ''}))
+
+
 @mock.patch('notifications_utils.template.add_prefix', return_value='')
 @pytest.mark.parametrize(
     "template_class, prefix, body, expected_call", [
