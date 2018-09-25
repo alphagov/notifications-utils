@@ -33,6 +33,7 @@ from notifications_utils.formatters import (
     add_trailing_newline,
     normalise_newlines,
     remove_smart_quotes_from_email_addresses,
+    strip_unsupported_characters,
 )
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
@@ -270,6 +271,8 @@ class PlainTextEmailTemplate(WithSubjectTemplate):
         )).then(
             unlink_govuk_escaped
         ).then(
+            strip_unsupported_characters
+        ).then(
             notify_plain_text_email_markdown
         ).then(
             do_nice_typography
@@ -327,6 +330,8 @@ class HTMLEmailTemplate(WithSubjectTemplate):
             markdown_lists=True,
         )).then(
             unlink_govuk_escaped
+        ).then(
+            strip_unsupported_characters
         ).then(
             notify_email_preheader_markdown
         ).then(
@@ -617,6 +622,8 @@ def get_html_email_body(template_content, template_values, redact_missing_person
         redact_missing_personalisation=redact_missing_personalisation,
     )).then(
         unlink_govuk_escaped
+    ).then(
+        strip_unsupported_characters
     ).then(
         notify_email_markdown
     ).then(

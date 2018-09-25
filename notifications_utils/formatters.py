@@ -263,6 +263,10 @@ def strip_whitespace(value):
     return value
 
 
+def strip_unsupported_characters(value):
+    return value.replace('\u2028', '')
+
+
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def block_code(self, code, language=None):
