@@ -20,15 +20,39 @@ def get_letter_timings(upload_time):
     # shift anything after 5pm to the next day
     processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=(7))
 
-    print_day, earliest_delivery, latest_delivery = (
-        processing_day + timedelta(days=days)
-        for days in {
-            'Wednesday': (1, 3, 5),
-            'Thursday': (1, 4, 5),
-            'Friday': (3, 5, 6),
-            'Saturday': (2, 4, 5),
-        }.get(processing_day.strftime('%A'), (1, 3, 4))
-    )
+    def next_monday(date):
+        """
+        If called with a monday, will still return the next monday
+        """
+        return date + timedelta(days=7 - date.weekday())
+
+    def get_next_dvla_working_day(date):
+        """
+        Printing takes place monday to friday
+        """
+        # monday to thursday inclusive
+        if 0 <= date.weekday() <= 3:
+            return date + timedelta(days=1)
+        else:
+            return next_monday(date)
+
+    def get_next_royal_mail_working_day(date):
+        """
+        Royal mail deliver letters on monday to saturday
+        """
+        # monday to friday inclusive
+        if 0 <= date.weekday() <= 4:
+            return date + timedelta(days=1)
+        else:
+            return next_monday(date)
+
+    print_day = get_next_dvla_working_day(processing_day)
+
+    # first class post is printed earlier in the day, so will be delivered on the transit day
+    transit_day = get_next_royal_mail_working_day(print_day)
+    # second class
+    earliest_delivery = get_next_royal_mail_working_day(transit_day)
+    latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
 
     printed_by = set_gmt_hour(print_day, hour=15)
     now = datetime.utcnow().replace(tzinfo=pytz.timezone('Europe/London'))
