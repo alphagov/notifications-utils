@@ -58,8 +58,9 @@ def get_letter_timings(upload_time, postage='second'):
         earliest_delivery = get_next_royal_mail_working_day(transit_day)
         latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
 
+    # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)
-    now = datetime.utcnow().replace(tzinfo=pytz.timezone('Europe/London'))
+    now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone('Europe/London'))
 
     return LetterTimings(
         printed_by=printed_by,

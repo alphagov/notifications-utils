@@ -5,7 +5,7 @@ from freezegun import freeze_time
 from notifications_utils.letter_timings import get_letter_timings
 
 
-@freeze_time('2017-07-14 14:59:59')  # Friday, before print deadline
+@freeze_time('2017-07-14 13:59:59')  # Friday, before print deadline (3PM BST)
 @pytest.mark.parametrize('upload_time, expected_print_time, is_printed, first_class, expected_earliest, expected_latest', [  # noqa
 
     # BST
@@ -59,7 +59,7 @@ from notifications_utils.letter_timings import get_letter_timings
     (
         'Thursday 2017-07-13 12:00:00',
         'Friday 2017-07-14 15:00',
-        True,  # WRONG
+        False,
         'Saturday 2017-07-15 16:00',
         'Monday 2017-07-17 16:00',
         'Tuesday 2017-07-18 16:00'
