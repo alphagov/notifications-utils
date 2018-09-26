@@ -10,7 +10,7 @@ def set_gmt_hour(day, hour):
     return day.astimezone(pytz.timezone('Europe/London')).replace(hour=hour, minute=0).astimezone(pytz.utc)
 
 
-def get_letter_timings(upload_time):
+def get_letter_timings(upload_time, postage='second'):
 
     LetterTimings = namedtuple(
         'LetterTimings',
@@ -48,11 +48,15 @@ def get_letter_timings(upload_time):
 
     print_day = get_next_dvla_working_day(processing_day)
 
-    # first class post is printed earlier in the day, so will be delivered on the transit day
+    # first class post is printed earlier in the day, so will actually transit on the printing day,
+    # and be posted the next day
     transit_day = get_next_royal_mail_working_day(print_day)
-    # second class
-    earliest_delivery = get_next_royal_mail_working_day(transit_day)
-    latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
+    if postage == 'first':
+        earliest_delivery = latest_delivery = transit_day
+    else:
+        # second class has one day in transit, then a two day delivery window
+        earliest_delivery = get_next_royal_mail_working_day(transit_day)
+        latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
 
     printed_by = set_gmt_hour(print_day, hour=15)
     now = datetime.utcnow().replace(tzinfo=pytz.timezone('Europe/London'))
