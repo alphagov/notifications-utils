@@ -205,12 +205,12 @@ def test_get_international_info(phone_number, expected_info):
 @pytest.mark.parametrize('phone_number', [
     'abcd',
     '079OO900123',
-    pytest.mark.xfail(''),
-    pytest.mark.xfail('12345'),
-    pytest.mark.xfail('+12345'),
-    pytest.mark.xfail('1-2-3-4-5'),
-    pytest.mark.xfail('1 2 3 4 5'),
-    pytest.mark.xfail('(1)2345'),
+    pytest.param('', marks=pytest.mark.xfail),
+    pytest.param('12345', marks=pytest.mark.xfail),
+    pytest.param('+12345', marks=pytest.mark.xfail),
+    pytest.param('1-2-3-4-5', marks=pytest.mark.xfail),
+    pytest.param('1 2 3 4 5', marks=pytest.mark.xfail),
+    pytest.param('(1)2345', marks=pytest.mark.xfail),
 ])
 def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
     with pytest.raises(InvalidPhoneError):

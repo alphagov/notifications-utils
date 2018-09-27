@@ -35,7 +35,7 @@ from notifications_utils.template import (
         "https://www.gov.uk/",
         "http://service.gov.uk",
         "http://service.gov.uk/blah.ext?q=a%20b%20c&order=desc#fragment",
-        pytest.mark.xfail("http://service.gov.uk/blah.ext?q=one two three"),
+        pytest.param("http://service.gov.uk/blah.ext?q=one two three", marks=pytest.mark.xfail),
     ]
 )
 def test_makes_links_out_of_URLs(url):
