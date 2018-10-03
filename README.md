@@ -10,7 +10,7 @@ This is a [python](https://www.python.org/) application.
 #### Python version
 This is a python 3 application. It has not been run against any version of python 2.x
 
-    brew install python3
+    `brew install python3`
 
 #### Dependency management
 
@@ -19,12 +19,12 @@ This is done through [pip](pip.readthedocs.org/) and [virtualenv](https://virtua
 
 Setting up a virtualenvwrapper for python3
 
-    mkvirtualenv -p /usr/local/bin/python3 notifications-python-client
+    `mkvirtualenv -p /usr/local/bin/python3 notifications-utils`
 
 
 The boostrap script will set the application up. *Ensure you have activated the virtual environment first.*
 
-    ./scripts/bootstrap.sh
+    `./scripts/bootstrap.sh`
 
 This will
 
