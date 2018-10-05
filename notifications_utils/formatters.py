@@ -257,9 +257,9 @@ def remove_smart_quotes_from_email_addresses(value):
     )
 
 
-def strip_whitespace(value):
+def strip_whitespace(value, extra_characters=''):
     if value is not None and hasattr(value, 'strip'):
-        return value.strip(string.whitespace + OBSCURE_WHITESPACE)
+        return value.strip(string.whitespace + OBSCURE_WHITESPACE + extra_characters)
     return value
 
 

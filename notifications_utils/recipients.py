@@ -61,7 +61,7 @@ class RecipientCSV():
         remaining_messages=sys.maxsize,
         international_sms=False,
     ):
-        self.file_data = file_data.strip(', \n\r\t\uffef')
+        self.file_data = strip_whitespace(file_data, extra_characters=',')
         self.template_type = template_type
         self.placeholders = placeholders
         self.max_errors_shown = max_errors_shown
