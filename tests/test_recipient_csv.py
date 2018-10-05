@@ -741,6 +741,25 @@ def test_ignores_spaces_and_case_in_placeholders(key, expected):
     assert recipients.has_errors
 
 
+def test_ignores_leading_BOM_in_file():
+    recipients = RecipientCSV(
+        '\uffefemailaddress\ntest@example.com',
+        template_type='email'
+    )
+    first_row = recipients[0]
+
+    assert recipients.column_headers == ['emailaddress']
+    assert recipients.recipient_column_headers == ['email address']
+    assert recipients.missing_column_headers == set()
+    assert recipients.placeholders == ['email address']
+
+    assert first_row.get('email address').data == 'test@example.com'
+    assert first_row['email address'].data == 'test@example.com'
+    assert first_row.recipient == 'test@example.com'
+
+    assert not recipients.has_errors
+
+
 def test_error_if_too_many_recipients():
     recipients = RecipientCSV(
         'phone number,\n07700900460,\n07700900460,\n07700900460,',
