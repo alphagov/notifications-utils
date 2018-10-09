@@ -149,11 +149,7 @@
                 </td>
               {% endif %}
               {% if brand_name %}
-                {% if brand_logo %}
-                <td width="5">{{ spacer(5) }}</td>
-                {% endif %}
-                <td width="5">{{ spacer(5) }}</td>
-                <td width="100%" bgcolor="{{brand_colour}}" valign="middle" align="left">
+                <td width="100%" bgcolor="{{brand_colour}}" valign="middle" align="left" style="padding: 14px 0 14px 10px">
                   <span style="
                     display: block;
                     font-family: Helvetica, Arial, sans-serif;
@@ -161,7 +157,6 @@
                     font-size: 19px;
                     color: #ffffff;
                     line-height: 25px;
-                    margin: 14px 0;
                     ">
                       {{ brand_name }}
                   </span>
@@ -199,25 +194,23 @@
         <![endif]-->
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">
                   <tr>
-                    {% if brand_colour %}
-                    <td height="10" width="1">{{ spacer(1, 10) }}</td>
-                    <td width="5">{{ spacer(1, 10) }}</td>
-                    {% endif %}
-                    <td height="10">{{ spacer(1, 10) }}</td>
-                    <td height="10">{{ spacer(1, 10) }}</td>
-                    <td height="10">{{ spacer(1, 10) }}</td>
+                    <td height="24" width="100%" colspan="{% if brand_colour %}3{% else %}2{% endif %}"><br /></td>
                   </tr>
                   <tr>
-                    {% if brand_colour %}
-                    <td bgcolor="{{ brand_colour }}" width="2">{{ spacer(2) }}</td>
-                    <td width="7">{{ spacer(7) }}</td>
-                    {% endif %}
-                    <td><img src="{{ brand_logo }}" style="display: block; border: 0;" height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}" alt=" " /></td>
-                    <td width="5">{{ spacer(5) }}</td>
-                    <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
-                      {% if brand_name %}
-                      {{ brand_name }}
-                      {% endif %}
+                  <tr>
+                    <td>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">
+                        <tr>
+                          <td style="padding: 0 5px 0{% if brand_colour %} 7px; border-left: solid 2px {{ brand_colour }}{% else %} 0{% endif %}">
+                            <img src="{{ brand_logo }}" style="display: block; border: 0" height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}" alt=" " />
+                          </td>
+                          <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
+                            {% if brand_name %}
+                            {{ brand_name }}
+                            {% endif %}
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                   </tr>
                 </table>
