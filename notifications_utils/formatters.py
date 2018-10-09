@@ -134,6 +134,10 @@ def strip_dvla_markup(value):
     return re.sub(dvla_markup_tags, '', value)
 
 
+def url_encode_full_stops(value):
+    return value.replace('.', '%2E')
+
+
 def unescaped_formatted_list(
     items,
     conjunction='and',
