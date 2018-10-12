@@ -131,14 +131,15 @@
               {% if brand_logo %}
                 <td
                   width="70"
-                  height="{% if brand_name -%} 49 {%- else -%} 76 {%- endif %}"
+                  height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
                   bgcolor="{{brand_colour}}"
                   valign="middle"
+                  style="padding: 10px 0px 12px 10px"
                 >
                   <img
                     src="{{ brand_logo }}"
                     border="0"
-                    style="display: block; border: 0; Margin-top: 10px; Margin-bottom: 12px; Margin-left: 10px;"
+                    style="display: block; border: 0;"
                     height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
                     alt=" "
                   />
