@@ -1,7 +1,3 @@
-{% macro spacer(width=10, height=10) -%}
-  <img src="https://static.notifications.service.gov.uk/images/email-template/spacer.png" width="{{ width }}" height="{{ height }}" alt="" />
-{% endmacro %}
-
 {% if complete_html %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -57,7 +53,7 @@
                     <td style="padding-left: 10px">
                       <img
                         src="https://static.notifications.service.gov.uk/images/gov.uk_logotype_crown.png"
-                        alt=""
+                        alt=" "
                         height="32"
                         border="0"
                         style="Margin-top: 4px;"
@@ -135,25 +131,22 @@
               {% if brand_logo %}
                 <td
                   width="70"
-                  height="{% if brand_name -%} 49 {%- else -%} 76 {%- endif %}"
+                  height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
                   bgcolor="{{brand_colour}}"
                   valign="middle"
+                  style="padding: 10px 0px 12px 10px"
                 >
                   <img
                     src="{{ brand_logo }}"
                     border="0"
-                    style="display: block; border: 0; Margin-top: 10px; Margin-bottom: 12px; Margin-left: 10px;"
+                    style="display: block; border: 0;"
                     height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
-                    alt=""
+                    alt=" "
                   />
                 </td>
               {% endif %}
               {% if brand_name %}
-                {% if brand_logo %}
-                <td width="5">{{ spacer(5) }}</td>
-                {% endif %}
-                <td width="5">{{ spacer(5) }}</td>
-                <td width="100%" bgcolor="{{brand_colour}}" valign="middle" align="left">
+                <td width="100%" bgcolor="{{brand_colour}}" valign="middle" align="left" style="padding: 14px 0 14px 10px">
                   <span style="
                     display: block;
                     font-family: Helvetica, Arial, sans-serif;
@@ -161,7 +154,6 @@
                     font-size: 19px;
                     color: #ffffff;
                     line-height: 25px;
-                    margin: 14px 0;
                     ">
                       {{ brand_name }}
                   </span>
@@ -199,25 +191,22 @@
         <![endif]-->
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">
                   <tr>
-                    {% if brand_colour %}
-                    <td height="10" width="1">{{ spacer(1, 10) }}</td>
-                    <td width="5">{{ spacer(1, 10) }}</td>
-                    {% endif %}
-                    <td height="10">{{ spacer(1, 10) }}</td>
-                    <td height="10">{{ spacer(1, 10) }}</td>
-                    <td height="10">{{ spacer(1, 10) }}</td>
+                    <td height="24" width="100%" colspan="2"><br /></td>
                   </tr>
                   <tr>
-                    {% if brand_colour %}
-                    <td bgcolor="{{ brand_colour }}" width="2">{{ spacer(2) }}</td>
-                    <td width="7">{{ spacer(7) }}</td>
-                    {% endif %}
-                    <td><img src="{{ brand_logo }}" style="display: block; border: 0;" height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}" alt="" /></td>
-                    <td width="5">{{ spacer(5) }}</td>
-                    <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
-                      {% if brand_name %}
-                      {{ brand_name }}
-                      {% endif %}
+                    <td>
+                      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">
+                        <tr>
+                          <td style="padding: 0 5px 0{% if brand_colour %} 7px; border-left: solid 2px {{ brand_colour }}{% else %} 0{% endif %}">
+                            <img src="{{ brand_logo }}" style="display: block; border: 0" height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}" alt=" " />
+                          </td>
+                          <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
+                            {% if brand_name %}
+                            {{ brand_name }}
+                            {% endif %}
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                   </tr>
                 </table>
@@ -242,10 +231,10 @@
       width="100%"
   >
     <tr>
-      <td height="30">&nbsp;</td>
+      <td height="30"><br /></td>
     </tr>
     <tr>
-      <td width="10" valign="middle">&nbsp;</td>
+      <td width="10" valign="middle"><br /></td>
       <td style="font-family: Helvetica, Arial, sans-serif; font-size: 19px; line-height: 1.315789474; max-width: 560px;">
         <!--[if (gte mso 9)|(IE)]>
           <table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;width: 560px;">
@@ -259,10 +248,10 @@
           </table>
         <![endif]-->
       </td>
-      <td width="10" valign="middle">&nbsp;</td>
+      <td width="10" valign="middle"><br /></td>
     </tr>
     <tr>
-      <td height="30">&nbsp;</td>
+      <td height="30"><br /></td>
     </tr>
   </table>
 {% if complete_html %}
