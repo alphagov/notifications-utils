@@ -17,6 +17,7 @@ from notifications_utils.formatters import (
     tweak_dvla_list_markup,
     nl2li,
     strip_whitespace,
+    strip_and_remove_obscure_whitespace,
     remove_smart_quotes_from_email_addresses,
     strip_unsupported_characters,
 )
@@ -980,6 +981,20 @@ def test_make_list_from_linebreaks():
 ])
 def test_strip_whitespace(value):
     assert strip_whitespace(value) == 'bar'
+
+
+@pytest.mark.parametrize('value', [
+    'notifications-email',
+    '  \tnotifications-email \x0c ',
+    '\rn\u200Coti\u200Dfi\u200Bcati\u2060ons-\u180Eemai\uFEFFl\uFEFF',
+])
+def test_strip_and_remove_obscure_whitespace(value):
+    assert strip_and_remove_obscure_whitespace(value) == 'notifications-email'
+
+
+def test_strip_and_remove_obscure_whitespace_only_removes_normal_whitespace_from_ends():
+    sentence = '   words \n over multiple lines with \ttabs\t   '
+    assert strip_and_remove_obscure_whitespace(sentence) == 'words \n over multiple lines with \ttabs'
 
 
 def test_remove_smart_quotes_from_email_addresses():
