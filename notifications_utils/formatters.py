@@ -267,6 +267,13 @@ def strip_whitespace(value, extra_characters=''):
     return value
 
 
+def strip_and_remove_obscure_whitespace(value):
+    for character in OBSCURE_WHITESPACE:
+        value = value.replace(character, '')
+
+    return value.strip(string.whitespace)
+
+
 def strip_unsupported_characters(value):
     return value.replace('\u2028', '')
 

@@ -12,7 +12,7 @@ from orderedset import OrderedSet
 from flask import current_app
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
-from notifications_utils.formatters import strip_whitespace, OBSCURE_WHITESPACE
+from notifications_utils.formatters import strip_and_remove_obscure_whitespace, strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
 from notifications_utils.international_billing_rates import (
@@ -434,7 +434,7 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
     # almost exactly the same as by https://github.com/wtforms/wtforms/blob/master/wtforms/validators.py,
     # with minor tweaks for SES compatibility - to avoid complications we are a lot stricter with the local part
     # than neccessary - we don't allow any double quotes or semicolons to prevent SES Technical Failures
-    email_address = strip_whitespace(email_address)
+    email_address = strip_and_remove_obscure_whitespace(email_address)
     match = re.match(EMAIL_REGEX_PATTERN, email_address)
 
     # not an email
@@ -471,7 +471,7 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
 
 
 def format_email_address(email_address):
-    return strip_whitespace(email_address.lower())
+    return strip_and_remove_obscure_whitespace(email_address.lower())
 
 
 def validate_and_format_email_address(email_address):
