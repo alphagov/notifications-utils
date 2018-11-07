@@ -51,7 +51,7 @@ govuk_not_a_link = re.compile(
 )
 
 dvla_markup_tags = re.compile(
-    str('|'.join('\<{}\>'.format(tag) for tag in {
+    str('|'.join('<{}>'.format(tag) for tag in {
         'cr', 'h1', 'h2', 'p', 'normal', 'op', 'np', 'bul', 'tab'
     })),
     re.IGNORECASE
