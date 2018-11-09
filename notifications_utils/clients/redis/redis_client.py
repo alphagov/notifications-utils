@@ -118,12 +118,12 @@ class RedisClient:
             except Exception as e:
                 self.__handle_exception(e, raise_exception, 'expire', key)
 
-    def delete(self, key, raise_exception=False):
+    def delete(self, *keys, raise_exception=False):
         if self.active:
             try:
-                self.redis_store.delete(key)
+                self.redis_store.delete(*keys)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'delete', key)
+                self.__handle_exception(e, raise_exception, 'delete', ', '.join(keys))
 
     def __handle_exception(self, e, raise_exception, operation, key_name):
         current_app.logger.exception('Redis error performing {} on {}'.format(operation, key_name))
