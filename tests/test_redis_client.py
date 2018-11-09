@@ -55,6 +55,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, mocker):
     assert redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
     assert redis_client.expire('expire_key', 100) is None
     assert redis_client.delete('delete_key') is None
+    assert redis_client.delete('a', 'b', 'c') is None
     assert mock_logger.mock_calls == [
         call.exception('Redis error performing get on get_key'),
         call.exception('Redis error performing set on set_key'),
@@ -62,6 +63,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, mocker):
         call.exception('Redis error performing rate-limit-pipeline on rate_limit_key'),
         call.exception('Redis error performing expire on expire_key'),
         call.exception('Redis error performing delete on delete_key'),
+        call.exception('Redis error performing delete on a, b, c'),
     ]
 
 
@@ -212,3 +214,8 @@ def test_delete(mocked_redis_client):
     key = 'hash-key'
     mocked_redis_client.delete(key)
     mocked_redis_client.redis_store.delete.assert_called_with(key)
+
+
+def test_multi_delete(mocked_redis_client):
+    mocked_redis_client.delete('a', 'b', 'c')
+    mocked_redis_client.redis_store.delete.assert_called_with('a', 'b', 'c')
