@@ -17,8 +17,8 @@ def get_letter_timings(upload_time, postage='second'):
         'printed_by, is_printed, earliest_delivery, latest_delivery'
     )
 
-    # shift anything after 5pm to the next day
-    processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=(7))
+    # shift anything after 5:30pm to the next day
+    processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
 
     def next_monday(date):
         """

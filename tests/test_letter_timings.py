@@ -19,25 +19,25 @@ from notifications_utils.letter_timings import get_letter_timings
         'Thursday 2017-07-13 16:00',
         'Friday 2017-07-14 16:00'
     ),
-    #  Monday at 16:59 BST
+    #  Monday at 17:29 BST (sent on monday)
     (
-        'Monday 2017-07-10 15:59:59',
+        'Monday 2017-07-10 16:29:59',
         'Tuesday 2017-07-11 15:00',
         True,
         'Wednesday 2017-07-12 16:00',
         'Thursday 2017-07-13 16:00',
         'Friday 2017-07-14 16:00'
     ),
-    #  Monday at 17:00 BST
+    #  Monday at 17:30 BST (sent on tuesday)
     (
-        'Monday 2017-07-10 16:00:01',
+        'Monday 2017-07-10 16:30:01',
         'Wednesday 2017-07-12 15:00',
         True,
         'Thursday 2017-07-13 16:00',
         'Friday 2017-07-14 16:00',
         'Saturday 2017-07-15 16:00'
     ),
-    #  Tuesday before 17:00 BST
+    #  Tuesday before 17:30 BST
     (
         'Tuesday 2017-07-11 12:00:00',
         'Wednesday 2017-07-12 15:00',
@@ -46,7 +46,7 @@ from notifications_utils.letter_timings import get_letter_timings
         'Friday 2017-07-14 16:00',
         'Saturday 2017-07-15 16:00'
     ),
-    #  Wednesday before 17:00 BST
+    #  Wednesday before 17:30 BST
     (
         'Wednesday 2017-07-12 12:00:00',
         'Thursday 2017-07-13 15:00',
@@ -55,7 +55,7 @@ from notifications_utils.letter_timings import get_letter_timings
         'Saturday 2017-07-15 16:00',
         'Monday 2017-07-17 16:00'
     ),
-    #  Thursday before 17:00 BST
+    #  Thursday before 17:30 BST
     (
         'Thursday 2017-07-13 12:00:00',
         'Friday 2017-07-14 15:00',
@@ -98,7 +98,7 @@ from notifications_utils.letter_timings import get_letter_timings
         'Wednesday 2017-07-19 16:00',
         'Thursday 2017-07-20 16:00'
     ),
-    #  Sunday before 1700 BST
+    #  Sunday before 1730 BST
     (
         'Sunday 2017-07-15 15:59:59',
         'Monday 2017-07-17 15:00',
@@ -107,9 +107,9 @@ from notifications_utils.letter_timings import get_letter_timings
         'Wednesday 2017-07-19 16:00',
         'Thursday 2017-07-20 16:00'
     ),
-    #  Sunday after 17:00 BST
+    #  Sunday after 17:30 BST
     (
-        'Sunday 2017-07-16 16:00:01',
+        'Sunday 2017-07-16 16:30:01',
         'Tuesday 2017-07-18 15:00',
         False,
         'Wednesday 2017-07-19 16:00',
@@ -119,9 +119,9 @@ from notifications_utils.letter_timings import get_letter_timings
 
     # GMT
     # ==================================================================
-    #  Monday at 16:59 GMT
+    #  Monday at 17:29 GMT
     (
-        'Monday 2017-01-02 16:59:59',
+        'Monday 2017-01-02 17:29:59',
         'Tuesday 2017-01-03 15:00',
         True,
         'Wednesday 2017-01-04 16:00',
@@ -130,7 +130,7 @@ from notifications_utils.letter_timings import get_letter_timings
     ),
     #  Monday at 17:00 GMT
     (
-        'Monday 2017-01-02 17:00:01',
+        'Monday 2017-01-02 17:30:01',
         'Wednesday 2017-01-04 15:00',
         True,
         'Thursday 2017-01-05 16:00',
