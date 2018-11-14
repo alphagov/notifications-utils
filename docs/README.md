@@ -17,6 +17,9 @@ Each of the other brands require certain attributes for the template to render t
 
 Note: the term 'government identity' refers to logos from the [government identity system (PDF, 4.2MB)](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/362346/hmg_identity_system_guidelines_2012.pdf).
 
+The dimensions of logos vary. Their height will be either 27px or 54px, depending on what suits the
+image. The width will adjust to keep the aspect-ratio.
+
 ### Accessibility hacks
 
 The following hacks have been added to make the template work with assistive technologies.
