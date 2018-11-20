@@ -37,3 +37,7 @@ The `./scripts/run_tests.sh` script will run all the tests. [py.test](http://pyt
 Running tests will also apply syntax checking, using [pycodestyle](https://pypi.python.org/pypi/pycodestyle).
 
 Additionally code coverage is checked via pytest-cov:
+
+## Documentation
+
+Documentation for the template used to render emails is in the [docs](./docs/README.md) folder.
