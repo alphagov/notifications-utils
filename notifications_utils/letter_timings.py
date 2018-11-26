@@ -1,9 +1,12 @@
 import pytz
 
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from collections import namedtuple
 
-from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
+from notifications_utils.timezones import convert_utc_to_bst, utc_string_to_aware_gmt_datetime
+
+
+LETTER_PROCESSING_DEADLINE = time(17, 30)
 
 
 def set_gmt_hour(day, hour):
@@ -68,3 +71,39 @@ def get_letter_timings(upload_time, postage='second'):
         earliest_delivery=set_gmt_hour(earliest_delivery, hour=16),
         latest_delivery=set_gmt_hour(latest_delivery, hour=16),
     )
+
+
+def letter_can_be_cancelled(notification_status, notification_created_at):
+    '''
+    If letter does not have status of created or pending-virus-check
+        => can't be cancelled (it has already been processed)
+
+    If it's after 5.30pm local time and the notification was created today before 5.30pm local time
+        => can't be cancelled (it will already be zipped up to be sent)
+    '''
+    if notification_status not in ('created', 'pending-virus-check'):
+        return False
+
+    if _after_letter_processing_deadline() and _notification_created_before_deadline(notification_created_at):
+        return False
+
+    return True
+
+
+def _after_letter_processing_deadline():
+    current_utc_datetime = datetime.utcnow()
+    bst_time = convert_utc_to_bst(current_utc_datetime).time()
+
+    return bst_time >= LETTER_PROCESSING_DEADLINE
+
+
+def _notification_created_before_deadline(notification_created_at):
+    current_bst_datetime = convert_utc_to_bst(datetime.utcnow())
+    todays_deadline = current_bst_datetime.replace(
+        hour=LETTER_PROCESSING_DEADLINE.hour,
+        minute=LETTER_PROCESSING_DEADLINE.minute,
+    )
+
+    notification_created_at_in_bst = convert_utc_to_bst(notification_created_at)
+
+    return notification_created_at_in_bst <= todays_deadline
