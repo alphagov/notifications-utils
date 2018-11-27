@@ -95,8 +95,8 @@ def check_proxy_header_before_request():
     result, msg = _check_proxy_header_secret(request, keys)
 
     if not result:
-        current_app.logger.warning(msg)
         if current_app.config.get('CHECK_PROXY_HEADER', False):
+            current_app.logger.warning(msg)
             abort(403)
 
     # We need to return None to continue processing the request
