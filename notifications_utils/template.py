@@ -273,6 +273,8 @@ class PlainTextEmailTemplate(WithSubjectTemplate):
         ).then(
             strip_unsupported_characters
         ).then(
+            add_trailing_newline
+        ).then(
             notify_plain_text_email_markdown
         ).then(
             do_nice_typography
@@ -332,6 +334,8 @@ class HTMLEmailTemplate(WithSubjectTemplate):
             unlink_govuk_escaped
         ).then(
             strip_unsupported_characters
+        ).then(
+            add_trailing_newline
         ).then(
             notify_email_preheader_markdown
         ).then(
@@ -536,6 +540,8 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         )).then(
             strip_pipes
         ).then(
+            add_trailing_newline
+        ).then(
             notify_letter_preview_markdown
         ).then(
             do_nice_typography
@@ -624,6 +630,8 @@ def get_html_email_body(template_content, template_values, redact_missing_person
         unlink_govuk_escaped
     ).then(
         strip_unsupported_characters
+    ).then(
+        add_trailing_newline
     ).then(
         notify_email_markdown
     ).then(
