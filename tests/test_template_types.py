@@ -219,7 +219,7 @@ def test_content_of_preheader_in_html_emails(
         (
             'the quick brown fox\n'
             '\n'
-            'jumped over the lazy dog'
+            'jumped over the lazy dog\n'
         ),
         'notifications_utils.template.notify_email_markdown',
     ],
@@ -229,7 +229,7 @@ def test_content_of_preheader_in_html_emails(
         (
             'the quick brown fox\n'
             '\n'
-            'jumped over the lazy dog'
+            'jumped over the lazy dog\n'
         ),
         'notifications_utils.template.notify_letter_preview_markdown'
     ],
@@ -579,7 +579,7 @@ def test_letter_preview_renderer(
         'logo_file_name': expected_logo_file_name,
         'logo_class': expected_logo_class,
     })
-    letter_markdown.assert_called_once_with(Markup('Foo'))
+    letter_markdown.assert_called_once_with(Markup('Foo\n'))
     unlink_govuk.assert_not_called()
     assert strip_pipes.call_args_list == [
         mock.call('Subject'),
@@ -1888,6 +1888,30 @@ def test_plain_text_email_whitespace():
         '1. one not four\n'
         '2. two not five\n'
     )
+
+
+@pytest.mark.parametrize('renderer, expected_content', (
+    (PlainTextEmailTemplate, (
+        'Heading link: https://example.com\n'
+        '-----------------------------------------------------------------\n'
+    )),
+    (HTMLEmailTemplate, (
+        '<h2 style="Margin: 0 0 20px 0; padding: 0; font-size: 27px; '
+        'line-height: 35px; font-weight: bold; color: #0B0C0C;">'
+        'Heading <a style="word-wrap: break-word;" href="https://example.com">link</a>'
+        '</h2>'
+    )),
+    (LetterPreviewTemplate, (
+        '<h2>Heading link: <strong>example.com</strong></h2>'
+    )),
+    (LetterPrintTemplate, (
+        '<h2>Heading link: <strong>example.com</strong></h2>'
+    )),
+))
+def test_heading_only_template_renders(renderer, expected_content):
+    assert expected_content in str(renderer({'subject': 'foo', 'content': (
+        '# Heading [link](https://example.com)'
+    )}))
 
 
 @pytest.mark.parametrize("template_class", [
