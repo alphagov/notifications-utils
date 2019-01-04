@@ -1,3 +1,5 @@
+import numbers
+import uuid
 from time import time
 
 from flask_redis import FlaskRedis
@@ -5,6 +7,32 @@ from flask import current_app
 
 # expose redis exceptions so that they can be caught
 from redis.exceptions import RedisError  # noqa
+
+
+def prepare_value(val):
+    """
+    Only bytes, strings and numbers (ints, longs and floats) are acceptable
+    for keys and values. Previously redis-py attempted to cast other types
+    to str() and store the result. This caused must confusion and frustration
+    when passing boolean values (cast to 'True' and 'False') or None values
+    (cast to 'None'). It is now the user's responsibility to cast all
+    key names and values to bytes, strings or numbers before passing the
+    value to redis-py.
+    """
+    # things redis-py natively supports
+    if isinstance(val, (
+        bytes,
+        str,
+        numbers.Number,
+    )):
+        return val
+    # things we know we can safely cast to string
+    elif isinstance(val, (
+        uuid.UUID,
+    )):
+        return str(val)
+    else:
+        raise ValueError('cannot cast {} to a string'.format(type(val)))
 
 
 class RedisClient:
@@ -47,6 +75,7 @@ class RedisClient:
         :param raise_exception: Should throw exception
         :return:
         """
+        cache_key = prepare_value(cache_key)
         if self.active:
             try:
                 pipe = self.redis_store.pipeline()
@@ -64,6 +93,8 @@ class RedisClient:
             return False
 
     def set(self, key, value, ex=None, px=None, nx=False, xx=False, raise_exception=False):
+        key = prepare_value(key)
+        value = prepare_value(value)
         if self.active:
             try:
                 self.redis_store.set(key, value, ex, px, nx, xx)
@@ -71,6 +102,7 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, 'set', key)
 
     def incr(self, key, raise_exception=False):
+        key = prepare_value(key)
         if self.active:
             try:
                 return self.redis_store.incr(key)
@@ -78,6 +110,7 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, 'incr', key)
 
     def get(self, key, raise_exception=False):
+        key = prepare_value(key)
         if self.active:
             try:
                 return self.redis_store.get(key)
@@ -90,6 +123,8 @@ class RedisClient:
         return self.increment_hash_value(key, value, raise_exception, incr_by=-1)
 
     def increment_hash_value(self, key, value, raise_exception=False, incr_by=1):
+        key = prepare_value(key)
+        value = prepare_value(value)
         if self.active:
             try:
                 return self.redis_store.hincrby(key, value, incr_by)
@@ -97,6 +132,7 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, 'increment_hash_value', key)
 
     def get_all_from_hash(self, key, raise_exception=False):
+        key = prepare_value(key)
         if self.active:
             try:
                 return self.redis_store.hgetall(key)
@@ -104,6 +140,8 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, 'get_all_from_hash', key)
 
     def set_hash_and_expire(self, key, values, expire_in_seconds, raise_exception=False):
+        key = prepare_value(key)
+        values = {prepare_value(k): prepare_value(v) for k, v in values.items()}
         if self.active:
             try:
                 self.redis_store.hmset(key, values)
@@ -112,6 +150,7 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, 'set_hash_and_expire', key)
 
     def expire(self, key, expire_in_seconds, raise_exception=False):
+        key = prepare_value(key)
         if self.active:
             try:
                 self.redis_store.expire(key, expire_in_seconds)
@@ -119,6 +158,7 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, 'expire', key)
 
     def delete(self, *keys, raise_exception=False):
+        keys = [prepare_value(k) for k in keys]
         if self.active:
             try:
                 self.redis_store.delete(*keys)

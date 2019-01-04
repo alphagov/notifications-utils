@@ -1,4 +1,6 @@
+import uuid
 import pytest
+from datetime import datetime
 from unittest.mock import Mock, call
 from freezegun import freeze_time
 
@@ -7,7 +9,7 @@ from notifications_utils.clients.redis import (
     rate_limit_cache_key,
     sms_billable_units_cache_key
 )
-from notifications_utils.clients.redis.redis_client import RedisClient
+from notifications_utils.clients.redis.redis_client import RedisClient, prepare_value
 
 
 @pytest.fixture(scope='function')
@@ -168,6 +170,14 @@ def test_set_hash_and_expire(mocked_redis_client):
     mocked_redis_client.redis_store.expire.assert_called_with(key, 1)
 
 
+def test_set_hash_and_expire_converts_values_to_valid_types(mocked_redis_client):
+    key = 'hash-key'
+    values = {uuid.UUID(int=0): 10}
+    mocked_redis_client.set_hash_and_expire(key, values, 1)
+    mocked_redis_client.redis_store.hmset.assert_called_with(key, {'00000000-0000-0000-0000-000000000000': 10})
+    mocked_redis_client.redis_store.expire.assert_called_with(key, 1)
+
+
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.exceeded_rate_limit("key", 100, 100)
@@ -219,3 +229,16 @@ def test_delete(mocked_redis_client):
 def test_multi_delete(mocked_redis_client):
     mocked_redis_client.delete('a', 'b', 'c')
     mocked_redis_client.redis_store.delete.assert_called_with('a', 'b', 'c')
+
+
+@pytest.mark.parametrize('input,output', [
+    (b'asdf', b'asdf'),
+    ('asdf', 'asdf'),
+    (0, 0),
+    (1.2, 1.2),
+    (uuid.UUID(int=0), '00000000-0000-0000-0000-000000000000'),
+    pytest.param({'a': 1}, None, marks=pytest.mark.xfail(raises=ValueError)),
+    pytest.param(datetime.utcnow(), None, marks=pytest.mark.xfail(raises=ValueError)),
+])
+def test_prepare_value(input, output):
+    assert prepare_value(input) == output
