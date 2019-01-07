@@ -65,7 +65,7 @@ class RedisClient:
         Notes:
         - Failed requests count. If over the limit and keep making requests you'll stay over the limit.
         - The actual value in the set is just the timestamp, the same as the score. We don't store any requets details.
-        - return value of pip.execute() is an array containing the outcome of each call.
+        - return value of pipe.execute() is an array containing the outcome of each call.
             - result[2] == outcome of pipe.zcard()
         - If redis is inactive, or we get an exception, allow the request
 
@@ -80,7 +80,7 @@ class RedisClient:
             try:
                 pipe = self.redis_store.pipeline()
                 when = time()
-                pipe.zadd(cache_key, when, when)
+                pipe.zadd(cache_key, {when: when})
                 pipe.zremrangebyscore(cache_key, '-inf', when - interval)
                 pipe.zcard(cache_key)
                 pipe.expire(cache_key, interval)
