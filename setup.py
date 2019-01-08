@@ -32,7 +32,7 @@ setup(
         'Jinja2==2.10',
         'statsd==3.3.0',
         'Flask-Redis==0.3.0',
-        'pyyaml==3.13',
+        'pyyaml==3.12',
         'phonenumbers==8.10.2',
         'pytz==2018.9',
         'smartypants==2.0.1',
@@ -42,7 +42,5 @@ setup(
         # required by both api and admin
         'awscli==1.15.79',
         'boto3==1.6.16',
-        # 'awscli==1.16.85',
-        # 'boto3==1.9.75',
     ]
 )

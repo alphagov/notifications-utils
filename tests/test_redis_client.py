@@ -182,7 +182,7 @@ def test_set_hash_and_expire_converts_values_to_valid_types(mocked_redis_client)
 def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.exceeded_rate_limit("key", 100, 100)
     assert mocked_redis_client.redis_store.pipeline.called
-    mocked_redis_pipeline.zadd.assert_called_with("key", 978350400.0, 978350400.0)
+    mocked_redis_pipeline.zadd.assert_called_with("key", {978350400.0: 978350400.0})
     mocked_redis_pipeline.zremrangebyscore.assert_called_with("key", '-inf', 978350300.0)
     mocked_redis_pipeline.zcard.assert_called_with("key")
     mocked_redis_pipeline.expire.assert_called_with("key", 100)
