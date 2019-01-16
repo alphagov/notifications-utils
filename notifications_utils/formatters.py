@@ -436,7 +436,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def autolink(self, link, is_email=False):
         if is_email:
             return link
-        return '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(
+        return '<a style="word-wrap: break-word; color: #005ea5;" href="{}">{}</a>'.format(
             urllib.parse.quote(
                 urllib.parse.unquote(link),
                 safe=':/?#=&;'
