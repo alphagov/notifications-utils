@@ -21,7 +21,7 @@ def test_passes_through_template_attributes():
     assert Template({"content": ''}).id is None
     assert Template({"content": '', 'id': '1234'}).id == '1234'
     assert Template({"content": ''}).template_type is None
-    assert Template({"content": '', 'template_type': 'sms'}).template_type is 'sms'
+    assert Template({"content": '', 'template_type': 'sms'}).template_type == 'sms'
     assert not hasattr(Template({"content": ''}), 'subject')
 
 
