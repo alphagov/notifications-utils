@@ -11,6 +11,8 @@ from notifications_utils.sanitise_text import SanitiseGSM
 import smartypants
 
 
+LINK_STYLE = 'word-wrap: break-word; color: #005ea5;'
+
 OBSCURE_WHITESPACE = (
     '\u180E'  # Mongolian vowel separator
     '\u200B'  # zero width space
@@ -100,7 +102,8 @@ def add_prefix(body, prefix=None):
 
 def autolink_sms(body):
     return url.sub(
-        lambda match: '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(
+        lambda match: '<a style="{}" href="{}">{}</a>'.format(
+            LINK_STYLE,
             match.group(1), match.group(1),
         ),
         body,
@@ -426,8 +429,9 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
 
     def link(self, link, title, content):
         return (
-            '<a style="word-wrap: break-word;"{}{}>{}</a>'
+            '<a style="{}"{}{}>{}</a>'
         ).format(
+            LINK_STYLE,
             ' href="{}"'.format(link),
             ' title="{}"'.format(title) if title else "",
             content,
@@ -436,7 +440,8 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def autolink(self, link, is_email=False):
         if is_email:
             return link
-        return '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(
+        return '<a style="{}" href="{}">{}</a>'.format(
+            LINK_STYLE,
             urllib.parse.quote(
                 urllib.parse.unquote(link),
                 safe=':/?#=&;'

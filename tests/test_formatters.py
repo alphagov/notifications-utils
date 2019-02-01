@@ -40,7 +40,7 @@ from notifications_utils.template import (
     ]
 )
 def test_makes_links_out_of_URLs(url):
-    link = '<a style="word-wrap: break-word;" href="{}">{}</a>'.format(url, url)
+    link = '<a style="word-wrap: break-word; color: #005ea5;" href="{}">{}</a>'.format(url, url)
     assert (notify_email_markdown(url) == (
         '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
         '{}'
@@ -55,7 +55,7 @@ def test_makes_links_out_of_URLs(url):
         ),
         (
             'this is some text with a link '
-            '<a style="word-wrap: break-word;" href="http://example.com">http://example.com</a>'
+            '<a style="word-wrap: break-word; color: #005ea5;" href="http://example.com">http://example.com</a>'
             ' in the middle'
         ),
     ),
@@ -65,7 +65,7 @@ def test_makes_links_out_of_URLs(url):
         ),
         (
             'this link is in brackets '
-            '(<a style="word-wrap: break-word;" href="http://example.com">http://example.com</a>)'
+            '(<a style="word-wrap: break-word; color: #005ea5;" href="http://example.com">http://example.com</a>)'
         ),
     )
 ])
@@ -100,7 +100,7 @@ def test_handles_placeholders_in_urls():
         "http://example.com/?token=<span class='placeholder'>((token))</span>&key=1"
     ) == (
         '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-        '<a style="word-wrap: break-word;" href="http://example.com/?token=">'
+        '<a style="word-wrap: break-word; color: #005ea5;" href="http://example.com/?token=">'
         'http://example.com/?token='
         '</a>'
         '<span class=\'placeholder\'>((token))</span>&amp;key=1'
@@ -112,13 +112,13 @@ def test_handles_placeholders_in_urls():
     "url, expected_html, expected_html_in_template", [
         (
             """https://example.com"onclick="alert('hi')""",
-            """<a style="word-wrap: break-word;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>')""",  # noqa
-            """<a style="word-wrap: break-word;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>‘)""",  # noqa
+            """<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>')""",  # noqa
+            """<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>‘)""",  # noqa
         ),
         (
             """https://example.com"style='text-decoration:blink'""",
-            """<a style="word-wrap: break-word;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>'""",  # noqa
-            """<a style="word-wrap: break-word;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>’""",  # noqa
+            """<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>'""",  # noqa
+            """<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>’""",  # noqa
         ),
     ]
 )
@@ -133,7 +133,7 @@ def test_URLs_get_escaped(url, expected_html, expected_html_in_template):
 
 def test_HTML_template_has_URLs_replaced_with_links():
     assert (
-        '<a style="word-wrap: break-word;" href="https://service.example.com/accept_invite/a1b2c3d4">'
+        '<a style="word-wrap: break-word; color: #005ea5;" href="https://service.example.com/accept_invite/a1b2c3d4">'
         'https://service.example.com/accept_invite/a1b2c3d4'
         '</a>'
     ) in str(HTMLEmailTemplate({'content': (
@@ -147,7 +147,7 @@ def test_HTML_template_has_URLs_replaced_with_links():
 @pytest.mark.parametrize('markdown_function, expected_output', [
     (notify_email_markdown, (
         '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-        '<a style="word-wrap: break-word;" href="https://example.com">'
+        '<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com">'
         'https://example.com'
         '</a>'
         '</p>'
@@ -582,7 +582,7 @@ def test_table(markdown_function):
         'http://example.com',
         (
             '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-            '<a style="word-wrap: break-word;" href="http://example.com">http://example.com</a>'
+            '<a style="word-wrap: break-word; color: #005ea5;" href="http://example.com">http://example.com</a>'
             '</p>'
         )
     ],
@@ -591,7 +591,7 @@ def test_table(markdown_function):
         """https://example.com"onclick="alert('hi')""",
         (
             '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-            '<a style="word-wrap: break-word;" href="https://example.com%22onclick=%22alert%28%27hi">'
+            '<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22onclick=%22alert%28%27hi">'
             'https://example.com"onclick="alert(\'hi'
             '</a>\')'
             '</p>'
@@ -709,7 +709,7 @@ def test_image(markdown_function):
         (
             '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
             'color: #0B0C0C;">'
-            '<a style="word-wrap: break-word;" href="http://example.com">Example</a>'
+            '<a style="word-wrap: break-word; color: #005ea5;" href="http://example.com">Example</a>'
             '</p>'
         )
     ],
@@ -739,7 +739,9 @@ def test_link(markdown_function, expected):
         (
             '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
             'color: #0B0C0C;">'
-            '<a style="word-wrap: break-word;" href="http://example.com" title="An example URL">Example</a>'
+            '<a style="word-wrap: break-word; color: #005ea5;" href="http://example.com" title="An example URL">'
+            'Example'
+            '</a>'
             '</p>'
         )
     ],
