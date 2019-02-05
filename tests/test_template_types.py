@@ -640,17 +640,26 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     ),
 ])
+@pytest.mark.parametrize('postage_args, expected_postage', (
+    pytest.param({}, 'second'),
+    pytest.param({'postage': 'first'}, 'first'),
+    pytest.param({'postage': 'second'}, 'second'),
+    pytest.param({'postage': 'third'}, 'third', marks=pytest.mark.xfail(raises=TypeError)),
+))
 def test_letter_image_renderer(
     jinja_template,
     page_count,
     expected_page_numbers,
     expected_oversized,
+    postage_args,
+    expected_postage,
 ):
     str(LetterImageTemplate(
         {'content': 'Content', 'subject': 'Subject'},
         image_url='http://example.com/endpoint.png',
         page_count=page_count,
         contact_block='10 Downing Street',
+        **postage_args
     ))
     jinja_template.assert_called_once_with({
         'image_url': 'http://example.com/endpoint.png',
@@ -671,6 +680,7 @@ def test_letter_image_renderer(
         'date': '12 December 2012',
         'subject': 'Subject',
         'message': '<p>Content</p>',
+        'postage': expected_postage,
     })
 
 

@@ -570,14 +570,18 @@ class LetterImageTemplate(LetterPreviewTemplate):
         image_url=None,
         page_count=None,
         contact_block=None,
+        postage='second',
     ):
         super().__init__(template, values, contact_block=contact_block)
         if not image_url:
             raise TypeError('image_url is required')
         if not page_count:
             raise TypeError('page_count is required')
+        if postage not in {'first', 'second'}:
+            raise TypeError('postage must be first or second')
         self.image_url = image_url
         self.page_count = int(page_count)
+        self.postage = postage
 
     @property
     def last_page_number(self):
@@ -601,6 +605,7 @@ class LetterImageTemplate(LetterPreviewTemplate):
             'date': self._date,
             'subject': self.subject,
             'message': self._message,
+            'postage': self.postage,
         }))
 
 

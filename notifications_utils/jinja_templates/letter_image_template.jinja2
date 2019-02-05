@@ -11,6 +11,11 @@
 
 {% for page_number in page_numbers %}
   <div class="letter">
+    {% if loop.first %}
+      <p class="letter-postage letter-postage-{{ postage }}">
+        Postage: {{ postage }} class
+      </p>
+    {% endif %}
     <img src="{{ image_url }}?page={{ page_number }}" alt="">
   </div>
 {% endfor %}
