@@ -38,11 +38,46 @@ def prepare_value(val):
 class RedisClient:
     redis_store = FlaskRedis()
     active = False
+    scripts = {}
 
     def init_app(self, app):
         self.active = app.config.get('REDIS_ENABLED')
         if self.active:
             self.redis_store.init_app(app)
+
+            self.register_scripts()
+
+    def register_scripts(self):
+
+        # delete keys matching a pattern supplied as a parameter. Does so in batches of 5000 to prevent unpack from
+        # exceeding lua's stack limit, and also to prevent errors if no keys match the pattern.
+        # Inspired by https://gist.github.com/ddre54/0a4751676272e0da8186
+        self.scripts['delete-keys-by-pattern'] = self.redis_store.register_script(
+            """
+            local keys = redis.call('keys', ARGV[1])
+            local deleted = 0
+            for i=1, #keys, 5000 do
+                deleted = deleted + redis.call('del', unpack(keys, i, math.min(i + 4999, #keys)))
+            end
+            return deleted
+            """
+        )
+
+    def delete_cache_keys_by_pattern(self, pattern):
+        r"""
+        Deletes all keys matching a given pattern, and returns how many keys were deleted.
+        Pattern is defined as in the KEYS command: https://redis.io/commands/keys
+
+        * h?llo matches hello, hallo and hxllo
+        * h*llo matches hllo and heeeello
+        * h[ae]llo matches hello and hallo, but not hillo
+        * h[^e]llo matches hallo, hbllo, ... but not hello
+        * h[a-b]llo matches hallo and hbllo
+
+        Use \ to escape special characters if you want to match them verbatim
+        """
+        if self.active:
+            return self.scripts['delete-keys-by-pattern'](args=[pattern])
 
     def exceeded_rate_limit(self, cache_key, limit, interval, raise_exception=False):
         """

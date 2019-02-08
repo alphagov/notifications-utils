@@ -242,3 +242,12 @@ def test_multi_delete(mocked_redis_client):
 ])
 def test_prepare_value(input, output):
     assert prepare_value(input) == output
+
+
+def test_delete_cache_keys(mocked_redis_client):
+    delete_mock = Mock()
+    mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
+
+    mocked_redis_client.delete_cache_keys_by_pattern('foo')
+
+    delete_mock.assert_called_once_with(args=['foo'])
