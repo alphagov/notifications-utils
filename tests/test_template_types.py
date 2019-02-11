@@ -537,8 +537,8 @@ def test_sms_message_normalises_newlines(content):
     )
 ])
 @pytest.mark.parametrize('extra_args, expected_logo_file_name, expected_logo_class', [
-    ({}, 'hm-government.svg', 'svg'),
-    ({'logo_file_name': 'example.jpg'}, 'example.jpg', 'png'),
+    ({}, None, None),
+    ({'logo_file_name': 'example.foo'}, 'example.foo', 'foo'),
 ])
 @pytest.mark.parametrize('additional_extra_args, expected_date', [
     ({}, '12 December 2012'),
@@ -613,7 +613,7 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
     assert jinja_template_locals['date'] == '1 January 2001'
     assert jinja_template_locals['contact_block'] == ''
     assert jinja_template_locals['admin_base_url'] == 'http://localhost:6012'
-    assert jinja_template_locals['logo_file_name'] == 'hm-government.svg'
+    assert jinja_template_locals['logo_file_name'] is None
 
 
 @freeze_time("2012-12-12 12:12:12")
@@ -1937,3 +1937,12 @@ def test_image_class_applied_to_logo(template_class, filename, expected_html_cla
         {'content': 'Foo', 'subject': 'Subject'},
         logo_file_name=filename,
     ))
+
+
+@pytest.mark.parametrize("template_class", [
+    LetterPreviewTemplate,
+    LetterPrintTemplate,
+])
+def test_image_not_present_if_no_logo(template_class):
+    # can't test that the html doesn't move in utils - tested in template preview instead
+    assert '<img' not in str(template_class({'content': 'Foo', 'subject': 'Subject'}, logo_file_name=None))
