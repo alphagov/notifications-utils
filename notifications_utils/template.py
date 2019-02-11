@@ -426,7 +426,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         values=None,
         contact_block=None,
         admin_base_url='http://localhost:6012',
-        logo_file_name='hm-government.svg',
+        logo_file_name=None,
         redact_missing_personalisation=False,
         date=None,
     ):
@@ -440,7 +440,8 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         return Markup(self.jinja_template.render({
             'admin_base_url': self.admin_base_url,
             'logo_file_name': self.logo_file_name,
-            'logo_class': 'svg' if self.logo_file_name.lower().endswith('svg') else 'png',
+            # logo_class should only ever be None, svg or png
+            'logo_class': self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
             'subject': self.subject,
             'message': self._message,
             'address': self._address_block,
