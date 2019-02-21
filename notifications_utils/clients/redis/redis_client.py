@@ -78,6 +78,7 @@ class RedisClient:
         """
         if self.active:
             return self.scripts['delete-keys-by-pattern'](args=[pattern])
+        return 0
 
     def exceeded_rate_limit(self, cache_key, limit, interval, raise_exception=False):
         """
