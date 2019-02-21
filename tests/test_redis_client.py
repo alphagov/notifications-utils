@@ -250,7 +250,7 @@ def test_delete_cache_keys(mocked_redis_client):
 
     ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
 
-    assert ret == 4 
+    assert ret == 4
     delete_mock.assert_called_once_with(args=['foo'])
 
 
