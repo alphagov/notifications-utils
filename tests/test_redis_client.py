@@ -245,9 +245,21 @@ def test_prepare_value(input, output):
 
 
 def test_delete_cache_keys(mocked_redis_client):
+    delete_mock = Mock(return_value=4)
+    mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
+
+    ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
+
+    assert ret == 4
+    delete_mock.assert_called_once_with(args=['foo'])
+
+
+def test_delete_cache_keys_returns_zero_when_redis_disabled(mocked_redis_client):
+    mocked_redis_client.active = False
     delete_mock = Mock()
     mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
 
-    mocked_redis_client.delete_cache_keys_by_pattern('foo')
+    ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
 
-    delete_mock.assert_called_once_with(args=['foo'])
+    assert delete_mock.called is False
+    assert ret == 0

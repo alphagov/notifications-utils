@@ -23,7 +23,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'bleach==3.0.2',
+        'bleach==3.1.0',
         'mistune==0.8.4',
         'requests==2.21.0',
         'python-json-logger==0.1.10',
@@ -33,7 +33,7 @@ setup(
         'statsd==3.3.0',
         'Flask-Redis==0.3.0',
         'pyyaml==3.12',
-        'phonenumbers==8.10.2',
+        'phonenumbers==8.10.5',
         'pytz==2018.9',
         'smartypants==2.0.1',
         'monotonic==1.5',
