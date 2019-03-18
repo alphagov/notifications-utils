@@ -431,11 +431,11 @@ def test_ordered_list(markdown_function, expected):
         '- two\n'
         '- three\n'
     ),
-    (  # plus as bullet
+    pytest.param((  # plus as bullet
         '+ one\n'
         '+ two\n'
         '+ three\n'
-    ),
+    ), marks=pytest.mark.xfail(raises=AssertionError)),
     (  # bullet as bullet
         '• one\n'
         '• two\n'
@@ -484,6 +484,36 @@ def test_ordered_list(markdown_function, expected):
 ))
 def test_unordered_list(markdown, markdown_function, expected):
     assert markdown_function(markdown) == expected
+
+
+@pytest.mark.parametrize('markdown_function, expected', (
+    [
+        notify_letter_preview_markdown,
+        '<p>+ one</p><p>+ two</p><p>+ three</p>',
+    ],
+    [
+        notify_email_markdown,
+        (
+            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">+ one</p>'
+            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">+ two</p>'
+            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">+ three</p>'
+        ),
+    ],
+    [
+        notify_plain_text_email_markdown,
+        (
+            '\n\n+ one'
+            '\n\n+ two'
+            '\n\n+ three'
+        ),
+    ],
+))
+def test_pluses_dont_render_as_lists(markdown_function, expected):
+    assert markdown_function(
+        '+ one\n'
+        '+ two\n'
+        '+ three\n'
+    ) == expected
 
 
 @pytest.mark.parametrize('markdown_function, expected', (
