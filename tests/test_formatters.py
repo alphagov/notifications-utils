@@ -266,6 +266,10 @@ def test_block_quote(markdown_function, expected):
     assert markdown_function('^ inset text') == expected
 
 
+@pytest.mark.parametrize('heading', (
+    '# heading',
+    '#heading',
+))
 @pytest.mark.parametrize(
     'markdown_function, expected',
     (
@@ -293,8 +297,8 @@ def test_block_quote(markdown_function, expected):
         ],
     )
 )
-def test_level_1_header(markdown_function, expected):
-    assert markdown_function('# heading') == expected
+def test_level_1_header(markdown_function, heading, expected):
+    assert markdown_function(heading) == expected
 
 
 @pytest.mark.parametrize('markdown_function, expected', (
