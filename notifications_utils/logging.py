@@ -120,6 +120,13 @@ def get_handlers(app):
         handlers.append(configure_handler(stream_handler, app, json_formatter))
         handlers.append(configure_handler(file_handler, app, json_formatter))
     else:
+        # turn off 200 OK static logs in development
+        def is_200_static_log(log):
+            msg = log.getMessage()
+            return not ('GET /static/' in msg and ' 200 ' in msg)
+
+        logging.getLogger('werkzeug').addFilter(is_200_static_log)
+
         # human readable stdout logs
         handlers.append(configure_handler(stream_handler, app, standard_formatter))
 
