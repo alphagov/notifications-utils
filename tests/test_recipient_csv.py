@@ -919,3 +919,38 @@ def test_multiple_letter_recipient_columns():
         'address line 1', 'Address Line 2', 'address line 1', 'address_line_2'
     ])
     assert recipients.has_errors
+
+
+def test_displayed_rows_when_some_rows_have_errors():
+    recipients = RecipientCSV(
+        """
+            email address, name
+            a@b.com,
+            a@b.com,
+            a@b.com, My Name
+            a@b.com,
+            a@b.com,
+        """,
+        template_type='email',
+        placeholders=['name'],
+        max_errors_shown=3
+    )
+
+    assert len(list(recipients.displayed_rows)) == 3
+
+
+def test_displayed_rows_when_there_are_no_rows_with_errors():
+    recipients = RecipientCSV(
+        """
+            email address, name
+            a@b.com, My Name
+            a@b.com, My Name
+            a@b.com, My Name
+            a@b.com, My Name
+        """,
+        template_type='email',
+        placeholders=['name'],
+        max_errors_shown=3
+    )
+
+    assert len(list(recipients.displayed_rows)) == 4
