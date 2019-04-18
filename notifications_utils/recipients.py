@@ -74,17 +74,11 @@ class RecipientCSV():
 
     def __len__(self):
         if not hasattr(self, '_len'):
-            if self.rows_as_list is None:
-                # self.get_rows() populates self.rows_as_list as it goes
-                list(self.get_rows())
-            self._len = len(self.rows_as_list)
+            self._len = len(self.rows)
         return self._len
 
     def __getitem__(self, requested_index):
-        if self.rows_as_list is None:
-            # self.get_rows() populates self.rows_as_list as it goes
-            list(self.get_rows())
-        return self.rows_as_list[requested_index]
+        return self.rows[requested_index]
 
     @property
     def whitelist(self):
@@ -149,9 +143,9 @@ class RecipientCSV():
 
     @property
     def rows(self):
-        if self.rows_as_list is not None:
-            return self.rows_as_list
-        return list(self.get_rows())
+        if self.rows_as_list is None:
+            self.rows_as_list = list(self.get_rows())
+        return self.rows_as_list
 
     @property
     def _rows(self):
