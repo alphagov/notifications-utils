@@ -69,8 +69,8 @@ class RecipientCSV():
         self.whitelist = whitelist
         self.template = template if isinstance(template, Template) else None
         self.international_sms = international_sms
-        self.rows = list(self.get_rows())
         self.remaining_messages = remaining_messages
+        self.rows_as_list = None
 
     def __len__(self):
         if not hasattr(self, '_len'):
@@ -140,6 +140,12 @@ class RecipientCSV():
             allowed_to_send_to(row.recipient, self.whitelist)
             for row in self.rows
         )
+
+    @property
+    def rows(self):
+        if self.rows_as_list is None:
+            self.rows_as_list = list(self.get_rows())
+        return self.rows_as_list
 
     @property
     def _rows(self):
