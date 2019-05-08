@@ -285,14 +285,17 @@ def test_markdown_in_templates(
     ]
 )
 def test_makes_links_out_of_URLs(template_class, url, url_with_entities_replaced):
-    assert '<a style="word-wrap: break-word; color: #005ea5;" href="{}">{}</a>'.format(
+    assert (
+        '<a style="word-break: break-all; word-wrap: break-word; color: #005ea5;" href="{}">{}</a>'
+    ).format(
         url_with_entities_replaced, url_with_entities_replaced
     ) in str(template_class({'content': url, 'subject': ''}))
 
 
 def test_HTML_template_has_URLs_replaced_with_links():
     assert (
-        '<a style="word-wrap: break-word; color: #005ea5;" href="https://service.example.com/accept_invite/a1b2c3d4">'
+        '<a style="word-break: break-all; word-wrap: break-word; color: #005ea5;"'
+        ' href="https://service.example.com/accept_invite/a1b2c3d4">'
         'https://service.example.com/accept_invite/a1b2c3d4'
         '</a>'
     ) in str(HTMLEmailTemplate({'content': (
@@ -1908,7 +1911,8 @@ def test_plain_text_email_whitespace():
     (HTMLEmailTemplate, (
         '<h2 style="Margin: 0 0 20px 0; padding: 0; font-size: 27px; '
         'line-height: 35px; font-weight: bold; color: #0B0C0C;">'
-        'Heading <a style="word-wrap: break-word; color: #005ea5;" href="https://example.com">link</a>'
+        'Heading <a style="word-wrap: break-word; color: #005ea5;"'
+        ' href="https://example.com">link</a>'
         '</h2>'
     )),
     (LetterPreviewTemplate, (

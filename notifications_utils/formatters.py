@@ -12,6 +12,7 @@ import smartypants
 
 
 LINK_STYLE = 'word-wrap: break-word; color: #005ea5;'
+URL_LINK_STYLE = 'word-break: break-all; ' + LINK_STYLE
 
 OBSCURE_WHITESPACE = (
     '\u180E'  # Mongolian vowel separator
@@ -103,7 +104,7 @@ def add_prefix(body, prefix=None):
 def autolink_sms(body):
     return url.sub(
         lambda match: '<a style="{}" href="{}">{}</a>'.format(
-            LINK_STYLE,
+            URL_LINK_STYLE,
             match.group(1), match.group(1),
         ),
         body,
@@ -441,7 +442,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         if is_email:
             return link
         return '<a style="{}" href="{}">{}</a>'.format(
-            LINK_STYLE,
+            URL_LINK_STYLE,
             urllib.parse.quote(
                 urllib.parse.unquote(link),
                 safe=':/?#=&;'
