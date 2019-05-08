@@ -288,7 +288,7 @@ class RecipientCSV():
             if not self.is_optional_address_column(recipient_column)
         ) <= self.column_headers_as_column_keys
 
-    def _get_error_for_field(self, key, value):
+    def _get_error_for_field(self, key, value):  # noqa: C901
 
         if self.is_optional_address_column(key):
             return
