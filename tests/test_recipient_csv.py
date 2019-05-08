@@ -937,6 +937,28 @@ def test_multiple_sms_recipient_columns(international_sms):
     assert recipients.has_errors
 
 
+@pytest.mark.parametrize('international_sms', (True, False))
+def test_multiple_sms_recipient_columns__with_missing_data(international_sms):
+    recipients = RecipientCSV(
+        """
+            names, phone number, phone number
+            "Joanna and Steve", 07900 900111
+        """,
+        template_type='sms',
+        international_sms=international_sms,
+    )
+    assert recipients.column_headers == ['names', 'phone number']
+    assert recipients.column_headers_as_column_keys == dict(phonenumber='', names='').keys()
+    assert recipients.rows[0].get('phone number').data == (
+        ['07900 900111', None]
+    )
+    assert recipients.rows[0].get('phone number').error == 'Missing'
+    assert recipients.duplicate_recipient_column_headers == OrderedSet([
+        'phone number'
+    ])
+    assert recipients.has_errors
+
+
 def test_multiple_email_recipient_columns():
     recipients = RecipientCSV(
         """
