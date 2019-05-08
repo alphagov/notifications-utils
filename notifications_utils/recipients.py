@@ -295,7 +295,10 @@ class RecipientCSV():
 
         if Columns.make_key(key) in self.recipient_column_headers_as_column_keys:
             if value in [None, ''] or isinstance(value, list):
-                return Cell.missing_field_error
+                if self.duplicate_recipient_column_headers:
+                    return None
+                else:
+                    return Cell.missing_field_error
             try:
                 validate_recipient(
                     value,
