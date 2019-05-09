@@ -276,8 +276,8 @@ class RecipientCSV():
 
     def is_optional_address_column(self, key):
         return (
-            self.template_type == 'letter' and
-            Columns.make_key(key) in Columns.from_keys(optional_address_columns).keys()
+            self.template_type == 'letter'
+            and Columns.make_key(key) in Columns.from_keys(optional_address_columns).keys()
         )
 
     @property
@@ -288,14 +288,17 @@ class RecipientCSV():
             if not self.is_optional_address_column(recipient_column)
         ) <= self.column_headers_as_column_keys
 
-    def _get_error_for_field(self, key, value):
+    def _get_error_for_field(self, key, value):  # noqa: C901
 
         if self.is_optional_address_column(key):
             return
 
         if Columns.make_key(key) in self.recipient_column_headers_as_column_keys:
-            if value in [None, '']:
-                return Cell.missing_field_error
+            if value in [None, ''] or isinstance(value, list):
+                if self.duplicate_recipient_column_headers:
+                    return None
+                else:
+                    return Cell.missing_field_error
             try:
                 validate_recipient(
                     value,
