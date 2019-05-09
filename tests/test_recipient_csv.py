@@ -937,25 +937,37 @@ def test_multiple_sms_recipient_columns(international_sms):
     assert recipients.has_errors
 
 
-@pytest.mark.parametrize('international_sms', (True, False))
-def test_multiple_sms_recipient_columns_with_missing_data(international_sms):
+@pytest.mark.parametrize('column_name', (
+    "phone_number", "phonenumber", "phone number", "phone-number", 'p h o n e  n u m b e r'
+))
+def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     recipients = RecipientCSV(
         """
-            names, phone number, phone number
+            names, phone number, {}
             "Joanna and Steve", 07900 900111
-        """,
+        """.format(column_name),
         template_type='sms',
-        international_sms=international_sms,
+        international_sms=True,
     )
-    assert recipients.column_headers == ['names', 'phone number']
+    expected_column_headers = ['names', 'phone number']
+    if column_name != "phone number":
+        expected_column_headers.append(column_name)
+    assert recipients.column_headers == expected_column_headers
     assert recipients.column_headers_as_column_keys == dict(phonenumber='', names='').keys()
-    assert recipients.rows[0].get('phone number').data == (
-        ['07900 900111', None]
-    )
+    # A piece of weirdness uncovered: since rows are created before spaces in column names are normalised, when
+    # there are duplicate recipient columns and there is data for only one of the columns, if the columns have the same
+    # spacing, phone number data will be a list of this one phone number and None, while if the spacing style differs
+    # between two duplicate column names, the phone number data will be None. If there are no duplicate columns
+    # then our code finds the phone number well regardless of the spacing, so this should not affect our users.
+    phone_number_data = None
+    if column_name == "phone number":
+        phone_number_data = ['07900 900111', None]
+    assert recipients.rows[0]['phonenumber'].data == phone_number_data
     assert recipients.rows[0].get('phone number').error is None
-    assert recipients.duplicate_recipient_column_headers == OrderedSet([
-        'phone number'
-    ])
+    expected_duplicated_columns = ['phone number']
+    if column_name != "phone number":
+        expected_duplicated_columns.append(column_name)
+    assert recipients.duplicate_recipient_column_headers == OrderedSet(expected_duplicated_columns)
     assert recipients.has_errors
 
 
