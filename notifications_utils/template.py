@@ -37,6 +37,7 @@ from notifications_utils.formatters import (
 )
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
+from notifications_utils.sanitise_text import SanitiseSMS
 
 
 template_env = Environment(loader=FileSystemLoader(
@@ -173,7 +174,8 @@ class SMSMessageTemplate(Template):
 
     @property
     def fragment_count(self):
-        return get_sms_fragment_count(self.content_count)
+        content_with_placeholders = str(self)
+        return get_sms_fragment_count(self.content_count, is_unicode(content_with_placeholders))
 
     def is_message_too_long(self):
         return self.content_count > SMS_CHAR_COUNT_LIMIT
@@ -620,8 +622,15 @@ class NoPlaceholderForDataError(Exception):
         super(NoPlaceholderForDataError, self).__init__(", ".join(keys))
 
 
-def get_sms_fragment_count(character_count):
-    return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
+def get_sms_fragment_count(character_count, is_unicode):
+    if is_unicode:
+        return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
+    else:
+        return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
+
+
+def is_unicode(content):
+    return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
 
 
 def get_html_email_body(template_content, template_values, redact_missing_personalisation=False):
