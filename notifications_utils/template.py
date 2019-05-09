@@ -20,7 +20,7 @@ from notifications_utils.formatters import (
     notify_plain_text_email_markdown,
     notify_letter_preview_markdown,
     remove_empty_lines,
-    gsm_encode,
+    sms_encode,
     escape_html,
     strip_dvla_markup,
     strip_pipes,
@@ -145,7 +145,7 @@ class SMSMessageTemplate(Template):
         )).then(
             add_prefix, self.prefix
         ).then(
-            gsm_encode
+            sms_encode
         ).then(
             remove_whitespace_before_punctuation
         ).then(
@@ -168,7 +168,7 @@ class SMSMessageTemplate(Template):
             # we always want to call SMSMessageTemplate.__str__ regardless of subclass, to avoid any html formatting
             SMSMessageTemplate.__str__(self)
             if self._values
-            else gsm_encode(add_prefix(self.content.strip(), self.prefix))
+            else sms_encode(add_prefix(self.content.strip(), self.prefix))
         ).encode(self.encoding))
 
     @property
@@ -192,12 +192,12 @@ class SMSPreviewTemplate(SMSMessageTemplate):
         sender=None,
         show_recipient=False,
         show_sender=False,
-        downgrade_non_gsm_characters=True,
+        downgrade_non_sms_characters=True,
         redact_missing_personalisation=False,
     ):
         self.show_recipient = show_recipient
         self.show_sender = show_sender
-        self.downgrade_non_gsm_characters = downgrade_non_gsm_characters
+        self.downgrade_non_sms_characters = downgrade_non_sms_characters
         super().__init__(template, values, prefix, show_prefix, sender)
         self.redact_missing_personalisation = redact_missing_personalisation
 
@@ -216,7 +216,7 @@ class SMSPreviewTemplate(SMSMessageTemplate):
             )).then(
                 add_prefix, (escape_html(self.prefix) or None) if self.show_prefix else None
             ).then(
-                gsm_encode if self.downgrade_non_gsm_characters else str
+                sms_encode if self.downgrade_non_sms_characters else str
             ).then(
                 remove_whitespace_before_punctuation
             ).then(

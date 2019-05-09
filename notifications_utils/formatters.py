@@ -7,7 +7,7 @@ import bleach
 from itertools import count
 from flask import Markup
 from . import email_with_smart_quotes_regex
-from notifications_utils.sanitise_text import SanitiseGSM
+from notifications_utils.sanitise_text import SanitiseSMS
 import smartypants
 
 
@@ -118,8 +118,8 @@ def remove_empty_lines(lines):
     return '\n'.join(filter(None, str(lines).split('\n')))
 
 
-def gsm_encode(content):
-    return SanitiseGSM.encode(content)
+def sms_encode(content):
+    return SanitiseSMS.encode(content)
 
 
 def strip_html(value):

@@ -78,12 +78,14 @@ class SanitiseText:
             return c if c is not None else '?'
 
 
-class SanitiseGSM(SanitiseText):
+class SanitiseSMS(SanitiseText):
     """
-    Given an input string, makes it GSM compatible. This involves removing all non-gsm characters by applying the
-    following rules
+    Given an input string, makes it GSM and Welsh character compatible. This involves removing all non-gsm characters by
+    applying the following rules
     * characters within the GSM character set (https://en.wikipedia.org/wiki/GSM_03.38)
       and extension character set are kept
+
+    * Welsh characters not included in the default GSM character set are kept: Ââ Êê Îî Ôô Ûû Ŵŵ Ŷŷ
 
     * characters with sensible downgrades are replaced in place
         * characters with diacritics (accents, umlauts, cedillas etc) are replaced with their base character, eg é -> e
@@ -94,17 +96,20 @@ class SanitiseGSM(SanitiseText):
 
     * any remaining unicode characters (eg chinese/cyrillic/glyphs/emoji) are replaced with ?
     """
+    # Welsh characters not already included in GSM
+    WELSH_NON_GSM_CHARACTERS = set('ÂâÊêÎîÔôÛûŴŵŶŷ')
+
     ALLOWED_CHARACTERS = set(
         '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?' +
-        '¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ`¿abcdefghijklmnopqrstuvwxyzäöñüà' +
+        '¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà' +
         # character set extension
         '^{}\\[~]|€'
-    )
+    ) | WELSH_NON_GSM_CHARACTERS
 
 
 class SanitiseASCII(SanitiseText):
     """
-    As GSM above, but the allowed characters are printable ascii, from character range 32 to 126 inclusive.
+    As SMS above, but the allowed characters are printable ascii, from character range 32 to 126 inclusive.
     [chr(x) for x in range(32, 127)]
     """
     ALLOWED_CHARACTERS = set(
