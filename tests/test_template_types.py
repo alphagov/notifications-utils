@@ -399,25 +399,25 @@ def test_sms_message_preview_hides_sender_by_default():
     assert SMSPreviewTemplate({'content': 'foo'}).show_sender is False
 
 
-@mock.patch('notifications_utils.template.gsm_encode', return_value='downgraded')
+@mock.patch('notifications_utils.template.sms_encode', return_value='downgraded')
 @pytest.mark.parametrize(
     'template_class', [SMSMessageTemplate, SMSPreviewTemplate]
 )
-def test_sms_messages_downgrade_non_gsm(mock_gsm_encode, template_class):
+def test_sms_messages_downgrade_non_sms(mock_sms_encode, template_class):
     template = str(template_class({'content': 'Message'}, prefix='Service name'))
     assert 'downgraded' in str(template)
-    mock_gsm_encode.assert_called_once_with('Service name: Message')
+    mock_sms_encode.assert_called_once_with('Service name: Message')
 
 
-@mock.patch('notifications_utils.template.gsm_encode', return_value='downgraded')
-def test_sms_messages_dont_downgrade_non_gsm_if_setting_is_false(mock_gsm_encode):
+@mock.patch('notifications_utils.template.sms_encode', return_value='downgraded')
+def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode):
     template = str(SMSPreviewTemplate(
         {'content': '😎'},
         prefix='👉',
-        downgrade_non_gsm_characters=False,
+        downgrade_non_sms_characters=False,
     ))
     assert '👉: 😎' in str(template)
-    assert mock_gsm_encode.called is False
+    assert mock_sms_encode.called is False
 
 
 @mock.patch('notifications_utils.template.nl2br')

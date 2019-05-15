@@ -6,7 +6,7 @@ from notifications_utils.formatters import (
     notify_email_markdown,
     notify_letter_preview_markdown,
     notify_plain_text_email_markdown,
-    gsm_encode,
+    sms_encode,
     formatted_list,
     strip_dvla_markup,
     strip_pipes,
@@ -816,8 +816,8 @@ def test_footnotes():
     pass
 
 
-def test_gsm_encode():
-    assert gsm_encode('aàá…') == 'aàa...'
+def test_sms_encode():
+    assert sms_encode('aàá…') == 'aàa...'
 
 
 @pytest.mark.parametrize('items, kwargs, expected_output', [
