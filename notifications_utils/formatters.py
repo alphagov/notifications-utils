@@ -46,6 +46,7 @@ mistune.BlockGrammar.list_item = re.compile(
     flags=re.M
 )
 mistune.BlockGrammar.list_bullet = re.compile(r'^ *(?:[•*-]|\d+\.)')
+mistune.InlineGrammar.url = re.compile(r'''^(https?:\/\/[^\s<]+[^<.,:"')\]\s])''')
 
 govuk_not_a_link = re.compile(
     r'(?<!\.|\/)(GOV)\.(UK)(?!\/|\?)',
