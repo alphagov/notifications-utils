@@ -1,4 +1,5 @@
 from statsd import StatsClient
+from threading import Timer
 
 
 class StatsdClient():
@@ -12,13 +13,16 @@ class StatsdClient():
             app.config.get('NOTIFY_ENVIRONMENT'),
             app.config.get('NOTIFY_APP_NAME')
         )
+        self.host = app.config.get('STATSD_HOST')
+        self.port = app.config.get('STATSD_PORT')
+        self.prefix = app.config.get('STATSD_PREFIX')
 
         if self.active:
-            self.statsd_client = StatsClient(
-                app.config.get('STATSD_HOST'),
-                app.config.get('STATSD_PORT'),
-                prefix=app.config.get('STATSD_PREFIX')
-            )
+            self._refresh_client()
+
+    def _refresh_client(self):
+        self.statsd_client = StatsClient(self.host, self.port, self.prefix)
+        Timer(1, self._refresh_client).start()
 
     def format_stat_name(self, stat):
         return self.namespace + stat
