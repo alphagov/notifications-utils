@@ -210,6 +210,13 @@ def test_letter_cannot_be_cancelled_if_after_1730_and_letter_created_before_1730
     assert not letter_can_be_cancelled(notification_status, notification_created_at)
 
 
+@freeze_time('2018-7-7 15:00:00')
+def test_letter_cannot_be_cancelled_if_before_1730_and_letter_created_before_1730_yesterday():
+    notification_status = 'created'
+
+    assert not letter_can_be_cancelled(notification_status, datetime(2018, 7, 6, 14, 0))
+
+
 @freeze_time('2018-7-7 19:00:00')
 @pytest.mark.parametrize('notification_created_at', [
     datetime(2018, 7, 7, 17, 30),
