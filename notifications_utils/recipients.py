@@ -11,7 +11,7 @@ from orderedset import OrderedSet
 
 from flask import current_app
 
-from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
+from . import EMAIL_REGEX_PATTERN, INVALID_HOSTNAME_CHARS, hostname_part, tld_part
 from notifications_utils.formatters import strip_and_remove_obscure_whitespace, strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
@@ -455,6 +455,11 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
         raise InvalidEmailError
 
     hostname = match.group(1)
+
+    # INVALID_HOSTNAME_CHARS are characters that will cause SES to
+    # reject the email when they appear in the hostname
+    if set(hostname) & set(INVALID_HOSTNAME_CHARS):
+        raise InvalidEmailError
 
     # idna = "Internationalized domain name" - this encode/decode cycle converts unicode into its accurate ascii
     # representation as the web uses. '例え.テスト'.encode('idna') == b'xn--r8jz45g.xn--zckzah'
