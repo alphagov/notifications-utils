@@ -313,7 +313,7 @@ class HTMLEmailTemplate(WithSubjectTemplate):
         govuk_banner=True,
         complete_html=True,
         brand_logo=None,
-        brand_name=None,
+        brand_text=None,
         brand_colour=None,
         brand_banner=False
     ):
@@ -321,7 +321,7 @@ class HTMLEmailTemplate(WithSubjectTemplate):
         self.govuk_banner = govuk_banner
         self.complete_html = complete_html
         self.brand_logo = brand_logo
-        self.brand_name = brand_name
+        self.brand_text = brand_text
         self.brand_colour = brand_colour
         self.brand_banner = brand_banner
 
@@ -354,7 +354,7 @@ class HTMLEmailTemplate(WithSubjectTemplate):
             'govuk_banner': self.govuk_banner,
             'complete_html': self.complete_html,
             'brand_logo': self.brand_logo,
-            'brand_name': self.brand_name,
+            'brand_text': self.brand_text,
             'brand_colour': self.brand_colour,
             'brand_banner': self.brand_banner
         })

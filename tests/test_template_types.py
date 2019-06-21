@@ -72,7 +72,7 @@ def test_brand_banner_shows():
 
 
 @pytest.mark.parametrize(
-    "brand_logo, brand_name, brand_colour",
+    "brand_logo, brand_text, brand_colour",
     [
         ('http://example.com/image.png', 'Example', 'red'),
         ('http://example.com/image.png', 'Example', '#f00'),
@@ -81,21 +81,21 @@ def test_brand_banner_shows():
         (None, 'Example', '#f00')
     ]
 )
-def test_brand_data_shows(brand_logo, brand_name, brand_colour):
+def test_brand_data_shows(brand_logo, brand_text, brand_colour):
     email = str(HTMLEmailTemplate(
         {'content': 'hello world', 'subject': ''},
         brand_banner=True,
         govuk_banner=False,
         brand_logo=brand_logo,
-        brand_name=brand_name,
+        brand_text=brand_text,
         brand_colour=brand_colour
     ))
 
     assert 'GOV.UK' not in email
     if brand_logo:
         assert brand_logo in email
-    if brand_name:
-        assert brand_name in email
+    if brand_text:
+        assert brand_text in email
     if brand_colour:
         assert 'bgcolor="{}"'.format(brand_colour) in email
 
@@ -104,7 +104,7 @@ def test_brand_data_shows(brand_logo, brand_name, brand_colour):
     "complete_html", (True, False)
 )
 @pytest.mark.parametrize(
-    "branding_should_be_present, brand_logo, brand_name, brand_colour",
+    "branding_should_be_present, brand_logo, brand_text, brand_colour",
     [
         (True, 'http://example.com/image.png', 'Example', '#f00'),
         (True, 'http://example.com/image.png', 'Example', None),
@@ -116,13 +116,13 @@ def test_brand_data_shows(brand_logo, brand_name, brand_colour):
 @pytest.mark.parametrize(
     "content", ('DOCTYPE', 'html', 'body')
 )
-def test_complete_html(complete_html, branding_should_be_present, brand_logo, brand_name, brand_colour, content):
+def test_complete_html(complete_html, branding_should_be_present, brand_logo, brand_text, brand_colour, content):
 
     email = str(HTMLEmailTemplate(
         {'content': 'hello world', 'subject': ''},
         complete_html=complete_html,
         brand_logo=brand_logo,
-        brand_name=brand_name,
+        brand_text=brand_text,
         brand_colour=brand_colour,
     ))
 
@@ -133,7 +133,7 @@ def test_complete_html(complete_html, branding_should_be_present, brand_logo, br
 
     if branding_should_be_present:
         assert brand_logo in email
-        assert brand_name in email
+        assert brand_text in email
 
         if brand_colour:
             assert brand_colour in email
