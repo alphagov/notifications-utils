@@ -100,6 +100,51 @@ def test_brand_data_shows(brand_logo, brand_text, brand_colour):
         assert 'bgcolor="{}"'.format(brand_colour) in email
 
 
+def test_alt_text_with_brand_text_and_govuk_banner_shown():
+    email = str(HTMLEmailTemplate(
+        {'content': 'hello world', 'subject': ''},
+        govuk_banner=True,
+        brand_logo='http://example.com/image.png',
+        brand_text='Example',
+        brand_banner=True,
+        brand_name='Notify Logo'
+    ))
+    assert 'alt=" "' in email
+    assert 'alt="Notify Logo"' not in email
+
+
+def test_alt_text_with_no_brand_text_and_govuk_banner_shown():
+    email = str(HTMLEmailTemplate(
+        {'content': 'hello world', 'subject': ''},
+        govuk_banner=True,
+        brand_logo='http://example.com/image.png',
+        brand_text=None,
+        brand_banner=True,
+        brand_name='Notify Logo'
+    ))
+    assert 'alt=" "' in email
+    assert 'alt="Notify Logo"' in email
+
+
+@pytest.mark.parametrize('brand_banner, brand_text, expected_alt_text', [
+    (True, None, 'alt="Notify Logo"'),
+    (True, 'Example', 'alt=" "'),
+    (False, 'Example', 'alt=" "'),
+    (False, None, 'alt="Notify Logo"'),
+])
+def test_alt_text_with_no_govuk_banner(brand_banner, brand_text, expected_alt_text):
+    email = str(HTMLEmailTemplate(
+        {'content': 'hello world', 'subject': ''},
+        govuk_banner=False,
+        brand_logo='http://example.com/image.png',
+        brand_text=brand_text,
+        brand_banner=brand_banner,
+        brand_name='Notify Logo'
+    ))
+
+    assert expected_alt_text in email
+
+
 @pytest.mark.parametrize(
     "complete_html", (True, False)
 )
