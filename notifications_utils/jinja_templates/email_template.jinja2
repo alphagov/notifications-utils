@@ -131,7 +131,7 @@
               {% if brand_logo %}
                 <td
                   width="70"
-                  height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
+                  height="{% if brand_text -%} 27 {%- else -%} 54 {%- endif %}"
                   bgcolor="{{brand_colour}}"
                   valign="middle"
                   style="padding: 10px 0px 12px 10px"
@@ -140,12 +140,12 @@
                     src="{{ brand_logo }}"
                     border="0"
                     style="display: block; border: 0;"
-                    height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}"
-                    alt=" "
+                    height="{% if brand_text -%} 27 {%- else -%} 54 {%- endif %}"
+                    alt="{% if brand_text %} {% else -%}{{ brand_name }}{%- endif %}"
                   />
                 </td>
               {% endif %}
-              {% if brand_name %}
+              {% if brand_text %}
                 <td width="100%" bgcolor="{{brand_colour}}" valign="middle" align="left" style="padding: 14px 0 14px 10px">
                   <span style="
                     display: block;
@@ -155,7 +155,7 @@
                     color: #ffffff;
                     line-height: 25px;
                     ">
-                      {{ brand_name }}
+                      {{ brand_text }}
                   </span>
                 </td>
               {% endif %}
@@ -198,11 +198,12 @@
                       <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">
                         <tr>
                           <td style="padding: 0 5px 0{% if brand_colour %} 7px; border-left: solid 2px {{ brand_colour }}{% else %} 0{% endif %}">
-                            <img src="{{ brand_logo }}" style="display: block; border: 0" height="{% if brand_name -%} 27 {%- else -%} 54 {%- endif %}" alt=" " />
+                            <img src="{{ brand_logo }}" style="display: block; border: 0" height="{% if brand_text -%} 27 {%- else -%} 54 {%- endif %}"
+                                 alt="{% if brand_text %} {% else -%}{{ brand_name }}{%- endif %}" />
                           </td>
                           <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
-                            {% if brand_name %}
-                            {{ brand_name }}
+                            {% if brand_text %}
+                            {{ brand_text }}
                             {% endif %}
                           </td>
                         </tr>
