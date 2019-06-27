@@ -7,6 +7,9 @@ from notifications_utils.timezones import convert_utc_to_bst, utc_string_to_awar
 
 
 LETTER_PROCESSING_DEADLINE = time(17, 30)
+CANCELLABLE_JOB_LETTER_STATUSES = [
+    'created', 'cancelled', 'virus-scan-failed', 'validation-failed', 'technical-failure', 'pending-virus-check'
+]
 
 
 def set_gmt_hour(day, hour):
@@ -84,9 +87,15 @@ def letter_can_be_cancelled(notification_status, notification_created_at):
     if notification_status not in ('created', 'pending-virus-check'):
         return False
 
-    if _after_letter_processing_deadline() and _notification_created_before_deadline(notification_created_at):
+    if _after_letter_processing_deadline() and _notification_created_before_today_deadline(notification_created_at):
         return False
 
+    if _notification_created_before_that_day_deadline(
+        notification_created_at
+    ) and notification_created_at.date() < convert_utc_to_bst(datetime.utcnow()).date():
+        return False
+    if (convert_utc_to_bst(datetime.utcnow()).date() - notification_created_at.date()).days > 1:
+        return False
     return True
 
 
@@ -97,7 +106,7 @@ def _after_letter_processing_deadline():
     return bst_time >= LETTER_PROCESSING_DEADLINE
 
 
-def _notification_created_before_deadline(notification_created_at):
+def _notification_created_before_today_deadline(notification_created_at):
     current_bst_datetime = convert_utc_to_bst(datetime.utcnow())
     todays_deadline = current_bst_datetime.replace(
         hour=LETTER_PROCESSING_DEADLINE.hour,
@@ -107,3 +116,13 @@ def _notification_created_before_deadline(notification_created_at):
     notification_created_at_in_bst = convert_utc_to_bst(notification_created_at)
 
     return notification_created_at_in_bst <= todays_deadline
+
+
+def _notification_created_before_that_day_deadline(notification_created_at):
+    notification_created_at_bst_datetime = convert_utc_to_bst(notification_created_at)
+    created_at_day_deadline = notification_created_at_bst_datetime.replace(
+        hour=LETTER_PROCESSING_DEADLINE.hour,
+        minute=LETTER_PROCESSING_DEADLINE.minute,
+    )
+
+    return notification_created_at_bst_datetime <= created_at_day_deadline
