@@ -92,7 +92,9 @@ def letter_can_be_cancelled(notification_status, notification_created_at):
 
     if _notification_created_before_that_day_deadline(
         notification_created_at
-    ) and notification_created_at.date() < datetime.utcnow().date():
+    ) and notification_created_at.date() < convert_utc_to_bst(datetime.utcnow()).date():
+        return False
+    if (convert_utc_to_bst(datetime.utcnow()).date() - notification_created_at.date()).days > 1:
         return False
     return True
 
