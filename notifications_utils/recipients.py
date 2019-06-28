@@ -169,6 +169,9 @@ class RecipientCSV():
             output_dict = OrderedDict()
 
             for column_name, column_value in zip(column_headers, row):
+
+                column_value = strip_and_remove_obscure_whitespace(column_value)
+
                 if Columns.make_key(column_name) in self.recipient_column_headers_as_column_keys:
                     output_dict[column_name] = column_value or None
                 else:
