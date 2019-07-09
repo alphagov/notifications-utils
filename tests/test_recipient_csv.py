@@ -78,12 +78,14 @@ def _index_rows(rows):
             """
                 email address,name
                 test@example.com,"test1"
-                test2@example.com," test2"
+                test2@example.com,"   test2    "
+                test3@example.com," test3"
             """,
             "email",
             [
                 [('email address', 'test@example.com'), ('name', 'test1')],
-                [('email address', 'test2@example.com'), ('name', ' test2')]
+                [('email address', 'test2@example.com'), ('name', 'test2')],
+                [('email address', 'test3@example.com'), ('name', 'test3')]
             ]
         ),
         (
