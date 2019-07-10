@@ -210,6 +210,13 @@ def test_preheader_is_at_start_of_html_emails():
         'Hello Jo This – is a “heading” My favourite websites’ URLs are: • GOV.​UK • https://www.example.com',
     ),
     (
+        (
+            '[Markdown link](https://www.example.com)\n'
+        ),
+        {},
+        'Markdown link',
+    ),
+    (
         """
             Lorem Ipsum is simply dummy text of the printing and
             typesetting industry.

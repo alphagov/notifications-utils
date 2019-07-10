@@ -533,6 +533,12 @@ class NotifyEmailPreheaderMarkdownRenderer(NotifyPlainTextEmailMarkdownRenderer)
     def hrule(self):
         return ''
 
+    def link(self, link, title, content):
+        return ''.join((
+            content,
+            ' ({})'.format(title) if title else '',
+        ))
+
 
 notify_email_markdown = mistune.Markdown(
     renderer=NotifyEmailMarkdownRenderer(),
