@@ -368,7 +368,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         )
 
     def linebreak(self):
-        return "<br/>"
+        return "<br />"
 
     def list(self, body, ordered=True):
         return (
