@@ -457,6 +457,11 @@ def validate_email_address(email_address, column=None):  # noqa (C901 too comple
     if '..' in email_address:
         raise InvalidEmailError
 
+    local_part = email_address.split('@')[0]
+
+    if len(local_part) > 64:
+        raise InvalidEmailError
+
     hostname = match.group(1)
 
     # idna = "Internationalized domain name" - this encode/decode cycle converts unicode into its accurate ascii

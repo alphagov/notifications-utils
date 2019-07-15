@@ -148,6 +148,7 @@ invalid_email_addresses = (
     'local-with-”-quotes@domain.com',
     'domain-starts-with-a-dot@.domain.com',
     'brackets(in)local@domain.com',
+    'more-than-sixty-four-characters-in-the-local-part-of-the-email-address@example.com',
 )
 
 
