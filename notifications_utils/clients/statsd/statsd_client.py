@@ -1,4 +1,4 @@
-from statsd import StatsClient
+from statsd import StatsdClient as StatsClient
 
 
 class StatsdClient():

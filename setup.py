@@ -30,7 +30,7 @@ setup(
         'Flask>=0.12.2',
         'orderedset==2.0.1',
         'Jinja2==2.10.1',
-        'statsd==3.3.0',
+        'statsd-client==1.0.60',
         'Flask-Redis==0.4.0',
         'pyyaml==4.2b1',
         'phonenumbers==8.10.13',
