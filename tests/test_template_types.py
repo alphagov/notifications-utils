@@ -904,7 +904,7 @@ def test_sms_fragment_count_unicode_encoding(char_count, expected_sms_fragment_c
         new_callable=mock.PropertyMock
     ) as mocked:
         mocked.return_value = char_count
-        template = SMSMessageTemplate({'content': 'This is â mêssâgê with Ŵêlsh chârâctêrs', 'template_type': 'sms'})
+        template = SMSMessageTemplate({'content': 'Thís ïs â mêsságê with Ŵêlsh chârâctërs', 'template_type': 'sms'})
         assert template.fragment_count == expected_sms_fragment_count
 
 

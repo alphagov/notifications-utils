@@ -41,6 +41,9 @@ params, ids = zip(
     # These characters are Welsh characters that are not present in GSM
     (('â', 'â', 'a'), 'non-gsm Welsh char (a with hat)'),
     (('Ŷ', 'Ŷ', 'Y'), 'non-gsm Welsh char (capital y with hat)'),
+    (('ë', 'ë', 'e'), 'non-gsm Welsh char (e with dots)'),
+    (('Ò', 'Ò', 'O'), 'non-gsm Welsh char (capital O with grave accent)'),
+    (('í', 'í', 'i'), 'non-gsm Welsh char (i with accent)'),
 )
 
 
@@ -70,7 +73,7 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
 
 
 @pytest.mark.parametrize('content, expected', [
-    ('Łódź', '?odz'),
+    ('Łōdź', '?odz'),
     ('The quick brown fox jumps over the lazy dog', 'The quick brown fox jumps over the lazy dog'),
 ])
 def test_encode_string(content, expected):

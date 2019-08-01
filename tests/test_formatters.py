@@ -818,7 +818,7 @@ def test_footnotes():
 
 
 def test_sms_encode():
-    assert sms_encode('aàá…') == 'aàa...'
+    assert sms_encode('aàā…') == 'aàa...'
 
 
 @pytest.mark.parametrize('items, kwargs, expected_output', [
