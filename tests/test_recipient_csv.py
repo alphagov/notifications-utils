@@ -1044,3 +1044,16 @@ def test_displayed_rows_when_there_are_no_rows_with_errors():
     )
 
     assert len(list(recipients.displayed_rows)) == 4
+
+
+def test_multi_line_placeholders_work():
+    recipients = RecipientCSV(
+        """
+            email address, data
+            a@b.com, "a\nb\n\nc"
+        """,
+        template_type='email',
+        placeholders=['data']
+    )
+
+    assert recipients.rows[0].personalisation['data'] == 'a\nb\n\nc'
