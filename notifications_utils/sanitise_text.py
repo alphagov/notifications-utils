@@ -85,7 +85,7 @@ class SanitiseSMS(SanitiseText):
     * characters within the GSM character set (https://en.wikipedia.org/wiki/GSM_03.38)
       and extension character set are kept
 
-    * Welsh characters not included in the default GSM character set are kept: Ââ Êê Îî Ôô Ûû Ŵŵ Ŷŷ
+    * Welsh characters not included in the default GSM character set are kept
 
     * characters with sensible downgrades are replaced in place
         * characters with diacritics (accents, umlauts, cedillas etc) are replaced with their base character, eg é -> e
@@ -97,7 +97,12 @@ class SanitiseSMS(SanitiseText):
     * any remaining unicode characters (eg chinese/cyrillic/glyphs/emoji) are replaced with ?
     """
     # Welsh characters not already included in GSM
-    WELSH_NON_GSM_CHARACTERS = set('ÂâÊêÎîÔôÛûŴŵŶŷ')
+    WELSH_NON_GSM_CHARACTERS = set(
+        'ÂâÊêÎîÔôÛûŴŵŶŷ' +
+        'ÁáÍíÓóÚúẂẃÝý' +
+        'ÀÈÌÒÙẀẁỲỳ' +
+        'ËëÏïẄẅŸÿ'
+    )
 
     ALLOWED_CHARACTERS = set(
         '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?' +
