@@ -30,7 +30,6 @@ setup(
         'Flask>=0.12.2',
         'orderedset==2.0.1',
         'Jinja2==2.10.1',
-        'statsd-client==1.0.60',
         'Flask-Redis==0.4.0',
         'pyyaml==4.2b1',
         'phonenumbers==8.10.13',
@@ -38,6 +37,7 @@ setup(
         'smartypants==2.0.1',
         'monotonic==1.5',
         'pypdf2==1.26.0',
+        'statsd-client @ git+https://github.com/gaelen/python-statsd-client@72c0652',
 
         # required by both api and admin
         'awscli==1.16.185',
