@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 import pytest
 from datetime import datetime, timedelta
-from notifications_utils.clients.statsd.statsd_client import StatsdClient
+from notifications_utils.clients.statsd.statsd_client import StatsdClient, NotifyStatsClient
 
 
 @pytest.fixture(scope='function')
@@ -93,3 +93,13 @@ def test_should_not_call_gauge_if_not_enabled(disabled_statsd_client):
 def test_should_call_gauge_if_enabled(enabled_statsd_client):
     enabled_statsd_client.gauge('key', 100)
     enabled_statsd_client.statsd_client.gauge.assert_called_with('test.notifications.api.key', 100)
+
+
+def test_should_log_but_not_throw_if_socket_errors(app, mocker):
+    stats_client = NotifyStatsClient('localhost', 8125, '')
+    mocker.patch.object(stats_client, "_sock")
+    stats_client._sock.sendto = Mock(side_effect=Exception('Mock Exception'))
+    mock_logger = mocker.patch('flask.Flask.logger')
+
+    stats_client._send('data')
+    mock_logger.exception.assert_called_with('Error sending statsd metric: Mock Exception')
