@@ -1,4 +1,19 @@
-from statsd import StatsClient
+from statsd.client.base import StatsClientBase
+from socket import socket, AF_INET, SOCK_DGRAM
+
+
+class NotifyStatsClient(StatsClientBase):
+    def __init__(self, host, port, prefix):
+        self._host = host
+        self._port = port
+        self._prefix = prefix
+        self._sock = socket(AF_INET, SOCK_DGRAM)
+
+    def _send(self, data):
+        try:
+            self._sock.sendto(data.encode('ascii'), (self._host, self._port))
+        except (socket.error, RuntimeError):
+            pass
 
 
 class StatsdClient():
@@ -14,7 +29,7 @@ class StatsdClient():
         )
 
         if self.active:
-            self.statsd_client = StatsClient(
+            self.statsd_client = NotifyStatsClient(
                 app.config.get('STATSD_HOST'),
                 app.config.get('STATSD_PORT'),
                 prefix=app.config.get('STATSD_PREFIX')
