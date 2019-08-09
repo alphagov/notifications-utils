@@ -3,6 +3,7 @@ import re
 import sys
 import csv
 import phonenumbers
+from io import StringIO
 from contextlib import suppress
 from functools import lru_cache, partial
 from itertools import islice
@@ -150,7 +151,7 @@ class RecipientCSV():
     @property
     def _rows(self):
         return csv.reader(
-            self.file_data.strip().splitlines(),
+            StringIO(self.file_data.strip()),
             quoting=csv.QUOTE_MINIMAL,
             skipinitialspace=True,
         )
