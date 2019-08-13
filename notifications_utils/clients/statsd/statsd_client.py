@@ -1,5 +1,6 @@
 from statsd.client.base import StatsClientBase
 from socket import socket, AF_INET, SOCK_DGRAM
+from flask import current_app
 
 
 class NotifyStatsClient(StatsClientBase):
@@ -12,7 +13,8 @@ class NotifyStatsClient(StatsClientBase):
     def _send(self, data):
         try:
             self._sock.sendto(data.encode('ascii'), (self._host, self._port))
-        except (socket.error, RuntimeError):
+        except Exception as e:
+            current_app.logger.exception('Error sending statsd metric: {}'.format(str(e)))
             pass
 
 
