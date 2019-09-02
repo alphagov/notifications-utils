@@ -374,7 +374,6 @@ class EmailPreviewTemplate(WithSubjectTemplate):
         from_name=None,
         from_address=None,
         reply_to=None,
-        expanded=False,
         show_recipient=True,
         redact_missing_personalisation=False,
     ):
@@ -382,7 +381,6 @@ class EmailPreviewTemplate(WithSubjectTemplate):
         self.from_name = from_name
         self.from_address = from_address
         self.reply_to = reply_to
-        self.expanded = expanded
         self.show_recipient = show_recipient
 
     def __str__(self):
@@ -395,7 +393,6 @@ class EmailPreviewTemplate(WithSubjectTemplate):
             'from_address': self.from_address,
             'reply_to': self.reply_to,
             'recipient': Field("((email address))", self.values, with_brackets=False),
-            'expanded': self.expanded,
             'show_recipient': self.show_recipient
         }))
 
