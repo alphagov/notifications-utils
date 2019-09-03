@@ -1846,6 +1846,19 @@ def test_whitespace_in_subjects(template_class, subject, extra_args):
     assert template_instance.subject == 'no break'
 
 
+@pytest.mark.parametrize('template_class', [
+    WithSubjectTemplate,
+    EmailPreviewTemplate,
+    HTMLEmailTemplate,
+    PlainTextEmailTemplate,
+])
+def test_whitespace_in_subject_placeholders(template_class):
+    assert template_class(
+        {'content': '', 'subject': '\u200C Your tax   ((status))'},
+        values={'status': ' is\ndue '}
+    ).subject == 'Your tax is due'
+
+
 @pytest.mark.parametrize('template_class, expected_output', [
     (
         PlainTextEmailTemplate,

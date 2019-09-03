@@ -282,6 +282,11 @@ def strip_unsupported_characters(value):
     return value.replace('\u2028', '')
 
 
+def normalise_whitespace(value):
+    # leading and trailing whitespace removed, all inner whitespace becomes a single space
+    return ' '.join(strip_and_remove_obscure_whitespace(value).split())
+
+
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def block_code(self, code, language=None):
