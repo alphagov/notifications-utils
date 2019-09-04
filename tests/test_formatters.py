@@ -20,6 +20,7 @@ from notifications_utils.formatters import (
     strip_and_remove_obscure_whitespace,
     remove_smart_quotes_from_email_addresses,
     strip_unsupported_characters,
+    normalise_whitespace
 )
 from notifications_utils.template import (
     HTMLEmailTemplate,
@@ -1047,3 +1048,7 @@ def test_remove_smart_quotes_from_email_addresses():
 
 def test_strip_unsupported_characters():
     assert strip_unsupported_characters("line one\u2028line two") == ("line oneline two")
+
+
+def test_normalise_whitespace():
+    assert normalise_whitespace('\u200C Your tax   is\ndue\n\n') == 'Your tax is due'
