@@ -70,6 +70,21 @@ def test_s3upload_save_file_to_bucket_with_urlencoded_tags(mocker):
     assert parse_qs(encoded_tags) == {'a': ['1/2'], 'b': ['x y']}
 
 
+def test_s3upload_save_file_to_bucket_with_metadata(mocker):
+    mocked = mocker.patch('notifications_utils.s3.resource')
+    s3upload(
+        filedata=contents,
+        region=region,
+        bucket_name=bucket,
+        file_location=location,
+        metadata={'status': 'valid', 'pages': '5'}
+    )
+    mocked_put = mocked.return_value.Object.return_value.put
+
+    metadata = mocked_put.call_args[1]['Metadata']
+    assert metadata == {'status': 'valid', 'pages': '5'}
+
+
 def test_s3download_gets_file(mocker):
     mocked = mocker.patch('notifications_utils.s3.resource')
     mocked_object = mocked.return_value.Object

@@ -5,7 +5,15 @@ from boto3 import resource
 from flask import current_app
 
 
-def s3upload(filedata, region, bucket_name, file_location, content_type='binary/octet-stream', tags=None):
+def s3upload(
+    filedata,
+    region,
+    bucket_name,
+    file_location,
+    content_type='binary/octet-stream',
+    tags=None,
+    metadata=None,
+):
     _s3 = resource('s3')
 
     key = _s3.Object(bucket_name, file_location)
@@ -19,6 +27,9 @@ def s3upload(filedata, region, bucket_name, file_location, content_type='binary/
     if tags:
         tags = urllib.parse.urlencode(tags)
         put_args['Tagging'] = tags
+
+    if metadata:
+        metadata = put_args['Metadata'] = metadata
 
     try:
         key.put(**put_args)
