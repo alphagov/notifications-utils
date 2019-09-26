@@ -25,22 +25,22 @@ setup(
     install_requires=[
         'bleach==3.1.0',
         'mistune==0.8.4',
-        'requests==2.21.0',
+        'requests==2.22.0',
         'python-json-logger==0.1.11',
-        'Flask>=0.12.2',
+        'Flask>=1.0.3',
         'orderedset==2.0.1',
         'Jinja2==2.10.1',
         'statsd==3.3.0',
         'Flask-Redis==0.4.0',
-        'pyyaml==4.2b1',
-        'phonenumbers==8.10.13',
+        'pyyaml==5.1.2',
+        'phonenumbers==8.10.17',
         'pytz==2019.1',
         'smartypants==2.0.1',
         'monotonic==1.5',
         'pypdf2==1.26.0',
 
         # required by both api and admin
-        'awscli==1.16.185',
-        'boto3==1.6.16',
+        'awscli==1.16.231',
+        'boto3==1.9.221',
     ]
 )
