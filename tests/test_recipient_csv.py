@@ -3,6 +3,7 @@ import itertools
 import unicodedata
 from functools import partial
 from orderedset import OrderedSet
+from unittest.mock import Mock
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
 from notifications_utils.recipients import Cell, RecipientCSV, Row
@@ -329,6 +330,19 @@ def test_big_list():
     assert len(list(big_csv.initial_rows_with_errors)) == 100
     assert len(list(big_csv.rows)) == RecipientCSV.max_rows
     assert big_csv.has_errors
+
+
+def test_processing_a_big_list():
+    process = Mock()
+
+    for row in RecipientCSV(
+        "phone_number\n" + ("07900900900\n" * RecipientCSV.max_rows),
+        template_type='sms',
+        placeholders=set(),
+    ).get_rows():
+        process()
+
+    assert process.call_count == 50000
 
 
 def test_overly_big_list():
