@@ -603,15 +603,10 @@ class LetterImageTemplate(LetterPreviewTemplate):
     def page_numbers(self):
         return list(range(self.first_page_number, self.last_page_number))
 
-    @property
-    def too_many_pages(self):
-        return self.page_count > self.max_page_count
-
     def __str__(self):
         return Markup(self.jinja_template.render({
             'image_url': self.image_url,
             'page_numbers': self.page_numbers,
-            'too_many_pages': self.too_many_pages,
             'address': self._address_block,
             'contact_block': self._contact_block,
             'date': self._date,
