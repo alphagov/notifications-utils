@@ -711,7 +711,8 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
     ),
 ])
 @pytest.mark.parametrize('postage_args, expected_postage', (
-    pytest.param({}, 'second'),
+    pytest.param({}, None),
+    pytest.param({'postage': None}, None),
     pytest.param({'postage': 'first'}, 'first'),
     pytest.param({'postage': 'second'}, 'second'),
     pytest.param({'postage': 'third'}, 'third', marks=pytest.mark.xfail(raises=TypeError)),
