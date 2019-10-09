@@ -33,7 +33,7 @@ def test_pdf_page_count_src_pdf_not_a_pdf():
 
 
 @pytest.mark.parametrize("page_count, expected_result", [
-    (None, False), (3, False), (11, True)
+    (None, False), (10, False), (11, True)
 ])
 def test_is_letter_too_long(page_count, expected_result):
     assert is_letter_too_long(page_count) == expected_result
