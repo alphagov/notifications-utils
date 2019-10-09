@@ -734,7 +734,6 @@ def test_letter_image_renderer(
     jinja_template.assert_called_once_with({
         'image_url': 'http://example.com/endpoint.png',
         'page_numbers': expected_page_numbers,
-        'too_many_pages': expected_oversized,
         'address': (
             "<ul>"
             "<li><span class='placeholder-no-brackets'>address line 1</span></li>"

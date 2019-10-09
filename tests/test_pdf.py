@@ -5,7 +5,7 @@ import PyPDF2
 import pytest
 from PyPDF2.utils import PdfReadError
 
-from notifications_utils.pdf import pdf_page_count, extract_page_from_pdf
+from notifications_utils.pdf import extract_page_from_pdf, is_letter_too_long, pdf_page_count
 from tests.pdf_consts import one_page_pdf, multi_page_pdf, not_pdf
 
 
@@ -30,6 +30,13 @@ def test_pdf_page_count_src_pdf_not_a_pdf():
     with pytest.raises(PdfReadError):
         file_data = base64.b64decode(not_pdf)
         pdf_page_count(BytesIO(file_data))
+
+
+@pytest.mark.parametrize("page_count, expected_result", [
+    (None, False), (10, False), (11, True)
+])
+def test_is_letter_too_long(page_count, expected_result):
+    assert is_letter_too_long(page_count) == expected_result
 
 
 def test_extract_page_from_pdf_one_page_pdf():

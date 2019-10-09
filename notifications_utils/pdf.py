@@ -2,6 +2,7 @@ import PyPDF2
 from PyPDF2 import PdfFileWriter
 from PyPDF2.utils import PdfReadError
 import io
+from notifications_utils import LETTER_MAX_PAGE_COUNT
 
 
 def pdf_page_count(src_pdf):
@@ -16,6 +17,16 @@ def pdf_page_count(src_pdf):
         raise PdfReadError("Could not open PDF file, stream is null", e)
 
     return pdf.numPages
+
+
+def is_letter_too_long(page_count):
+    """
+    Returns True if page count above the limit
+    :param page_count: number of pages in a document or None
+    """
+    if not page_count:
+        return False
+    return page_count > LETTER_MAX_PAGE_COUNT
 
 
 def extract_page_from_pdf(src_pdf, page_number):
