@@ -1,6 +1,7 @@
 import re
 
 SMS_CHAR_COUNT_LIMIT = 612  # 153 * 4
+LETTER_MAX_PAGE_COUNT = 10
 
 # regexes for use in recipients.validate_email_address.
 # Valid characters taken from https://en.wikipedia.org/wiki/Email_address#Local-part
