@@ -581,15 +581,15 @@ class LetterImageTemplate(LetterPreviewTemplate):
         image_url=None,
         page_count=None,
         contact_block=None,
-        postage='second',
+        postage=None,
     ):
         super().__init__(template, values, contact_block=contact_block)
         if not image_url:
             raise TypeError('image_url is required')
         if not page_count:
             raise TypeError('page_count is required')
-        if postage not in {'first', 'second'}:
-            raise TypeError('postage must be first or second')
+        if postage not in {None, 'first', 'second'}:
+            raise TypeError('postage must be `None`, first or second')
         self.image_url = image_url
         self.page_count = int(page_count)
         self.postage = postage

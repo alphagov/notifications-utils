@@ -1,6 +1,6 @@
 {% for page_number in page_numbers %}
   <div class="letter">
-    {% if loop.first %}
+    {% if loop.first and postage %}
       <p class="letter-postage letter-postage-{{ postage }}">
         Postage: {{ postage }} class
       </p>
