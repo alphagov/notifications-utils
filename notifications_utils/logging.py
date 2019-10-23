@@ -4,7 +4,7 @@ import re
 import sys
 
 from flask import request, g
-from flask.ctx import has_request_context
+from flask.ctx import has_request_context, has_app_context
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseJSONFormatter
 from time import monotonic
 
@@ -157,6 +157,8 @@ class RequestIdFilter(logging.Filter):
     def request_id(self):
         if has_request_context() and hasattr(request, 'request_id'):
             return request.request_id
+        elif has_app_context() and 'request_id' in g:
+            return g.request_id
         else:
             return 'no-request-id'
 
