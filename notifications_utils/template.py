@@ -166,12 +166,19 @@ class SMSMessageTemplate(Template):
 
     @property
     def content_count(self):
-        return len((
+        """
+        Return the number of characters in the message. Note that we don't distinguish between GSM and non-GSM
+        characters at this point, as `get_sms_fragment_count` handles that separately.
+
+        Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
+        as in the message `foo ((placeholder))` has a length of 19.
+        """
+        return len(
             # we always want to call SMSMessageTemplate.__str__ regardless of subclass, to avoid any html formatting
             SMSMessageTemplate.__str__(self)
             if self._values
             else sms_encode(add_prefix(self.content.strip(), self.prefix))
-        ).encode(self.encoding))
+        )
 
     @property
     def fragment_count(self):

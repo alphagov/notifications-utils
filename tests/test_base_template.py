@@ -119,8 +119,10 @@ def test_extracting_placeholders(template_content, template_subject, expected):
     "content,prefix, expected_length, expected_replaced_length",
     [
         ("The quick brown fox jumped over the lazy dog", None, 44, 44),
-        # should be replaced with a ?
+        # is an unsupported unicode character so should be replaced with a ?
         ("深", None, 1, 1),
+        # is a supported unicode character so should be kept as is
+        ("Ŵ", None, 1, 1),
         ("'First line.\n", None, 12, 12),
         ("\t\n\r", None, 0, 0),
         ("((placeholder))", None, 15, 3),
