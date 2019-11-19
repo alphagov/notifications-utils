@@ -822,6 +822,7 @@ def test_subject_line_gets_replaced():
 @pytest.mark.parametrize("content, values, expected_count", [
     ("Content with ((placeholder))", {"placeholder": "something extra"}, 28),
     ("Content with ((placeholder))", {"placeholder": ""}, 12),
+    ("Just content", {}, 12),
     ("((placeholder))  ", {"placeholder": "  "}, 0),
     ("  ", {}, 0),
 ])
@@ -831,21 +832,80 @@ def test_WithSubjectTemplate_character_count(content, values, expected_count):
     assert template.content_count == expected_count
 
 
-@pytest.mark.parametrize("content, values, prefix, expected_count", [
-    ("Content with ((placeholder))", {"placeholder": "something extra"}, None, 28),
-    ("Content with ((placeholder))", {"placeholder": ""}, None, 12),
-    ("Just content", {}, None, 12),
-    ("((placeholder))  ", {"placeholder": "  "}, None, 0),
-    ("  ", {}, None, 0),
-    ("Content with ((placeholder))", {"placeholder": "something extra"}, "GDS", 33),
-    ("Just content", {}, "GDS", 12),
-    ("((placeholder))  ", {"placeholder": "  "}, "GDS", 5),
-    ("  ", {}, "GDS", 5),
+@pytest.mark.parametrize('template_class', [SMSMessageTemplate, SMSPreviewTemplate])
+@pytest.mark.parametrize("content, values, prefix, expected_count_in_template, expected_count_in_notification", [
+    # is an unsupported unicode character so should be replaced with a ?
+    ("深", {}, None, 1, 1),
+    # is a supported unicode character so should be kept as is
+    ("Ŵ", {}, None, 1, 1),
+    ("'First line.\n", {}, None, 12, 12),
+    ("\t\n\r", {}, None, 0, 0),
+    ("Content with ((placeholder))", {"placeholder": "something extra here"}, None, 28, 33),
+    ("Content with ((placeholder))", {"placeholder": ""}, None, 28, 12),
+    ("Just content", {}, None, 12, 12),
+    ("((placeholder))  ", {"placeholder": "  "}, None, 15, 0),
+    ("  ", {}, None, 0, 0),
+    ("Content with ((placeholder))", {"placeholder": "something extra here"}, "GDS", 33, 38),
+    ("Just content", {}, "GDS", 17, 17),
+    ("((placeholder))  ", {"placeholder": "  "}, "GDS", 20, 4),
+    ("  ", {}, "GDS", 4, 4),
 ])
-def test_SMSMessageTemplate_character_count(content, values, prefix, expected_count):
-    template = SMSMessageTemplate({"content": content}, prefix=prefix)
+def test_SMSMessageTemplate_character_count(
+    content, values, prefix, expected_count_in_template, expected_count_in_notification, template_class
+):
+    template = template_class({"content": content}, prefix=prefix)
+    template.sender = None
+    assert template.content_count == expected_count_in_template
     template.values = values
-    assert template.content_count == expected_count
+    assert template.content_count == expected_count_in_notification
+
+
+@pytest.mark.parametrize(
+    "char_count, expected_sms_fragment_count",
+    [
+        (159, 1),
+        (160, 1),
+        (161, 2),
+        (306, 2),
+        (307, 3),
+        (459, 3),
+        (460, 4),
+        (461, 4),
+        (612, 4),
+        (613, 5),
+    ])
+def test_sms_fragment_count_sms_encoding(char_count, expected_sms_fragment_count):
+    with mock.patch(
+        'notifications_utils.template.SMSMessageTemplate.content_count',
+        new_callable=mock.PropertyMock
+    ) as mocked:
+        mocked.return_value = char_count
+        template = SMSMessageTemplate({'content': 'faked', 'template_type': 'sms'})
+        assert template.fragment_count == expected_sms_fragment_count
+
+
+@pytest.mark.parametrize(
+    "char_count, expected_sms_fragment_count",
+    [
+        (69, 1),
+        (70, 1),
+        (71, 2),
+        (134, 2),
+        (135, 3),
+        (201, 3),
+        (202, 4),
+        (203, 4),
+        (268, 4),
+        (269, 5),
+    ])
+def test_sms_fragment_count_unicode_encoding(char_count, expected_sms_fragment_count):
+    with mock.patch(
+        'notifications_utils.template.SMSMessageTemplate.content_count',
+        new_callable=mock.PropertyMock
+    ) as mocked:
+        mocked.return_value = char_count
+        template = SMSMessageTemplate({'content': 'This is â mêssâgê with Ŵêlsh chârâctêrs', 'template_type': 'sms'})
+        assert template.fragment_count == expected_sms_fragment_count
 
 
 @pytest.mark.parametrize('template_class, extra_args, expected_field_calls', [
