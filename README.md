@@ -1,40 +1,22 @@
-# GOV.UK Notify - notifications-utils [BETA]
-Shared python code for GOV.UK Notify
+# GOV.UK Notify - notifications-utils
 
-Provides logging utils etc.
+Shared python code for GOV.UK Notify, such as logging utils etc.
 
 ## Installing
 
-This is a [python](https://www.python.org/) application.
-
-#### Python version
-This is a python 3 application. It has not been run against any version of python 2.x
+This is a Python 3 application.
 
     brew install python3
 
-#### Dependency management
-
-This is done through [pip](https://pip.readthedocs.io) and [virtualenv](https://virtualenv.readthedocs.org/en/latest/). In practise we have used
-[VirtualEnvWrapper](http://virtualenvwrapper.readthedocs.org/en/latest/command_ref.html) for our virtual environments.
-
-Setting up a virtualenvwrapper for python3
+We recommend using [VirtualEnvWrapper](http://virtualenvwrapper.readthedocs.org/en/latest/command_ref.html) for managing your virtual environments.
 
     mkvirtualenv -p /usr/local/bin/python3 notifications-utils
 
+    pip install -r requirements_for_test.txt
 
-The boostrap script will set the application up. *Ensure you have activated the virtual environment first.*
+## Tests
 
-    ./scripts/bootstrap.sh
-
-This will
-
-* Use pip to install dependencies.
-
-#### Tests
-
-The `./scripts/run_tests.sh` script will run all the tests. [py.test](http://pytest.org/latest/) is used for testing.
-
-Running tests will also apply syntax checking, using [pycodestyle](https://pypi.python.org/pypi/pycodestyle).
+The `./scripts/run_tests.sh` script will run all the tests.
 
 ## Documentation
 
