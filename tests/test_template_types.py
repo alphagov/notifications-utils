@@ -819,6 +819,35 @@ def test_subject_line_gets_replaced():
     assert template.subject == 'Jo'
 
 
+@pytest.mark.parametrize("content, values, expected_count", [
+    ("Content with ((placeholder))", {"placeholder": "something extra"}, 28),
+    ("Content with ((placeholder))", {"placeholder": ""}, 12),
+    ("((placeholder))  ", {"placeholder": "  "}, 0),
+    ("  ", {}, 0),
+])
+def test_WithSubjectTemplate_character_count(content, values, expected_count):
+    template = WithSubjectTemplate({"content": content, 'subject': 'Hi'})
+    template.values = values
+    assert template.content_count == expected_count
+
+
+@pytest.mark.parametrize("content, values, prefix, expected_count", [
+    ("Content with ((placeholder))", {"placeholder": "something extra"}, None, 28),
+    ("Content with ((placeholder))", {"placeholder": ""}, None, 12),
+    ("Just content", {}, None, 12),
+    ("((placeholder))  ", {"placeholder": "  "}, None, 0),
+    ("  ", {}, None, 0),
+    ("Content with ((placeholder))", {"placeholder": "something extra"}, "GDS", 33),
+    ("Just content", {}, "GDS", 12),
+    ("((placeholder))  ", {"placeholder": "  "}, "GDS", 5),
+    ("  ", {}, "GDS", 5),
+])
+def test_SMSMessageTemplate_character_count(content, values, prefix, expected_count):
+    template = SMSMessageTemplate({"content": content}, prefix=prefix)
+    template.values = values
+    assert template.content_count == expected_count
+
+
 @pytest.mark.parametrize('template_class, extra_args, expected_field_calls', [
     (Template, {}, [
         mock.call('content', {}, html='escape', redact_missing_personalisation=False),

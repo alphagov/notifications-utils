@@ -274,6 +274,10 @@ class WithSubjectTemplate(Template):
     def placeholders(self):
         return Field(self._subject).placeholders | Field(self.content).placeholders
 
+    @property
+    def content_count(self):
+        return len(WithSubjectTemplate.__str__(self).strip() if self._values else self.content.strip())
+
 
 class PlainTextEmailTemplate(WithSubjectTemplate):
 
