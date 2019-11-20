@@ -1,3 +1,4 @@
+from orderedset import OrderedSet
 from notifications_utils.columns import Columns
 
 
@@ -13,14 +14,14 @@ class TemplateChange():
 
     @property
     def placeholders_added(self):
-        return set(
+        return OrderedSet([
             self.new_placeholders.get(key)
             for key in self.new_placeholders.keys() - self.old_placeholders.keys()
-        )
+        ])
 
     @property
     def placeholders_removed(self):
-        return set(
+        return OrderedSet([
             self.old_placeholders.get(key)
             for key in self.old_placeholders.keys() - self.new_placeholders.keys()
-        )
+        ])

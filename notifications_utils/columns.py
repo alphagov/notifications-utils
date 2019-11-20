@@ -1,23 +1,27 @@
 from collections import OrderedDict
 from functools import lru_cache
+from orderedset import OrderedSet
 
 
-class Columns(dict):
+class Columns(OrderedDict):
 
     def __init__(self, row_dict):
-        super().__init__({
-            Columns.make_key(key): value for key, value in row_dict.items()
-        })
+        super().__init__([
+            (Columns.make_key(key), value) for key, value in row_dict.items()
+        ])
 
     @classmethod
     def from_keys(cls, keys):
-        return cls({key: key for key in keys})
+        return cls(OrderedDict([(key, key) for key in keys]))
+
+    def keys(self):
+        return OrderedSet(super().keys())
 
     def __getitem__(self, key):
         return super().get(Columns.make_key(key))
 
     def __contains__(self, key):
-        return Columns.make_key(key) in super().copy()
+        return super().__contains__(Columns.make_key(key))
 
     def get(self, key, default=None):
         return self[key] if self[key] is not None else default
