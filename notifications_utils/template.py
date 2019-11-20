@@ -188,6 +188,12 @@ class SMSMessageTemplate(Template):
     def is_message_too_long(self):
         return self.content_count > SMS_CHAR_COUNT_LIMIT
 
+    def is_message_empty(self):
+        if not self.prefix:
+            return self.content_count == 0
+        else:
+            return self.content_count - len(self.prefix) - 1 == 0
+
 
 class SMSPreviewTemplate(SMSMessageTemplate):
 
@@ -277,6 +283,9 @@ class WithSubjectTemplate(Template):
     @property
     def content_count(self):
         return len(WithSubjectTemplate.__str__(self).strip() if self._values else self.content.strip())
+
+    def is_message_empty(self):
+        return self.content_count == 0
 
 
 class PlainTextEmailTemplate(WithSubjectTemplate):

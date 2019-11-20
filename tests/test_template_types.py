@@ -908,6 +908,34 @@ def test_sms_fragment_count_unicode_encoding(char_count, expected_sms_fragment_c
         assert template.fragment_count == expected_sms_fragment_count
 
 
+@pytest.mark.parametrize('template_class', [SMSMessageTemplate, SMSPreviewTemplate])
+@pytest.mark.parametrize('content, values, prefix, expected_result', [
+    ("", {}, None, True),
+    ("", {}, "GDS", True),
+    ("((placeholder))", {"placeholder": ""}, "GDS", True),
+    ("((placeholder))", {"placeholder": "Some content"}, None, False),
+    ("Some content", {}, "GDS", False),
+])
+def test_is_message_empty_sms_templates(content, values, prefix, expected_result, template_class):
+    template = template_class({"content": content}, prefix=prefix)
+    template.sender = None
+    template.values = values
+    assert template.is_message_empty() == expected_result
+
+
+@pytest.mark.parametrize('content, values, expected_result', [
+    ("", {}, True),
+    ("((placeholder))", {"placeholder": ""}, True),
+    ("((placeholder))", {"placeholder": "Some content"}, False),
+    ("Some content", {}, False),
+])
+def test_is_message_empty_email_and_letter_templates(content, values, expected_result):
+    template = WithSubjectTemplate({"content": content, 'subject': 'Hi'})
+    template.sender = None
+    template.values = values
+    assert template.is_message_empty() == expected_result
+
+
 @pytest.mark.parametrize('template_class, extra_args, expected_field_calls', [
     (Template, {}, [
         mock.call('content', {}, html='escape', redact_missing_personalisation=False),
