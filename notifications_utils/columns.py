@@ -43,6 +43,7 @@ class Columns(dict):
 class Row(Columns):
 
     message_too_long = False
+    message_empty = False
 
     def __init__(
         self,
@@ -61,6 +62,7 @@ class Row(Columns):
         if template:
             template.values = row_dict
             self.message_too_long = template.is_message_too_long()
+            self.message_empty = template.is_message_empty()
 
         super().__init__(OrderedDict(
             (key, Cell(key, value, error_fn, self.placeholders))
@@ -77,7 +79,7 @@ class Row(Columns):
 
     @property
     def has_error(self):
-        return self.message_too_long or any(
+        return self.message_too_long or self.message_empty or any(
             cell.error for cell in self.values()
         )
 

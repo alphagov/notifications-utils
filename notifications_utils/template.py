@@ -177,7 +177,7 @@ class SMSMessageTemplate(Template):
             # we always want to call SMSMessageTemplate.__str__ regardless of subclass, to avoid any html formatting
             SMSMessageTemplate.__str__(self)
             if self._values
-            else sms_encode(add_prefix(self.content.strip(), self.prefix))
+            else sms_encode(add_prefix(self.content, self.prefix)).strip()
         )
 
     @property
@@ -187,6 +187,12 @@ class SMSMessageTemplate(Template):
 
     def is_message_too_long(self):
         return self.content_count > SMS_CHAR_COUNT_LIMIT
+
+    def is_message_empty(self):
+        if not self.prefix:
+            return self.content_count == 0
+        else:
+            return self.content_count - len(self.prefix) - 1 == 0
 
 
 class SMSPreviewTemplate(SMSMessageTemplate):
@@ -273,6 +279,13 @@ class WithSubjectTemplate(Template):
     @property
     def placeholders(self):
         return Field(self._subject).placeholders | Field(self.content).placeholders
+
+    @property
+    def content_count(self):
+        return len(WithSubjectTemplate.__str__(self).strip() if self._values else self.content.strip())
+
+    def is_message_empty(self):
+        return self.content_count == 0
 
 
 class PlainTextEmailTemplate(WithSubjectTemplate):

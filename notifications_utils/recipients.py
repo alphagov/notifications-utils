@@ -236,6 +236,10 @@ class RecipientCSV():
         return self._filter_rows('message_too_long')
 
     @property
+    def rows_with_empty_message(self):
+        return self._filter_rows('message_empty')
+
+    @property
     def initial_rows_with_errors(self):
         return islice(self.rows_with_errors, self.max_errors_shown)
 
