@@ -5,6 +5,15 @@ from orderedset import OrderedSet
 
 class Columns(OrderedDict):
 
+    """
+    `Columns` behaves like an ordered dictionary, except it normalises
+    case, whitespace, hypens and underscores in keys.
+
+    In other words,
+    Columns({'FIRST_NAME': 'example'}) == Columns({'first name': 'example'})
+    >>> True
+    """
+
     def __init__(self, row_dict):
         super().__init__([
             (Columns.make_key(key), value) for key, value in row_dict.items()
@@ -12,6 +21,13 @@ class Columns(OrderedDict):
 
     @classmethod
     def from_keys(cls, keys):
+        """
+        This behaves like `dict.from_keys`, except:
+        - it normalises the keys to ignore case, whitespace, hypens and
+          underscores
+        - it stores the original, unnormalised key as the value of the
+          item so it can be retrieved later
+        """
         return cls(OrderedDict([(key, key) for key in keys]))
 
     def keys(self):
