@@ -861,51 +861,34 @@ def test_SMSMessageTemplate_character_count(
 
 
 @pytest.mark.parametrize(
-    "char_count, expected_sms_fragment_count",
+    "msg, expected_sms_fragment_count",
     [
-        (159, 1),
-        (160, 1),
-        (161, 2),
-        (306, 2),
-        (307, 3),
-        (459, 3),
-        (460, 4),
-        (461, 4),
-        (612, 4),
-        (613, 5),
-    ])
-def test_sms_fragment_count_sms_encoding(char_count, expected_sms_fragment_count):
-    with mock.patch(
-        'notifications_utils.template.SMSMessageTemplate.content_count',
-        new_callable=mock.PropertyMock
-    ) as mocked:
-        mocked.return_value = char_count
-        template = SMSMessageTemplate({'content': 'faked', 'template_type': 'sms'})
-        assert template.fragment_count == expected_sms_fragment_count
+        ('à' * 71, 1),  # welsh character in GSM
 
+        ('à' * 160, 1),
+        ('à' * 161, 2),
 
-@pytest.mark.parametrize(
-    "char_count, expected_sms_fragment_count",
-    [
-        (69, 1),
-        (70, 1),
-        (71, 2),
-        (134, 2),
-        (135, 3),
-        (201, 3),
-        (202, 4),
-        (203, 4),
-        (268, 4),
-        (269, 5),
+        ('à' * 306, 2),
+        ('à' * 307, 3),
+
+        ('à' * 612, 4),
+        ('à' * 613, 5),
+
+        ('ÿ' * 70, 1),  # welsh character not in GSM, so send as unicode
+        ('ÿ' * 71, 2),
+
+        ('ÿ' * 134, 2),
+        ('ÿ' * 135, 3),
+
+        ('ÿ' * 268, 4),
+        ('ÿ' * 269, 5),
+
+        ('à' * 70 + 'ÿ', 2),  # just one non-gsm character means it's sent at unicode
+        ('🚀' * 160, 1),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
     ])
-def test_sms_fragment_count_unicode_encoding(char_count, expected_sms_fragment_count):
-    with mock.patch(
-        'notifications_utils.template.SMSMessageTemplate.content_count',
-        new_callable=mock.PropertyMock
-    ) as mocked:
-        mocked.return_value = char_count
-        template = SMSMessageTemplate({'content': 'Thís ïs â mêsságê with Ŵêlsh chârâctërs', 'template_type': 'sms'})
-        assert template.fragment_count == expected_sms_fragment_count
+def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(msg, expected_sms_fragment_count):
+    template = SMSMessageTemplate({'content': msg, 'template_type': 'sms'})
+    assert template.fragment_count == expected_sms_fragment_count
 
 
 @pytest.mark.parametrize('template_class', [SMSMessageTemplate, SMSPreviewTemplate])

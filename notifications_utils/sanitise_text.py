@@ -103,12 +103,16 @@ class SanitiseSMS(SanitiseText):
         'âêîôûŵŷ' 'ÂÊÎÔÛŴŶ'  # carets
     )
 
-    ALLOWED_CHARACTERS = set(
+    GSM_CHARACTERS = set(
         '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?' +
         '¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà' +
         # character set extension
         '^{}\\[~]|€'
-    ) | WELSH_DIACRITICS
+    )
+
+    ALLOWED_CHARACTERS = GSM_CHARACTERS | WELSH_DIACRITICS
+    # some welsh characters are in GSM and some aren't - we need to distinguish between these for counting fragments
+    WELSH_NON_GSM_CHARACTERS = WELSH_DIACRITICS - GSM_CHARACTERS
 
 
 class SanitiseASCII(SanitiseText):
