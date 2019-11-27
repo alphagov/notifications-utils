@@ -1,23 +1,43 @@
 from collections import OrderedDict
 from functools import lru_cache
+from orderedset import OrderedSet
 
 
-class Columns(dict):
+class Columns(OrderedDict):
+
+    """
+    `Columns` behaves like an ordered dictionary, except it normalises
+    case, whitespace, hypens and underscores in keys.
+
+    In other words,
+    Columns({'FIRST_NAME': 'example'}) == Columns({'first name': 'example'})
+    >>> True
+    """
 
     def __init__(self, row_dict):
-        super().__init__({
-            Columns.make_key(key): value for key, value in row_dict.items()
-        })
+        super().__init__([
+            (Columns.make_key(key), value) for key, value in row_dict.items()
+        ])
 
     @classmethod
     def from_keys(cls, keys):
-        return cls({key: key for key in keys})
+        """
+        This behaves like `dict.from_keys`, except:
+        - it normalises the keys to ignore case, whitespace, hypens and
+          underscores
+        - it stores the original, unnormalised key as the value of the
+          item so it can be retrieved later
+        """
+        return cls(OrderedDict([(key, key) for key in keys]))
+
+    def keys(self):
+        return OrderedSet(super().keys())
 
     def __getitem__(self, key):
         return super().get(Columns.make_key(key))
 
     def __contains__(self, key):
-        return Columns.make_key(key) in super().copy()
+        return super().__contains__(Columns.make_key(key))
 
     def get(self, key, default=None):
         return self[key] if self[key] is not None else default

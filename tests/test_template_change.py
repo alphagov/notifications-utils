@@ -105,3 +105,11 @@ def test_placeholders_added(old_template, new_template, placeholders_added):
 )
 def test_placeholders_removed(old_template, new_template, placeholders_removed):
     assert TemplateChange(old_template, new_template).placeholders_removed == placeholders_removed
+
+
+def test_ordering_of_placeholders_is_preserved():
+    before = Template({'content': '((dog)) ((cat)) ((rat))'})
+    after = Template({'content': '((platypus)) ((echidna)) ((quokka))'})
+    change = TemplateChange(before, after)
+    assert change.placeholders_removed == ['dog', 'cat', 'rat'] == before.placeholders
+    assert change.placeholders_added == ['platypus', 'echidna', 'quokka'] == after.placeholders

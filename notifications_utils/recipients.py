@@ -289,12 +289,20 @@ class RecipientCSV():
         )
 
     @property
-    def has_recipient_columns(self):
+    def required_recipient_column_headers(self):
         return set(
             Columns.make_key(recipient_column)
             for recipient_column in self.recipient_column_headers
             if not self.is_optional_address_column(recipient_column)
-        ) <= self.column_headers_as_column_keys
+        )
+
+    @property
+    def has_recipient_columns(self):
+        # `self.column_headers_as_column_keys` is an `OrderedSet`. We need
+        # to cast it to a set because `OrderedSet` has misleading
+        # behaviour when doing comparisions with `Set` objects.
+        # See: https://github.com/simonpercivall/orderedset/issues/25
+        return self.required_recipient_column_headers <= set(self.column_headers_as_column_keys)
 
     def _get_error_for_field(self, key, value):  # noqa: C901
 
