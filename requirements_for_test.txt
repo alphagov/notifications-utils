@@ -1,6 +1,6 @@
 -r requirements.txt
 
-pytest==5.3.0
+pytest==5.3.1
 pytest-mock==1.12.1
 pytest-xdist==1.30.0
 requests-mock==1.7.0
