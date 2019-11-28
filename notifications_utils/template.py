@@ -183,7 +183,7 @@ class SMSMessageTemplate(Template):
     @property
     def fragment_count(self):
         content_with_placeholders = str(self)
-        return get_sms_fragment_count(self.content_count, is_unicode(content_with_placeholders))
+        return get_sms_fragment_count(self.content_count, non_gsm_characters(content_with_placeholders))
 
     def is_message_too_long(self):
         return self.content_count > SMS_CHAR_COUNT_LIMIT
@@ -645,14 +645,19 @@ class NoPlaceholderForDataError(Exception):
         super(NoPlaceholderForDataError, self).__init__(", ".join(keys))
 
 
-def get_sms_fragment_count(character_count, is_unicode):
-    if is_unicode:
+def get_sms_fragment_count(character_count, non_gsm_characters):
+    if non_gsm_characters:
         return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
     else:
         return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
 
 
-def is_unicode(content):
+def non_gsm_characters(content):
+    """
+    Returns a set of all the non gsm characters in a text. this doesn't include characters that we will downgrade (eg
+    emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force the entire SMS to be encoded
+    with UCS-2.
+    """
     return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
 
 

@@ -817,8 +817,10 @@ def test_footnotes():
     pass
 
 
-def test_sms_encode():
-    assert sms_encode('aàá…') == 'aàa...'
+def test_sms_encode(mocker):
+    sanitise_mock = mocker.patch('notifications_utils.formatters.SanitiseSMS')
+    assert sms_encode('foo') == sanitise_mock.encode.return_value
+    sanitise_mock.encode.assert_called_once_with('foo')
 
 
 @pytest.mark.parametrize('items, kwargs, expected_output', [
