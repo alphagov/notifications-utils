@@ -2129,3 +2129,39 @@ def test_image_class_applied_to_logo(template_class, filename, expected_html_cla
 def test_image_not_present_if_no_logo(template_class):
     # can't test that the html doesn't move in utils - tested in template preview instead
     assert '<img' not in str(template_class({'content': 'Foo', 'subject': 'Subject'}, logo_file_name=None))
+
+
+@pytest.mark.parametrize('content', (
+    (
+        'The     quick brown fox.\n'
+        '\n\n\n\n'
+        'Jumps over the lazy dog.   \n'
+        'Single linebreak above.'
+    ),
+    (
+        '\n   \n'
+        'The quick brown fox.  \n\n'
+        '          Jumps over the lazy dog   .  \n'
+        'Single linebreak above. \n  \n \n'
+    ),
+))
+@pytest.mark.parametrize('template_class, expected', (
+    (SMSMessageTemplate, (
+        'The quick brown fox.\n'
+        '\n'
+        'Jumps over the lazy dog.\n'
+        'Single linebreak above.'
+    )),
+    (SMSPreviewTemplate, (
+        '\n\n'
+        '<div class="sms-message-wrapper">\n'
+        '  The quick brown fox.<br><br>Jumps over the lazy dog.<br>Single linebreak above.\n'
+        '</div>'
+    )),
+))
+def test_text_messages_collapse_consecutive_whitespace(
+    template_class,
+    content,
+    expected,
+):
+    assert str(template_class({"content": content})) == expected

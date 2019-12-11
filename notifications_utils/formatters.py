@@ -76,6 +76,10 @@ magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
 # using `^`, so we slice that off and recompile
 url = re.compile(mistune.InlineGrammar.url.pattern[1:])
 
+multiple_spaces_in_a_row = re.compile(r'\s{2,}')
+
+more_than_two_newlines_in_a_row = re.compile(r'\n{3,}')
+
 
 def unlink_govuk_escaped(message):
     return re.sub(
@@ -235,8 +239,21 @@ def replace_hyphens_with_non_breaking_hyphens(value):
     )
 
 
-def normalise_newlines(value):
-    return '\n'.join(value.splitlines())
+def normalise_whitespace_and_newlines(value):
+    return '\n'.join(
+        normalise_line(line) for line in value.splitlines()
+    )
+
+
+def normalise_line(line):
+    return multiple_spaces_in_a_row.sub(
+        ' ',
+        strip_and_remove_obscure_whitespace(line),
+    )
+
+
+def normalise_multiple_newlines(value):
+    return more_than_two_newlines_in_a_row.sub('\n\n', value)
 
 
 def strip_leading_whitespace(value):

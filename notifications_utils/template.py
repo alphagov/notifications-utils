@@ -31,8 +31,9 @@ from notifications_utils.formatters import (
     tweak_dvla_list_markup,
     strip_leading_whitespace,
     add_trailing_newline,
-    normalise_newlines,
     normalise_whitespace,
+    normalise_whitespace_and_newlines,
+    normalise_multiple_newlines,
     remove_smart_quotes_from_email_addresses,
     strip_unsupported_characters,
 )
@@ -151,7 +152,9 @@ class SMSMessageTemplate(Template):
         ).then(
             remove_whitespace_before_punctuation
         ).then(
-            normalise_newlines
+            normalise_whitespace_and_newlines
+        ).then(
+            normalise_multiple_newlines
         ).then(
             str.strip
         )
@@ -235,6 +238,10 @@ class SMSPreviewTemplate(SMSMessageTemplate):
                 sms_encode if self.downgrade_non_sms_characters else str
             ).then(
                 remove_whitespace_before_punctuation
+            ).then(
+                normalise_whitespace_and_newlines
+            ).then(
+                normalise_multiple_newlines
             ).then(
                 nl2br
             ).then(
