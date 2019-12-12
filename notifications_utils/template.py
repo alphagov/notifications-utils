@@ -8,7 +8,7 @@ from html import unescape
 
 from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
 from notifications_utils.columns import Columns
-from notifications_utils.field import Field
+from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     unlink_govuk_escaped,
     nl2br,
@@ -143,7 +143,7 @@ class SMSMessageTemplate(Template):
         super().__init__(template, values)
 
     def __str__(self):
-        return Take(Field(
+        return Take(PlainTextField(
             self.content, self.values, html='passthrough'
         )).then(
             add_prefix, self.prefix
@@ -175,13 +175,10 @@ class SMSMessageTemplate(Template):
 
         Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
         as in the message `foo ((placeholder))` has a length of 19.
+
+        We always call SMSMessageTemplate.__str__ regardless of subclass, to avoid any HTML formatting
         """
-        return len(
-            # we always want to call SMSMessageTemplate.__str__ regardless of subclass, to avoid any html formatting
-            SMSMessageTemplate.__str__(self)
-            if self._values
-            else sms_encode(add_prefix(self.content, self.prefix)).strip()
-        )
+        return len(SMSMessageTemplate.__str__(self))
 
     @property
     def fragment_count(self):

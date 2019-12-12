@@ -184,6 +184,17 @@ class Field:
         )
 
 
+class PlainTextField(Field):
+    """
+    Use this where no HTML should be rendered in the outputted content,
+    even when no values have been passed in
+    """
+    placeholder_tag = "(({}))"
+    conditional_placeholder_tag = "(({}??{}))"
+    placeholder_tag_no_brackets = "{}"
+    placeholder_tag_redacted = "[hidden]"
+
+
 def str2bool(value):
     if not value:
         return False
