@@ -2164,4 +2164,11 @@ def test_text_messages_collapse_consecutive_whitespace(
     content,
     expected,
 ):
-    assert str(template_class({"content": content})) == expected
+    template = template_class({"content": content})
+    assert str(template) == expected
+    assert template.content_count == 70 == len(
+        'The quick brown fox.\n'
+        '\n'
+        'Jumps over the lazy dog.\n'
+        'Single linebreak above.'
+    )
