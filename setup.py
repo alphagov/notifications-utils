@@ -29,18 +29,18 @@ setup(
         'python-json-logger==0.1.11',
         'Flask>=1.0.3',
         'orderedset==2.0.1',
-        'Jinja2==2.10.1',
+        'Jinja2==2.10.3',
         'statsd==3.3.0',
         'Flask-Redis==0.4.0',
-        'pyyaml==5.1.2',
-        'phonenumbers==8.10.17',
-        'pytz==2019.1',
+        'pyyaml==5.2.0',
+        'phonenumbers==8.11.1',
+        'pytz==2019.3',
         'smartypants==2.0.1',
         'monotonic==1.5',
         'pypdf2==1.26.0',
 
         # required by both api and admin
-        'awscli==1.16.231',
-        'boto3==1.9.221',
+        'awscli==1.16.302',
+        'boto3==1.10.38',
     ]
 )
