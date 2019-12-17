@@ -49,6 +49,19 @@ class Placeholder:
 
 
 class Field:
+
+    """
+    An instance of Field represents a string of text which may contain
+    placeholders.
+
+    If values are provided the field replaces the placeholders with the
+    corresponding values. If a value for a placeholder is missing then
+    the field will highlight the placeholder by wrapping it in some HTML.
+
+    A template can have several fields, for example an email template
+    has a field for the body and a field for the subject.
+    """
+
     placeholder_pattern = re.compile(
         r'\({2}'        # opening ((
         r'([^()]+)'     # body of placeholder - potentially standard or conditional.
