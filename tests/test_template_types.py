@@ -848,7 +848,9 @@ def test_WithSubjectTemplate_character_count(content, values, expected_count):
     ("Content with ((placeholder))", {"placeholder": "something extra here"}, "GDS", 33, 38),
     ("Just content", {}, "GDS", 17, 17),
     ("((placeholder))  ", {"placeholder": "  "}, "GDS", 20, 4),
-    ("  ", {}, "GDS", 4, 4),
+    ("  ", {}, "GDS", 4, 4),  # Becomes `GDS:`
+    ("  G      D       S  ", {}, None, 5, 5),  # Becomes `G D S`
+    ("P1 \n\n\n\n\n\n P2", {}, None, 6, 6),  # Becomes `P1\n\nP2`
 ])
 def test_SMSMessageTemplate_character_count(
     content, values, prefix, expected_count_in_template, expected_count_in_notification, template_class
