@@ -639,16 +639,6 @@ class LetterImageTemplate(LetterPreviewTemplate):
         }))
 
 
-class NeededByTemplateError(Exception):
-    def __init__(self, keys):
-        super(NeededByTemplateError, self).__init__(", ".join(keys))
-
-
-class NoPlaceholderForDataError(Exception):
-    def __init__(self, keys):
-        super(NoPlaceholderForDataError, self).__init__(", ".join(keys))
-
-
 def get_sms_fragment_count(character_count, non_gsm_characters):
     if non_gsm_characters:
         return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
