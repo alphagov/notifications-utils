@@ -3,6 +3,7 @@ from time import process_time
 import os
 import pytest
 
+from bs4 import BeautifulSoup
 from functools import partial
 from unittest import mock
 from flask import Markup
@@ -2174,3 +2175,22 @@ def test_text_messages_collapse_consecutive_whitespace(
         'Jumps over the lazy dog.\n'
         'Single linebreak above.'
     )
+
+
+def test_letter_preview_template_lazy_loads_images():
+    page = BeautifulSoup(
+        str(LetterImageTemplate(
+            {'content': 'Content', 'subject': 'Subject'},
+            image_url='http://example.com/endpoint.png',
+            page_count=3,
+        )),
+        'html.parser',
+    )
+    assert [
+        (img['src'], img['loading'])
+        for img in page.select('img')
+    ] == [
+        ('http://example.com/endpoint.png?page=1', 'eager'),
+        ('http://example.com/endpoint.png?page=2', 'lazy'),
+        ('http://example.com/endpoint.png?page=3', 'lazy'),
+    ]
