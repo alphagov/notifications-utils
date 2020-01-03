@@ -5,7 +5,7 @@
         Postage: {{ postage }} class
       </p>
     {% endif %}
-    <img src="{{ image_url }}?page={{ page_number }}" alt="">
+    <img src="{{ image_url }}?page={{ page_number }}" alt="" loading="{{ 'eager' if loop.first else 'lazy' }}">
   </div>
 {% endfor %}
 
