@@ -132,6 +132,22 @@ def test_URLs_get_escaped(url, expected_html, expected_html_in_template):
     assert expected_html_in_template in str(HTMLEmailTemplate({'content': url, 'subject': ''}))
 
 
+@pytest.mark.parametrize(
+    "url, expected_html", [
+        (
+            """https://example.com"onclick="alert('hi')""",
+            """<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>')""",  # noqa
+        ),
+        (
+            """https://example.com"style='text-decoration:blink'""",
+            """<a style="word-wrap: break-word; color: #005ea5;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>'""",  # noqa
+        ),
+    ]
+)
+def test_URLs_get_escaped_in_sms(url, expected_html):
+    assert expected_html in str(SMSPreviewTemplate({'content': url}))
+
+
 def test_HTML_template_has_URLs_replaced_with_links():
     assert (
         '<a style="word-wrap: break-word; color: #005ea5;" href="https://service.example.com/accept_invite/a1b2c3d4">'

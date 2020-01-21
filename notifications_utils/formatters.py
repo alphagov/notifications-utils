@@ -105,12 +105,27 @@ def add_prefix(body, prefix=None):
     return body
 
 
+def create_sanitised_html_for_url(link):
+    """
+    takes a link and returns an a tag to that link.  does the quote/unquote dance to ensure that " quotes are escaped
+    correctly to prevent xss
+
+    input: `http://foo.com/"bar"?x=1#2`
+    output: `<a style=... href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>`
+    """
+    return '<a style="{}" href="{}">{}</a>'.format(
+        LINK_STYLE,
+        urllib.parse.quote(
+            urllib.parse.unquote(link),
+            safe=':/?#=&;'
+        ),
+        link
+    )
+
+
 def autolink_sms(body):
     return url.sub(
-        lambda match: '<a style="{}" href="{}">{}</a>'.format(
-            LINK_STYLE,
-            match.group(1), match.group(1),
-        ),
+        lambda match: create_sanitised_html_for_url(match.group(1)),
         body,
     )
 
@@ -463,14 +478,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def autolink(self, link, is_email=False):
         if is_email:
             return link
-        return '<a style="{}" href="{}">{}</a>'.format(
-            LINK_STYLE,
-            urllib.parse.quote(
-                urllib.parse.unquote(link),
-                safe=':/?#=&;'
-            ),
-            link
-        )
+        return create_sanitised_html_for_url(link)
 
     def double_emphasis(self, text):
         return '**{}**'.format(text)
