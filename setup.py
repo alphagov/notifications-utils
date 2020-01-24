@@ -38,6 +38,7 @@ setup(
         'smartypants==2.0.1',
         'monotonic==1.5',
         'pypdf2==1.26.0',
+        'itsdangerous==1.1.0',
 
         # required by both api and admin
         'awscli==1.16.302',
