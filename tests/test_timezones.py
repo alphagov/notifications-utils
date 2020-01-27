@@ -17,9 +17,16 @@ def test_utc_string_to_aware_gmt_datetime_rejects_bad_input(input_value):
         utc_string_to_aware_gmt_datetime(input_value)
 
 
+def test_utc_string_to_aware_gmt_datetime_accepts_datetime_objects():
+    input_value = datetime(2017, 5, 12, 14, 0)
+    expected = '2017-05-12T15:00:00+01:00'
+    assert utc_string_to_aware_gmt_datetime(input_value).isoformat() == expected
+
+
 @pytest.mark.parametrize('naive_time, expected_aware_hour', [
     ('2000-12-1 20:01', '20:01'),
     ('2000-06-1 20:01', '21:01'),
+    ('2000-06-1T20:01+00:00', '21:01'),
 ])
 def test_utc_string_to_aware_gmt_datetime_handles_summer_and_winter(
     naive_time,
