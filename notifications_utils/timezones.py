@@ -1,4 +1,5 @@
-import dateutil
+from datetime import datetime
+from dateutil import parser
 import pytz
 
 
@@ -6,7 +7,12 @@ local_timezone = pytz.timezone("Europe/London")
 
 
 def utc_string_to_aware_gmt_datetime(date):
-    date = dateutil.parser.parse(date)
+    """
+    Date can either be a string or a naive datetime
+    """
+    if not isinstance(date, datetime):
+        date = parser.parse(date)
+
     forced_utc = date.replace(tzinfo=pytz.utc)
     return forced_utc.astimezone(local_timezone)
 
