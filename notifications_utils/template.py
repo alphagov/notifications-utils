@@ -181,18 +181,30 @@ class SMSMessageTemplate(Template):
         return len(SMSMessageTemplate.__str__(self))
 
     @property
+    def content_count_without_prefix(self):
+        # subtract 2 extra characters to account for the colon and the space,
+        # added max zero in case the content is empty the __str__ methods strips the white space.
+        if self.prefix:
+            return max((self.content_count - len(self.prefix) - 2), 0)
+        else:
+            return self.content_count
+
+    @property
     def fragment_count(self):
         content_with_placeholders = str(self)
         return get_sms_fragment_count(self.content_count, non_gsm_characters(content_with_placeholders))
 
     def is_message_too_long(self):
-        return self.content_count > SMS_CHAR_COUNT_LIMIT
+        """
+        Message is validated with out the prefix.
+        We have decided to be lenient and let the message go over the character limit. The SMS provider will
+        send messages well over our limit. There were some inconsistencies with how we were validating the
+        length of a message. This should be the method used anytime we want to reject a message for being too long.
+        """
+        return self.content_count_without_prefix > SMS_CHAR_COUNT_LIMIT
 
     def is_message_empty(self):
-        if not self.prefix:
-            return self.content_count == 0
-        else:
-            return self.content_count - len(self.prefix) - 1 == 0
+        return self.content_count_without_prefix == 0
 
 
 class SMSPreviewTemplate(SMSMessageTemplate):

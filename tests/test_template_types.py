@@ -1860,10 +1860,20 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
     SMSMessageTemplate,
     SMSPreviewTemplate,
 ])
-def test_message_too_long(template_class):
+def test_message_too_long_ignoring_prefix(template_class):
     body = ('b' * 400) + '((foo))'
-    template = template_class({'content': body}, prefix='a' * 100, values={'foo': 'c' * 200})
+    template = template_class({'content': body}, prefix='a' * 100, values={'foo': 'c' * 300})
     assert template.is_message_too_long() is True
+
+
+@pytest.mark.parametrize('template_class', [
+    SMSMessageTemplate,
+    SMSPreviewTemplate,
+])
+def test_message_is_not_too_long_ignoring_prefix(template_class):
+    body = ('b' * 400) + '((foo))'
+    template = template_class({'content': body}, prefix='a' * 100, values={'foo': 'c' * 100})
+    assert template.is_message_too_long() is False
 
 
 @pytest.mark.parametrize('template_class, kwargs', [
