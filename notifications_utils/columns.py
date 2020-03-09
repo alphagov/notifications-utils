@@ -15,9 +15,8 @@ class Columns(OrderedDict):
     """
 
     def __init__(self, row_dict):
-        super().__init__([
-            (self.__class__.make_key(key), value) for key, value in row_dict.items()
-        ])
+        for key, value in row_dict.items():
+            self[key] = value
 
     @classmethod
     def from_keys(cls, keys):
