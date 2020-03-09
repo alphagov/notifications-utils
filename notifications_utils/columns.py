@@ -36,6 +36,9 @@ class Columns(OrderedDict):
     def __getitem__(self, key):
         return super().get(self.__class__.make_key(key))
 
+    def __setitem__(self, key, value):
+        super().__setitem__(self.__class__.make_key(key), value)
+
     def __contains__(self, key):
         return super().__contains__(self.__class__.make_key(key))
 
