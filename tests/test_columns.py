@@ -34,7 +34,8 @@ def test_missing_data():
         placeholders=[],
         template=None,
     )
-    assert Columns({})['foo'] is None
+    with pytest.raises(KeyError):
+        Columns({})['foo']
     assert Columns({}).get('foo') is None
     assert Columns({}).get('foo', 'bar') == 'bar'
     assert partial_row()['foo'] == Cell()

@@ -33,7 +33,7 @@ class Columns(OrderedDict):
         return OrderedSet(super().keys())
 
     def __getitem__(self, key):
-        return super().get(self.__class__.make_key(key))
+        return super().__getitem__(self.__class__.make_key(key))
 
     def __setitem__(self, key, value):
         super().__setitem__(self.__class__.make_key(key), value)
@@ -42,7 +42,10 @@ class Columns(OrderedDict):
         return super().__contains__(self.__class__.make_key(key))
 
     def get(self, key, default=None):
-        return self[key] if self[key] is not None else default
+        try:
+            return self.__getitem__(key)
+        except KeyError:
+            return default
 
     def copy(self):
         return self.__class__(super().copy())
@@ -92,7 +95,10 @@ class Row(Columns):
         ))
 
     def __getitem__(self, key):
-        return super().__getitem__(key) or Cell()
+        try:
+            return super().__getitem__(key)
+        except KeyError:
+            return Cell()
 
     def get(self, key, default=None):
         if self[key] == Cell() and default is not None:
