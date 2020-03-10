@@ -33,13 +33,13 @@ class Columns(OrderedDict):
         return OrderedSet(super().keys())
 
     def __getitem__(self, key):
-        return super().__getitem__(self.__class__.make_key(key))
+        return super().__getitem__(self.make_key(key))
 
     def __setitem__(self, key, value):
-        super().__setitem__(self.__class__.make_key(key), value)
+        super().__setitem__(self.make_key(key), value)
 
     def __contains__(self, key):
-        return super().__contains__(self.__class__.make_key(key))
+        return super().__contains__(self.make_key(key))
 
     def get(self, key, default=None):
         try:
