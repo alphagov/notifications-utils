@@ -42,10 +42,7 @@ class Columns(OrderedDict):
         return super().__contains__(self.make_key(key))
 
     def get(self, key, default=None):
-        try:
-            return self.__getitem__(key)
-        except KeyError:
-            return default
+        return self[key] if key in self else default
 
     def copy(self):
         return self.__class__(super().copy())
@@ -95,13 +92,10 @@ class Row(Columns):
         ))
 
     def __getitem__(self, key):
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            return Cell()
+        return super().__getitem__(key) if key in self else Cell()
 
     def get(self, key, default=None):
-        if self[key] == Cell() and default is not None:
+        if key not in self and default is not None:
             return default
         return self[key]
 
