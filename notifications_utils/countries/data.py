@@ -40,9 +40,14 @@ ADDITIONAL_SYNONYMS = [
 ]
 
 _UK_ISLANDS_LIST = _load_data('uk-islands.txt')
+_EUROPEAN_ISLANDS_LIST = _load_data('european-islands.txt')
 
 UK_ISLANDS = [
     (synonym, synonym) for synonym in _UK_ISLANDS_LIST
+]
+
+EUROPEAN_ISLANDS = [
+    (synonym, synonym) for synonym in _EUROPEAN_ISLANDS_LIST
 ]
 
 # Copied from https://www.royalmail.com/international-zones#europe

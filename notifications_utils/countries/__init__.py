@@ -6,6 +6,7 @@ from notifications_utils.sanitise_text import SanitiseASCII
 from .data import (
     ADDITIONAL_SYNONYMS,
     COUNTRIES_AND_TERRITORIES,
+    EUROPEAN_ISLANDS,
     ROYAL_MAIL_EUROPEAN,
     UK_ISLANDS,
     UK_POSTAGE_REGIONS,
@@ -46,7 +47,10 @@ class CountryMapping(Columns):
 
 
 countries = CountryMapping(dict(
-    COUNTRIES_AND_TERRITORIES + ADDITIONAL_SYNONYMS + UK_ISLANDS
+    COUNTRIES_AND_TERRITORIES +
+    ADDITIONAL_SYNONYMS +
+    UK_ISLANDS +
+    EUROPEAN_ISLANDS
 ))
 
 

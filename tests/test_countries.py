@@ -69,6 +69,19 @@ def test_all_synonyms():
     ('Sao Tome + Principe', 'Sao Tome and Principe'),
     ('Sao Tome & Principe', 'Sao Tome and Principe'),
     ('Antigua, and Barbuda', 'Antigua and Barbuda'),
+    ('Azores', 'Azores'),
+    ('Autonomous Region of the Azores', 'Azores'),
+    ('Canary Islands', 'Canary Islands'),
+    ('Islas Canarias', 'Canary Islands'),
+    ('Canaries', 'Canary Islands'),
+    ('Madeira', 'Madeira'),
+    ('Autonomous Region of Madeira', 'Madeira'),
+    ('Região Autónoma da Madeira', 'Madeira'),
+    ('Balearic Islands', 'Balearic Islands'),
+    ('Islas Baleares', 'Balearic Islands'),
+    ('Illes Balears', 'Balearic Islands'),
+    ('Corsica', 'Corsica'),
+    ('Corse', 'Corsica'),
 ))
 def test_hand_crafted_synonyms(search, expected):
     assert Country(search).canonical_name == expected
@@ -101,11 +114,5 @@ def test_get_postage(search, expected):
 
 
 def test_euro_postage_zone():
-    for search in set(ROYAL_MAIL_EUROPEAN) - {
-        'Azores',
-        'Canary Islands',
-        'Madeira',
-        'Balearic Islands',
-        'Corsica',
-    }:
+    for search in ROYAL_MAIL_EUROPEAN:
         assert Country(search).postage_zone == Postage.EUROPE
