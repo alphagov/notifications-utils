@@ -13,7 +13,7 @@ from orderedset import OrderedSet
 from flask import current_app
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
-from notifications_utils.formatters import strip_and_remove_obscure_whitespace, strip_whitespace, OBSCURE_WHITESPACE
+from notifications_utils.formatters import normalise_whitespace, strip_and_remove_obscure_whitespace, strip_whitespace, OBSCURE_WHITESPACE
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
 from notifications_utils.international_billing_rates import (
@@ -567,3 +567,20 @@ def insert_or_append_to_dict(dict_, key, value):
             dict_[key] = [dict_[key], value]
     else:
         dict_.update({key: value})
+
+
+def normalise_uk_postcode(postcode):
+    postcode = normalise_whitespace(postcode.upper())
+    if postcode[-4] != " ":
+        postcode = postcode[:-3] + " " + postcode[-3:]
+        print(postcode)
+    return postcode
+
+
+def is_a_real_uk_postcode(value):
+    standard = r"([A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-BD-HJLNP-UW-Z]{2})"
+    bfpo = r"(BFPO?(\s?C\/O)?\s?[0-9]{1,4})"
+    girobank = r"(GIR0AA)"
+    pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
+
+    return bool(re.fullmatch(pattern, value))

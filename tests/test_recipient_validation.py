@@ -11,8 +11,10 @@ from notifications_utils.recipients import (
     allowed_to_send_to,
     InvalidAddressError,
     validate_recipient,
+    is_a_real_uk_postcode,
     is_uk_phone_number,
     normalise_phone_number,
+    normalise_uk_postcode,
     international_phone_info,
     get_international_phone_info,
     format_phone_number_human_readable,
@@ -434,3 +436,43 @@ def test_try_format_recipient_doesnt_throw():
 
 def test_format_phone_number_human_readable_doenst_throw():
     assert format_phone_number_human_readable('ALPHANUM3R1C') == 'ALPHANUM3R1C'
+
+
+@pytest.mark.parametrize('postcode, normalised_postcode', [
+    ("SW1 3EF", "SW1 3EF"),
+    (" SW1    3EF  ", "SW1 3EF"),
+    ("SW13EF", "SW1 3EF"),
+    ("sw13ef", "SW1 3EF"),
+    ("sw1 3ef", "SW1 3EF"),
+    ("Sw13ef", "SW1 3EF"),
+    ("N5", "N5"),
+])
+def test_normalise_uk_postcode(postcode, normalised_postcode):
+    assert normalise_uk_postcode(postcode) == normalised_postcode
+
+
+@pytest.mark.parametrize('postcode, result', [
+    ("SW1 3EF", True),
+    ("SW13EF", True),
+    ("N5 1AA", True),
+    ("SO14 6WB", True),
+
+    ("N5", False),
+    ("SO144 6WB", False),
+    ("SO14 6WBA", False),
+    ("", False),
+    ("Bad postcode", False),
+
+    ("BFPO1234", True),
+    ("BFPO C/O 1234", True),
+    ("BFPO 1234", True),
+    ("BFPO1", True),
+
+    ("BFPO", False),
+    ("BFPO12345", False),
+
+    ("GIR0AA", True),
+    ("GIR0AB", False),
+])
+def test_if_postcode_is_a_real_uk_postcode(postcode, result):
+    assert is_a_real_uk_postcode(postcode) is result
