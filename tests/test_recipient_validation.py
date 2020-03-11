@@ -14,7 +14,7 @@ from notifications_utils.recipients import (
     is_a_real_uk_postcode,
     is_uk_phone_number,
     normalise_phone_number,
-    normalise_uk_postcode,
+    normalise_postcode,
     international_phone_info,
     get_international_phone_info,
     format_phone_number_human_readable,
@@ -360,9 +360,9 @@ def test_validate_address_raises_for_wrong_column():
     'address_line_3',
     'address_line_4',
     'address_line_5',
-    'postcode',
+    'address_line_6',
 ])
-def test_validate_address_allows_any_non_empty_value(column):
+def test_validate_address_allows_any_non_empty_value_for_non_postcode(column):
     assert validate_recipient('any', 'letter', column=column) == 'any'
 
 
@@ -373,13 +373,29 @@ def test_validate_address_allows_any_non_empty_value(column):
     'address_line_4',
     'address_line_5',
     'address_line_6',
-    'postcode',
 ])
-def test_non_ascii_address_line_is_fine(column):
+def test_non_ascii_address_line_is_fine_for_non_postcode(column):
     valid_address = u'\u041F\u0435\u0442\u044F'
     assert validate_recipient(
         valid_address, 'letter', column=column
     ) == valid_address
+
+
+def test_validate_address_checks_postcode_is_real_uk_postcode(mocker):
+    is_a_real_uk_postcode_mock = mocker.patch('notifications_utils.recipients.is_a_real_uk_postcode')
+    is_a_real_uk_postcode_mock.return_value = True
+
+    assert validate_recipient('sw1 1aa', 'letter', column="postcode") == 'sw1 1aa'
+    assert is_a_real_uk_postcode_mock.called
+
+
+def test_validate_address_raises_if_postcode_is_not_real_uk_postcode(mocker):
+    is_a_real_uk_postcode_mock = mocker.patch('notifications_utils.recipients.is_a_real_uk_postcode')
+    is_a_real_uk_postcode_mock.return_value = False
+    with pytest.raises(InvalidAddressError) as e:
+        validate_recipient('90899', 'letter', column="postcode")
+    assert is_a_real_uk_postcode_mock.called
+    assert 'Not a real UK postcode' == str(e.value)
 
 
 def test_valid_address_line_does_not_raise_error():
@@ -440,15 +456,14 @@ def test_format_phone_number_human_readable_doenst_throw():
 
 @pytest.mark.parametrize('postcode, normalised_postcode', [
     ("SW1 3EF", "SW1 3EF"),
-    (" SW1    3EF  ", "SW1 3EF"),
-    ("SW13EF", "SW1 3EF"),
-    ("sw13ef", "SW1 3EF"),
+    ("SW13EF", "SW13EF"),
+    ("sw13ef", "SW13EF"),
+    ("Sw13ef", "SW13EF"),
     ("sw1 3ef", "SW1 3EF"),
-    ("Sw13ef", "SW1 3EF"),
-    ("N5", "N5"),
+    (" SW1    3EF  ", "SW1 3EF"),
 ])
-def test_normalise_uk_postcode(postcode, normalised_postcode):
-    assert normalise_uk_postcode(postcode) == normalised_postcode
+def test_normalise_postcode(postcode, normalised_postcode):
+    assert normalise_postcode(postcode) == normalised_postcode
 
 
 @pytest.mark.parametrize('postcode, result', [
@@ -456,6 +471,7 @@ def test_normalise_uk_postcode(postcode, normalised_postcode):
     ("SW13EF", True),
     ("N5 1AA", True),
     ("SO14 6WB", True),
+    ("so14 6wb", True),
 
     ("N5", False),
     ("SO144 6WB", False),
@@ -476,3 +492,9 @@ def test_normalise_uk_postcode(postcode, normalised_postcode):
 ])
 def test_if_postcode_is_a_real_uk_postcode(postcode, result):
     assert is_a_real_uk_postcode(postcode) is result
+
+
+def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(mocker):
+    normalise_postcode_mock = mocker.patch('notifications_utils.recipients.normalise_postcode')
+    normalise_postcode_mock.return_value = "SW11AA"
+    assert is_a_real_uk_postcode("sw1  1aa") is True

@@ -13,7 +13,12 @@ from orderedset import OrderedSet
 from flask import current_app
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
-from notifications_utils.formatters import normalise_whitespace, strip_and_remove_obscure_whitespace, strip_whitespace, OBSCURE_WHITESPACE
+from notifications_utils.formatters import (
+    normalise_whitespace,
+    strip_and_remove_obscure_whitespace,
+    strip_whitespace,
+    OBSCURE_WHITESPACE
+)
 from notifications_utils.template import Template
 from notifications_utils.columns import Columns, Row, Cell
 from notifications_utils.international_billing_rates import (
@@ -513,6 +518,8 @@ def validate_address(address_line, column):
         raise TypeError
     if not address_line or not strip_whitespace(address_line):
         raise InvalidAddressError('Missing')
+    if Columns.make_key(column) == "postcode" and not is_a_real_uk_postcode(address_line):
+        raise InvalidAddressError('Not a real UK postcode')
     return address_line
 
 
@@ -569,12 +576,8 @@ def insert_or_append_to_dict(dict_, key, value):
         dict_.update({key: value})
 
 
-def normalise_uk_postcode(postcode):
-    postcode = normalise_whitespace(postcode.upper())
-    if postcode[-4] != " ":
-        postcode = postcode[:-3] + " " + postcode[-3:]
-        print(postcode)
-    return postcode
+def normalise_postcode(postcode):
+    return normalise_whitespace(postcode.upper())
 
 
 def is_a_real_uk_postcode(value):
@@ -583,4 +586,4 @@ def is_a_real_uk_postcode(value):
     girobank = r"(GIR0AA)"
     pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
 
-    return bool(re.fullmatch(pattern, value))
+    return bool(re.fullmatch(pattern, normalise_postcode(value)))
