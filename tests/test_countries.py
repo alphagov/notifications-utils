@@ -9,6 +9,7 @@ from notifications_utils.countries.data import (
     _EUROPEAN_ISLANDS_LIST,
     _UK_ISLANDS_LIST,
     ADDITIONAL_SYNONYMS,
+    COUNTRIES_AND_TERRITORIES,
     ROYAL_MAIL_EUROPEAN,
     UK,
     UK_ISLANDS,
