@@ -15,9 +15,8 @@ class Columns(OrderedDict):
     """
 
     def __init__(self, row_dict):
-        super().__init__([
-            (Columns.make_key(key), value) for key, value in row_dict.items()
-        ])
+        for key, value in row_dict.items():
+            self[key] = value
 
     @classmethod
     def from_keys(cls, keys):
@@ -34,16 +33,19 @@ class Columns(OrderedDict):
         return OrderedSet(super().keys())
 
     def __getitem__(self, key):
-        return super().get(Columns.make_key(key))
+        return super().__getitem__(self.make_key(key))
+
+    def __setitem__(self, key, value):
+        super().__setitem__(self.make_key(key), value)
 
     def __contains__(self, key):
-        return super().__contains__(Columns.make_key(key))
+        return super().__contains__(self.make_key(key))
 
     def get(self, key, default=None):
-        return self[key] if self[key] is not None else default
+        return self[key] if key in self else default
 
     def copy(self):
-        return Columns(super().copy())
+        return self.__class__(super().copy())
 
     def as_dict_with_keys(self, keys):
         return {
@@ -90,10 +92,10 @@ class Row(Columns):
         ))
 
     def __getitem__(self, key):
-        return super().__getitem__(key) or Cell()
+        return super().__getitem__(key) if key in self else Cell()
 
     def get(self, key, default=None):
-        if self[key] == Cell() and default is not None:
+        if key not in self and default is not None:
             return default
         return self[key]
 

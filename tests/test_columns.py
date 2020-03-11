@@ -34,7 +34,8 @@ def test_missing_data():
         placeholders=[],
         template=None,
     )
-    assert Columns({})['foo'] is None
+    with pytest.raises(KeyError):
+        Columns({})['foo']
     assert Columns({}).get('foo') is None
     assert Columns({}).get('foo', 'bar') == 'bar'
     assert partial_row()['foo'] == Cell()
@@ -54,3 +55,18 @@ def test_missing_data():
 ])
 def test_lookup(key, should_be_present, in_dictionary):
     assert (key in Columns(in_dictionary)) == should_be_present
+
+
+@pytest.mark.parametrize('key_in', [
+    'foo',
+    'F_O O',
+])
+@pytest.mark.parametrize('lookup_key', [
+    'foo',
+    'f_o_o',
+    'F O O',
+])
+def test_set_item(key_in, lookup_key):
+    columns = Columns({})
+    columns[key_in] = 'bar'
+    assert columns[lookup_key] == 'bar'
