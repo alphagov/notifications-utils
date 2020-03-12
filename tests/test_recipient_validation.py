@@ -519,6 +519,8 @@ def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(m
     ("BFPO2", "BFPO 2"),
     ("BFPO232", "BFPO 232"),
     ("BFPO 2432", "BFPO 2432"),
+    ("BFPO C/O 2", "BFPO C/O 2"),
+    ("BFPO c/o 232", "BFPO C/O 232"),
     ("GIR0AA", "GIR 0AA"),
 ])
 def test_format_postcode_for_printing(postcode, postcode_with_space):
