@@ -456,38 +456,45 @@ def test_format_phone_number_human_readable_doenst_throw():
 
 
 @pytest.mark.parametrize('postcode, normalised_postcode', [
-    ("SW1 3EF", "SW1 3EF"),
+    ("SW1 3EF", "SW13EF"),
     ("SW13EF", "SW13EF"),
     ("sw13ef", "SW13EF"),
     ("Sw13ef", "SW13EF"),
-    ("sw1 3ef", "SW1 3EF"),
-    (" SW1    3EF  ", "SW1 3EF"),
+    ("sw1 3ef", "SW13EF"),
+    (" SW1    3EF  ", "SW13EF"),
 ])
 def test_normalise_postcode(postcode, normalised_postcode):
     assert normalise_postcode(postcode) == normalised_postcode
 
 
 @pytest.mark.parametrize('postcode, result', [
+    # real standard UK poscodes
     ("SW1 3EF", True),
     ("SW13EF", True),
+
+    ("SE1 63EF", True),
     ("N5 1AA", True),
     ("SO14 6WB", True),
     ("so14 6wb", True),
 
+    # invalida / incomplete postcodes
     ("N5", False),
     ("SO144 6WB", False),
     ("SO14 6WBA", False),
     ("", False),
     ("Bad postcode", False),
 
+    # valid British Forces postcodes
     ("BFPO1234", True),
     ("BFPO C/O 1234", True),
     ("BFPO 1234", True),
     ("BFPO1", True),
 
+    # invalid British Forces postcodes
     ("BFPO", False),
     ("BFPO12345", False),
 
+    # Giro Bank valid postcode and invalid postcode
     ("GIR0AA", True),
     ("GIR0AB", False),
 ])

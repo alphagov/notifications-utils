@@ -577,7 +577,7 @@ def insert_or_append_to_dict(dict_, key, value):
 
 
 def normalise_postcode(postcode):
-    return normalise_whitespace(postcode.upper())
+    return normalise_whitespace(postcode.upper().replace(" ", ""))
 
 
 def is_a_real_uk_postcode(postcode):
@@ -596,9 +596,5 @@ def format_postcode_for_printing(postcode):
     """
     postcode = normalise_postcode(postcode)
     if "BFPO" in postcode:
-        if postcode[4] != " ":
-            return postcode[:4] + " " + postcode[4:]
-        return postcode
-    if postcode[-4] != " ":
-        postcode = postcode[:-3] + " " + postcode[-3:]
-    return postcode
+        return postcode[:4] + " " + postcode[4:]
+    return postcode[:-3] + " " + postcode[-3:]
