@@ -3,23 +3,24 @@ import pytest
 from functools import partial
 
 from notifications_utils.recipients import (
-    validate_phone_number,
-    validate_and_format_phone_number,
-    InvalidPhoneError,
-    validate_email_address,
-    InvalidEmailError,
     allowed_to_send_to,
+    format_phone_number_human_readable,
+    format_postcode_for_printing,
+    format_recipient,
+    get_international_phone_info,
+    international_phone_info,
     InvalidAddressError,
-    validate_recipient,
+    InvalidEmailError,
+    InvalidPhoneError,
     is_a_real_uk_postcode,
     is_uk_phone_number,
     normalise_phone_number,
     normalise_postcode,
-    international_phone_info,
-    get_international_phone_info,
-    format_phone_number_human_readable,
-    format_recipient,
-    try_validate_and_format_phone_number
+    try_validate_and_format_phone_number,
+    validate_and_format_phone_number,
+    validate_email_address,
+    validate_phone_number,
+    validate_recipient,
 )
 
 
@@ -498,3 +499,20 @@ def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(m
     normalise_postcode_mock = mocker.patch('notifications_utils.recipients.normalise_postcode')
     normalise_postcode_mock.return_value = "SW11AA"
     assert is_a_real_uk_postcode("sw1  1aa") is True
+
+
+@pytest.mark.parametrize('postcode, postcode_with_space', [
+    ("SW13EF", "SW1 3EF"),
+    ("SW1 3EF", "SW1 3EF"),
+    ("N5 3EF", "N5 3EF"),
+    ("N5     3EF", "N5 3EF"),
+    ("N53EF   ", "N5 3EF"),
+    ("n53Ef", "N5 3EF"),
+    ("SO146WB", "SO14 6WB"),
+    ("BFPO2", "BFPO 2"),
+    ("BFPO232", "BFPO 232"),
+    ("BFPO 2432", "BFPO 2432"),
+    ("GIR0AA", "GIR 0AA"),
+])
+def test_format_postcode_for_printing(postcode, postcode_with_space):
+    assert format_postcode_for_printing(postcode) == postcode_with_space

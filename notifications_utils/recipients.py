@@ -580,10 +580,25 @@ def normalise_postcode(postcode):
     return normalise_whitespace(postcode.upper())
 
 
-def is_a_real_uk_postcode(value):
+def is_a_real_uk_postcode(postcode):
     standard = r"([A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-BD-HJLNP-UW-Z]{2})"
     bfpo = r"(BFPO?(\s?C\/O)?\s?[0-9]{1,4})"
     girobank = r"(GIR0AA)"
     pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
 
-    return bool(re.fullmatch(pattern, normalise_postcode(value)))
+    return bool(re.fullmatch(pattern, normalise_postcode(postcode)))
+
+
+def format_postcode_for_printing(postcode):
+    """
+        This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
+        :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
+    """
+    postcode = normalise_postcode(postcode)
+    if "BFPO" in postcode:
+        if postcode[4] != " ":
+            return postcode[:4] + " " + postcode[4:]
+        return postcode
+    if postcode[-4] != " ":
+        postcode = postcode[:-3] + " " + postcode[-3:]
+    return postcode
