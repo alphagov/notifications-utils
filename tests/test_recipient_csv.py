@@ -593,7 +593,7 @@ def test_recipient_column(placeholders, file_contents, template_type):
             # missing postcode
             """
                 address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
-                name,          building,      street,        town,          county,        postcode,today
+                name,          building,      street,        town,          county,        SE1 7LS,today
                 name,          building,      street,        town,          county,        ,        today
             """,
             'letter',
@@ -603,7 +603,7 @@ def test_recipient_column(placeholders, file_contents, template_type):
             # only required address fields
             """
                 address_line_1, postcode, date
-                name,           postcode, today
+                name,           SE1 7LS, today
             """,
             'letter',
             set(), set()
@@ -612,7 +612,7 @@ def test_recipient_column(placeholders, file_contents, template_type):
             # optional address fields not filled in
             """
                 address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
-                name          ,123 fake st.  ,              ,              ,              ,postcode,today
+                name          ,123 fake st.  ,              ,              ,              ,SE1 7LS,today
             """,
             'letter',
             set(), set()
