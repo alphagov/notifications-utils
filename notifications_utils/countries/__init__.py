@@ -34,16 +34,14 @@ class CountryMapping(Columns):
         return SanitiseASCII.encode(normalised)
 
     def __getitem__(self, key):
-        try:
-            return super().__getitem__(key)
-        except KeyError:
-            pass
-        try:
-            return super().__getitem__('the {}'.format(key))
-        except KeyError:
-            raise CountryNotFoundError(
-                'Not a known country or territory ({})'.format(key)
-            )
+
+        for key_ in (key, f'the {key}'):
+            if key_ in self:
+                return super().__getitem__(key_)
+
+        raise CountryNotFoundError(
+            f'Not a known country or territory ({key})'
+        )
 
 
 countries = CountryMapping(dict(
