@@ -8,8 +8,9 @@ from .data import (
     COUNTRIES_AND_TERRITORIES,
     EUROPEAN_ISLANDS,
     ROYAL_MAIL_EUROPEAN,
+    UK,
     UK_ISLANDS,
-    UK_POSTAGE_REGIONS,
+    WELSH_NAMES,
     Postage,
 )
 
@@ -25,7 +26,7 @@ class CountryMapping(Columns):
 
         normalised = "".join(
             character.lower() for character in original_key
-            if character not in " _-',.()"
+            if character not in " _-'’,.()"
         )
 
         if '?' in SanitiseASCII.encode(normalised):
@@ -35,7 +36,7 @@ class CountryMapping(Columns):
 
     def __getitem__(self, key):
 
-        for key_ in (key, f'the {key}'):
+        for key_ in (key, f'the {key}', f'yr {key}', f'y {key}'):
             if key_ in self:
                 return super().__getitem__(key_)
 
@@ -46,9 +47,10 @@ class CountryMapping(Columns):
 
 countries = CountryMapping(dict(
     COUNTRIES_AND_TERRITORIES +
-    ADDITIONAL_SYNONYMS +
     UK_ISLANDS +
-    EUROPEAN_ISLANDS
+    EUROPEAN_ISLANDS +
+    WELSH_NAMES +
+    ADDITIONAL_SYNONYMS
 ))
 
 
@@ -59,7 +61,7 @@ class Country():
 
     @property
     def postage_zone(self):
-        if self.canonical_name in UK_POSTAGE_REGIONS:
+        if self.canonical_name == UK:
             return Postage.UK
         if self.canonical_name in ROYAL_MAIL_EUROPEAN:
             return Postage.EUROPE

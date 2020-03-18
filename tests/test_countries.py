@@ -2,24 +2,33 @@ import pytest
 
 from notifications_utils.countries import (
     Country,
+    CountryMapping,
     CountryNotFoundError
 )
 from notifications_utils.countries.data import (
+    _EUROPEAN_ISLANDS_LIST,
+    _UK_ISLANDS_LIST,
     ADDITIONAL_SYNONYMS,
     ROYAL_MAIL_EUROPEAN,
     UK,
     UK_ISLANDS,
+    WELSH_NAMES,
     Postage,
 )
-from .country_synonyms import ALL as ALL_SYNONYMS
+from .country_synonyms import ALL as ALL_SYNONYMS, CROWDSOURCED_MISTAKES
 
 
 def test_constants():
     assert UK == 'United Kingdom'
     assert UK_ISLANDS == [
-        ('Jersey', 'Jersey'),
-        ('Guernsey', 'Guernsey'),
-        ('Isle of Man', 'Isle of Man'),
+        ('Alderney', UK),
+        ('Brecqhou', UK),
+        ('Guernsey', UK),
+        ('Herm', UK),
+        ('Isle of Man', UK),
+        ('Jersey', UK),
+        ('Jethou', UK),
+        ('Sark', UK),
     ]
     assert Postage.EUROPE == 'Europe'
     assert Postage.REST_OF_WORLD == 'rest of world'
@@ -28,13 +37,41 @@ def test_constants():
 
 @pytest.mark.parametrize('synonym, canonical', ADDITIONAL_SYNONYMS)
 def test_hand_crafted_synonyms_map_to_canonical_countries(synonym, canonical):
-    assert Country(canonical).canonical_name == canonical
+    exceptions_to_canonical_countries = [
+        'Easter Island',
+        'South Georgia and the South Sandwich Islands',
+    ]
+
+    synonyms = dict(COUNTRIES_AND_TERRITORIES).keys()
+    canonical_names = list(dict(COUNTRIES_AND_TERRITORIES).values())
+
+    assert canonical in (
+        canonical_names +
+        _EUROPEAN_ISLANDS_LIST +
+        _UK_ISLANDS_LIST +
+        exceptions_to_canonical_countries
+    )
+
+    assert synonym not in {CountryMapping.make_key(synonym_) for synonym_ in synonyms}
     assert Country(synonym).canonical_name == canonical
+
+
+@pytest.mark.parametrize('welsh_name, canonical', WELSH_NAMES)
+def test_welsh_names_map_to_canonical_countries(welsh_name, canonical):
+    assert Country(canonical).canonical_name == canonical
+    assert Country(welsh_name).canonical_name == canonical
 
 
 def test_all_synonyms():
     for search, expected in ALL_SYNONYMS:
         assert Country(search).canonical_name == expected
+
+
+def test_crowdsourced_test_data():
+    for search, expected_country, expected_postage in CROWDSOURCED_MISTAKES:
+        if expected_country or expected_postage:
+            assert Country(search).canonical_name == expected_country
+            assert Country(search).postage_zone == expected_postage
 
 
 @pytest.mark.parametrize('search, expected', (
@@ -57,8 +94,8 @@ def test_all_synonyms():
     ('SCT', 'United Kingdom'),
     ('WLS', 'United Kingdom'),
     ('gambia', 'The Gambia'),
-    ('Jersey', 'Jersey'),
-    ('Guernsey', 'Guernsey'),
+    ('Jersey', 'United Kingdom'),
+    ('Guernsey', 'United Kingdom'),
     ('Lubnān', 'Lebanon'),
     ('Lubnan', 'Lebanon'),
     ('ESPAÑA', 'Spain'),
@@ -95,16 +132,15 @@ def test_auto_checking_for_country_starting_with_the():
     assert Country('Gambia').canonical_name == 'The Gambia'
 
 
-@pytest.mark.parametrize('search', (
-    'Qumran',
-    'Kumrahn',
+@pytest.mark.parametrize('search, expected_error_message', (
+    ('Qumran', 'Not a known country or territory (Qumran)'),
+    ('Kumrahn', 'Not a known country or territory (Kumrahn)'),
 ))
-def test_non_existant_countries(search):
-    with pytest.raises(KeyError):
+def test_non_existant_countries(search, expected_error_message):
+    with pytest.raises(KeyError) as error:
         Country(search)
-    with pytest.raises(CountryNotFoundError) as error:
-        Country(search)
-        assert str(error) == 'foo'
+    assert str(error.value) == repr(expected_error_message)
+    assert isinstance(error.value, CountryNotFoundError)
 
 
 @pytest.mark.parametrize('search, expected', (
