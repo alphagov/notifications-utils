@@ -87,6 +87,14 @@ def test_hand_crafted_synonyms(search, expected):
     assert Country(search).canonical_name == expected
 
 
+def test_auto_checking_for_country_starting_with_the():
+    canonical_names = dict(COUNTRIES_AND_TERRITORIES).values()
+    synonyms = dict(COUNTRIES_AND_TERRITORIES).keys()
+    assert 'The Gambia' in canonical_names
+    assert 'Gambia' not in synonyms
+    assert Country('Gambia').canonical_name == 'The Gambia'
+
+
 @pytest.mark.parametrize('search', (
     'Qumran',
     'Kumrahn',
