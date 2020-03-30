@@ -1,6 +1,7 @@
 import math
 from os import path
 from datetime import datetime
+from functools import lru_cache
 
 from jinja2 import Environment, FileSystemLoader
 from flask import Markup
@@ -104,7 +105,7 @@ class Template():
 
     @property
     def placeholders(self):
-        return Field(self.content).placeholders
+        return get_placeholders(self.content)
 
     @property
     def missing_data(self):
@@ -294,7 +295,7 @@ class WithSubjectTemplate(Template):
 
     @property
     def placeholders(self):
-        return Field(self._subject).placeholders | Field(self.content).placeholders
+        return get_placeholders(self._subject) | super().placeholders
 
     @property
     def content_count(self):
@@ -513,7 +514,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
 
     @property
     def placeholders(self):
-        return super().placeholders | Field(self.contact_block).placeholders
+        return super().placeholders | get_placeholders(self.contact_block)
 
     @property
     def values_with_default_optional_address_lines(self):
@@ -700,3 +701,8 @@ def do_nice_typography(value):
     ).then(
         replace_hyphens_with_en_dashes
     )
+
+
+@lru_cache(maxsize=1024)
+def get_placeholders(content):
+    return Field(content).placeholders
