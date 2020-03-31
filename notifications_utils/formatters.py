@@ -255,9 +255,13 @@ def replace_hyphens_with_non_breaking_hyphens(value):
 
 
 def normalise_whitespace_and_newlines(value):
-    return '\n'.join(
+    return '\n'.join(normalise_lines(value))
+
+
+def normalise_lines(value):
+    return [
         normalise_line(line) for line in value.splitlines()
-    )
+    ]
 
 
 def normalise_line(line):

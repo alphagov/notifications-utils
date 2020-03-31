@@ -59,6 +59,9 @@ class Country():
     def __init__(self, given_name):
         self.canonical_name = countries[given_name]
 
+    def __eq__(self, other):
+        return self.canonical_name == other.canonical_name
+
     @property
     def postage_zone(self):
         if self.canonical_name == UK:
