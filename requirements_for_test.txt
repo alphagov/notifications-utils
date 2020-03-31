@@ -2,7 +2,7 @@
 
 beautifulsoup4==4.8.2
 pytest==5.4.1
-pytest-mock==2.0.0
+pytest-mock==3.0.0
 pytest-xdist==1.31.0
 requests-mock==1.7.0
 freezegun==0.3.15
