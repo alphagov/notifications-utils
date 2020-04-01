@@ -31,9 +31,9 @@ def test_constants():
         ('Jethou', UK),
         ('Sark', UK),
     ]
-    assert Postage.EUROPE == 'Europe'
-    assert Postage.REST_OF_WORLD == 'rest of world'
-    assert Postage.UK == 'United Kingdom'
+    assert Postage.EUROPE == 'europe'
+    assert Postage.REST_OF_WORLD == 'rest-of-world'
+    assert Postage.UK == 'united-kingdom'
 
 
 @pytest.mark.parametrize('synonym, canonical', ADDITIONAL_SYNONYMS)
@@ -145,14 +145,14 @@ def test_non_existant_countries(search, expected_error_message):
 
 
 @pytest.mark.parametrize('search, expected', (
-    ('u.s.a', 'rest of world'),
-    ('Rep of Ireland', 'Europe'),
-    ('deutschland', 'Europe'),
-    ('UK', 'United Kingdom'),
-    ('Jersey', 'United Kingdom'),
-    ('Guernsey', 'United Kingdom'),
-    ('isle-of-man', 'United Kingdom'),
-    ('ESPAÑA', 'Europe'),
+    ('u.s.a', 'rest-of-world'),
+    ('Rep of Ireland', 'europe'),
+    ('deutschland', 'europe'),
+    ('UK', 'united-kingdom'),
+    ('Jersey', 'united-kingdom'),
+    ('Guernsey', 'united-kingdom'),
+    ('isle-of-man', 'united-kingdom'),
+    ('ESPAÑA', 'europe'),
 ))
 def test_get_postage(search, expected):
     assert Country(search).postage_zone == expected
