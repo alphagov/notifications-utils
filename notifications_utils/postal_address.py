@@ -6,8 +6,17 @@ from notifications_utils.formatters import (
 )
 from notifications_utils.recipients import (
     is_a_real_uk_postcode,
+    first_column_headings,
     format_postcode_for_printing,
 )
+
+
+address_lines_1_to_6_and_postcode = [
+    # The API only accepts snake_case placeholders
+    line.replace(' ', '_') for line in first_column_headings['letter']
+]
+address_lines_1_to_6 = address_lines_1_to_6_and_postcode[:-1]
+address_line_7 = 'address_line_7'
 
 
 class PostalAddress():
@@ -17,6 +26,27 @@ class PostalAddress():
 
     def __init__(self, raw_address):
         self.raw_address = raw_address
+
+    @classmethod
+    def from_personalisation(cls, personalisation_dict):
+        if address_line_7 in personalisation_dict:
+            keys = address_lines_1_to_6 + [address_line_7]
+        else:
+            keys = address_lines_1_to_6_and_postcode
+        return cls('\n'.join(
+            personalisation_dict.get(key) or '' for key in keys
+        ))
+
+    @property
+    def as_personalisation(self):
+        lines = dict.fromkeys(address_lines_1_to_6, '')
+        lines.update({
+            f'address_line_{index}': value
+            for index, value in enumerate(self.normalised_lines[:-1], start=1)
+            if index < 7
+        })
+        lines['postcode'] = lines['address_line_7'] = self.normalised_lines[-1]
+        return lines
 
     @property
     def country(self):

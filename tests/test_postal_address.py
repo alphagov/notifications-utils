@@ -1,5 +1,6 @@
 import pytest
 
+from notifications_utils.columns import Columns
 from notifications_utils.countries import Country
 from notifications_utils.countries.data import Postage
 from notifications_utils.postal_address import PostalAddress
@@ -310,3 +311,99 @@ def test_normalised(address, expected_normalised):
 ))
 def test_postage(address, expected_postage):
     assert PostalAddress(address).postage == expected_postage
+
+
+@pytest.mark.parametrize('personalisation', (
+    {
+        'address_line_1': '123 Example Street',
+        'address_line_3': 'City of Town',
+        'address_line_4': '',
+        'postcode': 'SW1A1AA',
+        'ignore me': 'ignore me',
+    },
+    {
+        'address_line_1': '123 Example Street',
+        'address_line_3': 'City of Town',
+        'address_line_4': 'SW1A1AA',
+    },
+    {
+        'address_line_2': '123 Example Street',
+        'address_line_5': 'City of Town',
+        'address_line_7': 'SW1A1AA',
+    },
+    {
+        'address_line_1': '123 Example Street',
+        'address_line_3': 'City of Town',
+        'address_line_7': 'SW1A1AA',
+        'postcode': 'ignored if address line 7 provided',
+    },
+    Columns({
+        'address line 1': '123 Example Street',
+        'ADDRESS_LINE_2': 'City of Town',
+        'Address-Line-7': 'Sw1a  1aa',
+    }),
+))
+def test_from_personalisation(personalisation):
+    assert PostalAddress.from_personalisation(personalisation).normalised == (
+        '123 Example Street\n'
+        'City of Town\n'
+        'SW1A 1AA'
+    )
+
+
+@pytest.mark.parametrize('address, expected_personalisation', (
+    (
+        '',
+        {
+            'address_line_1': '',
+            'address_line_2': '',
+            'address_line_3': '',
+            'address_line_4': '',
+            'address_line_5': '',
+            'address_line_6': '',
+            'address_line_7': '',
+            'postcode': '',
+        }
+    ),
+    (
+        '''
+        123 Example Street
+        City of Town
+        SW1A1AA
+        ''',
+        {
+            'address_line_1': '123 Example Street',
+            'address_line_2': 'City of Town',
+            'address_line_3': '',
+            'address_line_4': '',
+            'address_line_5': '',
+            'address_line_6': '',
+            'address_line_7': 'SW1A 1AA',
+            'postcode': 'SW1A 1AA',
+        }
+    ),
+    (
+        '''
+        One
+        Two
+        Three
+        Four
+        Five
+        Six
+        Seven
+        Eight
+        ''',
+        {
+            'address_line_1': 'One',
+            'address_line_2': 'Two',
+            'address_line_3': 'Three',
+            'address_line_4': 'Four',
+            'address_line_5': 'Five',
+            'address_line_6': 'Six',
+            'address_line_7': 'Eight',
+            'postcode': 'Eight',
+        }
+    ),
+))
+def test_as_personalisation(address, expected_personalisation):
+    assert PostalAddress(address).as_personalisation == expected_personalisation
