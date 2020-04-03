@@ -134,10 +134,6 @@ def prepend_subject(body, subject):
     return '# {}\n\n{}'.format(subject, body)
 
 
-def remove_empty_lines(lines):
-    return '\n'.join(filter(None, str(lines).split('\n')))
-
-
 def sms_encode(content):
     return SanitiseSMS.encode(content)
 

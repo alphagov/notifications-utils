@@ -20,7 +20,6 @@ from notifications_utils.formatters import (
     notify_email_preheader_markdown,
     notify_plain_text_email_markdown,
     notify_letter_preview_markdown,
-    remove_empty_lines,
     sms_encode,
     escape_html,
     strip_dvla_markup,
@@ -517,44 +516,21 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         return super().placeholders | get_placeholders(self.contact_block)
 
     @property
-    def values_with_default_optional_address_lines(self):
-        keys = Columns.from_keys(
-            set(self.values.keys()) | {
-                'address line 3',
-                'address line 4',
-                'address line 5',
-                'address line 6',
-            }
-        ).keys()
-
-        return {
-            key: Columns(self.values).get(key) or ''
-            for key in keys
-        }
-
-    @property
     def _address_block(self):
-        return Take(Field(
-            self.address_block,
-            (
-                self.values_with_default_optional_address_lines
-                if all(Columns(self.values).get(key) for key in {
-                    'address line 1',
-                    'address line 2',
-                    'postcode',
-                }) else self.values
-            ),
-            html='escape',
-            with_brackets=False
-        )).then(
-            strip_pipes
-        ).then(
-            remove_empty_lines
-        ).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            nl2li
-        )
+        from notifications_utils.postal_address import PostalAddress
+        from notifications_utils.recipients import required_address_columns
+
+        if all(Columns(self.values).get(key) for key in required_address_columns):
+            address_block = PostalAddress.from_personalisation(Columns(self.values)).normalised
+        else:
+            address_block = Field(
+                self.address_block,
+                self.values,
+                html='escape',
+                with_brackets=False
+            )
+
+        return Take(address_block).then(strip_pipes).then(nl2li)
 
     @property
     def _contact_block(self):
