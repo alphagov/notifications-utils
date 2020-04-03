@@ -27,6 +27,12 @@ class PostalAddress():
     def __init__(self, raw_address):
         self.raw_address = raw_address
 
+    def __bool__(self):
+        return bool(self.normalised)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({repr(self.raw_address)})'
+
     @classmethod
     def from_personalisation(cls, personalisation_dict):
         if address_line_7 in personalisation_dict:

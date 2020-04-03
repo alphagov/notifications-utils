@@ -407,3 +407,13 @@ def test_from_personalisation(personalisation):
 ))
 def test_as_personalisation(address, expected_personalisation):
     assert PostalAddress(address).as_personalisation == expected_personalisation
+
+
+@pytest.mark.parametrize('address, expected_bool', (
+    ('', False),
+    (' ', False),
+    ('\n\n  \n', False),
+    ('a', True),
+))
+def test_bool(address, expected_bool):
+    assert bool(PostalAddress(address)) is expected_bool
