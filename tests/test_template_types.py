@@ -538,16 +538,8 @@ def test_sms_message_normalises_newlines(content):
 @mock.patch('notifications_utils.template.unlink_govuk_escaped')
 @mock.patch('notifications_utils.template.notify_letter_preview_markdown', return_value='Bar')
 @mock.patch('notifications_utils.template.strip_pipes', side_effect=lambda x: x)
-@pytest.mark.parametrize('values, expected_address_lines, expected_address', [
+@pytest.mark.parametrize('values, expected_address', [
     ({}, (
-        "<span class='placeholder-no-brackets'>address line 1</span>\n"
-        "<span class='placeholder-no-brackets'>address line 2</span>\n"
-        "<span class='placeholder-no-brackets'>address line 3</span>\n"
-        "<span class='placeholder-no-brackets'>address line 4</span>\n"
-        "<span class='placeholder-no-brackets'>address line 5</span>\n"
-        "<span class='placeholder-no-brackets'>address line 6</span>\n"
-        "<span class='placeholder-no-brackets'>postcode</span>"
-    ), (
         "<ul>"
         "<li><span class='placeholder-no-brackets'>address line 1</span></li>"
         "<li><span class='placeholder-no-brackets'>address line 2</span></li>"
@@ -562,14 +554,6 @@ def test_sms_message_normalises_newlines(content):
         'address line 1': '123 Fake Street',
         'address line 6': 'United Kingdom',
     }, (
-        "123 Fake Street\n"
-        "<span class='placeholder-no-brackets'>address line 2</span>\n"
-        "<span class='placeholder-no-brackets'>address line 3</span>\n"
-        "<span class='placeholder-no-brackets'>address line 4</span>\n"
-        "<span class='placeholder-no-brackets'>address line 5</span>\n"
-        "United Kingdom\n"
-        "<span class='placeholder-no-brackets'>postcode</span>"
-    ), (
         "<ul>"
         "<li>123 Fake Street</li>"
         "<li><span class='placeholder-no-brackets'>address line 2</span></li>"
@@ -585,10 +569,6 @@ def test_sms_message_normalises_newlines(content):
         'address line 2': 'City of Town',
         'postcode': 'SW1A 1AA',
     }, (
-        "123 Fake Street\n"
-        "City of Town\n"
-        "SW1A 1AA"
-    ), (
         "<ul>"
         "<li>123 Fake Street</li>"
         "<li>City of Town</li>"
@@ -643,7 +623,6 @@ def test_letter_preview_renderer(
     unlink_govuk,
     jinja_template,
     values,
-    expected_address_lines,
     expected_address,
     contact_block,
     expected_rendered_contact_block,
@@ -675,7 +654,6 @@ def test_letter_preview_renderer(
     assert strip_pipes.call_args_list == [
         mock.call('Subject'),
         mock.call('Foo'),
-        mock.call(expected_address_lines),
         mock.call(expected_rendered_contact_block),
     ]
 

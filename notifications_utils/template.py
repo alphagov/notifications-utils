@@ -530,7 +530,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
                 with_brackets=False
             )
 
-        return Take(address_block).then(strip_pipes).then(nl2li)
+        return Take(address_block).then(nl2li)
 
     @property
     def _contact_block(self):
