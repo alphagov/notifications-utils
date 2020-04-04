@@ -93,12 +93,6 @@ def nl2br(value):
     return re.sub(r'\n|\r', '<br>', value.strip())
 
 
-def nl2li(value):
-    return '<ul><li>{}</li></ul>'.format('</li><li>'.join(
-        value.strip().split('\n')
-    ))
-
-
 def add_prefix(body, prefix=None):
     if prefix:
         return "{}: {}".format(prefix.strip(), body)

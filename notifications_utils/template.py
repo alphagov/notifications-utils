@@ -13,7 +13,6 @@ from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     unlink_govuk_escaped,
     nl2br,
-    nl2li,
     add_prefix,
     autolink_sms,
     notify_email_markdown,
@@ -521,16 +520,14 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         from notifications_utils.recipients import required_address_columns
 
         if all(Columns(self.values).get(key) for key in required_address_columns):
-            address_block = PostalAddress.from_personalisation(Columns(self.values)).normalised
-        else:
-            address_block = Field(
-                self.address_block,
-                self.values,
-                html='escape',
-                with_brackets=False
-            )
+            return PostalAddress.from_personalisation(Columns(self.values)).normalised_lines
 
-        return Take(address_block).then(nl2li)
+        return Field(
+            self.address_block,
+            self.values,
+            html='escape',
+            with_brackets=False,
+        ).splitlines()
 
     @property
     def _contact_block(self):

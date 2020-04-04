@@ -15,7 +15,6 @@ from notifications_utils.formatters import (
     make_quotes_smart,
     replace_hyphens_with_en_dashes,
     tweak_dvla_list_markup,
-    nl2li,
     strip_whitespace,
     strip_and_remove_obscure_whitespace,
     remove_smart_quotes_from_email_addresses,
@@ -1010,20 +1009,6 @@ def test_unicode_dash_lookup():
 ])
 def test_tweaking_dvla_list_markup(markup, expected_fixed):
     assert tweak_dvla_list_markup(markup) == expected_fixed
-
-
-def test_make_list_from_linebreaks():
-    assert nl2li(
-        'a\n'
-        'b\n'
-        'c\n'
-    ) == (
-        '<ul>'
-        '<li>a</li>'
-        '<li>b</li>'
-        '<li>c</li>'
-        '</ul>'
-    )
 
 
 @pytest.mark.parametrize('value', [

@@ -9,7 +9,11 @@
       <div id="mdi">
         000_000_0000000_000000_0000_00000
       </div>
-      {{ address }}
+      <ul>
+      {%- for line in address -%}
+        <li>{{ line }}</li>
+      {%- endfor -%}
+      </ul>
     </div>
     <div id="barcode">
     </div>
