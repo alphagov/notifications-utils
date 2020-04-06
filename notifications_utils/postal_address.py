@@ -62,16 +62,16 @@ class PostalAddress():
             return Country(UK)
 
     @property
-    def count_of_lines(self):
+    def line_count(self):
         return len(self.normalised.splitlines())
 
     @property
     def has_enough_lines(self):
-        return self.count_of_lines >= self.MIN_LINES
+        return self.line_count >= self.MIN_LINES
 
     @property
     def has_too_many_lines(self):
-        return self.count_of_lines > self.MAX_LINES
+        return self.line_count > self.MAX_LINES
 
     @property
     def has_valid_postcode(self):
