@@ -517,10 +517,11 @@ class LetterPreviewTemplate(WithSubjectTemplate):
     @property
     def _address_block(self):
         from notifications_utils.postal_address import PostalAddress
-        from notifications_utils.recipients import required_address_columns
 
-        if all(Columns(self.values).get(key) for key in required_address_columns):
-            return PostalAddress.from_personalisation(Columns(self.values)).normalised_lines
+        postal_address = PostalAddress.from_personalisation(Columns(self.values))
+
+        if postal_address.has_enough_lines and not postal_address.has_too_many_lines:
+            return postal_address.normalised_lines
 
         return Field(
             self.address_block,

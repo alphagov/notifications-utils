@@ -1740,19 +1740,16 @@ dvla_file_spec = [
     (
         {
             "address line 1": "line 1",
-            "address line 3": "line 3",
-            "address line 5": "line 5",
-            "address line 6": "line 6",
             "postcode": "n1 4wq",
         },
         (
             '<ul>'
             '<li>line 1</li>'
             '<li><span class="placeholder-no-brackets">address line 2</span></li>'
-            '<li>line 3</li>'
+            '<li><span class="placeholder-no-brackets">address line 3</span></li>'
             '<li><span class="placeholder-no-brackets">address line 4</span></li>'
-            '<li>line 5</li>'
-            '<li>line 6</li>'
+            '<li><span class="placeholder-no-brackets">address line 5</span></li>'
+            '<li><span class="placeholder-no-brackets">address line 6</span></li>'
             # Postcode is not normalised until the address is complete
             '<li>n1 4wq</li>'
             '</ul>'
@@ -1784,6 +1781,35 @@ dvla_file_spec = [
             "<ul>"
             "<li>line 1</li>"
             "<li>,</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
+    ),
+    (
+        {
+            "addressline1": "line 1",
+            "addressline2": "line 2",
+            "postcode": "SW1A 1AA",  # ignored in favour of line 7
+            "addressline7": "N1 4WQ",
+        },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
+    ),
+    (
+        {
+            "addressline1": "line 1",
+            "addressline2": "line 2",
+            "addressline7": "N1 4WQ",  # means postcode isn’t needed
+        },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
             "<li>N1 4WQ</li>"
             "</ul>"
         ),
