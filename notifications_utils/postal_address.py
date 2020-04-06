@@ -11,12 +11,12 @@ from notifications_utils.recipients import (
 )
 
 
-address_lines_1_to_6_and_postcode = [
+address_lines_1_to_6_and_postcode_keys = [
     # The API only accepts snake_case placeholders
     line.replace(' ', '_') for line in first_column_headings['letter']
 ]
-address_lines_1_to_6 = address_lines_1_to_6_and_postcode[:-1]
-address_line_7 = 'address_line_7'
+address_lines_1_to_6_keys = address_lines_1_to_6_and_postcode_keys[:-1]
+address_line_7_key = 'address_line_7'
 
 
 class PostalAddress():
@@ -35,17 +35,17 @@ class PostalAddress():
 
     @classmethod
     def from_personalisation(cls, personalisation_dict):
-        if address_line_7 in personalisation_dict:
-            keys = address_lines_1_to_6 + [address_line_7]
+        if address_line_7_key in personalisation_dict:
+            keys = address_lines_1_to_6_keys + [address_line_7_key]
         else:
-            keys = address_lines_1_to_6_and_postcode
+            keys = address_lines_1_to_6_and_postcode_keys
         return cls('\n'.join(
             personalisation_dict.get(key) or '' for key in keys
         ))
 
     @property
     def as_personalisation(self):
-        lines = dict.fromkeys(address_lines_1_to_6, '')
+        lines = dict.fromkeys(address_lines_1_to_6_keys, '')
         lines.update({
             f'address_line_{index}': value
             for index, value in enumerate(self.normalised_lines[:-1], start=1)
