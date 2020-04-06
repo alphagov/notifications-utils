@@ -102,6 +102,9 @@ class Field:
     def __repr__(self):
         return "{}(\"{}\", {})".format(self.__class__.__name__, self.content, self.values)  # TODO: more real
 
+    def splitlines(self):
+        return str(self).splitlines()
+
     @property
     def values(self):
         return self._values

@@ -535,45 +535,40 @@ def test_sms_message_normalises_newlines(content):
 
 @freeze_time("2012-12-12 12:12:12")
 @mock.patch('notifications_utils.template.LetterPreviewTemplate.jinja_template.render')
-@mock.patch('notifications_utils.template.remove_empty_lines', return_value='123 Street')
 @mock.patch('notifications_utils.template.unlink_govuk_escaped')
 @mock.patch('notifications_utils.template.notify_letter_preview_markdown', return_value='Bar')
 @mock.patch('notifications_utils.template.strip_pipes', side_effect=lambda x: x)
 @pytest.mark.parametrize('values, expected_address', [
-    ({}, Markup(
-        "<span class='placeholder-no-brackets'>address line 1</span>\n"
-        "<span class='placeholder-no-brackets'>address line 2</span>\n"
-        "<span class='placeholder-no-brackets'>address line 3</span>\n"
-        "<span class='placeholder-no-brackets'>address line 4</span>\n"
-        "<span class='placeholder-no-brackets'>address line 5</span>\n"
-        "<span class='placeholder-no-brackets'>address line 6</span>\n"
-        "<span class='placeholder-no-brackets'>postcode</span>"
-    )),
+    ({}, [
+        "<span class='placeholder-no-brackets'>address line 1</span>",
+        "<span class='placeholder-no-brackets'>address line 2</span>",
+        "<span class='placeholder-no-brackets'>address line 3</span>",
+        "<span class='placeholder-no-brackets'>address line 4</span>",
+        "<span class='placeholder-no-brackets'>address line 5</span>",
+        "<span class='placeholder-no-brackets'>address line 6</span>",
+        "<span class='placeholder-no-brackets'>postcode</span>",
+    ]),
     ({
         'address line 1': '123 Fake Street',
         'address line 6': 'United Kingdom',
-    }, Markup(
-        "123 Fake Street\n"
-        "<span class='placeholder-no-brackets'>address line 2</span>\n"
-        "<span class='placeholder-no-brackets'>address line 3</span>\n"
-        "<span class='placeholder-no-brackets'>address line 4</span>\n"
-        "<span class='placeholder-no-brackets'>address line 5</span>\n"
-        "United Kingdom\n"
-        "<span class='placeholder-no-brackets'>postcode</span>"
-    )),
+    }, [
+        "123 Fake Street",
+        "<span class='placeholder-no-brackets'>address line 2</span>",
+        "<span class='placeholder-no-brackets'>address line 3</span>",
+        "<span class='placeholder-no-brackets'>address line 4</span>",
+        "<span class='placeholder-no-brackets'>address line 5</span>",
+        "United Kingdom",
+        "<span class='placeholder-no-brackets'>postcode</span>",
+    ]),
     ({
         'address line 1': '123 Fake Street',
         'address line 2': 'City of Town',
         'postcode': 'SW1A 1AA',
-    }, Markup(
-        "123 Fake Street\n"
-        "City of Town\n"
-        "\n"
-        "\n"
-        "\n"
-        "\n"
-        "SW1A 1AA"
-    ))
+    }, [
+        "123 Fake Street",
+        "City of Town",
+        "SW1A 1AA",
+    ])
 ])
 @pytest.mark.parametrize('contact_block, expected_rendered_contact_block', [
     (
@@ -620,7 +615,6 @@ def test_letter_preview_renderer(
     strip_pipes,
     letter_markdown,
     unlink_govuk,
-    remove_empty_lines,
     jinja_template,
     values,
     expected_address,
@@ -639,9 +633,8 @@ def test_letter_preview_renderer(
         contact_block=contact_block,
         **extra_args
     ))
-    remove_empty_lines.assert_called_once_with(expected_address)
     jinja_template.assert_called_once_with({
-        'address': '<ul><li>123 Street</li></ul>',
+        'address': expected_address,
         'subject': 'Subject',
         'message': 'Bar',
         'date': expected_date,
@@ -655,7 +648,6 @@ def test_letter_preview_renderer(
     assert strip_pipes.call_args_list == [
         mock.call('Subject'),
         mock.call('Foo'),
-        mock.call(expected_address),
         mock.call(expected_rendered_contact_block),
     ]
 
@@ -672,13 +664,11 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
 
     jinja_template_locals = jinja_template.call_args_list[0][0][0]
 
-    assert jinja_template_locals['address'] == (
-        '<ul>'
-        '<li>name</li>'
-        '<li>street</li>'
-        '<li>SW1 1AA</li>'
-        '</ul>'
-    )
+    assert jinja_template_locals['address'] == [
+        'name',
+        'street',
+        'SW1 1AA',
+    ]
     assert jinja_template_locals['subject'] == 'Subject'
     assert jinja_template_locals['message'] == "<p>Foo</p>"
     assert jinja_template_locals['date'] == '1 January 2001'
@@ -736,23 +726,44 @@ def test_letter_image_renderer(
     jinja_template.assert_called_once_with({
         'image_url': 'http://example.com/endpoint.png',
         'page_numbers': expected_page_numbers,
-        'address': (
-            "<ul>"
-            "<li><span class='placeholder-no-brackets'>address line 1</span></li>"
-            "<li><span class='placeholder-no-brackets'>address line 2</span></li>"
-            "<li><span class='placeholder-no-brackets'>address line 3</span></li>"
-            "<li><span class='placeholder-no-brackets'>address line 4</span></li>"
-            "<li><span class='placeholder-no-brackets'>address line 5</span></li>"
-            "<li><span class='placeholder-no-brackets'>address line 6</span></li>"
-            "<li><span class='placeholder-no-brackets'>postcode</span></li>"
-            "</ul>"
-        ),
+        'address': [
+            "<span class='placeholder-no-brackets'>address line 1</span>",
+            "<span class='placeholder-no-brackets'>address line 2</span>",
+            "<span class='placeholder-no-brackets'>address line 3</span>",
+            "<span class='placeholder-no-brackets'>address line 4</span>",
+            "<span class='placeholder-no-brackets'>address line 5</span>",
+            "<span class='placeholder-no-brackets'>address line 6</span>",
+            "<span class='placeholder-no-brackets'>postcode</span>",
+        ],
         'contact_block': '10 Downing Street',
         'date': '12 December 2012',
         'subject': 'Subject',
         'message': '<p>Content</p>',
         'postage': expected_postage,
     })
+
+
+def test_letter_image_template_renders_visually_hidden_address():
+    template = BeautifulSoup(
+        str(LetterImageTemplate(
+            {'content': '', 'subject': ''},
+            {
+                'address_line_1': 'line 1',
+                'address_line_2': 'line 2',
+                'postcode': 'postcode',
+            },
+            image_url='http://example.com/endpoint.png',
+            page_count=1,
+        )),
+        features='html.parser',
+    )
+    assert str(template.select_one('.visually-hidden ul')) == (
+        '<ul>'
+        '<li>line 1</li>'
+        '<li>line 2</li>'
+        '<li>postcode</li>'
+        '</ul>'
+    )
 
 
 @pytest.mark.parametrize('page_image_url', [
@@ -1056,15 +1067,6 @@ def test_templates_handle_html_and_redacting(
     (LetterPreviewTemplate, {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
         mock.call(Markup('<p>content</p>')),
-        mock.call((
-            "<span class='placeholder-no-brackets'>address line 1</span>\n"
-            "<span class='placeholder-no-brackets'>address line 2</span>\n"
-            "<span class='placeholder-no-brackets'>address line 3</span>\n"
-            "<span class='placeholder-no-brackets'>address line 4</span>\n"
-            "<span class='placeholder-no-brackets'>address line 5</span>\n"
-            "<span class='placeholder-no-brackets'>address line 6</span>\n"
-            "<span class='placeholder-no-brackets'>postcode</span>"
-        )),
         mock.call(Markup('www.gov.uk')),
         mock.call(Markup('subject')),
         mock.call(Markup('subject')),
@@ -1700,17 +1702,19 @@ dvla_file_spec = [
             "address line 4": "line 4",
             "address line 5": "line 5",
             "address line 6": "line 6",
-            "postcode": "N1 4W2",
+            "postcode": "n14w q",
         },
-        {
-            "addressline1": "line 1",
-            "addressline2": "line 2",
-            "addressline3": "line 3",
-            "addressline4": "line 4",
-            "addressline5": "line 5",
-            "addressline6": "line 6",
-            "postcode": "N1 4W2",
-        },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
+            "<li>line 3</li>"
+            "<li>line 4</li>"
+            "<li>line 5</li>"
+            "<li>line 6</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
     ), (
         {
             "addressline1": "line 1",
@@ -1719,35 +1723,37 @@ dvla_file_spec = [
             "addressline4": "line 4",
             "addressline5": "line 5",
             "addressLine6": "line 6",
-            "postcode": "N1 4W2",
+            "postcode": "not a postcode",
         },
-        {
-            "addressline1": "line 1",
-            "addressline2": "line 2",
-            "addressline3": "line 3",
-            "addressline4": "line 4",
-            "addressline5": "line 5",
-            "addressline6": "line 6",
-            "postcode": "N1 4W2",
-        },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
+            "<li>line 3</li>"
+            "<li>line 4</li>"
+            "<li>line 5</li>"
+            "<li>line 6</li>"
+            "<li>not a postcode</li>"
+            "</ul>"
+        ),
     ),
     (
         {
-            "addressline1": "line 1",
-            "addressline3": "line 3",
-            "addressline5": "line 5",
-            "addressline6": "line 6",
-            "postcode": "N1 4W2",
+            "address line 1": "line 1",
+            "postcode": "n1 4wq",
         },
-        {
-            "addressline1": "line 1",
-            # addressline2 is required, but not given
-            "addressline3": "line 3",
-            "addressline4": "",
-            "addressline5": "line 5",
-            "addressline6": "line 6",
-            "postcode": "N1 4W2",
-        },
+        (
+            '<ul>'
+            '<li>line 1</li>'
+            '<li><span class="placeholder-no-brackets">address line 2</span></li>'
+            '<li><span class="placeholder-no-brackets">address line 3</span></li>'
+            '<li><span class="placeholder-no-brackets">address line 4</span></li>'
+            '<li><span class="placeholder-no-brackets">address line 5</span></li>'
+            '<li><span class="placeholder-no-brackets">address line 6</span></li>'
+            # Postcode is not normalised until the address is complete
+            '<li>n1 4wq</li>'
+            '</ul>'
+        ),
     ),
     (
         {
@@ -1755,43 +1761,70 @@ dvla_file_spec = [
             "addressline2": "line 2",
             "addressline3": None,
             "addressline6": None,
-            "postcode": "N1 4W2",
+            "postcode": "N1 4Wq",
         },
-        {
-            "addressline1": "line 1",
-            "addressline2": "line 2",
-            "addressline3": "",
-            "addressline4": "",
-            "addressline5": "",
-            "addressline6": "",
-            "postcode": "N1 4W2",
-        },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
     ),
     (
         {
             "addressline1": "line 1",
             "addressline2": "\t     ,",
-            "postcode": "N1 4W2",
+            "postcode": "N1 4WQ",
         },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>,</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
+    ),
+    (
         {
             "addressline1": "line 1",
-            "addressline2": "\t     ,",
-            "addressline3": "",
-            "addressline4": "",
-            "addressline5": "",
-            "addressline6": "",
-            "postcode": "N1 4W2",
+            "addressline2": "line 2",
+            "postcode": "SW1A 1AA",  # ignored in favour of line 7
+            "addressline7": "N1 4WQ",
         },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
+    ),
+    (
+        {
+            "addressline1": "line 1",
+            "addressline2": "line 2",
+            "addressline7": "N1 4WQ",  # means postcode isn’t needed
+        },
+        (
+            "<ul>"
+            "<li>line 1</li>"
+            "<li>line 2</li>"
+            "<li>N1 4WQ</li>"
+            "</ul>"
+        ),
     ),
 ])
-def test_letter_address_format(address, expected):
-    template = LetterPreviewTemplate(
-        {'content': '', 'subject': ''},
-        address,
+@pytest.mark.parametrize('template_class', (LetterPreviewTemplate, LetterPrintTemplate))
+def test_letter_address_format(template_class, address, expected):
+    template = BeautifulSoup(
+        str(template_class(
+            {'content': '', 'subject': ''},
+            address,
+        )),
+        features='html.parser',
     )
-    assert template.values_with_default_optional_address_lines == expected
-    # check that we can actually build a valid letter from this data
-    assert str(template)
+    assert str(template.select_one('#to ul')) == expected
 
 
 @freeze_time("2001-01-01 12:00:00.000000")

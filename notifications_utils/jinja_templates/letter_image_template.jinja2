@@ -13,9 +13,11 @@
   <h3>
     Recipient address
   </h3>
-  <p>
-    {{ address }}
-  </p>
+  <ul>
+  {%- for line in address -%}
+    <li>{{ line }}</li>
+  {%- endfor -%}
+  </ul>
   <h3>
     Contact block
   </h3>

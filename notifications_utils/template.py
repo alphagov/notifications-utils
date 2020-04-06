@@ -13,14 +13,12 @@ from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     unlink_govuk_escaped,
     nl2br,
-    nl2li,
     add_prefix,
     autolink_sms,
     notify_email_markdown,
     notify_email_preheader_markdown,
     notify_plain_text_email_markdown,
     notify_letter_preview_markdown,
-    remove_empty_lines,
     sms_encode,
     escape_html,
     strip_dvla_markup,
@@ -517,44 +515,20 @@ class LetterPreviewTemplate(WithSubjectTemplate):
         return super().placeholders | get_placeholders(self.contact_block)
 
     @property
-    def values_with_default_optional_address_lines(self):
-        keys = Columns.from_keys(
-            set(self.values.keys()) | {
-                'address line 3',
-                'address line 4',
-                'address line 5',
-                'address line 6',
-            }
-        ).keys()
-
-        return {
-            key: Columns(self.values).get(key) or ''
-            for key in keys
-        }
-
-    @property
     def _address_block(self):
-        return Take(Field(
+        from notifications_utils.postal_address import PostalAddress
+
+        postal_address = PostalAddress.from_personalisation(Columns(self.values))
+
+        if postal_address.has_enough_lines and not postal_address.has_too_many_lines:
+            return postal_address.normalised_lines
+
+        return Field(
             self.address_block,
-            (
-                self.values_with_default_optional_address_lines
-                if all(Columns(self.values).get(key) for key in {
-                    'address line 1',
-                    'address line 2',
-                    'postcode',
-                }) else self.values
-            ),
+            self.values,
             html='escape',
-            with_brackets=False
-        )).then(
-            strip_pipes
-        ).then(
-            remove_empty_lines
-        ).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            nl2li
-        )
+            with_brackets=False,
+        ).splitlines()
 
     @property
     def _contact_block(self):

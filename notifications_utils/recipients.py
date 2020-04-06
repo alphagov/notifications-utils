@@ -50,6 +50,8 @@ optional_address_columns = {
     'address line 6',
 }
 
+required_address_columns = set(first_column_headings['letter']) - optional_address_columns
+
 
 class RecipientCSV():
 
