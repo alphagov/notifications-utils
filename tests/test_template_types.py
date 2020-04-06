@@ -12,6 +12,8 @@ from orderedset import OrderedSet
 
 from notifications_utils.formatters import unlink_govuk_escaped
 from notifications_utils.template import (
+    BaseEmailTemplate,
+    BaseLetterTemplate,
     Template,
     HTMLEmailTemplate,
     LetterPreviewTemplate,
@@ -25,19 +27,27 @@ from notifications_utils.template import (
 )
 
 
-def test_pass_through_renderer():
-    message = '''
-        the
-        quick brown
-        fox
-    '''
-    assert str(Template({'content': message})) == message
+@pytest.mark.parametrize('template_class, expected_error', (
+    (Template, (
+        "Can't instantiate abstract class Template with abstract methods __str__"
+    )),
+    (WithSubjectTemplate, (
+        "Can't instantiate abstract class WithSubjectTemplate with abstract methods __str__"
+    )),
+    (BaseEmailTemplate, (
+        "Can't instantiate abstract class BaseEmailTemplate with abstract methods __str__"
+    )),
+    (BaseLetterTemplate, (
+        "Can't instantiate abstract class BaseLetterTemplate with abstract methods __str__"
+    )),
+))
+def test_abstract_classes_cant_be_instantiated(template_class, expected_error):
+    with pytest.raises(TypeError) as error:
+        template_class({})
+    assert str(error.value) == expected_error
 
 
 @pytest.mark.parametrize('template_class, expected_error', (
-    (Template, (
-        'Cannot initialise Template with sms template_type'
-    )),
     (HTMLEmailTemplate, (
         'Cannot initialise HTMLEmailTemplate with sms template_type'
     )),
@@ -849,8 +859,19 @@ def test_letter_image_renderer_requires_arguments(partial_call, expected_excepti
         partial_call({'content': '', 'subject': '', 'template_type': 'letter'})
 
 
-def test_sets_subject():
-    assert WithSubjectTemplate({"content": '', 'subject': 'Your tax is due'}).subject == 'Your tax is due'
+@pytest.mark.parametrize('template_class', (
+    SMSMessageTemplate,
+    SMSPreviewTemplate,
+))
+@pytest.mark.parametrize('template_json', (
+    {"content": '', 'template_type': 'sms'},
+    {"content": '', 'subject': 'subject', 'template_type': 'sms'},
+))
+def test_sms_templates_have_no_subject(template_class, template_json):
+    assert not hasattr(
+        template_class(template_json),
+        'subject',
+    )
 
 
 def test_subject_line_gets_applied_to_correct_template_types():
@@ -869,13 +890,23 @@ def test_subject_line_gets_applied_to_correct_template_types():
         assert not issubclass(cls, WithSubjectTemplate)
 
 
-def test_subject_line_gets_replaced():
-    template = WithSubjectTemplate({"content": '', 'subject': '((name))'})
+@pytest.mark.parametrize('template_class, template_type', (
+    (EmailPreviewTemplate, 'email'),
+    (LetterPreviewTemplate, 'letter'),
+))
+def test_subject_line_gets_replaced(template_class, template_type):
+    template = template_class({
+        "content": '', 'template_type': template_type, 'subject': '((name))'
+    })
     assert template.subject == Markup("<span class='placeholder'>((name))</span>")
     template.values = {'name': 'Jo'}
     assert template.subject == 'Jo'
 
 
+@pytest.mark.parametrize('template_class, template_type', (
+    (HTMLEmailTemplate, 'email'),
+    (LetterPrintTemplate, 'letter'),
+))
 @pytest.mark.parametrize("content, values, expected_count", [
     ("Content with ((placeholder))", {"placeholder": "something extra"}, 28),
     ("Content with ((placeholder))", {"placeholder": ""}, 12),
@@ -883,8 +914,16 @@ def test_subject_line_gets_replaced():
     ("((placeholder))  ", {"placeholder": "  "}, 0),
     ("  ", {}, 0),
 ])
-def test_WithSubjectTemplate_character_count(content, values, expected_count):
-    template = WithSubjectTemplate({"content": content, 'subject': 'Hi'})
+def test_WithSubjectTemplate_character_count(
+    template_class,
+    template_type,
+    content,
+    values,
+    expected_count,
+):
+    template = template_class({
+        "content": content, 'subject': 'Hi', 'template_type': template_type,
+    })
     template.values = values
     assert template.content_count == expected_count
 
@@ -971,26 +1010,32 @@ def test_is_message_empty_sms_templates(content, values, prefix, expected_result
     assert template.is_message_empty() == expected_result
 
 
+@pytest.mark.parametrize('template_class, template_type', (
+    (HTMLEmailTemplate, 'email'),
+    (LetterPrintTemplate, 'letter'),
+))
 @pytest.mark.parametrize('content, values, expected_result', [
     ("", {}, True),
     ("((placeholder))", {"placeholder": ""}, True),
     ("((placeholder))", {"placeholder": "Some content"}, False),
     ("Some content", {}, False),
 ])
-def test_is_message_empty_email_and_letter_templates(content, values, expected_result):
-    template = WithSubjectTemplate({"content": content, 'subject': 'Hi'})
+def test_is_message_empty_email_and_letter_templates(
+    template_class,
+    template_type,
+    content,
+    values,
+    expected_result,
+):
+    template = template_class({
+        "content": content, 'subject': 'Hi', 'template_type': template_type,
+    })
     template.sender = None
     template.values = values
     assert template.is_message_empty() == expected_result
 
 
 @pytest.mark.parametrize('template_class, template_type, extra_args, expected_field_calls', [
-    (Template, None, {}, [
-        mock.call('content', {}, html='escape', redact_missing_personalisation=False),
-    ]),
-    (WithSubjectTemplate, None, {}, [
-        mock.call('content', {}, html='passthrough', redact_missing_personalisation=False, markdown_lists=True),
-    ]),
     (PlainTextEmailTemplate, 'email', {}, [
         mock.call('content', {}, html='passthrough', markdown_lists=True)
     ]),
@@ -1039,12 +1084,6 @@ def test_is_message_empty_email_and_letter_templates(content, values, expected_r
         mock.call('www.gov.uk', {}, html='escape', redact_missing_personalisation=False),
         mock.call('subject', {}, html='escape', redact_missing_personalisation=False),
         mock.call('content', {}, html='escape', markdown_lists=True, redact_missing_personalisation=False),
-    ]),
-    (Template, None, {'redact_missing_personalisation': True}, [
-        mock.call('content', {}, html='escape', redact_missing_personalisation=True),
-    ]),
-    (WithSubjectTemplate, None, {'redact_missing_personalisation': True}, [
-        mock.call('content', {}, html='passthrough', redact_missing_personalisation=True, markdown_lists=True),
     ]),
     (EmailPreviewTemplate, 'email', {'redact_missing_personalisation': True}, [
         mock.call('content', {}, html='escape', markdown_lists=True, redact_missing_personalisation=True),
@@ -1233,18 +1272,6 @@ def test_smart_quotes_removed_from_long_template_in_under_a_second():
     str(template)
 
     assert process_time() - start_time < 1
-
-
-def test_basic_templates_return_markup():
-
-    template_dict = {'content': 'content', 'subject': 'subject'}
-
-    for output in [
-        str(Template(template_dict)),
-        str(WithSubjectTemplate(template_dict)),
-        WithSubjectTemplate(template_dict).subject,
-    ]:
-        assert isinstance(output, Markup)
 
 
 @pytest.mark.parametrize('template_instance, expected_placeholders', [
@@ -2070,15 +2097,14 @@ def test_whitespace_in_subjects(template_class, template_type, subject, extra_ar
     assert template_instance.subject == 'no break'
 
 
-@pytest.mark.parametrize('template_class, template_type', [
-    (WithSubjectTemplate, None),
-    (EmailPreviewTemplate, 'email'),
-    (HTMLEmailTemplate, 'email'),
-    (PlainTextEmailTemplate, 'email'),
+@pytest.mark.parametrize('template_class', [
+    EmailPreviewTemplate,
+    HTMLEmailTemplate,
+    PlainTextEmailTemplate,
 ])
-def test_whitespace_in_subject_placeholders(template_class, template_type):
+def test_whitespace_in_subject_placeholders(template_class):
     assert template_class(
-        {'content': '', 'subject': '\u200C Your tax   ((status))', 'template_type': template_type},
+        {'content': '', 'subject': '\u200C Your tax   ((status))', 'template_type': 'email'},
         values={'status': ' is\ndue '}
     ).subject == 'Your tax is due'
 

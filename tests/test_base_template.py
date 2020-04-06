@@ -6,24 +6,43 @@ from notifications_utils.template import (
 )
 
 
+class ConcreteImplementation():
+    template_type = None
+
+    # Can’t instantiate and test templates unless they implement __str__
+    def __str__(self):
+        pass
+
+
+class ConcreteTemplate(ConcreteImplementation, Template):
+    pass
+
+
+class ConcreteTestWithSubjectTemplate(ConcreteImplementation, WithSubjectTemplate):
+    pass
+
+
 def test_class():
     assert repr(
-        Template({"content": "hello ((name))"})
-    ) == 'Template("hello ((name))", {})'
+        ConcreteTemplate({"content": "hello ((name))"})
+    ) == 'ConcreteTemplate("hello ((name))", {})'
 
 
 def test_passes_through_template_attributes():
-    assert Template({"content": ''}).name is None
-    assert Template({"content": '', 'name': 'Two week reminder'}).name == 'Two week reminder'
-    assert Template({"content": ''}).id is None
-    assert Template({"content": '', 'id': '1234'}).id == '1234'
-    assert Template({"content": ''}).template_type is None
-    assert not hasattr(Template({"content": ''}), 'subject')
+    assert ConcreteTemplate({"content": ''}).name is None
+    assert ConcreteTemplate({"content": '', 'name': 'Two week reminder'}).name == 'Two week reminder'
+    assert ConcreteTemplate({"content": ''}).id is None
+    assert ConcreteTemplate({"content": '', 'id': '1234'}).id == '1234'
+    assert ConcreteTemplate({"content": ''}).template_type is None
+
+
+def test_passes_through_subject():
+    assert ConcreteTestWithSubjectTemplate({'content': '', 'subject': 'Your tax is due'}).subject == 'Your tax is due'
 
 
 def test_errors_for_missing_template_content():
     with pytest.raises(KeyError):
-        Template({})
+        ConcreteTemplate({})
 
 
 @pytest.mark.parametrize(
@@ -31,7 +50,7 @@ def test_errors_for_missing_template_content():
 )
 def test_errors_for_invalid_template_types(template):
     with pytest.raises(TypeError):
-        Template(template)
+        ConcreteTemplate(template)
 
 
 @pytest.mark.parametrize(
@@ -39,12 +58,12 @@ def test_errors_for_invalid_template_types(template):
 )
 def test_errors_for_invalid_values(values):
     with pytest.raises(TypeError):
-        Template({"content": ''}, values)
+        ConcreteTemplate({"content": ''}, values)
 
 
 def test_matches_keys_to_placeholder_names():
 
-    template = Template({"content": "hello ((name))"})
+    template = ConcreteTemplate({"content": "hello ((name))"})
 
     template.values = {'NAME': 'Chris'}
     assert template.values == {'name': 'Chris'}
@@ -107,11 +126,13 @@ def test_matches_keys_to_placeholder_names():
     ]
 )
 def test_extracting_placeholders(template_content, template_subject, expected):
-    assert WithSubjectTemplate({"content": template_content, 'subject': template_subject}).placeholders == expected
+    assert ConcreteTestWithSubjectTemplate({
+        "content": template_content, 'subject': template_subject
+    }).placeholders == expected
 
 
 def test_random_variable_retrieve():
-    template = Template({'content': 'content', 'created_by': "now"})
+    template = ConcreteTemplate({'content': 'content', 'created_by': "now"})
     assert template.get_raw('created_by') == "now"
     assert template.get_raw('missing', default='random') == 'random'
     assert template.get_raw('missing') is None
@@ -122,7 +143,7 @@ def test_compare_template():
         'notifications_utils.template_change.TemplateChange.__init__',
         return_value=None
     ) as mocked:
-        old_template = Template({'content': 'faked'})
-        new_template = Template({'content': 'faked'})
+        old_template = ConcreteTemplate({'content': 'faked'})
+        new_template = ConcreteTemplate({'content': 'faked'})
         old_template.compare_to(new_template)
         mocked.assert_called_once_with(old_template, new_template)

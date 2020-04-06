@@ -1,4 +1,5 @@
 import math
+from abc import ABC, abstractproperty
 from os import path
 from datetime import datetime
 from functools import lru_cache
@@ -49,10 +50,9 @@ template_env = Environment(loader=FileSystemLoader(
 ))
 
 
-class Template():
+class Template(ABC):
 
     encoding = "utf-8"
-    template_type = None
 
     def __init__(
         self,
@@ -79,13 +79,9 @@ class Template():
     def __repr__(self):
         return "{}(\"{}\", {})".format(self.__class__.__name__, self.content, self.values)
 
+    @abstractproperty
     def __str__(self):
-        return Markup(Field(
-            self.content,
-            self.values,
-            html='escape',
-            redact_missing_personalisation=self.redact_missing_personalisation
-        ))
+        pass
 
     @property
     def values(self):
@@ -276,15 +272,6 @@ class WithSubjectTemplate(Template):
         self._subject = template['subject']
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
 
-    def __str__(self):
-        return str(Field(
-            self.content,
-            self.values,
-            html='passthrough',
-            redact_missing_personalisation=self.redact_missing_personalisation,
-            markdown_lists=True,
-        ))
-
     @property
     def subject(self):
         return Markup(Take(Field(
@@ -304,7 +291,15 @@ class WithSubjectTemplate(Template):
 
     @property
     def content_count(self):
-        return len(WithSubjectTemplate.__str__(self).strip() if self._values else self.content.strip())
+        if self._values:
+            return len(str(Field(
+                self.content,
+                self.values,
+                html='passthrough',
+                redact_missing_personalisation=self.redact_missing_personalisation,
+                markdown_lists=True,
+            )).strip())
+        return len(self.content.strip())
 
     def is_message_empty(self):
         return self.content_count == 0
