@@ -8,6 +8,7 @@ from functools import partial
 from unittest import mock
 from flask import Markup
 from freezegun import freeze_time
+from orderedset import OrderedSet
 
 from notifications_utils.formatters import unlink_govuk_escaped
 from notifications_utils.template import (
@@ -1198,26 +1199,26 @@ def test_basic_templates_return_markup():
         PlainTextEmailTemplate(
             {"content": "((content))", "subject": "((subject))"},
         ),
-        ['content', 'subject'],
+        ['subject', 'content'],
     ),
     (
         HTMLEmailTemplate(
             {"content": "((content))", "subject": "((subject))"},
         ),
-        ['content', 'subject'],
+        ['subject', 'content'],
     ),
     (
         EmailPreviewTemplate(
             {"content": "((content))", "subject": "((subject))"},
         ),
-        ['content', 'subject'],
+        ['subject', 'content'],
     ),
     (
         LetterPreviewTemplate(
             {"content": "((content))", "subject": "((subject))"},
             contact_block='((contact_block))',
         ),
-        ['content', 'subject', 'contact_block'],
+        ['contact_block', 'subject', 'content'],
     ),
     (
         LetterImageTemplate(
@@ -1226,14 +1227,14 @@ def test_basic_templates_return_markup():
             image_url='http://example.com',
             page_count=99,
         ),
-        ['content', 'subject', 'contact_block'],
+        ['contact_block', 'subject', 'content'],
     ),
 ])
 def test_templates_extract_placeholders(
     template_instance,
     expected_placeholders,
 ):
-    assert template_instance.placeholders == set(expected_placeholders)
+    assert template_instance.placeholders == OrderedSet(expected_placeholders)
 
 
 @pytest.mark.parametrize('extra_args', [
