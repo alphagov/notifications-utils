@@ -292,7 +292,7 @@ class RecipientCSV():
     def is_optional_address_column(self, key):
         return (
             self.template_type == 'letter'
-            and Columns.make_key(key) in Columns.from_keys(optional_address_columns).keys()
+            and key in Columns.from_keys(optional_address_columns)
         )
 
     @property
@@ -514,9 +514,9 @@ def validate_and_format_email_address(email_address):
 
 
 def validate_address(address_line, column):
-    if Columns.make_key(column) in Columns.from_keys(optional_address_columns).keys():
+    if column in Columns.from_keys(optional_address_columns):
         return address_line
-    if Columns.make_key(column) not in Columns.from_keys(first_column_headings['letter']).keys():
+    if column not in Columns.from_keys(first_column_headings['letter']):
         raise TypeError
     if not address_line or not strip_whitespace(address_line):
         raise InvalidAddressError('Missing')
