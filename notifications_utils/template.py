@@ -512,7 +512,7 @@ class LetterPreviewTemplate(WithSubjectTemplate):
 
     @property
     def placeholders(self):
-        return super().placeholders | get_placeholders(self.contact_block)
+        return get_placeholders(self.contact_block) | super().placeholders
 
     @property
     def _address_block(self):
