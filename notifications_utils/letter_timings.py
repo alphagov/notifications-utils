@@ -90,11 +90,16 @@ def letter_can_be_cancelled(notification_status, notification_created_at):
     if _after_letter_processing_deadline() and _notification_created_before_today_deadline(notification_created_at):
         return False
 
-    if _notification_created_before_that_day_deadline(
-        notification_created_at
-    ) and notification_created_at.date() < convert_utc_to_bst(datetime.utcnow()).date():
+    time_created_at = convert_utc_to_bst(notification_created_at)
+    day_created_on = time_created_at.date()
+
+    current_time = convert_utc_to_bst(datetime.utcnow())
+    current_day = current_time.date()
+
+    if _notification_created_before_that_day_deadline(notification_created_at) and day_created_on < current_day:
         return False
-    if (convert_utc_to_bst(datetime.utcnow()).date() - notification_created_at.date()).days > 1:
+
+    if (current_day - day_created_on).days > 1:
         return False
     return True
 
