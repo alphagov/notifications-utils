@@ -605,22 +605,32 @@ def test_recipient_column(content, file_contents, template_type):
                 name,          building,      street,        town,          county,        ,        today
             """,
             'letter',
-            set(), {1}
+            {1}, {1}
         ),
         (
-            # only required address fields
+            # not enough address fields
             """
                 address_line_1, postcode, date
                 name,           SE1 7LS, today
             """,
             'letter',
-            set(), set()
+            {0}, set()
         ),
         (
             # optional address fields not filled in
             """
                 address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
                 name          ,123 fake st.  ,              ,              ,              ,SE1 7LS,today
+                name          ,              ,              ,              ,              ,SE1 7LS,today
+            """,
+            'letter',
+            {1}, {1}
+        ),
+        (
+            # Can use any address columns
+            """
+                address_line_3, address_line_4, address_line_7, date
+                name          , 123 fake st.,   SE1 7LS,        today
             """,
             'letter',
             set(), set()

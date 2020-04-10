@@ -120,3 +120,11 @@ class PostalAddress():
         last_line = self._lines_without_country[-1]
         if is_a_real_uk_postcode(last_line):
             return format_postcode_for_printing(last_line)
+
+    @property
+    def valid(self):
+        return (
+            self.postcode
+            and self.has_enough_lines
+            and not self.has_too_many_lines
+        )
