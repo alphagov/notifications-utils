@@ -18,7 +18,6 @@ def test_passes_through_template_attributes():
     assert Template({"content": ''}).id is None
     assert Template({"content": '', 'id': '1234'}).id == '1234'
     assert Template({"content": ''}).template_type is None
-    assert Template({"content": '', 'template_type': 'sms'}).template_type == 'sms'
     assert not hasattr(Template({"content": ''}), 'subject')
 
 
@@ -112,7 +111,7 @@ def test_extracting_placeholders(template_content, template_subject, expected):
 
 
 def test_random_variable_retrieve():
-    template = Template({'content': 'content', 'template_type': 'sms', 'created_by': "now"})
+    template = Template({'content': 'content', 'created_by': "now"})
     assert template.get_raw('created_by') == "now"
     assert template.get_raw('missing', default='random') == 'random'
     assert template.get_raw('missing') is None
@@ -123,7 +122,7 @@ def test_compare_template():
         'notifications_utils.template_change.TemplateChange.__init__',
         return_value=None
     ) as mocked:
-        old_template = Template({'content': 'faked', 'template_type': 'sms'})
-        new_template = Template({'content': 'faked', 'template_type': 'sms'})
+        old_template = Template({'content': 'faked'})
+        new_template = Template({'content': 'faked'})
         old_template.compare_to(new_template)
         mocked.assert_called_once_with(old_template, new_template)

@@ -128,7 +128,9 @@ def test_URLs_get_escaped(url, expected_html, expected_html_in_template):
         '{}'
         '</p>'
     ).format(expected_html)
-    assert expected_html_in_template in str(HTMLEmailTemplate({'content': url, 'subject': ''}))
+    assert expected_html_in_template in str(HTMLEmailTemplate({
+        'content': url, 'subject': '', 'template_type': 'email',
+    }))
 
 
 @pytest.mark.parametrize(
@@ -144,7 +146,7 @@ def test_URLs_get_escaped(url, expected_html, expected_html_in_template):
     ]
 )
 def test_URLs_get_escaped_in_sms(url, expected_html):
-    assert expected_html in str(SMSPreviewTemplate({'content': url}))
+    assert expected_html in str(SMSPreviewTemplate({'content': url, 'template_type': 'sms'}))
 
 
 def test_HTML_template_has_URLs_replaced_with_links():
@@ -157,7 +159,7 @@ def test_HTML_template_has_URLs_replaced_with_links():
         'https://service.example.com/accept_invite/a1b2c3d4\n'
         '\n'
         'Thanks\n'
-    ), 'subject': ''}))
+    ), 'subject': '', 'template_type': 'email'}))
 
 
 @pytest.mark.parametrize('markdown_function, expected_output', [
@@ -202,8 +204,9 @@ def test_preserves_whitespace_when_making_links(
 )
 def test_escaping_govuk_in_email_templates(template_content, expected):
     assert unlink_govuk_escaped(template_content) == expected
-    assert expected in str(PlainTextEmailTemplate({'content': template_content, 'subject': ''}))
-    assert expected in str(HTMLEmailTemplate({'content': template_content, 'subject': ''}))
+    template_json = {'content': template_content, 'subject': '', 'template_type': 'email'}
+    assert expected in str(PlainTextEmailTemplate(template_json))
+    assert expected in str(HTMLEmailTemplate(template_json))
 
 
 @pytest.mark.parametrize(
@@ -213,7 +216,7 @@ def test_escaping_govuk_in_email_templates(template_content, expected):
     ]
 )
 def test_sms_message_adds_prefix(prefix, body, expected):
-    template = SMSMessageTemplate({'content': body})
+    template = SMSMessageTemplate({'content': body, 'template_type': 'sms'})
     template.prefix = prefix
     template.sender = None
     assert str(template) == expected
@@ -225,7 +228,7 @@ def test_sms_preview_adds_newlines():
         quick
 
         brown fox
-    """})
+    """, "template_type": "sms"})
     template.prefix = None
     template.sender = None
     assert '<br>' in str(template)

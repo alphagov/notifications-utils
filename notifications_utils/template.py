@@ -52,6 +52,7 @@ template_env = Environment(loader=FileSystemLoader(
 class Template():
 
     encoding = "utf-8"
+    template_type = None
 
     def __init__(
         self,
@@ -63,11 +64,15 @@ class Template():
             raise TypeError('Template must be a dict')
         if values is not None and not isinstance(values, dict):
             raise TypeError('Values must be a dict')
+        if template.get('template_type') != self.template_type:
+            raise TypeError(
+                f'Cannot initialise {self.__class__.__name__} '
+                f'with {template.get("template_type")} template_type'
+            )
         self.id = template.get("id", None)
         self.name = template.get("name", None)
         self.content = template["content"]
         self.values = values
-        self.template_type = template.get('template_type', None)
         self._template = template
         self.redact_missing_personalisation = redact_missing_personalisation
 
@@ -127,6 +132,8 @@ class Template():
 
 
 class SMSMessageTemplate(Template):
+
+    template_type = 'sms'
 
     def __init__(
         self,
@@ -305,6 +312,8 @@ class WithSubjectTemplate(Template):
 
 class PlainTextEmailTemplate(WithSubjectTemplate):
 
+    template_type = 'email'
+
     def __str__(self):
         return Take(Field(
             self.content, self.values, html='passthrough', markdown_lists=True
@@ -341,6 +350,8 @@ class PlainTextEmailTemplate(WithSubjectTemplate):
 
 
 class HTMLEmailTemplate(WithSubjectTemplate):
+
+    template_type = 'email'
 
     jinja_template = template_env.get_template('email_template.jinja2')
 
@@ -405,6 +416,8 @@ class HTMLEmailTemplate(WithSubjectTemplate):
 
 class EmailPreviewTemplate(WithSubjectTemplate):
 
+    template_type = 'email'
+
     jinja_template = template_env.get_template('email_preview_template.jinja2')
 
     def __init__(
@@ -451,6 +464,8 @@ class EmailPreviewTemplate(WithSubjectTemplate):
 
 
 class LetterPreviewTemplate(WithSubjectTemplate):
+
+    template_type = 'letter'
 
     jinja_template = template_env.get_template('letter_pdf/preview.jinja2')
 
