@@ -462,12 +462,8 @@ class EmailPreviewTemplate(BaseEmailTemplate):
 
 
 class BaseLetterTemplate(WithSubjectTemplate):
+
     template_type = 'letter'
-
-
-class LetterPreviewTemplate(BaseLetterTemplate):
-
-    jinja_template = template_env.get_template('letter_pdf/preview.jinja2')
 
     address_block = '\n'.join([
         '((address line 1))',
@@ -494,19 +490,6 @@ class LetterPreviewTemplate(BaseLetterTemplate):
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
-
-    def __str__(self):
-        return Markup(self.jinja_template.render({
-            'admin_base_url': self.admin_base_url,
-            'logo_file_name': self.logo_file_name,
-            # logo_class should only ever be None, svg or png
-            'logo_class': self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
-            'subject': self.subject,
-            'message': self._message,
-            'address': self._address_block,
-            'contact_block': self._contact_block,
-            'date': self._date,
-        }))
 
     @property
     def subject(self):
@@ -588,6 +571,24 @@ class LetterPreviewTemplate(BaseLetterTemplate):
         ).then(
             tweak_dvla_list_markup
         )
+
+
+class LetterPreviewTemplate(BaseLetterTemplate):
+
+    jinja_template = template_env.get_template('letter_pdf/preview.jinja2')
+
+    def __str__(self):
+        return Markup(self.jinja_template.render({
+            'admin_base_url': self.admin_base_url,
+            'logo_file_name': self.logo_file_name,
+            # logo_class should only ever be None, svg or png
+            'logo_class': self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
+            'subject': self.subject,
+            'message': self._message,
+            'address': self._address_block,
+            'contact_block': self._contact_block,
+            'date': self._date,
+        }))
 
 
 class LetterPrintTemplate(LetterPreviewTemplate):
