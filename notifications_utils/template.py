@@ -310,9 +310,11 @@ class WithSubjectTemplate(Template):
         return self.content_count == 0
 
 
-class PlainTextEmailTemplate(WithSubjectTemplate):
-
+class BaseEmailTemplate(WithSubjectTemplate):
     template_type = 'email'
+
+
+class PlainTextEmailTemplate(BaseEmailTemplate):
 
     def __str__(self):
         return Take(Field(
@@ -349,9 +351,7 @@ class PlainTextEmailTemplate(WithSubjectTemplate):
         ))
 
 
-class HTMLEmailTemplate(WithSubjectTemplate):
-
-    template_type = 'email'
+class HTMLEmailTemplate(BaseEmailTemplate):
 
     jinja_template = template_env.get_template('email_template.jinja2')
 
@@ -414,9 +414,7 @@ class HTMLEmailTemplate(WithSubjectTemplate):
         })
 
 
-class EmailPreviewTemplate(WithSubjectTemplate):
-
-    template_type = 'email'
+class EmailPreviewTemplate(BaseEmailTemplate):
 
     jinja_template = template_env.get_template('email_preview_template.jinja2')
 
@@ -463,9 +461,11 @@ class EmailPreviewTemplate(WithSubjectTemplate):
         )
 
 
-class LetterPreviewTemplate(WithSubjectTemplate):
-
+class BaseLetterTemplate(WithSubjectTemplate):
     template_type = 'letter'
+
+
+class LetterPreviewTemplate(BaseLetterTemplate):
 
     jinja_template = template_env.get_template('letter_pdf/preview.jinja2')
 
