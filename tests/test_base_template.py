@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 from notifications_utils.template import (
     Template,
-    WithSubjectTemplate
+    SubjectMixin,
 )
 
 
@@ -18,7 +18,7 @@ class ConcreteTemplate(ConcreteImplementation, Template):
     pass
 
 
-class ConcreteTestWithSubjectTemplate(ConcreteImplementation, WithSubjectTemplate):
+class ConcreteTemplateWithSubject(SubjectMixin, ConcreteTemplate):
     pass
 
 
@@ -37,7 +37,7 @@ def test_passes_through_template_attributes():
 
 
 def test_passes_through_subject():
-    assert ConcreteTestWithSubjectTemplate({'content': '', 'subject': 'Your tax is due'}).subject == 'Your tax is due'
+    assert ConcreteTemplateWithSubject({'content': '', 'subject': 'Your tax is due'}).subject == 'Your tax is due'
 
 
 def test_errors_for_missing_template_content():
@@ -126,7 +126,7 @@ def test_matches_keys_to_placeholder_names():
     ]
 )
 def test_extracting_placeholders(template_content, template_subject, expected):
-    assert ConcreteTestWithSubjectTemplate({
+    assert ConcreteTemplateWithSubject({
         "content": template_content, 'subject': template_subject
     }).placeholders == expected
 

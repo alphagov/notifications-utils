@@ -21,18 +21,15 @@ from notifications_utils.template import (
     PlainTextEmailTemplate,
     SMSMessageTemplate,
     SMSPreviewTemplate,
-    WithSubjectTemplate,
     EmailPreviewTemplate,
     LetterPrintTemplate,
+    SubjectMixin,
 )
 
 
 @pytest.mark.parametrize('template_class, expected_error', (
     (Template, (
         "Can't instantiate abstract class Template with abstract methods __str__"
-    )),
-    (WithSubjectTemplate, (
-        "Can't instantiate abstract class WithSubjectTemplate with abstract methods __str__"
     )),
     (BaseEmailTemplate, (
         "Can't instantiate abstract class BaseEmailTemplate with abstract methods __str__"
@@ -882,12 +879,12 @@ def test_subject_line_gets_applied_to_correct_template_types():
         LetterPreviewTemplate,
         LetterImageTemplate,
     ]:
-        assert issubclass(cls, WithSubjectTemplate)
+        assert issubclass(cls, SubjectMixin)
     for cls in [
         SMSMessageTemplate,
         SMSPreviewTemplate,
     ]:
-        assert not issubclass(cls, WithSubjectTemplate)
+        assert not issubclass(cls, SubjectMixin)
 
 
 @pytest.mark.parametrize('template_class, template_type', (

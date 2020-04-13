@@ -276,16 +276,16 @@ class SMSPreviewTemplate(SMSMessageTemplate):
         }))
 
 
-class WithSubjectTemplate(Template):
+class SubjectMixin():
 
     def __init__(
         self,
         template,
         values=None,
-        redact_missing_personalisation=False,
+        **kwargs
     ):
         self._subject = template['subject']
-        super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
+        super().__init__(template, values, **kwargs)
 
     @property
     def subject(self):
@@ -305,7 +305,7 @@ class WithSubjectTemplate(Template):
         return get_placeholders(self._subject) | super().placeholders
 
 
-class BaseEmailTemplate(WithSubjectTemplate):
+class BaseEmailTemplate(SubjectMixin, Template):
     template_type = 'email'
 
 
@@ -456,7 +456,7 @@ class EmailPreviewTemplate(BaseEmailTemplate):
         )
 
 
-class BaseLetterTemplate(WithSubjectTemplate):
+class BaseLetterTemplate(SubjectMixin, Template):
 
     template_type = 'letter'
 
