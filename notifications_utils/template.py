@@ -123,6 +123,21 @@ class Template(ABC):
     def compare_to(self, new):
         return TemplateChange(self, new)
 
+    @property
+    def content_count(self):
+        if self._values:
+            return len(str(Field(
+                self.content,
+                self.values,
+                html='passthrough',
+                redact_missing_personalisation=self.redact_missing_personalisation,
+                markdown_lists=True,
+            )).strip())
+        return len(self.content.strip())
+
+    def is_message_empty(self):
+        return self.content_count == 0
+
     def is_message_too_long(self):
         return False
 
@@ -288,21 +303,6 @@ class WithSubjectTemplate(Template):
     @property
     def placeholders(self):
         return get_placeholders(self._subject) | super().placeholders
-
-    @property
-    def content_count(self):
-        if self._values:
-            return len(str(Field(
-                self.content,
-                self.values,
-                html='passthrough',
-                redact_missing_personalisation=self.redact_missing_personalisation,
-                markdown_lists=True,
-            )).strip())
-        return len(self.content.strip())
-
-    def is_message_empty(self):
-        return self.content_count == 0
 
 
 class BaseEmailTemplate(WithSubjectTemplate):
