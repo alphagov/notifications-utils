@@ -308,6 +308,26 @@ class SubjectMixin():
 class BaseEmailTemplate(SubjectMixin, Template):
     template_type = 'email'
 
+    @property
+    def html_body(self):
+        return Take(Field(
+            self.content,
+            self.values,
+            html='escape',
+            markdown_lists=True,
+            redact_missing_personalisation=self.redact_missing_personalisation,
+        )).then(
+            unlink_govuk_escaped
+        ).then(
+            strip_unsupported_characters
+        ).then(
+            add_trailing_newline
+        ).then(
+            notify_email_markdown
+        ).then(
+            do_nice_typography
+        )
+
 
 class PlainTextEmailTemplate(BaseEmailTemplate):
 
@@ -395,9 +415,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
     def __str__(self):
 
         return self.jinja_template.render({
-            'body': get_html_email_body(
-                self.content, self.values
-            ),
+            'body': self.html_body,
             'preheader': self.preheader,
             'govuk_banner': self.govuk_banner,
             'complete_html': self.complete_html,
@@ -431,9 +449,7 @@ class EmailPreviewTemplate(BaseEmailTemplate):
 
     def __str__(self):
         return Markup(self.jinja_template.render({
-            'body': get_html_email_body(
-                self.content, self.values, redact_missing_personalisation=self.redact_missing_personalisation
-            ),
+            'body': self.html_body,
             'subject': self.subject,
             'from_name': escape_html(self.from_name),
             'from_address': self.from_address,
@@ -651,27 +667,6 @@ def non_gsm_characters(content):
     with UCS-2.
     """
     return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
-
-
-def get_html_email_body(template_content, template_values, redact_missing_personalisation=False):
-
-    return Take(Field(
-        template_content,
-        template_values,
-        html='escape',
-        markdown_lists=True,
-        redact_missing_personalisation=redact_missing_personalisation,
-    )).then(
-        unlink_govuk_escaped
-    ).then(
-        strip_unsupported_characters
-    ).then(
-        add_trailing_newline
-    ).then(
-        notify_email_markdown
-    ).then(
-        do_nice_typography
-    )
 
 
 def do_nice_typography(value):
