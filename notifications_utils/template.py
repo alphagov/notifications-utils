@@ -84,6 +84,16 @@ class Template(ABC):
         pass
 
     @property
+    def content_replaced(self):
+        return str(Field(
+            self.content,
+            self.values,
+            html='passthrough',
+            redact_missing_personalisation=self.redact_missing_personalisation,
+            markdown_lists=True,
+        )).strip()
+
+    @property
     def values(self):
         if hasattr(self, '_values'):
             return self._values
@@ -125,15 +135,7 @@ class Template(ABC):
 
     @property
     def content_count(self):
-        if self._values:
-            return len(str(Field(
-                self.content,
-                self.values,
-                html='passthrough',
-                redact_missing_personalisation=self.redact_missing_personalisation,
-                markdown_lists=True,
-            )).strip())
-        return len(self.content.strip())
+        return len(self.content_replaced)
 
     def is_message_empty(self):
         return self.content_count == 0
@@ -177,6 +179,12 @@ class SMSMessageTemplate(Template):
         )
 
     @property
+    def content_replaced(self):
+        # We always call SMSMessageTemplate.__str__ regardless of
+        # subclass, to avoid any HTML formatting
+        return SMSMessageTemplate.__str__(self)
+
+    @property
     def prefix(self):
         return self._prefix if self.show_prefix else None
 
@@ -192,10 +200,8 @@ class SMSMessageTemplate(Template):
 
         Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
         as in the message `foo ((placeholder))` has a length of 19.
-
-        We always call SMSMessageTemplate.__str__ regardless of subclass, to avoid any HTML formatting
         """
-        return len(SMSMessageTemplate.__str__(self))
+        return len(self.content_replaced)
 
     @property
     def content_count_without_prefix(self):
