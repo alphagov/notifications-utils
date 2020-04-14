@@ -233,3 +233,13 @@ def test_letter_can_be_cancelled_if_after_1730_and_letter_created_at_1730_today_
     notification_status = 'created'
 
     assert letter_can_be_cancelled(notification_status, notification_created_at)
+
+
+@freeze_time('2018-7-7 10:00:00')
+@pytest.mark.parametrize('notification_created_at', [
+    datetime(2018, 7, 6, 20, 30),  # yesterday after deadline
+    datetime(2018, 7, 6, 23, 30),  # this morning after deadline but yesterday in UTC
+    datetime(2018, 7, 7, 3, 30),  # this morning after deadline, and today in UTC
+])
+def test_letter_can_be_cancelled_always_compares_in_bst(notification_created_at):
+    assert letter_can_be_cancelled('created', notification_created_at)
