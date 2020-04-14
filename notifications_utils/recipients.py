@@ -60,22 +60,18 @@ class RecipientCSV():
     def __init__(
         self,
         file_data,
-        template_type=None,
-        placeholders=None,
+        template,
         max_errors_shown=20,
         max_initial_rows_shown=10,
         whitelist=None,
-        template=None,
         remaining_messages=sys.maxsize,
         international_sms=False,
     ):
         self.file_data = strip_whitespace(file_data, extra_characters=',')
-        self.template_type = template_type
-        self.placeholders = placeholders
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.whitelist = whitelist
-        self.template = template if isinstance(template, Template) else None
+        self.template = template
         self.international_sms = international_sms
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
@@ -100,6 +96,22 @@ class RecipientCSV():
             self._whitelist = []
 
     @property
+    def template(self):
+        return self._template
+
+    @template.setter
+    def template(self, value):
+        if not isinstance(value, Template):
+            raise TypeError(
+                'template must be an instance of '
+                'notifications_utils.template.Template'
+            )
+        self._template = value
+        self.template_type = self._template.template_type
+        self.recipient_column_headers = first_column_headings[self.template_type]
+        self.placeholders = self._template.placeholders
+
+    @property
     def placeholders(self):
         return self._placeholders
 
@@ -117,15 +129,6 @@ class RecipientCSV():
             Columns.make_key(placeholder)
             for placeholder in self.recipient_column_headers
         ]
-
-    @property
-    def template_type(self):
-        return self._template_type
-
-    @template_type.setter
-    def template_type(self, value):
-        self._template_type = value
-        self.recipient_column_headers = first_column_headings[self.template_type]
 
     @property
     def has_errors(self):
