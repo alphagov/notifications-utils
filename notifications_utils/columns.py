@@ -101,7 +101,7 @@ class Row(Columns):
 
     @property
     def has_error(self):
-        return self.message_too_long or self.message_empty or any(
+        return self.has_error_spanning_multiple_cells or any(
             cell.error for cell in self.values()
         )
 
@@ -111,6 +111,10 @@ class Row(Columns):
             self.get(recipient_column).recipient_error
             for recipient_column in self.recipient_column_headers
         )
+
+    @property
+    def has_error_spanning_multiple_cells(self):
+        return self.message_too_long or self.message_empty
 
     @property
     def has_missing_data(self):

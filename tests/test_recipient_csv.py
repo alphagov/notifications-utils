@@ -760,6 +760,34 @@ def test_detects_rows_which_result_in_overly_long_messages():
     assert _index_rows(recipients.rows_with_errors) == {3}
     assert _index_rows(recipients.rows_with_message_too_long) == {3}
     assert recipients.has_errors
+    assert recipients[0].has_error_spanning_multiple_cells is False
+    assert recipients[1].has_error_spanning_multiple_cells is False
+    assert recipients[2].has_error_spanning_multiple_cells is False
+    assert recipients[3].has_error_spanning_multiple_cells is True
+
+
+def test_detects_rows_which_result_in_empty_messages():
+    template = SMSMessageTemplate(
+        {'content': '((show??content))', 'template_type': 'sms'},
+        sender=None,
+        prefix=None,
+    )
+    recipients = RecipientCSV(
+        """
+            phone number,show
+            07700900460,yes
+            07700900462,no
+            07700900463,yes
+        """,
+        template_type=template.template_type,
+        template=template
+    )
+    assert _index_rows(recipients.rows_with_errors) == {1}
+    assert _index_rows(recipients.rows_with_empty_message) == {1}
+    assert recipients.has_errors
+    assert recipients[0].has_error_spanning_multiple_cells is False
+    assert recipients[1].has_error_spanning_multiple_cells is True
+    assert recipients[2].has_error_spanning_multiple_cells is False
 
 
 @pytest.mark.parametrize(
