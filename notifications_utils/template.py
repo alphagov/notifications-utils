@@ -84,7 +84,7 @@ class Template(ABC):
         pass
 
     @property
-    def content_replaced(self):
+    def content_with_placeholders_filled_in(self):
         return str(Field(
             self.content,
             self.values,
@@ -135,7 +135,7 @@ class Template(ABC):
 
     @property
     def content_count(self):
-        return len(self.content_replaced)
+        return len(self.content_with_placeholders_filled_in)
 
     def is_message_empty(self):
         return self.content_count == 0
@@ -162,7 +162,7 @@ class BaseSMSTemplate(Template):
         super().__init__(template, values)
 
     @property
-    def content_replaced(self):
+    def content_with_placeholders_filled_in(self):
         # We always call SMSMessageTemplate.__str__ regardless of
         # subclass, to avoid any HTML formatting
         return SMSMessageTemplate.__str__(self)
@@ -184,7 +184,7 @@ class BaseSMSTemplate(Template):
         Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
         as in the message `foo ((placeholder))` has a length of 19.
         """
-        return len(self.content_replaced)
+        return len(self.content_with_placeholders_filled_in)
 
     @property
     def content_count_without_prefix(self):
