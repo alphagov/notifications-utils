@@ -164,7 +164,12 @@ class BaseSMSTemplate(Template):
     @property
     def content_with_placeholders_filled_in(self):
         # We always call SMSMessageTemplate.__str__ regardless of
-        # subclass, to avoid any HTML formatting
+        # subclass, to avoid any HTML formatting. SMS templates differ
+        # in that the content can include the service name as a prefix.
+        # So historically we’ve returned the fully-formatted message,
+        # rather than some plain-text represenation of the content. To
+        # preserve compatibility for consumers of the API we maintain
+        # that behaviour by overriding this method here.
         return SMSMessageTemplate.__str__(self)
 
     @property
