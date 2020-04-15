@@ -1,38 +1,38 @@
 import pytest
-from notifications_utils.template import Template
 from notifications_utils.template_change import TemplateChange
+from tests.test_base_template import ConcreteTemplate
 
 
 @pytest.mark.parametrize(
     "old_template, new_template, should_differ", [
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
             False
         ),
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((3)) ((2)) ((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((3)) ((2)) ((1))'}),
             False
         ),
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1)) ((1)) ((2)) ((2)) ((3)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((1)) ((2)) ((2)) ((3)) ((3))'}),
             False
         ),
         (
-            Template({'content': '((1))'}),
-            Template({'content': '((1)) ((2))'}),
+            ConcreteTemplate({'content': '((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2))'}),
             True
         ),
         (
-            Template({'content': '((1)) ((2))'}),
-            Template({'content': '((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2))'}),
+            ConcreteTemplate({'content': '((1))'}),
             True
         ),
         (
-            Template({'content': '((a)) ((b))'}),
-            Template({'content': '((A)) (( B_ ))'}),
+            ConcreteTemplate({'content': '((a)) ((b))'}),
+            ConcreteTemplate({'content': '((A)) (( B_ ))'}),
             False
         ),
     ]
@@ -44,28 +44,28 @@ def test_checking_for_difference_between_templates(old_template, new_template, s
 @pytest.mark.parametrize(
     "old_template, new_template, placeholders_added", [
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
             set()
         ),
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1)) ((1)) ((2)) ((2)) ((3)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((1)) ((2)) ((2)) ((3)) ((3))'}),
             set()
         ),
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1))'}),
             set()
         ),
         (
-            Template({'content': '((1))'}),
-            Template({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
             set(['2', '3'])
         ),
         (
-            Template({'content': '((a))'}),
-            Template({'content': '((A)) ((B)) ((C))'}),
+            ConcreteTemplate({'content': '((a))'}),
+            ConcreteTemplate({'content': '((A)) ((B)) ((C))'}),
             set(['B', 'C'])
         ),
     ]
@@ -77,28 +77,28 @@ def test_placeholders_added(old_template, new_template, placeholders_added):
 @pytest.mark.parametrize(
     "old_template, new_template, placeholders_removed", [
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
             set()
         ),
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1)) ((1)) ((2)) ((2)) ((3)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1)) ((1)) ((2)) ((2)) ((3)) ((3))'}),
             set()
         ),
         (
-            Template({'content': '((1))'}),
-            Template({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
             set()
         ),
         (
-            Template({'content': '((1)) ((2)) ((3))'}),
-            Template({'content': '((1))'}),
+            ConcreteTemplate({'content': '((1)) ((2)) ((3))'}),
+            ConcreteTemplate({'content': '((1))'}),
             set(['2', '3'])
         ),
         (
-            Template({'content': '((a)) ((b)) ((c))'}),
-            Template({'content': '((A))'}),
+            ConcreteTemplate({'content': '((a)) ((b)) ((c))'}),
+            ConcreteTemplate({'content': '((A))'}),
             set(['b', 'c'])
         ),
     ]
@@ -108,8 +108,8 @@ def test_placeholders_removed(old_template, new_template, placeholders_removed):
 
 
 def test_ordering_of_placeholders_is_preserved():
-    before = Template({'content': '((dog)) ((cat)) ((rat))'})
-    after = Template({'content': '((platypus)) ((echidna)) ((quokka))'})
+    before = ConcreteTemplate({'content': '((dog)) ((cat)) ((rat))'})
+    after = ConcreteTemplate({'content': '((platypus)) ((echidna)) ((quokka))'})
     change = TemplateChange(before, after)
     assert change.placeholders_removed == ['dog', 'cat', 'rat'] == before.placeholders
     assert change.placeholders_added == ['platypus', 'echidna', 'quokka'] == after.placeholders
