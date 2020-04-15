@@ -1,5 +1,5 @@
 import math
-from abc import ABC, abstractproperty
+from abc import ABC, abstractmethod
 from os import path
 from datetime import datetime
 from functools import lru_cache
@@ -79,7 +79,7 @@ class Template(ABC):
     def __repr__(self):
         return "{}(\"{}\", {})".format(self.__class__.__name__, self.content, self.values)
 
-    @abstractproperty
+    @abstractmethod
     def __str__(self):
         pass
 
