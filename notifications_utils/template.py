@@ -613,7 +613,7 @@ class LetterPrintTemplate(LetterPreviewTemplate):
     jinja_template = template_env.get_template('letter_pdf/print.jinja2')
 
 
-class LetterImageTemplate(LetterPreviewTemplate):
+class LetterImageTemplate(BaseLetterTemplate):
 
     jinja_template = template_env.get_template('letter_image_template.jinja2')
     first_page_number = 1
