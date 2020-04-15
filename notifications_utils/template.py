@@ -144,7 +144,7 @@ class Template(ABC):
         return False
 
 
-class SMSMessageTemplate(Template):
+class BaseSMSTemplate(Template):
 
     template_type = 'sms'
 
@@ -160,23 +160,6 @@ class SMSMessageTemplate(Template):
         self.show_prefix = show_prefix
         self.sender = sender
         super().__init__(template, values)
-
-    def __str__(self):
-        return Take(PlainTextField(
-            self.content, self.values, html='passthrough'
-        )).then(
-            add_prefix, self.prefix
-        ).then(
-            sms_encode
-        ).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            normalise_whitespace_and_newlines
-        ).then(
-            normalise_multiple_newlines
-        ).then(
-            str.strip
-        )
 
     @property
     def content_replaced(self):
@@ -230,7 +213,27 @@ class SMSMessageTemplate(Template):
         return self.content_count_without_prefix == 0
 
 
-class SMSPreviewTemplate(SMSMessageTemplate):
+class SMSMessageTemplate(BaseSMSTemplate):
+
+    def __str__(self):
+        return Take(PlainTextField(
+            self.content, self.values, html='passthrough'
+        )).then(
+            add_prefix, self.prefix
+        ).then(
+            sms_encode
+        ).then(
+            remove_whitespace_before_punctuation
+        ).then(
+            normalise_whitespace_and_newlines
+        ).then(
+            normalise_multiple_newlines
+        ).then(
+            str.strip
+        )
+
+
+class SMSPreviewTemplate(BaseSMSTemplate):
 
     jinja_template = template_env.get_template('sms_preview_template.jinja2')
 
