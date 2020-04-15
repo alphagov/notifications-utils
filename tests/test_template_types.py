@@ -887,22 +887,36 @@ def test_subject_line_gets_applied_to_correct_template_types():
         assert not issubclass(cls, SubjectMixin)
 
 
-@pytest.mark.parametrize('template_class, template_type', (
-    (EmailPreviewTemplate, 'email'),
-    (LetterPreviewTemplate, 'letter'),
+@pytest.mark.parametrize('template_class, template_type, extra_args', (
+    (EmailPreviewTemplate, 'email', {}),
+    (HTMLEmailTemplate, 'email', {}),
+    (PlainTextEmailTemplate, 'email', {}),
+    (LetterPreviewTemplate, 'letter', {}),
+    (LetterPrintTemplate, 'letter', {}),
+    (LetterImageTemplate, 'letter', {
+        'image_url': 'http://example.com',
+        'page_count': 1,
+    }),
 ))
-def test_subject_line_gets_replaced(template_class, template_type):
+def test_subject_line_gets_replaced(template_class, template_type, extra_args):
     template = template_class({
         "content": '', 'template_type': template_type, 'subject': '((name))'
-    })
+    }, **extra_args)
     assert template.subject == Markup("<span class='placeholder'>((name))</span>")
     template.values = {'name': 'Jo'}
     assert template.subject == 'Jo'
 
 
-@pytest.mark.parametrize('template_class, template_type', (
-    (HTMLEmailTemplate, 'email'),
-    (LetterPrintTemplate, 'letter'),
+@pytest.mark.parametrize('template_class, template_type, extra_args', (
+    (EmailPreviewTemplate, 'email', {}),
+    (HTMLEmailTemplate, 'email', {}),
+    (PlainTextEmailTemplate, 'email', {}),
+    (LetterPreviewTemplate, 'letter', {}),
+    (LetterPrintTemplate, 'letter', {}),
+    (LetterImageTemplate, 'letter', {
+        'image_url': 'http://example.com',
+        'page_count': 1,
+    }),
 ))
 @pytest.mark.parametrize("content, values, expected_count", [
     ("Content with ((placeholder))", {"placeholder": "something extra"}, 28),
@@ -914,13 +928,14 @@ def test_subject_line_gets_replaced(template_class, template_type):
 def test_WithSubjectTemplate_character_count(
     template_class,
     template_type,
+    extra_args,
     content,
     values,
     expected_count,
 ):
     template = template_class({
         "content": content, 'subject': 'Hi', 'template_type': template_type,
-    })
+    }, **extra_args)
     template.values = values
     assert template.content_count == expected_count
 
