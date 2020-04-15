@@ -925,7 +925,7 @@ def test_subject_line_gets_replaced(template_class, template_type, extra_args):
     ("((placeholder))  ", {"placeholder": "  "}, 0),
     ("  ", {}, 0),
 ])
-def test_WithSubjectTemplate_character_count(
+def test_character_count_for_non_sms_templates(
     template_class,
     template_type,
     extra_args,
@@ -960,7 +960,7 @@ def test_WithSubjectTemplate_character_count(
     ("  G      D       S  ", {}, None, 5, 5),  # Becomes `G D S`
     ("P1 \n\n\n\n\n\n P2", {}, None, 6, 6),  # Becomes `P1\n\nP2`
 ])
-def test_SMSMessageTemplate_character_count(
+def test_character_count_for_sms_templates(
     content, values, prefix, expected_count_in_template, expected_count_in_notification, template_class
 ):
     template = template_class(
