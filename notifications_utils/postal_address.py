@@ -40,7 +40,7 @@ class PostalAddress():
         else:
             keys = address_lines_1_to_6_and_postcode_keys
         return cls('\n'.join(
-            personalisation_dict.get(key) or '' for key in keys
+            str(personalisation_dict.get(key) or '') for key in keys
         ))
 
     @property
