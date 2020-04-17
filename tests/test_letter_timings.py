@@ -140,6 +140,15 @@ from notifications_utils.letter_timings import get_letter_timings, letter_can_be
         'Saturday 2017-01-07 16:00',
     ),
 
+    # Over Easter bank holiday weekend
+    (
+        'Thursday 2020-04-09 16:29:59',
+        'Tuesday 2020-04-14 15:00',
+        False,
+        'Wednesday 2020-04-15 16:00',
+        'Thursday 2020-04-16 16:00',
+        'Friday 2020-04-17 16:00',
+    ),
 ])
 def test_get_estimated_delivery_date_for_letter(
     upload_time,

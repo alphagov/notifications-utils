@@ -3,6 +3,7 @@ import pytz
 from datetime import datetime, time, timedelta
 from collections import namedtuple
 
+from govuk_bank_holidays.bank_holidays import BankHolidays
 from notifications_utils.timezones import convert_utc_to_bst, utc_string_to_aware_gmt_datetime
 
 
@@ -10,6 +11,16 @@ LETTER_PROCESSING_DEADLINE = time(17, 30)
 CANCELLABLE_JOB_LETTER_STATUSES = [
     'created', 'cancelled', 'virus-scan-failed', 'validation-failed', 'technical-failure', 'pending-virus-check'
 ]
+
+
+non_working_days_dvla = BankHolidays(
+    use_cached_holidays=True,
+    weekend=(5, 6),
+)
+non_working_days_royal_mail = BankHolidays(
+    use_cached_holidays=True,
+    weekend=(6,)  # Only Sunday (day 6 of the week) is a non-working day
+)
 
 
 def set_gmt_hour(day, hour):
@@ -26,31 +37,26 @@ def get_letter_timings(upload_time, postage='second'):
     # shift anything after 5:30pm to the next day
     processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
 
-    def next_monday(date):
-        """
-        If called with a monday, will still return the next monday
-        """
-        return date + timedelta(days=7 - date.weekday())
+    def get_next_work_day(date, non_working_days):
+        next_day = date + timedelta(days=1)
+        if non_working_days.is_work_day(
+            date=next_day.date(),
+            division=BankHolidays.ENGLAND_AND_WALES,
+        ):
+            return next_day
+        return get_next_work_day(next_day, non_working_days)
 
     def get_next_dvla_working_day(date):
         """
-        Printing takes place monday to friday
+        Printing takes place monday to friday, excluding bank holidays
         """
-        # monday to thursday inclusive
-        if 0 <= date.weekday() <= 3:
-            return date + timedelta(days=1)
-        else:
-            return next_monday(date)
+        return get_next_work_day(date, non_working_days=non_working_days_dvla)
 
     def get_next_royal_mail_working_day(date):
         """
         Royal mail deliver letters on monday to saturday
         """
-        # monday to friday inclusive
-        if 0 <= date.weekday() <= 4:
-            return date + timedelta(days=1)
-        else:
-            return next_monday(date)
+        return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
 
     print_day = get_next_dvla_working_day(processing_day)
 
