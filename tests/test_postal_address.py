@@ -351,6 +351,21 @@ def test_from_personalisation(personalisation):
     )
 
 
+def test_from_personalisation_handles_int():
+    personalisation = {
+        'address_line_1': 123,
+        'address_line_2': 'Example Street',
+        'address_line_3': 'City of Town',
+        'address_line_4': 'SW1A1AA',
+    }
+    assert PostalAddress.from_personalisation(personalisation).normalised == (
+        '123\n'
+        'Example Street\n'
+        'City of Town\n'
+        'SW1A 1AA'
+    )
+
+
 @pytest.mark.parametrize('address, expected_personalisation', (
     (
         '',
