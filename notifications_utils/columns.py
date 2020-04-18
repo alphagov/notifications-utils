@@ -110,10 +110,7 @@ class Row(Columns):
     def has_bad_recipient(self):
         if self.template_type == 'letter':
             return self.has_bad_postal_address
-        return any(
-            self.get(recipient_column).recipient_error
-            for recipient_column in self.recipient_column_headers
-        )
+        return self.get(self.recipient_column_headers[0]).recipient_error
 
     @property
     def has_bad_postal_address(self):
