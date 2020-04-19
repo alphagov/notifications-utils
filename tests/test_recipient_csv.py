@@ -565,8 +565,19 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
         pytest.param('name', 'sms', marks=pytest.mark.xfail),
         pytest.param('email address', 'sms', marks=pytest.mark.xfail),
         pytest.param(
-            'address_line_1, address_line_2, address_line_3, address_line_4, address_line_5',
+            'address_line_1',
             'letter',
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            'address_line_1, address_line_2',
+            'letter',
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            'address_line_6, postcode',
+            'letter',
+            marks=pytest.mark.xfail,
         ),
         ('phone number', 'sms'),
         ('phone number,name', 'sms'),
@@ -576,6 +587,14 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
         ('email_address', 'email'),
         (
             'address_line_1, address_line_2, postcode',
+            'letter'
+        ),
+        (
+            'address_line_1, address_line_2, address_line_3',
+            'letter'
+        ),
+        (
+            'address_line_4, address_line_5, address_line_6',
             'letter'
         ),
         (
