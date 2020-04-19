@@ -501,7 +501,6 @@ def validate_recipient(recipient, template_type, international_sms=False):
     return {
         'email': validate_email_address,
         'sms': partial(validate_phone_number, international=international_sms),
-        'letter': lambda _: recipient,
     }[template_type](recipient)
 
 
