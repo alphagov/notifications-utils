@@ -38,7 +38,7 @@ first_column_headings = {
     ],
 }
 
-optional_address_columns = Columns.from_keys(first_column_headings['letter'])
+address_columns = Columns.from_keys(first_column_headings['letter'])
 
 
 class RecipientCSV():
@@ -261,7 +261,7 @@ class RecipientCSV():
             key for key in self.placeholders
             if (
                 Columns.make_key(key) not in self.column_headers_as_column_keys and
-                not self.is_optional_address_column(key)
+                not self.is_address_column(key)
             )
         )
 
@@ -280,9 +280,9 @@ class RecipientCSV():
             if raw_recipient_column_headers.count(Columns.make_key(column_header)) > 1
         ))
 
-    def is_optional_address_column(self, key):
+    def is_address_column(self, key):
         return (
-            self.template_type == 'letter' and key in optional_address_columns
+            self.template_type == 'letter' and key in address_columns
         )
 
     @property
@@ -298,7 +298,7 @@ class RecipientCSV():
 
     def _get_error_for_field(self, key, value):  # noqa: C901
 
-        if self.is_optional_address_column(key):
+        if self.is_address_column(key):
             return
 
         if Columns.make_key(key) in self.recipient_column_headers_as_column_keys:
