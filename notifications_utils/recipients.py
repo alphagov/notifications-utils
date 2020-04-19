@@ -14,7 +14,6 @@ from flask import current_app
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 from notifications_utils.formatters import (
-    normalise_whitespace,
     strip_and_remove_obscure_whitespace,
     strip_whitespace,
     OBSCURE_WHITESPACE
@@ -558,29 +557,3 @@ def insert_or_append_to_dict(dict_, key, value):
             dict_[key] = [dict_[key], value]
     else:
         dict_.update({key: value})
-
-
-def normalise_postcode(postcode):
-    return normalise_whitespace(postcode.upper().replace(" ", ""))
-
-
-def is_a_real_uk_postcode(postcode):
-    standard = r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"
-    bfpo = r"(BFPO?(C\/O)?[0-9]{1,4})"
-    girobank = r"(GIR0AA)"
-    pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
-
-    return bool(re.fullmatch(pattern, normalise_postcode(postcode)))
-
-
-def format_postcode_for_printing(postcode):
-    """
-        This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
-        :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
-    """
-    postcode = normalise_postcode(postcode)
-    if "BFPOC/O" in postcode:
-        return postcode[:4] + " C/O " + postcode[7:]
-    elif "BFPO" in postcode:
-        return postcode[:4] + " " + postcode[4:]
-    return postcode[:-3] + " " + postcode[-3:]

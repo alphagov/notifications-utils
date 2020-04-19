@@ -1,14 +1,13 @@
+import re
+
 from notifications_utils.countries import UK, Country, CountryNotFoundError
 from notifications_utils.countries.data import Postage
 from notifications_utils.formatters import (
     normalise_lines,
+    normalise_whitespace,
     remove_whitespace_before_punctuation,
 )
-from notifications_utils.recipients import (
-    is_a_real_uk_postcode,
-    first_column_headings,
-    format_postcode_for_printing,
-)
+from notifications_utils.recipients import first_column_headings
 
 
 address_lines_1_to_6_and_postcode_keys = [
@@ -128,3 +127,29 @@ class PostalAddress():
             and self.has_enough_lines
             and not self.has_too_many_lines
         )
+
+
+def normalise_postcode(postcode):
+    return normalise_whitespace(postcode.upper().replace(" ", ""))
+
+
+def is_a_real_uk_postcode(postcode):
+    standard = r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"
+    bfpo = r"(BFPO?(C\/O)?[0-9]{1,4})"
+    girobank = r"(GIR0AA)"
+    pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
+
+    return bool(re.fullmatch(pattern, normalise_postcode(postcode)))
+
+
+def format_postcode_for_printing(postcode):
+    """
+        This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
+        :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
+    """
+    postcode = normalise_postcode(postcode)
+    if "BFPOC/O" in postcode:
+        return postcode[:4] + " C/O " + postcode[7:]
+    elif "BFPO" in postcode:
+        return postcode[:4] + " " + postcode[4:]
+    return postcode[:-3] + " " + postcode[-3:]
