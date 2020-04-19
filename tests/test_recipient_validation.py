@@ -9,7 +9,6 @@ from notifications_utils.recipients import (
     format_recipient,
     get_international_phone_info,
     international_phone_info,
-    InvalidAddressError,
     InvalidEmailError,
     InvalidPhoneError,
     is_a_real_uk_postcode,
@@ -328,31 +327,16 @@ def test_validate_email_address_raises_for_invalid(email_address):
 
 
 @pytest.mark.parametrize('column', [
-    'address_line_1', 'AddressLine1',
-    'postcode', 'Postcode'
-])
-@pytest.mark.parametrize('contents', [
-    '', ' ', None
-])
-def test_validate_address_raises_for_missing_required_columns(column, contents):
-    with pytest.raises(InvalidAddressError) as e:
-        validate_recipient(contents, 'letter', column=column)
-    assert 'Missing' == str(e.value)
-
-
-@pytest.mark.parametrize('column', [
+    'address_line_1',
+    'address_line_2',
     'address_line_3',
     'address_line_4',
     'address_line_5',
     'address_line_6',
+    'postcode',
 ])
 def test_validate_address_doesnt_raise_for_missing_optional_columns(column):
-    assert validate_recipient('', 'letter', column=column) == ''
-
-
-def test_validate_address_raises_for_wrong_column():
-    with pytest.raises(TypeError):
-        validate_recipient('any', 'letter', column='email address')
+    assert validate_recipient('', 'letter') == ''
 
 
 @pytest.mark.parametrize('column', [
@@ -362,9 +346,10 @@ def test_validate_address_raises_for_wrong_column():
     'address_line_4',
     'address_line_5',
     'address_line_6',
+    'postcode',
 ])
-def test_validate_address_allows_any_non_empty_value_for_non_postcode(column):
-    assert validate_recipient('any', 'letter', column=column) == 'any'
+def test_validate_address_allows_any_non_empty_value_for_all_columns(column):
+    assert validate_recipient('any', 'letter') == 'any'
 
 
 @pytest.mark.parametrize('column', [
@@ -374,34 +359,16 @@ def test_validate_address_allows_any_non_empty_value_for_non_postcode(column):
     'address_line_4',
     'address_line_5',
     'address_line_6',
+    'postcode',
 ])
-def test_non_ascii_address_line_is_fine_for_non_postcode(column):
+def test_non_ascii_address_line_is_fine_for_all_columns(column):
     valid_address = u'\u041F\u0435\u0442\u044F'
-    assert validate_recipient(
-        valid_address, 'letter', column=column
-    ) == valid_address
-
-
-def test_validate_address_checks_postcode_is_real_uk_postcode(mocker):
-    is_a_real_uk_postcode_mock = mocker.patch('notifications_utils.recipients.is_a_real_uk_postcode')
-    is_a_real_uk_postcode_mock.return_value = True
-
-    assert validate_recipient('sw1 1aa', 'letter', column="postcode") == 'sw1 1aa'
-    assert is_a_real_uk_postcode_mock.called
-
-
-def test_validate_address_raises_if_postcode_is_not_real_uk_postcode(mocker):
-    is_a_real_uk_postcode_mock = mocker.patch('notifications_utils.recipients.is_a_real_uk_postcode')
-    is_a_real_uk_postcode_mock.return_value = False
-    with pytest.raises(InvalidAddressError) as e:
-        validate_recipient('90899', 'letter', column="postcode")
-    assert is_a_real_uk_postcode_mock.called
-    assert 'Not a real UK postcode' == str(e.value)
+    assert validate_recipient(valid_address, 'letter') == valid_address
 
 
 def test_valid_address_line_does_not_raise_error():
     invalid_address = u'Fran\u00e7oise'
-    assert validate_recipient(invalid_address, 'letter', column='address_line_1')
+    assert validate_recipient(invalid_address, 'letter')
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)

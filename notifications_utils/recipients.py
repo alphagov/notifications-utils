@@ -43,14 +43,7 @@ first_column_headings = {
     ],
 }
 
-optional_address_columns = {
-    'address line 3',
-    'address line 4',
-    'address line 5',
-    'address line 6',
-}
-
-required_address_columns = set(first_column_headings['letter']) - optional_address_columns
+optional_address_columns = Columns.from_keys(first_column_headings['letter'])
 
 
 class RecipientCSV():
@@ -294,8 +287,7 @@ class RecipientCSV():
 
     def is_optional_address_column(self, key):
         return (
-            self.template_type == 'letter'
-            and key in Columns.from_keys(optional_address_columns)
+            self.template_type == 'letter' and key in optional_address_columns
         )
 
     @property
@@ -329,10 +321,9 @@ class RecipientCSV():
                 validate_recipient(
                     value,
                     self.template_type,
-                    column=key,
                     international_sms=self.international_sms
                 )
-            except (InvalidEmailError, InvalidPhoneError, InvalidAddressError) as error:
+            except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
 
         if Columns.make_key(key) not in self.placeholders_as_column_keys:
@@ -516,24 +507,12 @@ def validate_and_format_email_address(email_address):
     return format_email_address(validate_email_address(email_address))
 
 
-def validate_address(address_line, column):
-    if column in Columns.from_keys(optional_address_columns):
-        return address_line
-    if column not in Columns.from_keys(first_column_headings['letter']):
-        raise TypeError
-    if not address_line or not strip_whitespace(address_line):
-        raise InvalidAddressError('Missing')
-    if Columns.make_key(column) == "postcode" and not is_a_real_uk_postcode(address_line):
-        raise InvalidAddressError('Not a real UK postcode')
-    return address_line
-
-
-def validate_recipient(recipient, template_type, column=None, international_sms=False):
+def validate_recipient(recipient, template_type, international_sms=False):
     return {
         'email': validate_email_address,
         'sms': partial(validate_phone_number, international=international_sms),
-        'letter': validate_address,
-    }[template_type](recipient, column)
+        'letter': lambda _: recipient,
+    }[template_type](recipient)
 
 
 @lru_cache(maxsize=32, typed=False)

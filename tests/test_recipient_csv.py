@@ -508,7 +508,7 @@ def test_get_recipient_respects_order(file_contents,
             """,
             'letter',
             ['address_line_1', 'address_line_2', 'name'],
-            set(['postcode'])
+            set()
         ),
         (
             """
@@ -541,10 +541,8 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
         pytest.param('name', 'sms', marks=pytest.mark.xfail),
         pytest.param('email address', 'sms', marks=pytest.mark.xfail),
         pytest.param(
-            # missing postcode
             'address_line_1, address_line_2, address_line_3, address_line_4, address_line_5',
             'letter',
-            marks=pytest.mark.xfail,
         ),
         ('phone number', 'sms'),
         ('phone number,name', 'sms'),
@@ -605,7 +603,7 @@ def test_recipient_column(content, file_contents, template_type):
                 name,          building,      street,        town,          county,        ,        today
             """,
             'letter',
-            {1}, {1}
+            {1}, set()
         ),
         (
             # not enough address fields
@@ -624,7 +622,7 @@ def test_recipient_column(content, file_contents, template_type):
                 name          ,              ,              ,              ,              ,SE1 7LS,today
             """,
             'letter',
-            {1}, {1}
+            {1}, set()
         ),
         (
             # Can use any address columns
