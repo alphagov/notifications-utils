@@ -7,14 +7,18 @@ from notifications_utils.formatters import (
     normalise_whitespace,
     remove_whitespace_before_punctuation,
 )
-from notifications_utils.recipients import first_column_headings
 
 
-address_lines_1_to_6_and_postcode_keys = [
+address_lines_1_to_6_keys = [
     # The API only accepts snake_case placeholders
-    line.replace(' ', '_') for line in first_column_headings['letter']
+    'address_line_1',
+    'address_line_2',
+    'address_line_3',
+    'address_line_4',
+    'address_line_5',
+    'address_line_6',
 ]
-address_lines_1_to_6_keys = address_lines_1_to_6_and_postcode_keys[:-1]
+address_lines_1_to_6_and_postcode_keys = address_lines_1_to_6_keys + ['postcode']
 address_line_7_key = 'address_line_7'
 
 

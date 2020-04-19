@@ -24,6 +24,7 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
+from notifications_utils.postal_address import address_lines_1_to_6_and_postcode_keys
 
 
 uk_prefix = '44'
@@ -32,13 +33,8 @@ first_column_headings = {
     'email': ['email address'],
     'sms': ['phone number'],
     'letter': [
-        'address line 1',
-        'address line 2',
-        'address line 3',
-        'address line 4',
-        'address line 5',
-        'address line 6',
-        'postcode',
+        line.replace('_', ' ')
+        for line in address_lines_1_to_6_and_postcode_keys
     ],
 }
 

@@ -6,7 +6,7 @@ from orderedset import OrderedSet
 from unittest.mock import Mock
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
-from notifications_utils.recipients import Cell, RecipientCSV, Row
+from notifications_utils.recipients import Cell, RecipientCSV, Row, first_column_headings
 from notifications_utils.template import (
     SMSMessageTemplate,
     EmailPreviewTemplate,
@@ -32,6 +32,30 @@ def _sample_template(template_type, content='foo'):
 
 def _index_rows(rows):
     return set(row.index for row in rows)
+
+
+@pytest.mark.parametrize('template_type, expected', (
+    ('email', ['email address']),
+    ('sms', ['phone number']),
+    ('letter', [
+        'address line 1',
+        'address line 2',
+        'address line 3',
+        'address line 4',
+        'address line 5',
+        'address line 6',
+        'postcode',
+    ]),
+))
+def test_recipient_column_headers(template_type, expected):
+    recipients = RecipientCSV("", template=_sample_template(template_type))
+    assert (
+        recipients.recipient_column_headers
+    ) == (
+        first_column_headings[template_type]
+    ) == (
+        expected
+    )
 
 
 @pytest.mark.parametrize(
