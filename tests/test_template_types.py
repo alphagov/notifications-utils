@@ -19,6 +19,7 @@ from notifications_utils.template import (
     LetterPreviewTemplate,
     LetterImageTemplate,
     PlainTextEmailTemplate,
+    SMSBodyPreviewTemplate,
     SMSMessageTemplate,
     SMSPreviewTemplate,
     EmailPreviewTemplate,
@@ -349,6 +350,7 @@ def test_markdown_in_templates(
         (HTMLEmailTemplate, 'email'),
         (EmailPreviewTemplate, 'email'),
         (SMSPreviewTemplate, 'sms'),
+        pytest.param(SMSBodyPreviewTemplate, 'sms', marks=pytest.mark.xfail),
     ]
 )
 @pytest.mark.parametrize(
@@ -519,15 +521,24 @@ def test_sms_message_preview_hides_sender_by_default():
 
 @mock.patch('notifications_utils.template.sms_encode', return_value='downgraded')
 @pytest.mark.parametrize(
-    'template_class', [SMSMessageTemplate, SMSPreviewTemplate]
+    'template_class, extra_args, expected_call', (
+        (SMSMessageTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
+        (SMSPreviewTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
+        (SMSBodyPreviewTemplate, {}, 'Message'),
+    )
 )
-def test_sms_messages_downgrade_non_sms(mock_sms_encode, template_class):
+def test_sms_messages_downgrade_non_sms(
+    mock_sms_encode,
+    template_class,
+    extra_args,
+    expected_call,
+):
     template = str(template_class(
         {'content': 'Message', 'template_type': 'sms'},
-        prefix='Service name',
+        **extra_args
     ))
     assert 'downgraded' in str(template)
-    mock_sms_encode.assert_called_once_with('Service name: Message')
+    mock_sms_encode.assert_called_once_with(expected_call)
 
 
 @mock.patch('notifications_utils.template.sms_encode', return_value='downgraded')
@@ -857,6 +868,7 @@ def test_letter_image_renderer_requires_arguments(partial_call, expected_excepti
 
 
 @pytest.mark.parametrize('template_class', (
+    SMSBodyPreviewTemplate,
     SMSMessageTemplate,
     SMSPreviewTemplate,
 ))
@@ -881,6 +893,7 @@ def test_subject_line_gets_applied_to_correct_template_types():
     ]:
         assert issubclass(cls, SubjectMixin)
     for cls in [
+        SMSBodyPreviewTemplate,
         SMSMessageTemplate,
         SMSPreviewTemplate,
     ]:
@@ -940,7 +953,10 @@ def test_character_count_for_non_sms_templates(
     assert template.content_count == expected_count
 
 
-@pytest.mark.parametrize('template_class', [SMSMessageTemplate, SMSPreviewTemplate])
+@pytest.mark.parametrize('template_class', [
+    SMSMessageTemplate,
+    SMSPreviewTemplate,
+])
 @pytest.mark.parametrize("content, values, prefix, expected_count_in_template, expected_count_in_notification", [
     # is an unsupported unicode character so should be replaced with a ?
     ("深", {}, None, 1, 1),
@@ -1106,6 +1122,9 @@ def test_is_message_empty_email_and_letter_templates(
         mock.call('((phone number))', {}, with_brackets=False, html='escape'),
         mock.call('content', {}, html='escape', redact_missing_personalisation=True),
     ]),
+    (SMSBodyPreviewTemplate, 'sms', {}, [
+        mock.call('content', {}, html='escape', redact_missing_personalisation=True),
+    ]),
     (LetterPreviewTemplate, 'letter', {'contact_block': 'www.gov.uk', 'redact_missing_personalisation': True}, [
         mock.call('subject', {}, html='escape', redact_missing_personalisation=True),
         mock.call('content', {}, html='escape', markdown_lists=True, redact_missing_personalisation=True),
@@ -1170,6 +1189,9 @@ def test_templates_handle_html_and_redacting(
     (SMSPreviewTemplate, 'sms', {}, [
         mock.call('content'),
     ]),
+    (SMSBodyPreviewTemplate, 'sms', {}, [
+        mock.call('content'),
+    ]),
     (LetterPreviewTemplate, 'letter', {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
         mock.call(Markup('<p>content</p>')),
@@ -1224,6 +1246,8 @@ def test_templates_remove_whitespace_before_punctuation(
     (SMSMessageTemplate, 'sms', {}, [
     ]),
     (SMSPreviewTemplate, 'sms', {}, [
+    ]),
+    (SMSBodyPreviewTemplate, 'sms', {}, [
     ]),
     (LetterPreviewTemplate, 'letter', {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
@@ -1295,6 +1319,12 @@ def test_smart_quotes_removed_from_long_template_in_under_a_second():
     ),
     (
         SMSPreviewTemplate(
+            {"content": "((content))", "subject": "((subject))", "template_type": "sms"},
+        ),
+        ['content'],
+    ),
+    (
+        SMSBodyPreviewTemplate(
             {"content": "((content))", "subject": "((subject))", "template_type": "sms"},
         ),
         ['content'],
@@ -2321,6 +2351,12 @@ def test_image_not_present_if_no_logo(template_class):
     ),
 ))
 @pytest.mark.parametrize('template_class, expected', (
+    (SMSBodyPreviewTemplate, (
+        'The quick brown fox.\n'
+        '\n'
+        'Jumps over the lazy dog.\n'
+        'Single linebreak above.'
+    )),
     (SMSMessageTemplate, (
         'The quick brown fox.\n'
         '\n'

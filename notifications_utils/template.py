@@ -238,6 +238,35 @@ class SMSMessageTemplate(BaseSMSTemplate):
         )
 
 
+class SMSBodyPreviewTemplate(BaseSMSTemplate):
+
+    def __init__(
+        self,
+        template,
+        values=None,
+    ):
+        super().__init__(template, values, show_prefix=False)
+
+    def __str__(self):
+
+        return Markup(Take(Field(
+            self.content,
+            self.values,
+            html='escape',
+            redact_missing_personalisation=True,
+        )).then(
+            sms_encode
+        ).then(
+            remove_whitespace_before_punctuation
+        ).then(
+            normalise_whitespace_and_newlines
+        ).then(
+            normalise_multiple_newlines
+        ).then(
+            str.strip
+        ))
+
+
 class SMSPreviewTemplate(BaseSMSTemplate):
 
     jinja_template = template_env.get_template('sms_preview_template.jinja2')
