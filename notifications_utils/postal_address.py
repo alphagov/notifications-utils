@@ -27,8 +27,9 @@ class PostalAddress():
     MIN_LINES = 3
     MAX_LINES = 7
 
-    def __init__(self, raw_address):
+    def __init__(self, raw_address, international_letters=False):
         self.raw_address = raw_address
+        self.international_letters = international_letters
 
     def __bool__(self):
         return bool(self.normalised)
@@ -37,14 +38,14 @@ class PostalAddress():
         return f'{self.__class__.__name__}({repr(self.raw_address)})'
 
     @classmethod
-    def from_personalisation(cls, personalisation_dict):
+    def from_personalisation(cls, personalisation_dict, international_letters=False):
         if address_line_7_key in personalisation_dict:
             keys = address_lines_1_to_6_keys + [address_line_7_key]
         else:
             keys = address_lines_1_to_6_and_postcode_keys
         return cls('\n'.join(
             str(personalisation_dict.get(key) or '') for key in keys
-        ))
+        ), international_letters=international_letters)
 
     @property
     def as_personalisation(self):
@@ -79,6 +80,12 @@ class PostalAddress():
     @property
     def has_valid_postcode(self):
         return self.postcode is not None
+
+    @property
+    def has_valid_last_line(self):
+        return self.has_valid_postcode or (
+            self.international_letters and self.international
+        )
 
     @property
     def international(self):
@@ -127,7 +134,7 @@ class PostalAddress():
     @property
     def valid(self):
         return (
-            self.postcode
+            self.has_valid_last_line
             and self.has_enough_lines
             and not self.has_too_many_lines
         )

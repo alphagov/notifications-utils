@@ -509,3 +509,137 @@ def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(m
 ])
 def test_format_postcode_for_printing(postcode, postcode_with_space):
     assert format_postcode_for_printing(postcode) == postcode_with_space
+
+
+@pytest.mark.parametrize('address, international, expected_valid', (
+    (
+        '''
+            UK address
+            Service can’t send internationally
+            SW1A 1AA
+        ''',
+        False,
+        True,
+    ),
+    (
+        '''
+            UK address
+            Service can send internationally
+            SW1A 1AA
+        ''',
+        True,
+        True,
+    ),
+    (
+        '''
+            Overseas address
+            Service can’t send internationally
+            Guinea-Bissau
+        ''',
+        False,
+        False,
+    ),
+    (
+        '''
+            Overseas address
+            Service can send internationally
+            Guinea-Bissau
+        ''',
+        True,
+        True,
+    ),
+    (
+        '''
+            Overly long address
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+        ''',
+        True,
+        False,
+    ),
+    (
+        '''
+            Address too short
+            2
+        ''',
+        True,
+        False,
+    ),
+    (
+        '''
+            No postcode or country
+            Service can’t send internationally
+            3
+        ''',
+        False,
+        False,
+    ),
+    (
+        '''
+            No postcode or country
+            Service can send internationally
+            3
+        ''',
+        True,
+        False,
+    ),
+))
+def test_valid_with_international_parameter(address, international, expected_valid):
+    postal_address = PostalAddress(
+        address,
+        international_letters=international,
+    )
+    assert postal_address.valid is expected_valid
+    assert postal_address.has_valid_last_line is expected_valid
+
+
+@pytest.mark.parametrize('address', (
+    '''
+        Too short, valid postcode
+        SW1A 1AA
+    ''',
+    '''
+        Too short, valid country
+        Bhutan
+    ''',
+    '''
+        Too long, valid postcode
+        2
+        3
+        4
+        5
+        6
+        7
+        SW1A 1AA
+    ''',
+    '''
+        Too long, valid country
+        2
+        3
+        4
+        5
+        6
+        7
+        Bhutan
+    ''',
+))
+def test_valid_last_line_too_short_too_long(address):
+    postal_address = PostalAddress(address, international_letters=True)
+    assert postal_address.valid is False
+    assert postal_address.has_valid_last_line is True
+
+
+@pytest.mark.parametrize('international, expected_valid', (
+    (False, False),
+    (True, True),
+))
+def test_valid_from_personalisation_with_international_parameter(international, expected_valid):
+    assert PostalAddress.from_personalisation(
+        {'address_line_1': 'A', 'address_line_2': 'B', 'address_line_3': 'Chad'},
+        international_letters=international,
+    ).valid is expected_valid
