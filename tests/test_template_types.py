@@ -993,25 +993,25 @@ def test_character_count_for_sms_templates(
     "msg, expected_sms_fragment_count",
     [
         ('à' * 71, 1),  # welsh character in GSM
-
         ('à' * 160, 1),
         ('à' * 161, 2),
-
         ('à' * 306, 2),
         ('à' * 307, 3),
-
         ('à' * 612, 4),
         ('à' * 613, 5),
+        ('à' * 765, 5),
+        ('à' * 766, 6),
+        ('à' * 918, 6),
+        ('à' * 919, 7),
 
         ('ÿ' * 70, 1),  # welsh character not in GSM, so send as unicode
         ('ÿ' * 71, 2),
-
         ('ÿ' * 134, 2),
         ('ÿ' * 135, 3),
-
         ('ÿ' * 268, 4),
         ('ÿ' * 269, 5),
-
+        ('ÿ' * 402, 6),
+        ('ÿ' * 403, 7),
         ('à' * 70 + 'ÿ', 2),  # just one non-gsm character means it's sent at unicode
         ('🚀' * 160, 1),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
     ])
@@ -2030,12 +2030,13 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
     SMSPreviewTemplate,
 ])
 def test_message_too_long_ignoring_prefix(template_class):
-    body = ('b' * 400) + '((foo))'
+    body = ('b' * 917) + '((foo))'
     template = template_class(
         {'content': body, 'template_type': 'sms'},
         prefix='a' * 100,
-        values={'foo': 'c' * 300}
+        values={'foo': 'cc'}
     )
+    # content length is prefix + 919 characters (more than limit of 918)
     assert template.is_message_too_long() is True
 
 
@@ -2044,12 +2045,13 @@ def test_message_too_long_ignoring_prefix(template_class):
     SMSPreviewTemplate,
 ])
 def test_message_is_not_too_long_ignoring_prefix(template_class):
-    body = ('b' * 400) + '((foo))'
+    body = ('b' * 917) + '((foo))'
     template = template_class(
         {'content': body, 'template_type': 'sms'},
         prefix='a' * 100,
-        values={'foo': 'c' * 100},
+        values={'foo': 'c'},
     )
+    # content length is prefix + 918 characters (not more than limit of 918)
     assert template.is_message_too_long() is False
 
 
