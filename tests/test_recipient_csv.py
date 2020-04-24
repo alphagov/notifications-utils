@@ -6,6 +6,7 @@ from orderedset import OrderedSet
 from unittest.mock import Mock
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
+from notifications_utils.countries import Country
 from notifications_utils.recipients import Cell, RecipientCSV, Row, first_column_headings
 from notifications_utils.template import (
     SMSMessageTemplate,
@@ -1149,3 +1150,26 @@ def test_multi_line_placeholders_work():
     )
 
     assert recipients.rows[0].personalisation['data'] == 'a\nb\n\nc'
+
+
+@pytest.mark.parametrize('extra_args, expected_errors, expected_bad_rows', (
+    ({}, True, {0}),
+    ({'international_letters': False}, True, {0}),
+    ({'international_letters': True}, False, set()),
+))
+def test_accepts_international_addresses_when_allowed(
+    extra_args, expected_errors, expected_bad_rows
+):
+    recipients = RecipientCSV(
+        """
+            address line 1, address line 2, address line 3
+            First Lastname, 123 Example St, Fiji
+            First Lastname, 123 Example St, SW1A 1AA
+        """,
+        template=_sample_template('letter'),
+        **extra_args
+    )
+    assert recipients.has_errors is expected_errors
+    assert _index_rows(recipients.rows_with_bad_recipients) == expected_bad_rows
+    # Prove that the error isn’t because the given country is unknown
+    assert recipients[0].as_postal_address.country == Country('Fiji')

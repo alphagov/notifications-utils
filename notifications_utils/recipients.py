@@ -54,6 +54,7 @@ class RecipientCSV():
         whitelist=None,
         remaining_messages=sys.maxsize,
         international_sms=False,
+        international_letters=False,
     ):
         self.file_data = strip_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
@@ -61,6 +62,7 @@ class RecipientCSV():
         self.whitelist = whitelist
         self.template = template
         self.international_sms = international_sms
+        self.international_letters = international_letters
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
 
@@ -192,6 +194,7 @@ class RecipientCSV():
                     recipient_column_headers=self.recipient_column_headers,
                     placeholders=self.placeholders_as_column_keys,
                     template=self.template,
+                    international_letters=self.international_letters,
                 )
             else:
                 yield None
