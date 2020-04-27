@@ -292,6 +292,9 @@ class RecipientCSV():
     @property
     def has_recipient_columns(self):
         return len(
+            # Work out which columns are shared between the possible
+            # letter address columns and the columns in the user’s
+            # spreadsheet (`&` means set intersection)
             self.recipient_column_headers_as_column_keys
             & self.column_headers_as_column_keys
         ) >= self.count_of_required_recipient_columns
