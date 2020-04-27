@@ -83,6 +83,7 @@ class Row(Columns):
 
         if template:
             template.values = row_dict
+            self.template_type = template.template_type
             self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
 
@@ -107,14 +108,17 @@ class Row(Columns):
 
     @property
     def has_bad_recipient(self):
-        return any(
-            self.get(recipient_column).recipient_error
-            for recipient_column in self.recipient_column_headers
-        )
+        if self.template_type == 'letter':
+            return self.has_bad_postal_address
+        return self.get(self.recipient_column_headers[0]).recipient_error
+
+    @property
+    def has_bad_postal_address(self):
+        return self.template_type == 'letter' and not self.as_postal_address.valid
 
     @property
     def has_error_spanning_multiple_cells(self):
-        return self.message_too_long or self.message_empty
+        return self.message_too_long or self.message_empty or self.has_bad_postal_address
 
     @property
     def has_missing_data(self):
@@ -129,6 +133,11 @@ class Row(Columns):
             self.get(column).data for column in self.recipient_column_headers
         ]
         return columns[0] if len(columns) == 1 else columns
+
+    @property
+    def as_postal_address(self):
+        from notifications_utils.postal_address import PostalAddress
+        return PostalAddress.from_personalisation(self.recipient_and_personalisation)
 
     @property
     def personalisation(self):

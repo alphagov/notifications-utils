@@ -14,7 +14,6 @@ from flask import current_app
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 from notifications_utils.formatters import (
-    normalise_whitespace,
     strip_and_remove_obscure_whitespace,
     strip_whitespace,
     OBSCURE_WHITESPACE
@@ -25,6 +24,7 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
+from notifications_utils.postal_address import address_lines_1_to_6_and_postcode_keys
 
 
 uk_prefix = '44'
@@ -33,24 +33,12 @@ first_column_headings = {
     'email': ['email address'],
     'sms': ['phone number'],
     'letter': [
-        'address line 1',
-        'address line 2',
-        'address line 3',
-        'address line 4',
-        'address line 5',
-        'address line 6',
-        'postcode',
+        line.replace('_', ' ')
+        for line in address_lines_1_to_6_and_postcode_keys
     ],
 }
 
-optional_address_columns = {
-    'address line 3',
-    'address line 4',
-    'address line 5',
-    'address line 6',
-}
-
-required_address_columns = set(first_column_headings['letter']) - optional_address_columns
+address_columns = Columns.from_keys(first_column_headings['letter'])
 
 
 class RecipientCSV():
@@ -60,22 +48,18 @@ class RecipientCSV():
     def __init__(
         self,
         file_data,
-        template_type=None,
-        placeholders=None,
+        template,
         max_errors_shown=20,
         max_initial_rows_shown=10,
         whitelist=None,
-        template=None,
         remaining_messages=sys.maxsize,
         international_sms=False,
     ):
         self.file_data = strip_whitespace(file_data, extra_characters=',')
-        self.template_type = template_type
-        self.placeholders = placeholders
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.whitelist = whitelist
-        self.template = template if isinstance(template, Template) else None
+        self.template = template
         self.international_sms = international_sms
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
@@ -100,6 +84,22 @@ class RecipientCSV():
             self._whitelist = []
 
     @property
+    def template(self):
+        return self._template
+
+    @template.setter
+    def template(self, value):
+        if not isinstance(value, Template):
+            raise TypeError(
+                'template must be an instance of '
+                'notifications_utils.template.Template'
+            )
+        self._template = value
+        self.template_type = self._template.template_type
+        self.recipient_column_headers = first_column_headings[self.template_type]
+        self.placeholders = self._template.placeholders
+
+    @property
     def placeholders(self):
         return self._placeholders
 
@@ -117,15 +117,6 @@ class RecipientCSV():
             Columns.make_key(placeholder)
             for placeholder in self.recipient_column_headers
         ]
-
-    @property
-    def template_type(self):
-        return self._template_type
-
-    @template_type.setter
-    def template_type(self, value):
-        self._template_type = value
-        self.recipient_column_headers = first_column_headings[self.template_type]
 
     @property
     def has_errors(self):
@@ -270,7 +261,7 @@ class RecipientCSV():
             key for key in self.placeholders
             if (
                 Columns.make_key(key) not in self.column_headers_as_column_keys and
-                not self.is_optional_address_column(key)
+                not self.is_address_column(key)
             )
         )
 
@@ -289,31 +280,28 @@ class RecipientCSV():
             if raw_recipient_column_headers.count(Columns.make_key(column_header)) > 1
         ))
 
-    def is_optional_address_column(self, key):
+    def is_address_column(self, key):
         return (
-            self.template_type == 'letter'
-            and key in Columns.from_keys(optional_address_columns)
+            self.template_type == 'letter' and key in address_columns
         )
 
     @property
-    def required_recipient_column_headers(self):
-        return set(
-            Columns.make_key(recipient_column)
-            for recipient_column in self.recipient_column_headers
-            if not self.is_optional_address_column(recipient_column)
-        )
+    def count_of_required_recipient_columns(self):
+        return 3 if self.template_type == 'letter' else 1
 
     @property
     def has_recipient_columns(self):
-        # `self.column_headers_as_column_keys` is an `OrderedSet`. We need
-        # to cast it to a set because `OrderedSet` has misleading
-        # behaviour when doing comparisions with `Set` objects.
-        # See: https://github.com/simonpercivall/orderedset/issues/25
-        return self.required_recipient_column_headers <= set(self.column_headers_as_column_keys)
+        return len(
+            # Work out which columns are shared between the possible
+            # letter address columns and the columns in the user’s
+            # spreadsheet (`&` means set intersection)
+            self.recipient_column_headers_as_column_keys
+            & self.column_headers_as_column_keys
+        ) >= self.count_of_required_recipient_columns
 
     def _get_error_for_field(self, key, value):  # noqa: C901
 
-        if self.is_optional_address_column(key):
+        if self.is_address_column(key):
             return
 
         if Columns.make_key(key) in self.recipient_column_headers_as_column_keys:
@@ -326,10 +314,9 @@ class RecipientCSV():
                 validate_recipient(
                     value,
                     self.template_type,
-                    column=key,
                     international_sms=self.international_sms
                 )
-            except (InvalidEmailError, InvalidPhoneError, InvalidAddressError) as error:
+            except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
 
         if Columns.make_key(key) not in self.placeholders_as_column_keys:
@@ -513,24 +500,11 @@ def validate_and_format_email_address(email_address):
     return format_email_address(validate_email_address(email_address))
 
 
-def validate_address(address_line, column):
-    if column in Columns.from_keys(optional_address_columns):
-        return address_line
-    if column not in Columns.from_keys(first_column_headings['letter']):
-        raise TypeError
-    if not address_line or not strip_whitespace(address_line):
-        raise InvalidAddressError('Missing')
-    if Columns.make_key(column) == "postcode" and not is_a_real_uk_postcode(address_line):
-        raise InvalidAddressError('Not a real UK postcode')
-    return address_line
-
-
-def validate_recipient(recipient, template_type, column=None, international_sms=False):
+def validate_recipient(recipient, template_type, international_sms=False):
     return {
         'email': validate_email_address,
         'sms': partial(validate_phone_number, international=international_sms),
-        'letter': validate_address,
-    }[template_type](recipient, column)
+    }[template_type](recipient)
 
 
 @lru_cache(maxsize=32, typed=False)
@@ -576,29 +550,3 @@ def insert_or_append_to_dict(dict_, key, value):
             dict_[key] = [dict_[key], value]
     else:
         dict_.update({key: value})
-
-
-def normalise_postcode(postcode):
-    return normalise_whitespace(postcode.upper().replace(" ", ""))
-
-
-def is_a_real_uk_postcode(postcode):
-    standard = r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"
-    bfpo = r"(BFPO?(C\/O)?[0-9]{1,4})"
-    girobank = r"(GIR0AA)"
-    pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
-
-    return bool(re.fullmatch(pattern, normalise_postcode(postcode)))
-
-
-def format_postcode_for_printing(postcode):
-    """
-        This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
-        :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
-    """
-    postcode = normalise_postcode(postcode)
-    if "BFPOC/O" in postcode:
-        return postcode[:4] + " C/O " + postcode[7:]
-    elif "BFPO" in postcode:
-        return postcode[:4] + " " + postcode[4:]
-    return postcode[:-3] + " " + postcode[-3:]
