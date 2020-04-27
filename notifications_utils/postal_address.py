@@ -83,9 +83,9 @@ class PostalAddress():
 
     @property
     def has_valid_last_line(self):
-        return self.has_valid_postcode or (
+        return (
             self.allow_international_letters and self.international
-        )
+        ) or self.has_valid_postcode
 
     @property
     def international(self):
