@@ -592,7 +592,7 @@ def test_format_postcode_for_printing(postcode, postcode_with_space):
 def test_valid_with_international_parameter(address, international, expected_valid):
     postal_address = PostalAddress(
         address,
-        international_letters=international,
+        allow_international_letters=international,
     )
     assert postal_address.valid is expected_valid
     assert postal_address.has_valid_last_line is expected_valid
@@ -629,7 +629,7 @@ def test_valid_with_international_parameter(address, international, expected_val
     ''',
 ))
 def test_valid_last_line_too_short_too_long(address):
-    postal_address = PostalAddress(address, international_letters=True)
+    postal_address = PostalAddress(address, allow_international_letters=True)
     assert postal_address.valid is False
     assert postal_address.has_valid_last_line is True
 
@@ -641,5 +641,5 @@ def test_valid_last_line_too_short_too_long(address):
 def test_valid_from_personalisation_with_international_parameter(international, expected_valid):
     assert PostalAddress.from_personalisation(
         {'address_line_1': 'A', 'address_line_2': 'B', 'address_line_3': 'Chad'},
-        international_letters=international,
+        allow_international_letters=international,
     ).valid is expected_valid

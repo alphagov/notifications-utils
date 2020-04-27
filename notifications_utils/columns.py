@@ -76,13 +76,13 @@ class Row(Columns):
         recipient_column_headers,
         placeholders,
         template,
-        international_letters,
+        allow_international_letters,
     ):
 
         self.index = index
         self.recipient_column_headers = recipient_column_headers
         self.placeholders = placeholders
-        self.international_letters = international_letters
+        self.allow_international_letters = allow_international_letters
 
         if template:
             template.values = row_dict
@@ -142,7 +142,7 @@ class Row(Columns):
         from notifications_utils.postal_address import PostalAddress
         return PostalAddress.from_personalisation(
             self.recipient_and_personalisation,
-            international_letters=self.international_letters,
+            allow_international_letters=self.allow_international_letters,
         )
 
     @property

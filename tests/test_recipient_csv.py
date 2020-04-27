@@ -681,7 +681,7 @@ def test_recipient_column(content, file_contents, template_type):
 )
 @pytest.mark.parametrize('partial_instance', [
     partial(RecipientCSV),
-    partial(RecipientCSV, international_sms=False),
+    partial(RecipientCSV, allow_international_sms=False),
 ])
 def test_bad_or_missing_data(
     file_contents, template_type, rows_with_bad_recipients, rows_with_missing_data, partial_instance
@@ -714,7 +714,11 @@ def test_bad_or_missing_data(
     ),
 ])
 def test_international_recipients(file_contents, rows_with_bad_recipients):
-    recipients = RecipientCSV(file_contents, template=_sample_template('sms'), international_sms=True)
+    recipients = RecipientCSV(
+        file_contents,
+        template=_sample_template('sms'),
+        allow_international_sms=True,
+    )
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
 
 
@@ -1018,7 +1022,7 @@ def test_multiple_sms_recipient_columns(international_sms):
             07900 900111, 07900 900222, 07900 900333, bar
         """,
         template=_sample_template('sms'),
-        international_sms=international_sms,
+        allow_international_sms=international_sms,
     )
     assert recipients.column_headers == ['phone number', 'phone_number', 'foo']
     assert recipients.column_headers_as_column_keys == dict(phonenumber='', foo='').keys()
@@ -1045,7 +1049,7 @@ def test_multiple_sms_recipient_columns_with_missing_data(column_name):
             "Joanna and Steve", 07900 900111
         """.format(column_name),
         template=_sample_template('sms'),
-        international_sms=True,
+        allow_international_sms=True,
     )
     expected_column_headers = ['names', 'phone number']
     if column_name != "phone number":
@@ -1154,8 +1158,8 @@ def test_multi_line_placeholders_work():
 
 @pytest.mark.parametrize('extra_args, expected_errors, expected_bad_rows', (
     ({}, True, {0}),
-    ({'international_letters': False}, True, {0}),
-    ({'international_letters': True}, False, set()),
+    ({'allow_international_letters': False}, True, {0}),
+    ({'allow_international_letters': True}, False, set()),
 ))
 def test_accepts_international_addresses_when_allowed(
     extra_args, expected_errors, expected_bad_rows

@@ -53,16 +53,16 @@ class RecipientCSV():
         max_initial_rows_shown=10,
         whitelist=None,
         remaining_messages=sys.maxsize,
-        international_sms=False,
-        international_letters=False,
+        allow_international_sms=False,
+        allow_international_letters=False,
     ):
         self.file_data = strip_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.whitelist = whitelist
         self.template = template
-        self.international_sms = international_sms
-        self.international_letters = international_letters
+        self.allow_international_sms = allow_international_sms
+        self.allow_international_letters = allow_international_letters
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
 
@@ -194,7 +194,7 @@ class RecipientCSV():
                     recipient_column_headers=self.recipient_column_headers,
                     placeholders=self.placeholders_as_column_keys,
                     template=self.template,
-                    international_letters=self.international_letters,
+                    allow_international_letters=self.allow_international_letters,
                 )
             else:
                 yield None
@@ -317,7 +317,7 @@ class RecipientCSV():
                 validate_recipient(
                     value,
                     self.template_type,
-                    international_sms=self.international_sms
+                    allow_international_sms=self.allow_international_sms
                 )
             except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
@@ -503,10 +503,10 @@ def validate_and_format_email_address(email_address):
     return format_email_address(validate_email_address(email_address))
 
 
-def validate_recipient(recipient, template_type, international_sms=False):
+def validate_recipient(recipient, template_type, allow_international_sms=False):
     return {
         'email': validate_email_address,
-        'sms': partial(validate_phone_number, international=international_sms),
+        'sms': partial(validate_phone_number, international=allow_international_sms),
     }[template_type](recipient)
 
 
