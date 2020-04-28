@@ -24,7 +24,11 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
-from notifications_utils.postal_address import address_lines_1_to_6_and_postcode_keys
+from notifications_utils.postal_address import (
+    address_line_7_key,
+    address_lines_1_to_6_and_postcode_keys,
+    address_lines_1_to_7_keys,
+)
 
 
 uk_prefix = '44'
@@ -34,7 +38,7 @@ first_column_headings = {
     'sms': ['phone number'],
     'letter': [
         line.replace('_', ' ')
-        for line in address_lines_1_to_6_and_postcode_keys
+        for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]
     ],
 }
 
@@ -294,13 +298,27 @@ class RecipientCSV():
 
     @property
     def has_recipient_columns(self):
-        return len(
-            # Work out which columns are shared between the possible
-            # letter address columns and the columns in the user’s
-            # spreadsheet (`&` means set intersection)
-            self.recipient_column_headers_as_column_keys
-            & self.column_headers_as_column_keys
-        ) >= self.count_of_required_recipient_columns
+
+        if self.template_type == 'letter':
+            sets_to_check = [
+                Columns.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
+                Columns.from_keys(address_lines_1_to_7_keys).keys(),
+            ]
+        else:
+            sets_to_check = [
+                self.recipient_column_headers_as_column_keys,
+            ]
+
+        for set_to_check in sets_to_check:
+            if len(
+                # Work out which columns are shared between the possible
+                # letter address columns and the columns in the user’s
+                # spreadsheet (`&` means set intersection)
+                set_to_check & self.column_headers_as_column_keys
+            ) >= self.count_of_required_recipient_columns:
+                return True
+
+        return False
 
     def _get_error_for_field(self, key, value):  # noqa: C901
 

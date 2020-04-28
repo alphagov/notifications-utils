@@ -20,6 +20,7 @@ address_lines_1_to_6_keys = [
 ]
 address_lines_1_to_6_and_postcode_keys = address_lines_1_to_6_keys + ['postcode']
 address_line_7_key = 'address_line_7'
+address_lines_1_to_7_keys = address_lines_1_to_6_keys + [address_line_7_key]
 
 
 class PostalAddress():

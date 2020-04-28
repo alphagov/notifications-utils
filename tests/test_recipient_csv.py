@@ -46,6 +46,7 @@ def _index_rows(rows):
         'address line 5',
         'address line 6',
         'postcode',
+        'address line 7',
     ]),
 ))
 def test_recipient_column_headers(template_type, expected):
@@ -580,6 +581,11 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
             'letter',
             marks=pytest.mark.xfail,
         ),
+        pytest.param(
+            'address_line_1, postcode, address_line_7',
+            'letter',
+            marks=pytest.mark.xfail,
+        ),
         ('phone number', 'sms'),
         ('phone number,name', 'sms'),
         ('email address', 'email'),
@@ -588,6 +594,10 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
         ('email_address', 'email'),
         (
             'address_line_1, address_line_2, postcode',
+            'letter'
+        ),
+        (
+            'address_line_1, address_line_2, address_line_7',
             'letter'
         ),
         (
