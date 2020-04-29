@@ -33,6 +33,7 @@ def test_missing_data():
         recipient_column_headers=[],
         placeholders=[],
         template=None,
+        allow_international_letters=False,
     )
     with pytest.raises(KeyError):
         Columns({})['foo']

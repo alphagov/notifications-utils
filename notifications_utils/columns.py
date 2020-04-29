@@ -70,16 +70,19 @@ class Row(Columns):
     def __init__(
         self,
         row_dict,
+        *,
         index,
         error_fn,
         recipient_column_headers,
         placeholders,
         template,
+        allow_international_letters,
     ):
 
         self.index = index
         self.recipient_column_headers = recipient_column_headers
         self.placeholders = placeholders
+        self.allow_international_letters = allow_international_letters
 
         if template:
             template.values = row_dict
@@ -137,7 +140,10 @@ class Row(Columns):
     @property
     def as_postal_address(self):
         from notifications_utils.postal_address import PostalAddress
-        return PostalAddress.from_personalisation(self.recipient_and_personalisation)
+        return PostalAddress.from_personalisation(
+            self.recipient_and_personalisation,
+            allow_international_letters=self.allow_international_letters,
+        )
 
     @property
     def personalisation(self):

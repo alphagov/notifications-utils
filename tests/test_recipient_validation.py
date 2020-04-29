@@ -232,7 +232,7 @@ def test_get_international_info_raises(phone_number):
 @pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
 @pytest.mark.parametrize("validator", [
     partial(validate_recipient, template_type='sms'),
-    partial(validate_recipient, template_type='sms', international_sms=False),
+    partial(validate_recipient, template_type='sms', allow_international_sms=False),
     partial(validate_phone_number),
     partial(validate_phone_number, international=False),
 ])
@@ -245,7 +245,7 @@ def test_phone_number_accepts_valid_values(validator, phone_number):
 
 @pytest.mark.parametrize("phone_number", valid_phone_numbers)
 @pytest.mark.parametrize("validator", [
-    partial(validate_recipient, template_type='sms', international_sms=True),
+    partial(validate_recipient, template_type='sms', allow_international_sms=True),
     partial(validate_phone_number, international=True),
 ])
 def test_phone_number_accepts_valid_international_values(validator, phone_number):
@@ -277,7 +277,7 @@ def test_valid_international_phone_number_can_be_formatted_consistently(phone_nu
 @pytest.mark.parametrize("phone_number, error_message", invalid_uk_phone_numbers)
 @pytest.mark.parametrize("validator", [
     partial(validate_recipient, template_type='sms'),
-    partial(validate_recipient, template_type='sms', international_sms=False),
+    partial(validate_recipient, template_type='sms', allow_international_sms=False),
     partial(validate_phone_number),
     partial(validate_phone_number, international=False),
 ])
@@ -289,7 +289,7 @@ def test_phone_number_rejects_invalid_values(validator, phone_number, error_mess
 
 @pytest.mark.parametrize("phone_number, error_message", invalid_phone_numbers)
 @pytest.mark.parametrize("validator", [
-    partial(validate_recipient, template_type='sms', international_sms=True),
+    partial(validate_recipient, template_type='sms', allow_international_sms=True),
     partial(validate_phone_number, international=True),
 ])
 def test_phone_number_rejects_invalid_international_values(validator, phone_number, error_message):

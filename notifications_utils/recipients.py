@@ -24,7 +24,11 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
-from notifications_utils.postal_address import address_lines_1_to_6_and_postcode_keys
+from notifications_utils.postal_address import (
+    address_line_7_key,
+    address_lines_1_to_6_and_postcode_keys,
+    address_lines_1_to_7_keys,
+)
 
 
 uk_prefix = '44'
@@ -34,7 +38,7 @@ first_column_headings = {
     'sms': ['phone number'],
     'letter': [
         line.replace('_', ' ')
-        for line in address_lines_1_to_6_and_postcode_keys
+        for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]
     ],
 }
 
@@ -53,14 +57,16 @@ class RecipientCSV():
         max_initial_rows_shown=10,
         whitelist=None,
         remaining_messages=sys.maxsize,
-        international_sms=False,
+        allow_international_sms=False,
+        allow_international_letters=False,
     ):
         self.file_data = strip_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.whitelist = whitelist
         self.template = template
-        self.international_sms = international_sms
+        self.allow_international_sms = allow_international_sms
+        self.allow_international_letters = allow_international_letters
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
 
@@ -192,6 +198,7 @@ class RecipientCSV():
                     recipient_column_headers=self.recipient_column_headers,
                     placeholders=self.placeholders_as_column_keys,
                     template=self.template,
+                    allow_international_letters=self.allow_international_letters,
                 )
             else:
                 yield None
@@ -291,13 +298,27 @@ class RecipientCSV():
 
     @property
     def has_recipient_columns(self):
-        return len(
-            # Work out which columns are shared between the possible
-            # letter address columns and the columns in the user’s
-            # spreadsheet (`&` means set intersection)
-            self.recipient_column_headers_as_column_keys
-            & self.column_headers_as_column_keys
-        ) >= self.count_of_required_recipient_columns
+
+        if self.template_type == 'letter':
+            sets_to_check = [
+                Columns.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
+                Columns.from_keys(address_lines_1_to_7_keys).keys(),
+            ]
+        else:
+            sets_to_check = [
+                self.recipient_column_headers_as_column_keys,
+            ]
+
+        for set_to_check in sets_to_check:
+            if len(
+                # Work out which columns are shared between the possible
+                # letter address columns and the columns in the user’s
+                # spreadsheet (`&` means set intersection)
+                set_to_check & self.column_headers_as_column_keys
+            ) >= self.count_of_required_recipient_columns:
+                return True
+
+        return False
 
     def _get_error_for_field(self, key, value):  # noqa: C901
 
@@ -314,7 +335,7 @@ class RecipientCSV():
                 validate_recipient(
                     value,
                     self.template_type,
-                    international_sms=self.international_sms
+                    allow_international_sms=self.allow_international_sms
                 )
             except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
@@ -500,10 +521,10 @@ def validate_and_format_email_address(email_address):
     return format_email_address(validate_email_address(email_address))
 
 
-def validate_recipient(recipient, template_type, international_sms=False):
+def validate_recipient(recipient, template_type, allow_international_sms=False):
     return {
         'email': validate_email_address,
-        'sms': partial(validate_phone_number, international=international_sms),
+        'sms': partial(validate_phone_number, international=allow_international_sms),
     }[template_type](recipient)
 
 

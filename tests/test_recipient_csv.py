@@ -6,6 +6,7 @@ from orderedset import OrderedSet
 from unittest.mock import Mock
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
+from notifications_utils.countries import Country
 from notifications_utils.recipients import Cell, RecipientCSV, Row, first_column_headings
 from notifications_utils.template import (
     SMSMessageTemplate,
@@ -45,6 +46,7 @@ def _index_rows(rows):
         'address line 5',
         'address line 6',
         'postcode',
+        'address line 7',
     ]),
 ))
 def test_recipient_column_headers(template_type, expected):
@@ -579,6 +581,11 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
             'letter',
             marks=pytest.mark.xfail,
         ),
+        pytest.param(
+            'address_line_1, postcode, address_line_7',
+            'letter',
+            marks=pytest.mark.xfail,
+        ),
         ('phone number', 'sms'),
         ('phone number,name', 'sms'),
         ('email address', 'email'),
@@ -587,6 +594,10 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
         ('email_address', 'email'),
         (
             'address_line_1, address_line_2, postcode',
+            'letter'
+        ),
+        (
+            'address_line_1, address_line_2, address_line_7',
             'letter'
         ),
         (
@@ -680,7 +691,7 @@ def test_recipient_column(content, file_contents, template_type):
 )
 @pytest.mark.parametrize('partial_instance', [
     partial(RecipientCSV),
-    partial(RecipientCSV, international_sms=False),
+    partial(RecipientCSV, allow_international_sms=False),
 ])
 def test_bad_or_missing_data(
     file_contents, template_type, rows_with_bad_recipients, rows_with_missing_data, partial_instance
@@ -713,7 +724,11 @@ def test_bad_or_missing_data(
     ),
 ])
 def test_international_recipients(file_contents, rows_with_bad_recipients):
-    recipients = RecipientCSV(file_contents, template=_sample_template('sms'), international_sms=True)
+    recipients = RecipientCSV(
+        file_contents,
+        template=_sample_template('sms'),
+        allow_international_sms=True,
+    )
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
 
 
@@ -1017,7 +1032,7 @@ def test_multiple_sms_recipient_columns(international_sms):
             07900 900111, 07900 900222, 07900 900333, bar
         """,
         template=_sample_template('sms'),
-        international_sms=international_sms,
+        allow_international_sms=international_sms,
     )
     assert recipients.column_headers == ['phone number', 'phone_number', 'foo']
     assert recipients.column_headers_as_column_keys == dict(phonenumber='', foo='').keys()
@@ -1044,7 +1059,7 @@ def test_multiple_sms_recipient_columns_with_missing_data(column_name):
             "Joanna and Steve", 07900 900111
         """.format(column_name),
         template=_sample_template('sms'),
-        international_sms=True,
+        allow_international_sms=True,
     )
     expected_column_headers = ['names', 'phone number']
     if column_name != "phone number":
@@ -1149,3 +1164,26 @@ def test_multi_line_placeholders_work():
     )
 
     assert recipients.rows[0].personalisation['data'] == 'a\nb\n\nc'
+
+
+@pytest.mark.parametrize('extra_args, expected_errors, expected_bad_rows', (
+    ({}, True, {0}),
+    ({'allow_international_letters': False}, True, {0}),
+    ({'allow_international_letters': True}, False, set()),
+))
+def test_accepts_international_addresses_when_allowed(
+    extra_args, expected_errors, expected_bad_rows
+):
+    recipients = RecipientCSV(
+        """
+            address line 1, address line 2, address line 3
+            First Lastname, 123 Example St, Fiji
+            First Lastname, 123 Example St, SW1A 1AA
+        """,
+        template=_sample_template('letter'),
+        **extra_args
+    )
+    assert recipients.has_errors is expected_errors
+    assert _index_rows(recipients.rows_with_bad_recipients) == expected_bad_rows
+    # Prove that the error isn’t because the given country is unknown
+    assert recipients[0].as_postal_address.country == Country('Fiji')
