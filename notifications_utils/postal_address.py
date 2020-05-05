@@ -128,6 +128,8 @@ class PostalAddress():
 
     @property
     def postcode(self):
+        if self.international:
+            return None
         last_line = self._lines_without_country[-1]
         if is_a_real_uk_postcode(last_line):
             return format_postcode_for_printing(last_line)
