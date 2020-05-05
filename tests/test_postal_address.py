@@ -196,6 +196,14 @@ def test_has_too_many_lines(address, too_many_lines_expected):
         ''',
         None,
     ),
+    (
+        '''
+        123 Example Straße
+        SW1A 1AA
+        Deutschland
+        ''',
+        None,
+    ),
 ))
 def test_postcode(address, expected_postcode):
     assert PostalAddress(address).has_valid_postcode is bool(expected_postcode)
@@ -586,6 +594,16 @@ def test_format_postcode_for_printing(postcode, postcode_with_space):
             3
         ''',
         True,
+        False,
+    ),
+    (
+        '''
+            Postcode and country
+            Service can’t send internationally
+            SW1 1AA
+            France
+        ''',
+        False,
         False,
     ),
 ))
