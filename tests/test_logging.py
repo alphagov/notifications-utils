@@ -62,15 +62,13 @@ def test_should_build_complete_statsd_line():
 
 
 def test_should_build_complete_statsd_line_without_service_id_prefix_for_admin_api_calls():
-    service_id = uuid.uuid4()
     extra_fields = {
         'method': "method",
         'endpoint': "endpoint",
         'status': 200,
         'service_id': 'notify-admin'
     }
-    assert "notify-admin.method.endpoint.200".format(
-        service_id=str(service_id)) == logging.build_statsd_line(extra_fields)
+    assert "notify-admin.method.endpoint.200" == logging.build_statsd_line(extra_fields)
 
 
 def test_should_build_complete_statsd_line_ignoring_missing_fields():
