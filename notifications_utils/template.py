@@ -36,7 +36,9 @@ from notifications_utils.formatters import (
     normalise_multiple_newlines,
     remove_smart_quotes_from_email_addresses,
     strip_unsupported_characters,
+    formatted_list,
 )
+from notifications_utils.countries.data import Postage
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 from notifications_utils.sanitise_text import SanitiseSMS
@@ -654,6 +656,12 @@ class LetterImageTemplate(BaseLetterTemplate):
 
     jinja_template = template_env.get_template('letter_image_template.jinja2')
     first_page_number = 1
+    allowed_postage_types = (
+        Postage.FIRST,
+        Postage.SECOND,
+        Postage.EUROPE,
+        Postage.REST_OF_WORLD,
+    )
 
     def __init__(
         self,
@@ -669,8 +677,13 @@ class LetterImageTemplate(BaseLetterTemplate):
             raise TypeError('image_url is required')
         if not page_count:
             raise TypeError('page_count is required')
-        if postage not in {None, 'first', 'second'}:
-            raise TypeError('postage must be `None`, first or second')
+        if postage not in [None] + list(self.allowed_postage_types):
+            raise TypeError('postage must be None, {}'.format(formatted_list(
+                self.allowed_postage_types,
+                conjunction='or',
+                before_each='\'',
+                after_each='\'',
+            )))
         self.image_url = image_url
         self.page_count = int(page_count)
         self.postage = postage
@@ -683,6 +696,24 @@ class LetterImageTemplate(BaseLetterTemplate):
     def page_numbers(self):
         return list(range(self.first_page_number, self.last_page_number))
 
+    @property
+    def postage_description(self):
+        return {
+            Postage.FIRST: 'first class',
+            Postage.SECOND: 'second class',
+            Postage.EUROPE: 'international',
+            Postage.REST_OF_WORLD: 'international',
+        }.get(self.postage)
+
+    @property
+    def postage_class_value(self):
+        return {
+            Postage.FIRST: 'letter-postage-first',
+            Postage.SECOND: 'letter-postage-second',
+            Postage.EUROPE: 'letter-postage-international',
+            Postage.REST_OF_WORLD: 'letter-postage-international',
+        }.get(self.postage)
+
     def __str__(self):
         return Markup(self.jinja_template.render({
             'image_url': self.image_url,
@@ -692,7 +723,9 @@ class LetterImageTemplate(BaseLetterTemplate):
             'date': self._date,
             'subject': self.subject,
             'message': self._message,
-            'postage': self.postage,
+            'show_postage': bool(self.postage),
+            'postage_description': self.postage_description,
+            'postage_class_value': self.postage_class_value,
         }))
 
 

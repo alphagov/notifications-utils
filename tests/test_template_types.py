@@ -764,20 +764,30 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     ),
 ])
-@pytest.mark.parametrize('postage_args, expected_postage', (
-    pytest.param({}, None),
-    pytest.param({'postage': None}, None),
-    pytest.param({'postage': 'first'}, 'first'),
-    pytest.param({'postage': 'second'}, 'second'),
-    pytest.param({'postage': 'third'}, 'third', marks=pytest.mark.xfail(raises=TypeError)),
-))
+@pytest.mark.parametrize(
+    'postage_args, expected_show_postage, expected_postage_class_value, expected_postage_description',
+    (
+        pytest.param({}, False, None, None),
+        pytest.param({'postage': None}, False, None, None),
+        pytest.param({'postage': 'first'}, True, 'letter-postage-first', 'first class'),
+        pytest.param({'postage': 'second'}, True, 'letter-postage-second', 'second class'),
+        pytest.param({'postage': 'europe'}, True, 'letter-postage-international', 'international'),
+        pytest.param({'postage': 'rest-of-world'}, True, 'letter-postage-international', 'international'),
+        pytest.param(
+            {'postage': 'third'}, True, 'letter-postage-third', 'third class',
+            marks=pytest.mark.xfail(raises=TypeError),
+        ),
+    ),
+)
 def test_letter_image_renderer(
     jinja_template,
     page_count,
     expected_page_numbers,
     expected_oversized,
     postage_args,
-    expected_postage,
+    expected_show_postage,
+    expected_postage_class_value,
+    expected_postage_description,
 ):
     str(LetterImageTemplate(
         {'content': 'Content', 'subject': 'Subject', 'template_type': 'letter'},
@@ -802,7 +812,9 @@ def test_letter_image_renderer(
         'date': '12 December 2012',
         'subject': 'Subject',
         'message': '<p>Content</p>',
-        'postage': expected_postage,
+        'show_postage': expected_show_postage,
+        'postage_class_value': expected_postage_class_value,
+        'postage_description': expected_postage_description,
     })
 
 
@@ -844,27 +856,85 @@ def test_letter_image_renderer_pagination(page_image_url):
     ))
 
 
-@pytest.mark.parametrize('partial_call, expected_exception', [
+@pytest.mark.parametrize('partial_call, expected_exception, expected_message', [
     (
         partial(LetterImageTemplate),
-        TypeError
+        TypeError,
+        'image_url is required',
     ),
     (
         partial(LetterImageTemplate, page_count=1),
-        TypeError
+        TypeError,
+        'image_url is required',
     ),
     (
         partial(LetterImageTemplate, image_url='foo'),
-        TypeError
+        TypeError,
+        'page_count is required',
     ),
     (
         partial(LetterImageTemplate, image_url='foo', page_count='foo'),
-        ValueError
+        ValueError,
+        'invalid literal for int() with base 10: \'foo\'',
+    ),
+    (
+        partial(LetterImageTemplate, image_url='foo', page_count=1, postage='third'),
+        TypeError,
+        'postage must be None, \'first\', \'second\', \'europe\' or \'rest-of-world\''
     ),
 ])
-def test_letter_image_renderer_requires_arguments(partial_call, expected_exception):
-    with pytest.raises(expected_exception):
+def test_letter_image_renderer_requires_arguments(
+    partial_call,
+    expected_exception,
+    expected_message,
+):
+    with pytest.raises(expected_exception) as exception:
         partial_call({'content': '', 'subject': '', 'template_type': 'letter'})
+    assert str(exception.value) == expected_message
+
+
+@pytest.mark.parametrize('postage, expected_attribute_value, expected_postage_text', (
+    (None, None, None),
+    (
+        'first',
+        ['letter-postage', 'letter-postage-first'],
+        'Postage: first class',
+    ),
+    (
+        'second',
+        ['letter-postage', 'letter-postage-second'],
+        'Postage: second class',
+    ),
+    (
+        'europe',
+        ['letter-postage', 'letter-postage-international'],
+        'Postage: international',
+    ),
+    (
+        'rest-of-world',
+        ['letter-postage', 'letter-postage-international'],
+        'Postage: international',
+    ),
+))
+def test_letter_image_renderer_passes_postage_to_html_attribute(
+    postage,
+    expected_attribute_value,
+    expected_postage_text,
+):
+    template = BeautifulSoup(
+        str(LetterImageTemplate(
+            {'content': '', 'subject': '', 'template_type': 'letter'},
+            image_url='foo',
+            page_count=1,
+            postage=postage,
+        )),
+        features='html.parser',
+    )
+    if expected_attribute_value:
+        assert template.select_one('.letter-postage')['class'] == expected_attribute_value
+        assert template.select_one('.letter-postage').text.strip() == expected_postage_text
+    else:
+        assert not template.select('.letter-postage')
 
 
 @pytest.mark.parametrize('template_class', (
