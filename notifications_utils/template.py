@@ -694,6 +694,20 @@ class LetterImageTemplate(BaseLetterTemplate):
     def page_numbers(self):
         return list(range(self.first_page_number, self.last_page_number))
 
+    @property
+    def postage_description(self):
+        return {
+            Postage.FIRST: 'first class',
+            Postage.SECOND: 'second class',
+        }.get(self.postage)
+
+    @property
+    def postage_class_value(self):
+        return {
+            Postage.FIRST: 'letter-postage-first',
+            Postage.SECOND: 'letter-postage-second',
+        }.get(self.postage)
+
     def __str__(self):
         return Markup(self.jinja_template.render({
             'image_url': self.image_url,
@@ -703,7 +717,9 @@ class LetterImageTemplate(BaseLetterTemplate):
             'date': self._date,
             'subject': self.subject,
             'message': self._message,
-            'postage': self.postage,
+            'show_postage': bool(self.postage),
+            'postage_description': self.postage_description,
+            'postage_class_value': self.postage_class_value,
         }))
 
 

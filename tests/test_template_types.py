@@ -764,20 +764,28 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     ),
 ])
-@pytest.mark.parametrize('postage_args, expected_postage', (
-    pytest.param({}, None),
-    pytest.param({'postage': None}, None),
-    pytest.param({'postage': 'first'}, 'first'),
-    pytest.param({'postage': 'second'}, 'second'),
-    pytest.param({'postage': 'third'}, 'third', marks=pytest.mark.xfail(raises=TypeError)),
-))
+@pytest.mark.parametrize(
+    'postage_args, expected_show_postage, expected_postage_class_value, expected_postage_description',
+    (
+        pytest.param({}, False, None, None),
+        pytest.param({'postage': None}, False, None, None),
+        pytest.param({'postage': 'first'}, True, 'letter-postage-first', 'first class'),
+        pytest.param({'postage': 'second'}, True, 'letter-postage-second', 'second class'),
+        pytest.param(
+            {'postage': 'third'}, True, 'letter-postage-third', 'third class',
+            marks=pytest.mark.xfail(raises=TypeError),
+        ),
+    ),
+)
 def test_letter_image_renderer(
     jinja_template,
     page_count,
     expected_page_numbers,
     expected_oversized,
     postage_args,
-    expected_postage,
+    expected_show_postage,
+    expected_postage_class_value,
+    expected_postage_description,
 ):
     str(LetterImageTemplate(
         {'content': 'Content', 'subject': 'Subject', 'template_type': 'letter'},
@@ -802,7 +810,9 @@ def test_letter_image_renderer(
         'date': '12 December 2012',
         'subject': 'Subject',
         'message': '<p>Content</p>',
-        'postage': expected_postage,
+        'show_postage': expected_show_postage,
+        'postage_class_value': expected_postage_class_value,
+        'postage_description': expected_postage_description,
     })
 
 
