@@ -867,6 +867,40 @@ def test_letter_image_renderer_requires_arguments(partial_call, expected_excepti
         partial_call({'content': '', 'subject': '', 'template_type': 'letter'})
 
 
+@pytest.mark.parametrize('postage, expected_attribute_value, expected_postage_text', (
+    (None, None, None),
+    (
+        'first',
+        ['letter-postage', 'letter-postage-first'],
+        'Postage: first class',
+    ),
+    (
+        'second',
+        ['letter-postage', 'letter-postage-second'],
+        'Postage: second class',
+    ),
+))
+def test_letter_image_renderer_passes_postage_to_html_attribute(
+    postage,
+    expected_attribute_value,
+    expected_postage_text,
+):
+    template = BeautifulSoup(
+        str(LetterImageTemplate(
+            {'content': '', 'subject': '', 'template_type': 'letter'},
+            image_url='foo',
+            page_count=1,
+            postage=postage,
+        )),
+        features='html.parser',
+    )
+    if expected_attribute_value:
+        assert template.select_one('.letter-postage')['class'] == expected_attribute_value
+        assert template.select_one('.letter-postage').text.strip() == expected_postage_text
+    else:
+        assert not template.select('.letter-postage')
+
+
 @pytest.mark.parametrize('template_class', (
     SMSBodyPreviewTemplate,
     SMSMessageTemplate,
