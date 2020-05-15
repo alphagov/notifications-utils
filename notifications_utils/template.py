@@ -659,6 +659,8 @@ class LetterImageTemplate(BaseLetterTemplate):
     allowed_postage_types = (
         Postage.FIRST,
         Postage.SECOND,
+        Postage.EUROPE,
+        Postage.REST_OF_WORLD,
     )
 
     def __init__(
@@ -699,6 +701,8 @@ class LetterImageTemplate(BaseLetterTemplate):
         return {
             Postage.FIRST: 'first class',
             Postage.SECOND: 'second class',
+            Postage.EUROPE: 'international',
+            Postage.REST_OF_WORLD: 'international',
         }.get(self.postage)
 
     @property
@@ -706,6 +710,8 @@ class LetterImageTemplate(BaseLetterTemplate):
         return {
             Postage.FIRST: 'letter-postage-first',
             Postage.SECOND: 'letter-postage-second',
+            Postage.EUROPE: 'letter-postage-international',
+            Postage.REST_OF_WORLD: 'letter-postage-international',
         }.get(self.postage)
 
     def __str__(self):

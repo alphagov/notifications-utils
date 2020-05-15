@@ -771,6 +771,8 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
         pytest.param({'postage': None}, False, None, None),
         pytest.param({'postage': 'first'}, True, 'letter-postage-first', 'first class'),
         pytest.param({'postage': 'second'}, True, 'letter-postage-second', 'second class'),
+        pytest.param({'postage': 'europe'}, True, 'letter-postage-international', 'international'),
+        pytest.param({'postage': 'rest-of-world'}, True, 'letter-postage-international', 'international'),
         pytest.param(
             {'postage': 'third'}, True, 'letter-postage-third', 'third class',
             marks=pytest.mark.xfail(raises=TypeError),
@@ -878,7 +880,7 @@ def test_letter_image_renderer_pagination(page_image_url):
     (
         partial(LetterImageTemplate, image_url='foo', page_count=1, postage='third'),
         TypeError,
-        'postage must be None, \'first\' or \'second\'',
+        'postage must be None, \'first\', \'second\', \'europe\' or \'rest-of-world\''
     ),
 ])
 def test_letter_image_renderer_requires_arguments(
@@ -902,6 +904,16 @@ def test_letter_image_renderer_requires_arguments(
         'second',
         ['letter-postage', 'letter-postage-second'],
         'Postage: second class',
+    ),
+    (
+        'europe',
+        ['letter-postage', 'letter-postage-international'],
+        'Postage: international',
+    ),
+    (
+        'rest-of-world',
+        ['letter-postage', 'letter-postage-international'],
+        'Postage: international',
     ),
 ))
 def test_letter_image_renderer_passes_postage_to_html_attribute(
