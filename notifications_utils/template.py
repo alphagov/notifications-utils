@@ -36,7 +36,9 @@ from notifications_utils.formatters import (
     normalise_multiple_newlines,
     remove_smart_quotes_from_email_addresses,
     strip_unsupported_characters,
+    formatted_list,
 )
+from notifications_utils.countries.data import Postage
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 from notifications_utils.sanitise_text import SanitiseSMS
@@ -654,6 +656,10 @@ class LetterImageTemplate(BaseLetterTemplate):
 
     jinja_template = template_env.get_template('letter_image_template.jinja2')
     first_page_number = 1
+    allowed_postage_types = (
+        Postage.FIRST,
+        Postage.SECOND,
+    )
 
     def __init__(
         self,
@@ -669,8 +675,13 @@ class LetterImageTemplate(BaseLetterTemplate):
             raise TypeError('image_url is required')
         if not page_count:
             raise TypeError('page_count is required')
-        if postage not in {None, 'first', 'second'}:
-            raise TypeError('postage must be `None`, first or second')
+        if postage not in [None] + list(self.allowed_postage_types):
+            raise TypeError('postage must be None, {}'.format(formatted_list(
+                self.allowed_postage_types,
+                conjunction='or',
+                before_each='\'',
+                after_each='\'',
+            )))
         self.image_url = image_url
         self.page_count = int(page_count)
         self.postage = postage

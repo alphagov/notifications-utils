@@ -68,5 +68,7 @@ ROYAL_MAIL_EUROPEAN = _load_data('europe.txt')
 
 class Postage:
     UK = 'united-kingdom'
+    FIRST = 'first'
+    SECOND = 'second'
     EUROPE = 'europe'
     REST_OF_WORLD = 'rest-of-world'

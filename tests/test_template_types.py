@@ -844,27 +844,41 @@ def test_letter_image_renderer_pagination(page_image_url):
     ))
 
 
-@pytest.mark.parametrize('partial_call, expected_exception', [
+@pytest.mark.parametrize('partial_call, expected_exception, expected_message', [
     (
         partial(LetterImageTemplate),
-        TypeError
+        TypeError,
+        'image_url is required',
     ),
     (
         partial(LetterImageTemplate, page_count=1),
-        TypeError
+        TypeError,
+        'image_url is required',
     ),
     (
         partial(LetterImageTemplate, image_url='foo'),
-        TypeError
+        TypeError,
+        'page_count is required',
     ),
     (
         partial(LetterImageTemplate, image_url='foo', page_count='foo'),
-        ValueError
+        ValueError,
+        'invalid literal for int() with base 10: \'foo\'',
+    ),
+    (
+        partial(LetterImageTemplate, image_url='foo', page_count=1, postage='third'),
+        TypeError,
+        'postage must be None, \'first\' or \'second\'',
     ),
 ])
-def test_letter_image_renderer_requires_arguments(partial_call, expected_exception):
-    with pytest.raises(expected_exception):
+def test_letter_image_renderer_requires_arguments(
+    partial_call,
+    expected_exception,
+    expected_message,
+):
+    with pytest.raises(expected_exception) as exception:
         partial_call({'content': '', 'subject': '', 'template_type': 'letter'})
+    assert str(exception.value) == expected_message
 
 
 @pytest.mark.parametrize('postage, expected_attribute_value, expected_postage_text', (
