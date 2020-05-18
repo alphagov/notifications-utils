@@ -92,3 +92,9 @@ class ZendeskClient():
             )
 
             raise ZendeskError(response)
+
+        ticket_id = response.json()['ticket']['id']
+
+        current_app.logger.info(
+            f"Zendesk create ticket {ticket_id} succeeded"
+        )
