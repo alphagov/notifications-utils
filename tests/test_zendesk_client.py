@@ -54,12 +54,23 @@ def zendesk_client(app, rmock):
 ))
 def test_create_ticket(
     zendesk_client,
+    app,
+    mocker,
     rmock,
     extra_args,
     expected_tag_list,
     expected_priority,
 ):
-    rmock.request('POST', 'https://govuk.zendesk.com/api/v2/tickets.json', status_code=201, json={})
+    rmock.request(
+        'POST',
+        'https://govuk.zendesk.com/api/v2/tickets.json',
+        status_code=201,
+        json={'ticket': {
+            'id': 12345,
+            'subject': 'Something is wrong',
+        }}
+    )
+    mock_logger = mocker.patch.object(app.logger, 'info')
 
     zendesk_client.create_ticket('subject', 'message', 'ticket_type', **extra_args)
 
@@ -82,6 +93,9 @@ def test_create_ticket(
             'tags': expected_tag_list,
         }
     }
+    mock_logger.assert_called_once_with(
+        'Zendesk create ticket 12345 succeeded'
+    )
 
 
 @pytest.mark.parametrize('name, zendesk_name', [
@@ -89,7 +103,15 @@ def test_create_ticket(
     (None, '(no name supplied)')
 ])
 def test_create_ticket_with_user_name_and_email(zendesk_client, rmock, name, zendesk_name):
-    rmock.request('POST', 'https://govuk.zendesk.com/api/v2/tickets.json', status_code=201, json={'status': 'ok'})
+    rmock.request(
+        'POST',
+        'https://govuk.zendesk.com/api/v2/tickets.json',
+        status_code=201,
+        json={'ticket': {
+            'id': 12345,
+            'subject': 'Something is wrong',
+        }}
+    )
 
     zendesk_client.create_ticket(
         'subject',
