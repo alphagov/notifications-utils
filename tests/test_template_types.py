@@ -600,7 +600,6 @@ def test_sms_message_normalises_newlines(content):
 @mock.patch('notifications_utils.template.LetterPreviewTemplate.jinja_template.render')
 @mock.patch('notifications_utils.template.unlink_govuk_escaped')
 @mock.patch('notifications_utils.template.notify_letter_preview_markdown', return_value='Bar')
-@mock.patch('notifications_utils.template.strip_pipes', side_effect=lambda x: x)
 @pytest.mark.parametrize('values, expected_address', [
     ({}, [
         "<span class='placeholder-no-brackets'>address line 1</span>",
@@ -675,7 +674,6 @@ def test_sms_message_normalises_newlines(content):
     ({'date': datetime.date.fromtimestamp(0)}, '1 January 1970'),
 ])
 def test_letter_preview_renderer(
-    strip_pipes,
     letter_markdown,
     unlink_govuk,
     jinja_template,
@@ -708,11 +706,6 @@ def test_letter_preview_renderer(
     })
     letter_markdown.assert_called_once_with(Markup('Foo\n'))
     unlink_govuk.assert_not_called()
-    assert strip_pipes.call_args_list == [
-        mock.call('Subject'),
-        mock.call('Foo'),
-        mock.call(expected_rendered_contact_block),
-    ]
 
 
 @freeze_time("2001-01-01 12:00:00.000000")

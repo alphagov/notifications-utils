@@ -188,10 +188,6 @@ def formatted_list(
     )
 
 
-def strip_pipes(value):
-    return value.replace('|', '')
-
-
 def remove_whitespace_before_punctuation(value):
     return re.sub(
         whitespace_before_punctuation,

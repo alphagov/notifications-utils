@@ -22,7 +22,6 @@ from notifications_utils.formatters import (
     notify_letter_preview_markdown,
     sms_encode,
     escape_html,
-    strip_pipes,
     remove_whitespace_before_punctuation,
     make_quotes_smart,
     replace_hyphens_with_en_dashes,
@@ -555,8 +554,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
         )).then(
             do_nice_typography
         ).then(
-            strip_pipes
-        ).then(
             normalise_whitespace
         )
 
@@ -594,8 +591,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
             remove_whitespace_before_punctuation
         ).then(
             nl2br
-        ).then(
-            strip_pipes
         )
 
     @property
@@ -611,8 +606,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
             markdown_lists=True,
             redact_missing_personalisation=self.redact_missing_personalisation,
         )).then(
-            strip_pipes
-        ).then(
             add_trailing_newline
         ).then(
             notify_letter_preview_markdown

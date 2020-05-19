@@ -8,7 +8,6 @@ from notifications_utils.formatters import (
     notify_plain_text_email_markdown,
     sms_encode,
     formatted_list,
-    strip_pipes,
     escape_html,
     remove_whitespace_before_punctuation,
     make_quotes_smart,
@@ -856,10 +855,6 @@ def test_formatted_list(items, kwargs, expected_output):
 
 def test_formatted_list_returns_markup():
     assert isinstance(formatted_list([0]), Markup)
-
-
-def test_removing_pipes():
-    assert strip_pipes('|a|b|c') == 'abc'
 
 
 def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
