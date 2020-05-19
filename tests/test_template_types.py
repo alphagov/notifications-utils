@@ -1980,13 +1980,14 @@ dvla_file_spec = [
     (
         {
             "addressline1": "line 1",
-            "addressline2": "\t     ,",
+            "addressline2": "line 2     ,   ",
+            "addressline3": "\t     ,",
             "postcode": "N1 4WQ",
         },
         (
             "<ul>"
             "<li>line 1</li>"
-            "<li>,</li>"
+            "<li>line 2</li>"
             "<li>N1 4WQ</li>"
             "</ul>"
         ),

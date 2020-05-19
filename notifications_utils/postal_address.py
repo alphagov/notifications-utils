@@ -95,8 +95,9 @@ class PostalAddress():
     @property
     def _lines(self):
         return [
-            remove_whitespace_before_punctuation(line)
-            for line in normalise_lines(self.raw_address) if line
+            remove_whitespace_before_punctuation(line.rstrip(' ,'))
+            for line in normalise_lines(self.raw_address)
+            if line.rstrip(' ,')
         ] or ['']
 
     @property

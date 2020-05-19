@@ -270,6 +270,19 @@ def test_international(address, expected_international):
         ),
     ),
     (
+        (
+            '123 Example St. \t  ,    \n'
+            ', , ,  ,   ,     ,        ,\n'
+            'City of Town, Region,\n'
+            'SW1A 1AA,,\n'
+        ),
+        (
+            '123 Example St.\n'
+            'City of Town, Region\n'
+            'SW1A 1AA'
+        ),
+    ),
+    (
         '''
           123  Example Straße
         Deutschland
