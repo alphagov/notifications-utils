@@ -251,8 +251,9 @@ def test_international(address, expected_international):
     assert PostalAddress(address).international is expected_international
 
 
-@pytest.mark.parametrize('address, expected_normalised', (
+@pytest.mark.parametrize('address, expected_normalised, expected_as_single_line', (
     (
+        '',
         '',
         '',
     ),
@@ -268,6 +269,9 @@ def test_international(address, expected_international):
             'City of Town\n'
             'SW1A 1AA'
         ),
+        (
+            '123 Example St., City of Town, SW1A 1AA'
+        ),
     ),
     (
         (
@@ -281,6 +285,9 @@ def test_international(address, expected_international):
             'City of Town, Region\n'
             'SW1A 1AA'
         ),
+        (
+            '123 Example St., City of Town, Region, SW1A 1AA'
+        ),
     ),
     (
         '''
@@ -293,10 +300,14 @@ def test_international(address, expected_international):
             '123 Example Straße\n'
             'Germany'
         ),
+        (
+            '123 Example Straße, Germany'
+        ),
     ),
 ))
-def test_normalised(address, expected_normalised):
+def test_normalised(address, expected_normalised, expected_as_single_line):
     assert PostalAddress(address).normalised == expected_normalised
+    assert PostalAddress(address).as_single_line == expected_as_single_line
 
 
 @pytest.mark.parametrize('address, expected_postage', (

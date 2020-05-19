@@ -60,6 +60,10 @@ class PostalAddress():
         return lines
 
     @property
+    def as_single_line(self):
+        return ', '.join(self.normalised_lines)
+
+    @property
     def country(self):
         try:
             return Country(self._lines[-1])
