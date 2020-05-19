@@ -53,13 +53,6 @@ govuk_not_a_link = re.compile(
     re.IGNORECASE
 )
 
-dvla_markup_tags = re.compile(
-    str('|'.join('<{}>'.format(tag) for tag in {
-        'cr', 'h1', 'h2', 'p', 'normal', 'op', 'np', 'bul', 'tab'
-    })),
-    re.IGNORECASE
-)
-
 smartypants.tags_to_skip = smartypants.tags_to_skip + ['a']
 
 whitespace_before_punctuation = re.compile(r'[ \t]+([,\.])')
@@ -143,10 +136,6 @@ def escape_html(value):
     return bleach.clean(value, tags=[], strip=False)
 
 
-def strip_dvla_markup(value):
-    return re.sub(dvla_markup_tags, '', value)
-
-
 def url_encode_full_stops(value):
     return value.replace('.', '%2E')
 
@@ -196,13 +185,6 @@ def formatted_list(
             prefix,
             prefix_plural
         )
-    )
-
-
-def fix_extra_newlines_in_dvla_lists(dvla_markup):
-    return dvla_markup.replace(
-        '<cr><cr><cr><op>',
-        '<cr><op>',
     )
 
 
@@ -271,10 +253,6 @@ def strip_leading_whitespace(value):
 
 def add_trailing_newline(value):
     return '{}\n'.format(value)
-
-
-def tweak_dvla_list_markup(value):
-    return value.replace('<cr><cr><np>', '<cr><np>').replace('<p><cr><p><cr>', '<p><cr>')
 
 
 def remove_smart_quotes_from_email_addresses(value):

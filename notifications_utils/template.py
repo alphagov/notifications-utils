@@ -22,13 +22,11 @@ from notifications_utils.formatters import (
     notify_letter_preview_markdown,
     sms_encode,
     escape_html,
-    strip_dvla_markup,
     strip_pipes,
     remove_whitespace_before_punctuation,
     make_quotes_smart,
     replace_hyphens_with_en_dashes,
     replace_hyphens_with_non_breaking_hyphens,
-    tweak_dvla_list_markup,
     strip_leading_whitespace,
     add_trailing_newline,
     normalise_whitespace,
@@ -559,8 +557,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
         ).then(
             strip_pipes
         ).then(
-            strip_dvla_markup
-        ).then(
             normalise_whitespace
         )
 
@@ -609,7 +605,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     @property
     def _message(self):
         return Take(Field(
-            strip_dvla_markup(self.content),
+            self.content,
             self.values,
             html='escape',
             markdown_lists=True,
@@ -624,8 +620,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
             do_nice_typography
         ).then(
             replace_hyphens_with_non_breaking_hyphens
-        ).then(
-            tweak_dvla_list_markup
         )
 
 

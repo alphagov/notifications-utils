@@ -1507,21 +1507,6 @@ def test_email_preview_shows_recipient_address(
     assert expected_content in str(template)
 
 
-@mock.patch('notifications_utils.template.strip_dvla_markup', return_value='FOOBARBAZ')
-def test_letter_preview_strips_dvla_markup(mock_strip_dvla_markup):
-    assert 'FOOBARBAZ' in str(LetterPreviewTemplate(
-        {
-            "content": 'content',
-            'subject': 'subject',
-            'template_type': 'letter',
-        },
-    ))
-    assert mock_strip_dvla_markup.call_args_list == [
-        mock.call(Markup('subject')),
-        mock.call('content'),
-    ]
-
-
 @pytest.mark.parametrize("address, expected", [
     (
         {

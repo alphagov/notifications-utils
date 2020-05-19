@@ -8,7 +8,6 @@ from notifications_utils.formatters import (
     unescaped_formatted_list,
     strip_html,
     escape_html,
-    strip_dvla_markup,
 )
 
 
@@ -90,7 +89,6 @@ class Field:
             'strip': strip_html,
             'escape': escape_html,
             'passthrough': str,
-            'strip_dvla_markup': strip_dvla_markup,
         }[html]
         self.redact_missing_personalisation = redact_missing_personalisation
 
