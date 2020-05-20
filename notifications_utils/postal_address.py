@@ -60,6 +60,10 @@ class PostalAddress():
         return lines
 
     @property
+    def as_single_line(self):
+        return ', '.join(self.normalised_lines)
+
+    @property
     def country(self):
         try:
             return Country(self._lines[-1])
@@ -95,8 +99,9 @@ class PostalAddress():
     @property
     def _lines(self):
         return [
-            remove_whitespace_before_punctuation(line)
-            for line in normalise_lines(self.raw_address) if line
+            remove_whitespace_before_punctuation(line.rstrip(' ,'))
+            for line in normalise_lines(self.raw_address)
+            if line.rstrip(' ,')
         ] or ['']
 
     @property
