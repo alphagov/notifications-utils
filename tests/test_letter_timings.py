@@ -179,6 +179,12 @@ def test_get_estimated_delivery_date_for_letter(
     assert format_dt(first_class_timings.latest_delivery) == first_class
 
 
+def test_letter_timings_only_accept_real_postage_values():
+    with pytest.raises(TypeError) as exception:
+        get_letter_timings(datetime.utcnow().isoformat(), postage='foo')
+    assert str(exception.value) == 'postage must be first or second'
+
+
 @pytest.mark.parametrize('status', ['sending', 'pending'])
 def test_letter_cannot_be_cancelled_if_letter_status_is_not_created_or_pending_virus_check(status):
     notification_created_at = datetime.utcnow()

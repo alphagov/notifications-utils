@@ -65,10 +65,12 @@ def get_letter_timings(upload_time, postage='second'):
     transit_day = get_next_royal_mail_working_day(print_day)
     if postage == 'first':
         earliest_delivery = latest_delivery = transit_day
-    else:
+    elif postage == 'second':
         # second class has one day in transit, then a two day delivery window
         earliest_delivery = get_next_royal_mail_working_day(transit_day)
         latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
+    else:
+        raise TypeError('postage must be first or second')
 
     # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)
