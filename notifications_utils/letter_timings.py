@@ -4,6 +4,7 @@ from datetime import datetime, time, timedelta
 from collections import namedtuple
 
 from govuk_bank_holidays.bank_holidays import BankHolidays
+from notifications_utils.countries.data import Postage
 from notifications_utils.timezones import convert_utc_to_bst, utc_string_to_aware_gmt_datetime
 
 
@@ -51,6 +52,13 @@ def get_next_royal_mail_working_day(date):
     return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
 
 
+def get_delivery_day(date, days_in_transit=1):
+    next_day = get_next_royal_mail_working_day(date)
+    if days_in_transit <= 1:
+        return next_day
+    return get_delivery_day(next_day, days_in_transit=(days_in_transit - 1))
+
+
 def get_letter_timings(upload_time, *, postage):
 
     LetterTimings = namedtuple(
@@ -69,10 +77,16 @@ def get_letter_timings(upload_time, *, postage):
         earliest_delivery = latest_delivery = transit_day
     elif postage == 'second':
         # second class has one day in transit, then a two day delivery window
-        earliest_delivery = get_next_royal_mail_working_day(transit_day)
-        latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
+        earliest_delivery = get_delivery_day(transit_day, days_in_transit=1)
+        latest_delivery = get_delivery_day(transit_day, days_in_transit=2)
+    elif postage == Postage.EUROPE:
+        earliest_delivery = get_delivery_day(transit_day, days_in_transit=3)
+        latest_delivery = get_delivery_day(transit_day, days_in_transit=5)
+    elif postage == Postage.REST_OF_WORLD:
+        earliest_delivery = get_delivery_day(transit_day, days_in_transit=5)
+        latest_delivery = get_delivery_day(transit_day, days_in_transit=7)
     else:
-        raise TypeError('postage must be first or second')
+        raise TypeError('postage must be first, second, europe or rest-of-world')
 
     # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)
