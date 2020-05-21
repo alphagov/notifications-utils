@@ -52,13 +52,11 @@ def get_next_royal_mail_working_day(date):
     return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
 
 
-def get_delivery_day(date, *, days_in_transit):
-    if days_in_transit == 0:
-        return date
+def get_delivery_day(date, *, days_to_deliver):
     next_day = get_next_royal_mail_working_day(date)
-    if days_in_transit == 1:
+    if days_to_deliver == 1:
         return next_day
-    return get_delivery_day(next_day, days_in_transit=(days_in_transit - 1))
+    return get_delivery_day(next_day, days_to_deliver=(days_to_deliver - 1))
 
 
 def get_min_and_max_days_in_transit(postage):
@@ -73,6 +71,11 @@ def get_min_and_max_days_in_transit(postage):
     }[postage]
 
 
+def get_earliest_and_latest_delivery(print_day, postage):
+    for days_to_transit in get_min_and_max_days_in_transit(postage):
+        yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit)
+
+
 def get_letter_timings(upload_time, *, postage):
 
     LetterTimings = namedtuple(
@@ -83,12 +86,8 @@ def get_letter_timings(upload_time, *, postage):
     # shift anything after 5:30pm to the next day
     processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
     print_day = get_next_dvla_working_day(processing_day)
-    transit_day = get_next_royal_mail_working_day(print_day)
 
-    min_days_in_transit, max_days_in_transit = get_min_and_max_days_in_transit(postage)
-
-    earliest_delivery = get_delivery_day(transit_day, days_in_transit=min_days_in_transit)
-    latest_delivery = get_delivery_day(transit_day, days_in_transit=max_days_in_transit)
+    earliest_delivery, latest_delivery = get_earliest_and_latest_delivery(print_day, postage)
 
     # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)
