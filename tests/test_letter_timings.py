@@ -271,9 +271,8 @@ def test_get_estimated_delivery_date_for_letter(
 
 
 def test_letter_timings_only_accept_real_postage_values():
-    with pytest.raises(TypeError) as exception:
+    with pytest.raises(KeyError):
         get_letter_timings(datetime.utcnow().isoformat(), postage='foo')
-    assert str(exception.value) == 'postage must be first, second, europe or rest-of-world'
 
 
 @pytest.mark.parametrize('status', ['sending', 'pending'])
