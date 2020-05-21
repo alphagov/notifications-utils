@@ -27,6 +27,30 @@ def set_gmt_hour(day, hour):
     return day.astimezone(pytz.timezone('Europe/London')).replace(hour=hour, minute=0).astimezone(pytz.utc)
 
 
+def get_next_work_day(date, non_working_days):
+    next_day = date + timedelta(days=1)
+    if non_working_days.is_work_day(
+        date=next_day.date(),
+        division=BankHolidays.ENGLAND_AND_WALES,
+    ):
+        return next_day
+    return get_next_work_day(next_day, non_working_days)
+
+
+def get_next_dvla_working_day(date):
+    """
+    Printing takes place monday to friday, excluding bank holidays
+    """
+    return get_next_work_day(date, non_working_days=non_working_days_dvla)
+
+
+def get_next_royal_mail_working_day(date):
+    """
+    Royal mail deliver letters on monday to saturday
+    """
+    return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
+
+
 def get_letter_timings(upload_time, *, postage):
 
     LetterTimings = namedtuple(
@@ -36,28 +60,6 @@ def get_letter_timings(upload_time, *, postage):
 
     # shift anything after 5:30pm to the next day
     processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
-
-    def get_next_work_day(date, non_working_days):
-        next_day = date + timedelta(days=1)
-        if non_working_days.is_work_day(
-            date=next_day.date(),
-            division=BankHolidays.ENGLAND_AND_WALES,
-        ):
-            return next_day
-        return get_next_work_day(next_day, non_working_days)
-
-    def get_next_dvla_working_day(date):
-        """
-        Printing takes place monday to friday, excluding bank holidays
-        """
-        return get_next_work_day(date, non_working_days=non_working_days_dvla)
-
-    def get_next_royal_mail_working_day(date):
-        """
-        Royal mail deliver letters on monday to saturday
-        """
-        return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
-
     print_day = get_next_dvla_working_day(processing_day)
 
     # first class post is printed earlier in the day, so will actually transit on the printing day,
