@@ -4,6 +4,7 @@ from datetime import datetime, time, timedelta
 from collections import namedtuple
 
 from govuk_bank_holidays.bank_holidays import BankHolidays
+from notifications_utils.countries.data import Postage
 from notifications_utils.timezones import convert_utc_to_bst, utc_string_to_aware_gmt_datetime
 
 
@@ -27,7 +28,55 @@ def set_gmt_hour(day, hour):
     return day.astimezone(pytz.timezone('Europe/London')).replace(hour=hour, minute=0).astimezone(pytz.utc)
 
 
-def get_letter_timings(upload_time, postage='second'):
+def get_next_work_day(date, non_working_days):
+    next_day = date + timedelta(days=1)
+    if non_working_days.is_work_day(
+        date=next_day.date(),
+        division=BankHolidays.ENGLAND_AND_WALES,
+    ):
+        return next_day
+    return get_next_work_day(next_day, non_working_days)
+
+
+def get_next_dvla_working_day(date):
+    """
+    Printing takes place monday to friday, excluding bank holidays
+    """
+    return get_next_work_day(date, non_working_days=non_working_days_dvla)
+
+
+def get_next_royal_mail_working_day(date):
+    """
+    Royal mail deliver letters on monday to saturday
+    """
+    return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
+
+
+def get_delivery_day(date, *, days_to_deliver):
+    next_day = get_next_royal_mail_working_day(date)
+    if days_to_deliver == 1:
+        return next_day
+    return get_delivery_day(next_day, days_to_deliver=(days_to_deliver - 1))
+
+
+def get_min_and_max_days_in_transit(postage):
+    return {
+        # first class post is printed earlier in the day, so will
+        # actually transit on the printing day, and be delivered the next
+        # day, so effectively spends no full days in transit
+        'first': (0, 0),
+        'second': (1, 2),
+        Postage.EUROPE: (3, 5),
+        Postage.REST_OF_WORLD: (5, 7),
+    }[postage]
+
+
+def get_earliest_and_latest_delivery(print_day, postage):
+    for days_to_transit in get_min_and_max_days_in_transit(postage):
+        yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit)
+
+
+def get_letter_timings(upload_time, postage):
 
     LetterTimings = namedtuple(
         'LetterTimings',
@@ -36,39 +85,9 @@ def get_letter_timings(upload_time, postage='second'):
 
     # shift anything after 5:30pm to the next day
     processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
-
-    def get_next_work_day(date, non_working_days):
-        next_day = date + timedelta(days=1)
-        if non_working_days.is_work_day(
-            date=next_day.date(),
-            division=BankHolidays.ENGLAND_AND_WALES,
-        ):
-            return next_day
-        return get_next_work_day(next_day, non_working_days)
-
-    def get_next_dvla_working_day(date):
-        """
-        Printing takes place monday to friday, excluding bank holidays
-        """
-        return get_next_work_day(date, non_working_days=non_working_days_dvla)
-
-    def get_next_royal_mail_working_day(date):
-        """
-        Royal mail deliver letters on monday to saturday
-        """
-        return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
-
     print_day = get_next_dvla_working_day(processing_day)
 
-    # first class post is printed earlier in the day, so will actually transit on the printing day,
-    # and be posted the next day
-    transit_day = get_next_royal_mail_working_day(print_day)
-    if postage == 'first':
-        earliest_delivery = latest_delivery = transit_day
-    else:
-        # second class has one day in transit, then a two day delivery window
-        earliest_delivery = get_next_royal_mail_working_day(transit_day)
-        latest_delivery = get_next_royal_mail_working_day(earliest_delivery)
+    earliest_delivery, latest_delivery = get_earliest_and_latest_delivery(print_day, postage)
 
     # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)

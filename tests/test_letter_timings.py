@@ -8,155 +8,232 @@ from notifications_utils.letter_timings import get_letter_timings, letter_can_be
 
 
 @freeze_time('2017-07-14 13:59:59')  # Friday, before print deadline (3PM BST)
-@pytest.mark.parametrize('upload_time, expected_print_time, is_printed, first_class, expected_earliest, expected_latest', [  # noqa
+@pytest.mark.parametrize(
+    (
+        'upload_time, '
+        'expected_print_time, '
+        'is_printed, '
+        'first_class, '
+        'expected_earliest_second_class, '
+        'expected_latest_second_class, '
+        'expected_earliest_europe, '
+        'expected_latest_europe, '
+        'expected_earliest_rest_of_world, '
+        'expected_latest_rest_of_world, '
+    ),
+    [
+        # BST
+        # ==================================================================
+        #  First thing Monday
+        (
+            'Monday 2017-07-10 00:00:01',
+            'Tuesday 2017-07-11 15:00',
+            True,
+            'Wednesday 2017-07-12 16:00',
+            'Thursday 2017-07-13 16:00',
+            'Friday 2017-07-14 16:00',
+            'Saturday 2017-07-15 16:00',
+            'Tuesday 2017-07-18 16:00',
+            'Tuesday 2017-07-18 16:00',
+            'Thursday 2017-07-20 16:00',
+        ),
+        #  Monday at 17:29 BST (sent on monday)
+        (
+            'Monday 2017-07-10 16:29:59',
+            'Tuesday 2017-07-11 15:00',
+            True,
+            'Wednesday 2017-07-12 16:00',
+            'Thursday 2017-07-13 16:00',
+            'Friday 2017-07-14 16:00',
+            'Saturday 2017-07-15 16:00',
+            'Tuesday 2017-07-18 16:00',
+            'Tuesday 2017-07-18 16:00',
+            'Thursday 2017-07-20 16:00',
+        ),
+        #  Monday at 17:30 BST (sent on tuesday)
+        (
+            'Monday 2017-07-10 16:30:01',
+            'Wednesday 2017-07-12 15:00',
+            True,
+            'Thursday 2017-07-13 16:00',
+            'Friday 2017-07-14 16:00',
+            'Saturday 2017-07-15 16:00',
+            'Monday 2017-07-17 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Friday 2017-07-21 16:00',
+        ),
+        #  Tuesday before 17:30 BST
+        (
+            'Tuesday 2017-07-11 12:00:00',
+            'Wednesday 2017-07-12 15:00',
+            True,
+            'Thursday 2017-07-13 16:00',
+            'Friday 2017-07-14 16:00',
+            'Saturday 2017-07-15 16:00',
+            'Monday 2017-07-17 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Friday 2017-07-21 16:00',
+        ),
+        #  Wednesday before 17:30 BST
+        (
+            'Wednesday 2017-07-12 12:00:00',
+            'Thursday 2017-07-13 15:00',
+            True,
+            'Friday 2017-07-14 16:00',
+            'Saturday 2017-07-15 16:00',
+            'Monday 2017-07-17 16:00',
+            'Tuesday 2017-07-18 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Saturday 2017-07-22 16:00',
+        ),
+        #  Thursday before 17:30 BST
+        (
+            'Thursday 2017-07-13 12:00:00',
+            'Friday 2017-07-14 15:00',
+            False,
+            'Saturday 2017-07-15 16:00',
+            'Monday 2017-07-17 16:00',
+            'Tuesday 2017-07-18 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Friday 2017-07-21 16:00',
+            'Friday 2017-07-21 16:00',
+            'Monday 2017-07-24 16:00',
+        ),
+        #  Friday anytime
+        (
+            'Friday 2017-07-14 00:00:00',
+            'Monday 2017-07-17 15:00',
+            False,
+            'Tuesday 2017-07-18 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Friday 2017-07-21 16:00',
+            'Monday 2017-07-24 16:00',
+            'Monday 2017-07-24 16:00',
+            'Wednesday 2017-07-26 16:00',
+        ),
+        (
+            'Friday 2017-07-14 12:00:00',
+            'Monday 2017-07-17 15:00',
+            False,
+            'Tuesday 2017-07-18 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Friday 2017-07-21 16:00',
+            'Monday 2017-07-24 16:00',
+            'Monday 2017-07-24 16:00',
+            'Wednesday 2017-07-26 16:00',
+        ),
+        (
+            'Friday 2017-07-14 22:00:00',
+            'Monday 2017-07-17 15:00',
+            False,
+            'Tuesday 2017-07-18 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Friday 2017-07-21 16:00',
+            'Monday 2017-07-24 16:00',
+            'Monday 2017-07-24 16:00',
+            'Wednesday 2017-07-26 16:00',
+        ),
+        #  Saturday anytime
+        (
+            'Saturday 2017-07-14 12:00:00',
+            'Monday 2017-07-17 15:00',
+            False,
+            'Tuesday 2017-07-18 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Friday 2017-07-21 16:00',
+            'Monday 2017-07-24 16:00',
+            'Monday 2017-07-24 16:00',
+            'Wednesday 2017-07-26 16:00',
+        ),
+        #  Sunday before 1730 BST
+        (
+            'Sunday 2017-07-15 15:59:59',
+            'Monday 2017-07-17 15:00',
+            False,
+            'Tuesday 2017-07-18 16:00',
+            'Wednesday 2017-07-19 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Friday 2017-07-21 16:00',
+            'Monday 2017-07-24 16:00',
+            'Monday 2017-07-24 16:00',
+            'Wednesday 2017-07-26 16:00',
+        ),
+        #  Sunday after 17:30 BST
+        (
+            'Sunday 2017-07-16 16:30:01',
+            'Tuesday 2017-07-18 15:00',
+            False,
+            'Wednesday 2017-07-19 16:00',
+            'Thursday 2017-07-20 16:00',
+            'Friday 2017-07-21 16:00',
+            'Saturday 2017-07-22 16:00',
+            'Tuesday 2017-07-25 16:00',
+            'Tuesday 2017-07-25 16:00',
+            'Thursday 2017-07-27 16:00',
+        ),
 
-    # BST
-    # ==================================================================
-    #  First thing Monday
-    (
-        'Monday 2017-07-10 00:00:01',
-        'Tuesday 2017-07-11 15:00',
-        True,
-        'Wednesday 2017-07-12 16:00',
-        'Thursday 2017-07-13 16:00',
-        'Friday 2017-07-14 16:00'
-    ),
-    #  Monday at 17:29 BST (sent on monday)
-    (
-        'Monday 2017-07-10 16:29:59',
-        'Tuesday 2017-07-11 15:00',
-        True,
-        'Wednesday 2017-07-12 16:00',
-        'Thursday 2017-07-13 16:00',
-        'Friday 2017-07-14 16:00'
-    ),
-    #  Monday at 17:30 BST (sent on tuesday)
-    (
-        'Monday 2017-07-10 16:30:01',
-        'Wednesday 2017-07-12 15:00',
-        True,
-        'Thursday 2017-07-13 16:00',
-        'Friday 2017-07-14 16:00',
-        'Saturday 2017-07-15 16:00'
-    ),
-    #  Tuesday before 17:30 BST
-    (
-        'Tuesday 2017-07-11 12:00:00',
-        'Wednesday 2017-07-12 15:00',
-        True,
-        'Thursday 2017-07-13 16:00',
-        'Friday 2017-07-14 16:00',
-        'Saturday 2017-07-15 16:00'
-    ),
-    #  Wednesday before 17:30 BST
-    (
-        'Wednesday 2017-07-12 12:00:00',
-        'Thursday 2017-07-13 15:00',
-        True,
-        'Friday 2017-07-14 16:00',
-        'Saturday 2017-07-15 16:00',
-        'Monday 2017-07-17 16:00'
-    ),
-    #  Thursday before 17:30 BST
-    (
-        'Thursday 2017-07-13 12:00:00',
-        'Friday 2017-07-14 15:00',
-        False,
-        'Saturday 2017-07-15 16:00',
-        'Monday 2017-07-17 16:00',
-        'Tuesday 2017-07-18 16:00'
-    ),
-    #  Friday anytime
-    (
-        'Friday 2017-07-14 00:00:00',
-        'Monday 2017-07-17 15:00',
-        False,
-        'Tuesday 2017-07-18 16:00',
-        'Wednesday 2017-07-19 16:00',
-        'Thursday 2017-07-20 16:00'
-    ),
-    (
-        'Friday 2017-07-14 12:00:00',
-        'Monday 2017-07-17 15:00',
-        False,
-        'Tuesday 2017-07-18 16:00',
-        'Wednesday 2017-07-19 16:00',
-        'Thursday 2017-07-20 16:00'
-    ),
-    (
-        'Friday 2017-07-14 22:00:00',
-        'Monday 2017-07-17 15:00',
-        False,
-        'Tuesday 2017-07-18 16:00',
-        'Wednesday 2017-07-19 16:00',
-        'Thursday 2017-07-20 16:00'
-    ),
-    #  Saturday anytime
-    (
-        'Saturday 2017-07-14 12:00:00',
-        'Monday 2017-07-17 15:00',
-        False,
-        'Tuesday 2017-07-18 16:00',
-        'Wednesday 2017-07-19 16:00',
-        'Thursday 2017-07-20 16:00'
-    ),
-    #  Sunday before 1730 BST
-    (
-        'Sunday 2017-07-15 15:59:59',
-        'Monday 2017-07-17 15:00',
-        False,
-        'Tuesday 2017-07-18 16:00',
-        'Wednesday 2017-07-19 16:00',
-        'Thursday 2017-07-20 16:00'
-    ),
-    #  Sunday after 17:30 BST
-    (
-        'Sunday 2017-07-16 16:30:01',
-        'Tuesday 2017-07-18 15:00',
-        False,
-        'Wednesday 2017-07-19 16:00',
-        'Thursday 2017-07-20 16:00',
-        'Friday 2017-07-21 16:00'
-    ),
+        # GMT
+        # ==================================================================
+        #  Monday at 17:29 GMT
+        (
+            'Monday 2017-01-02 17:29:59',
+            'Tuesday 2017-01-03 15:00',
+            True,
+            'Wednesday 2017-01-04 16:00',
+            'Thursday 2017-01-05 16:00',
+            'Friday 2017-01-06 16:00',
+            'Saturday 2017-01-07 16:00',
+            'Tuesday 2017-01-10 16:00',
+            'Tuesday 2017-01-10 16:00',
+            'Thursday 2017-01-12 16:00',
+        ),
+        #  Monday at 17:00 GMT
+        (
+            'Monday 2017-01-02 17:30:01',
+            'Wednesday 2017-01-04 15:00',
+            True,
+            'Thursday 2017-01-05 16:00',
+            'Friday 2017-01-06 16:00',
+            'Saturday 2017-01-07 16:00',
+            'Monday 2017-01-09 16:00',
+            'Wednesday 2017-01-11 16:00',
+            'Wednesday 2017-01-11 16:00',
+            'Friday 2017-01-13 16:00',
+        ),
 
-    # GMT
-    # ==================================================================
-    #  Monday at 17:29 GMT
-    (
-        'Monday 2017-01-02 17:29:59',
-        'Tuesday 2017-01-03 15:00',
-        True,
-        'Wednesday 2017-01-04 16:00',
-        'Thursday 2017-01-05 16:00',
-        'Friday 2017-01-06 16:00',
-    ),
-    #  Monday at 17:00 GMT
-    (
-        'Monday 2017-01-02 17:30:01',
-        'Wednesday 2017-01-04 15:00',
-        True,
-        'Thursday 2017-01-05 16:00',
-        'Friday 2017-01-06 16:00',
-        'Saturday 2017-01-07 16:00',
-    ),
-
-    # Over Easter bank holiday weekend
-    (
-        'Thursday 2020-04-09 16:29:59',
-        'Tuesday 2020-04-14 15:00',
-        False,
-        'Wednesday 2020-04-15 16:00',
-        'Thursday 2020-04-16 16:00',
-        'Friday 2020-04-17 16:00',
-    ),
-])
+        # Over Easter bank holiday weekend
+        (
+            'Thursday 2020-04-09 16:29:59',
+            'Tuesday 2020-04-14 15:00',
+            False,
+            'Wednesday 2020-04-15 16:00',
+            'Thursday 2020-04-16 16:00',
+            'Friday 2020-04-17 16:00',
+            'Saturday 2020-04-18 16:00',
+            'Tuesday 2020-04-21 16:00',
+            'Tuesday 2020-04-21 16:00',
+            'Thursday 2020-04-23 16:00',
+        ),
+    ]
+)
 def test_get_estimated_delivery_date_for_letter(
     upload_time,
     expected_print_time,
     is_printed,
     first_class,
-    expected_earliest,
-    expected_latest,
+    expected_earliest_second_class,
+    expected_latest_second_class,
+    expected_earliest_europe,
+    expected_latest_europe,
+    expected_earliest_rest_of_world,
+    expected_latest_rest_of_world,
 ):
     # remove the day string from the upload_time, which is purely informational
 
@@ -168,8 +245,8 @@ def test_get_estimated_delivery_date_for_letter(
 
     assert format_dt(timings.printed_by) == expected_print_time
     assert timings.is_printed == is_printed
-    assert format_dt(timings.earliest_delivery) == expected_earliest
-    assert format_dt(timings.latest_delivery) == expected_latest
+    assert format_dt(timings.earliest_delivery) == expected_earliest_second_class
+    assert format_dt(timings.latest_delivery) == expected_latest_second_class
 
     first_class_timings = get_letter_timings(upload_time, postage='first')
 
@@ -177,6 +254,25 @@ def test_get_estimated_delivery_date_for_letter(
     assert first_class_timings.is_printed == is_printed
     assert format_dt(first_class_timings.earliest_delivery) == first_class
     assert format_dt(first_class_timings.latest_delivery) == first_class
+
+    europe_timings = get_letter_timings(upload_time, postage='europe')
+
+    assert format_dt(europe_timings.printed_by) == expected_print_time
+    assert europe_timings.is_printed == is_printed
+    assert format_dt(europe_timings.earliest_delivery) == expected_earliest_europe
+    assert format_dt(europe_timings.latest_delivery) == expected_latest_europe
+
+    rest_of_world_timings = get_letter_timings(upload_time, postage='rest-of-world')
+
+    assert format_dt(rest_of_world_timings.printed_by) == expected_print_time
+    assert rest_of_world_timings.is_printed == is_printed
+    assert format_dt(rest_of_world_timings.earliest_delivery) == expected_earliest_rest_of_world
+    assert format_dt(rest_of_world_timings.latest_delivery) == expected_latest_rest_of_world
+
+
+def test_letter_timings_only_accept_real_postage_values():
+    with pytest.raises(KeyError):
+        get_letter_timings(datetime.utcnow().isoformat(), postage='foo')
 
 
 @pytest.mark.parametrize('status', ['sending', 'pending'])
