@@ -76,7 +76,7 @@ def get_earliest_and_latest_delivery(print_day, postage):
         yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit)
 
 
-def get_letter_timings(upload_time, *, postage):
+def get_letter_timings(upload_time, postage):
 
     LetterTimings = namedtuple(
         'LetterTimings',
