@@ -62,7 +62,7 @@ def get_delivery_day(date, *, days_to_deliver):
 def get_min_and_max_days_in_transit(postage):
     return {
         # first class post is printed earlier in the day, so will
-        # actually transit on the printing day, and be posted the next
+        # actually transit on the printing day, and be delivered the next
         # day, so effectively spends no full days in transit
         'first': (0, 0),
         'second': (1, 2),
