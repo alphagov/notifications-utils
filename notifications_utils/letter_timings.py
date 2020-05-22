@@ -27,7 +27,7 @@ def set_gmt_hour(day, hour):
     return day.astimezone(pytz.timezone('Europe/London')).replace(hour=hour, minute=0).astimezone(pytz.utc)
 
 
-def get_letter_timings(upload_time, postage='second'):
+def get_letter_timings(upload_time, *, postage):
 
     LetterTimings = namedtuple(
         'LetterTimings',
