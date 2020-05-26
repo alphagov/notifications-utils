@@ -2283,9 +2283,8 @@ def test_nested_lists_in_lettr_markup():
         '      <p>\n'
         '        1 January 2001\n'
         '      </p>\n'
-        '      <h1>\n'
-        '        foo\n'
-        '      </h1>\n'
+        # Note that the H1 tag has no trailing whitespace
+        '      <h1>foo</h1>\n'
         '      <p>nested list:</p><ol>\n'
         '<li>one</li>\n'
         '<li>two</li>\n'
