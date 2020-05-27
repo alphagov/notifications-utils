@@ -4,8 +4,8 @@ from notifications_utils.countries import UK, Country, CountryNotFoundError
 from notifications_utils.countries.data import Postage
 from notifications_utils.formatters import (
     normalise_lines,
-    normalise_whitespace,
     remove_whitespace_before_punctuation,
+    remove_whitespace,
 )
 
 
@@ -149,7 +149,7 @@ class PostalAddress():
 
 
 def normalise_postcode(postcode):
-    return normalise_whitespace(postcode.upper().replace(" ", ""))
+    return remove_whitespace(postcode).upper()
 
 
 def is_a_real_uk_postcode(postcode):
