@@ -19,6 +19,7 @@ OBSCURE_WHITESPACE = (
     '\u200C'  # zero width non-joiner
     '\u200D'  # zero width joiner
     '\u2060'  # word joiner
+    '\u00A0'  # non breaking space
     '\uFEFF'  # zero width non-breaking space
 )
 
@@ -302,6 +303,13 @@ def strip_and_remove_obscure_whitespace(value):
         value = value.replace(character, '')
 
     return value.strip(string.whitespace)
+
+
+def remove_whitespace(value):
+    for character in string.whitespace + OBSCURE_WHITESPACE:
+        value = value.replace(character, '')
+
+    return value
 
 
 def strip_unsupported_characters(value):
