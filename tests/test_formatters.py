@@ -8,13 +8,10 @@ from notifications_utils.formatters import (
     notify_plain_text_email_markdown,
     sms_encode,
     formatted_list,
-    strip_dvla_markup,
-    strip_pipes,
     escape_html,
     remove_whitespace_before_punctuation,
     make_quotes_smart,
     replace_hyphens_with_en_dashes,
-    tweak_dvla_list_markup,
     strip_whitespace,
     strip_and_remove_obscure_whitespace,
     remove_smart_quotes_from_email_addresses,
@@ -860,21 +857,6 @@ def test_formatted_list_returns_markup():
     assert isinstance(formatted_list([0]), Markup)
 
 
-def test_removing_dvla_markup():
-    assert strip_dvla_markup(
-        (
-            'some words & some more <words>'
-            '<cr><h1><h2><p><normal><op><np><bul><tab>'
-            '<CR><H1><H2><P><NORMAL><OP><NP><BUL><TAB>'
-            '<tAb>'
-        )
-    ) == 'some words & some more <words>'
-
-
-def test_removing_pipes():
-    assert strip_pipes('|a|b|c') == 'abc'
-
-
 def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     assert escape_html(
         "<to cancel daily cat facts reply 'cancel'>"
@@ -990,28 +972,6 @@ def test_unicode_dash_lookup():
     assert en_dash_replacement_sequence == space + en_dash
     assert non_breaking_space not in en_dash_replacement_sequence
     assert hyphen not in en_dash_replacement_sequence
-
-
-@pytest.mark.parametrize('markup, expected_fixed', [
-    (
-        'a',
-        'a',
-    ),
-    (
-        'before<p><cr><p><cr>after',
-        'before<p><cr>after',
-    ),
-    (
-        'before<cr><cr><np>after',
-        'before<cr><np>after',
-    ),
-    (
-        'before{}<np>after'.format('<cr>' * 4),
-        'before{}<np>after'.format('<cr>' * 3),
-    ),
-])
-def test_tweaking_dvla_list_markup(markup, expected_fixed):
-    assert tweak_dvla_list_markup(markup) == expected_fixed
 
 
 @pytest.mark.parametrize('value', [
