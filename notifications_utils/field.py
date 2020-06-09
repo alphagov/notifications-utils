@@ -5,6 +5,7 @@ from flask import Markup
 
 from notifications_utils.columns import Columns
 from notifications_utils.formatters import (
+    strip_and_remove_obscure_whitespace,
     unescaped_formatted_list,
     strip_html,
     escape_html,
@@ -146,9 +147,13 @@ class Field:
             return None
 
         if isinstance(replacement, list):
-            vals = list(filter(None, replacement))
+            vals = (
+                strip_and_remove_obscure_whitespace(str(val))
+                for val in replacement if val is not None
+            )
+            vals = list(filter(None, vals))
             if not vals:
-                return None
+                return ''
             return self.sanitizer(self.get_replacement_as_list(vals))
 
         return self.sanitizer(str(replacement))

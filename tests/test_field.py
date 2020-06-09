@@ -47,6 +47,16 @@ def test_returns_a_string_without_placeholders(content):
         ),
         (
             'before ((placeholder)) after',
+            {'placeholder': ''},
+            'before  after',
+        ),
+        (
+            'before ((placeholder)) after',
+            {'placeholder': '   '},
+            'before     after',
+        ),
+        (
+            'before ((placeholder)) after',
             {'placeholder': True},
             'before True after',
         ),
@@ -242,13 +252,18 @@ def test_what_will_trigger_conditional_placeholder(value):
 @pytest.mark.parametrize("values, expected, expected_as_markdown", [
     (
         {'placeholder': []},
-        'list: <span class=\'placeholder\'>((placeholder))</span>',
-        'list: <span class=\'placeholder\'>((placeholder))</span>',
+        'list: ',
+        'list: ',
     ),
     (
         {'placeholder': ['', '']},
-        'list: <span class=\'placeholder\'>((placeholder))</span>',
-        'list: <span class=\'placeholder\'>((placeholder))</span>',
+        'list: ',
+        'list: ',
+    ),
+    (
+        {'placeholder': [' ', ' \t ', '\u180E']},
+        'list: ',
+        'list: ',
     ),
     (
         {'placeholder': ['one']},
@@ -284,6 +299,11 @@ def test_what_will_trigger_conditional_placeholder(value):
         {'placeholder': [[1, 2], [3, 4]]},
         'list: [1, 2] and [3, 4]',
         'list: \n\n* [1, 2]\n* [3, 4]',
+    ),
+    (
+        {'placeholder': [0.1, True, False]},
+        'list: 0.1, True and False',
+        'list: \n\n* 0.1\n* True\n* False',
     ),
 ])
 def test_field_renders_lists_as_strings(values, expected, expected_as_markdown):
