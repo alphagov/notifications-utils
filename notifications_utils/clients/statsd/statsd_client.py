@@ -49,10 +49,11 @@ class StatsdClient():
             self.statsd_client.gauge(self.format_stat_name(stat), count)
 
     def timing(self, stat, delta, rate=1):
+        # delta should be in seconds
         if self.active:
-            self.statsd_client.timing(self.format_stat_name(stat), delta, rate)
+            self.statsd_client.timing(self.format_stat_name(stat), delta * 1000, rate)
 
     def timing_with_dates(self, stat, start, end, rate=1):
         if self.active:
             delta = (start - end).total_seconds()
-            self.statsd_client.timing(self.format_stat_name(stat), delta, rate)
+            self.statsd_client.timing(self.format_stat_name(stat), delta * 1000, rate)
