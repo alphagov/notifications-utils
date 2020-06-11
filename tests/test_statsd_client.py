@@ -54,17 +54,17 @@ def test_should_call_incr_with_params_if_enabled(enabled_statsd_client):
 
 
 def test_should_not_call_timing_if_not_enabled(disabled_statsd_client):
-    disabled_statsd_client.timing('key', 1000)
+    disabled_statsd_client.timing('key', 1)
     disabled_statsd_client.statsd_client.timing.assert_not_called()
 
 
 def test_should_call_timing_if_enabled(enabled_statsd_client):
-    enabled_statsd_client.timing('key', 1000)
+    enabled_statsd_client.timing('key', 1)
     enabled_statsd_client.statsd_client.timing.assert_called_with('test.notifications.api.key', 1000, 1)
 
 
 def test_should_call_timing_with_params_if_enabled(enabled_statsd_client):
-    enabled_statsd_client.timing('key', 1000, 99)
+    enabled_statsd_client.timing('key', 1, 99)
     enabled_statsd_client.statsd_client.timing.assert_called_with('test.notifications.api.key', 1000, 99)
 
 
@@ -76,13 +76,13 @@ def test_should_not_call_timing_from_dates_method_if_not_enabled(disabled_statsd
 def test_should_call_timing_from_dates_method_if_enabled(enabled_statsd_client):
     now = datetime.utcnow()
     enabled_statsd_client.timing_with_dates('key', now + timedelta(seconds=3), now)
-    enabled_statsd_client.statsd_client.timing.assert_called_with('test.notifications.api.key', 3, 1)
+    enabled_statsd_client.statsd_client.timing.assert_called_with('test.notifications.api.key', 3000, 1)
 
 
 def test_should_call_timing_from_dates_method_with_params_if_enabled(enabled_statsd_client):
     now = datetime.utcnow()
     enabled_statsd_client.timing_with_dates('key', now + timedelta(seconds=3), now, 99)
-    enabled_statsd_client.statsd_client.timing.assert_called_with('test.notifications.api.key', 3, 99)
+    enabled_statsd_client.statsd_client.timing.assert_called_with('test.notifications.api.key', 3000, 99)
 
 
 def test_should_not_call_gauge_if_not_enabled(disabled_statsd_client):
