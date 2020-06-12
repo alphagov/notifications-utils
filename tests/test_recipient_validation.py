@@ -167,6 +167,11 @@ def test_detect_uk_phone_numbers(phone_number):
         country_prefix='44',  # UK
         billable_units=1,
     )),
+    ('07700900123', international_phone_info(
+        international=True,
+        country_prefix='44',  # UK Crown dependency
+        billable_units=1,
+    )),
     ('20-12-1234-1234', international_phone_info(
         international=True,
         country_prefix='20',  # Egypt
