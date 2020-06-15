@@ -29,8 +29,22 @@ class PostalAddress():
     MAX_LINES = 7
 
     def __init__(self, raw_address, allow_international_letters=False):
+
         self.raw_address = raw_address
         self.allow_international_letters = allow_international_letters
+
+        self._lines = [
+            remove_whitespace_before_punctuation(line.rstrip(' ,'))
+            for line in normalise_lines(self.raw_address)
+            if line.rstrip(' ,')
+        ] or ['']
+
+        try:
+            self.country = Country(self._lines[-1])
+            self._lines_without_country = self._lines[:-1]
+        except CountryNotFoundError:
+            self._lines_without_country = self._lines
+            self.country = Country(UK)
 
     def __bool__(self):
         return bool(self.normalised)
@@ -64,13 +78,6 @@ class PostalAddress():
         return ', '.join(self.normalised_lines)
 
     @property
-    def country(self):
-        try:
-            return Country(self._lines[-1])
-        except CountryNotFoundError:
-            return Country(UK)
-
-    @property
     def line_count(self):
         return len(self.normalised.splitlines())
 
@@ -95,22 +102,6 @@ class PostalAddress():
     @property
     def international(self):
         return self.postage != Postage.UK
-
-    @property
-    def _lines(self):
-        return [
-            remove_whitespace_before_punctuation(line.rstrip(' ,'))
-            for line in normalise_lines(self.raw_address)
-            if line.rstrip(' ,')
-        ] or ['']
-
-    @property
-    def _lines_without_country(self):
-        try:
-            Country(self._lines[-1])
-            return self._lines[:-1]
-        except CountryNotFoundError:
-            return self._lines
 
     @property
     def normalised(self):
