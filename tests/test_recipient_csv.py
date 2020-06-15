@@ -1191,7 +1191,9 @@ def test_accepts_international_addresses_when_allowed(
 
 
 def test_address_validation_speed():
-    number_of_lines = 50000
+    # We should be able to validate 1000 lines of address data in about
+    # a second – if it starts to get slow, something is inefficient
+    number_of_lines = 1000
     uk_addresses_with_valid_postcodes = '\n'.join((
         '{n} Example Street, London, {a}{b} {c}{d}{e}'.format(
             n=randrange(1000),
