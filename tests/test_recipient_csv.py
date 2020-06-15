@@ -3,6 +3,7 @@ import itertools
 import unicodedata
 from functools import partial
 from orderedset import OrderedSet
+from random import choice, randrange
 from unittest.mock import Mock
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
@@ -1187,3 +1188,29 @@ def test_accepts_international_addresses_when_allowed(
     assert _index_rows(recipients.rows_with_bad_recipients) == expected_bad_rows
     # Prove that the error isn’t because the given country is unknown
     assert recipients[0].as_postal_address.country == Country('Fiji')
+
+
+def test_address_validation_speed():
+    # We should be able to validate 1000 lines of address data in about
+    # a second – if it starts to get slow, something is inefficient
+    number_of_lines = 1000
+    uk_addresses_with_valid_postcodes = '\n'.join((
+        '{n} Example Street, London, {a}{b} {c}{d}{e}'.format(
+            n=randrange(1000),
+            a=choice(['n', 'e', 'sw', 'se', 'w']),
+            b=choice(range(1, 10)),
+            c=choice(range(1, 10)),
+            d=choice('ABDefgHJLNPqrstUWxyZ'),
+            e=choice('ABDefgHJLNPqrstUWxyZ'),
+        )
+        for i in range(number_of_lines)
+    ))
+    recipients = RecipientCSV(
+        'address line 1, address line 2, address line 3\n' + (
+            uk_addresses_with_valid_postcodes
+        ),
+        template=_sample_template('letter'),
+        allow_international_letters=False,
+    )
+    for row in recipients:
+        assert not row.has_bad_postal_address

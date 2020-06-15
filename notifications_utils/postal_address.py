@@ -1,5 +1,7 @@
 import re
 
+from functools import lru_cache
+
 from notifications_utils.countries import UK, Country, CountryNotFoundError
 from notifications_utils.countries.data import Postage
 from notifications_utils.formatters import (
@@ -21,6 +23,7 @@ address_lines_1_to_6_keys = [
 address_lines_1_to_6_and_postcode_keys = address_lines_1_to_6_keys + ['postcode']
 address_line_7_key = 'address_line_7'
 address_lines_1_to_7_keys = address_lines_1_to_6_keys + [address_line_7_key]
+country_UK = Country(UK)
 
 
 class PostalAddress():
@@ -29,8 +32,22 @@ class PostalAddress():
     MAX_LINES = 7
 
     def __init__(self, raw_address, allow_international_letters=False):
+
         self.raw_address = raw_address
         self.allow_international_letters = allow_international_letters
+
+        self._lines = [
+            remove_whitespace_before_punctuation(line.rstrip(' ,'))
+            for line in normalise_lines(self.raw_address)
+            if line.rstrip(' ,')
+        ] or ['']
+
+        try:
+            self.country = Country(self._lines[-1])
+            self._lines_without_country = self._lines[:-1]
+        except CountryNotFoundError:
+            self._lines_without_country = self._lines
+            self.country = country_UK
 
     def __bool__(self):
         return bool(self.normalised)
@@ -64,13 +81,6 @@ class PostalAddress():
         return ', '.join(self.normalised_lines)
 
     @property
-    def country(self):
-        try:
-            return Country(self._lines[-1])
-        except CountryNotFoundError:
-            return Country(UK)
-
-    @property
     def line_count(self):
         return len(self.normalised.splitlines())
 
@@ -97,22 +107,6 @@ class PostalAddress():
         return self.postage != Postage.UK
 
     @property
-    def _lines(self):
-        return [
-            remove_whitespace_before_punctuation(line.rstrip(' ,'))
-            for line in normalise_lines(self.raw_address)
-            if line.rstrip(' ,')
-        ] or ['']
-
-    @property
-    def _lines_without_country(self):
-        try:
-            Country(self._lines[-1])
-            return self._lines[:-1]
-        except CountryNotFoundError:
-            return self._lines
-
-    @property
     def normalised(self):
         return '\n'.join(self.normalised_lines)
 
@@ -135,9 +129,7 @@ class PostalAddress():
     def postcode(self):
         if self.international:
             return None
-        last_line = self._lines_without_country[-1]
-        if is_a_real_uk_postcode(last_line):
-            return format_postcode_for_printing(last_line)
+        return format_postcode_or_none(self._lines_without_country[-1])
 
     @property
     def valid(self):
@@ -172,3 +164,13 @@ def format_postcode_for_printing(postcode):
     elif "BFPO" in postcode:
         return postcode[:4] + " " + postcode[4:]
     return postcode[:-3] + " " + postcode[-3:]
+
+
+# When processing an address we look at the postcode twice when
+# normalising it, and once when validating it. So 8 is chosen because
+# it’s 3, doubled to give some headroom then rounded up to the nearest
+# power of 2
+@lru_cache(maxsize=8)
+def format_postcode_or_none(postcode):
+    if is_a_real_uk_postcode(postcode):
+        return format_postcode_for_printing(postcode)
