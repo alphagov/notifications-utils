@@ -166,6 +166,10 @@ def format_postcode_for_printing(postcode):
     return postcode[:-3] + " " + postcode[-3:]
 
 
+# When processing an address we look at the postcode twice when
+# normalising it, and once when validating it. So 8 is chosen because
+# it’s 3, doubled to give some headroom then rounded up to the nearest
+# power of 2
 @lru_cache(maxsize=8)
 def format_postcode_or_none(postcode):
     if is_a_real_uk_postcode(postcode):
