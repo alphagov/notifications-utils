@@ -34,6 +34,15 @@ class CountryMapping(Columns):
 
         return SanitiseASCII.encode(normalised)
 
+    def __contains__(self, key):
+        if any(c.isdigit() for c in key):
+            # A string with a digit can’t be a country and is probably a
+            # postcode, so let’s do a little optimisation, skip the
+            # expensive string manipulation to normalise the key and say
+            # that there’s no matching country
+            return False
+        return super().__contains__(key)
+
     def __getitem__(self, key):
 
         for key_ in (key, f'the {key}', f'yr {key}', f'y {key}'):
