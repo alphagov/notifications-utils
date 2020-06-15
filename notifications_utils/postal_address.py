@@ -1,5 +1,7 @@
 import re
 
+from functools import lru_cache
+
 from notifications_utils.countries import UK, Country, CountryNotFoundError
 from notifications_utils.countries.data import Postage
 from notifications_utils.formatters import (
@@ -126,9 +128,7 @@ class PostalAddress():
     def postcode(self):
         if self.international:
             return None
-        last_line = self._lines_without_country[-1]
-        if is_a_real_uk_postcode(last_line):
-            return format_postcode_for_printing(last_line)
+        return format_postcode_or_none(self._lines_without_country[-1])
 
     @property
     def valid(self):
@@ -163,3 +163,9 @@ def format_postcode_for_printing(postcode):
     elif "BFPO" in postcode:
         return postcode[:4] + " " + postcode[4:]
     return postcode[:-3] + " " + postcode[-3:]
+
+
+@lru_cache(maxsize=8)
+def format_postcode_or_none(postcode):
+    if is_a_real_uk_postcode(postcode):
+        return format_postcode_for_printing(postcode)
