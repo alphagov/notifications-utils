@@ -158,7 +158,27 @@ class BaseSMSTemplate(Template):
         self.prefix = prefix
         self.show_prefix = show_prefix
         self.sender = sender
+        self._content_count = None
         super().__init__(template, values)
+
+    @property
+    def values(self):
+        return super().values
+
+    @values.setter
+    def values(self, value):
+
+        # If we change the values of the template it’s possible the
+        # content count will have changed, so we need to reset the
+        # cached count.
+        if self._content_count is not None:
+            self._content_count = None
+
+        # Assigning to super().values doesn’t work here. We need to get
+        # the property object instead, which has the special method
+        # fset, which invokes the setter it as if we were
+        # assigning to it outside this class.
+        super(BaseSMSTemplate, type(self)).values.fset(self, value)
 
     @property
     def content_with_placeholders_filled_in(self):
@@ -188,7 +208,9 @@ class BaseSMSTemplate(Template):
         Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
         as in the message `foo ((placeholder))` has a length of 19.
         """
-        return len(self.content_with_placeholders_filled_in)
+        if self._content_count is None:
+            self._content_count = len(SMSMessageTemplate._get_unsanitised_content(self))
+        return self._content_count
 
     @property
     def content_count_without_prefix(self):
@@ -220,12 +242,15 @@ class BaseSMSTemplate(Template):
 class SMSMessageTemplate(BaseSMSTemplate):
 
     def __str__(self):
+        return sms_encode(self._get_unsanitised_content())
+
+    def _get_unsanitised_content(self):
+        # This is faster to call than __str__ if all you need to know is
+        # how many characters are in the message
         return Take(PlainTextField(
             self.content, self.values, html='passthrough'
         )).then(
             add_prefix, self.prefix
-        ).then(
-            sms_encode
         ).then(
             remove_whitespace_before_punctuation
         ).then(
