@@ -1,5 +1,7 @@
+import cachetools.func
+
 from statsd.client.base import StatsClientBase
-from socket import socket, AF_INET, SOCK_DGRAM
+from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM
 from flask import current_app
 
 
@@ -10,9 +12,16 @@ class NotifyStatsClient(StatsClientBase):
         self._prefix = prefix
         self._sock = socket(AF_INET, SOCK_DGRAM)
 
+    def _resolve(self, addr):
+        return gethostbyname(addr)
+
+    @cachetools.func.ttl_cache(maxsize=2, ttl=15)
+    def _cached_host(self):
+        return self._resolve(self._host)
+
     def _send(self, data):
         try:
-            self._sock.sendto(data.encode('ascii'), (self._host, self._port))
+            self._sock.sendto(data.encode('ascii'), (self._cached_host(), self._port))
         except Exception as e:
             current_app.logger.exception('Error sending statsd metric: {}'.format(str(e)))
             pass
