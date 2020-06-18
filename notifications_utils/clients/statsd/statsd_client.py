@@ -1,8 +1,16 @@
+import random
+import time
+
 import cachetools.func
 
 from statsd.client.base import StatsClientBase
 from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM
 from flask import current_app
+
+
+def time_monotonic_with_jitter():
+    jitter = random.uniform(-3, 3)
+    return time.monotonic() + jitter
 
 
 class NotifyStatsClient(StatsClientBase):
@@ -15,7 +23,7 @@ class NotifyStatsClient(StatsClientBase):
     def _resolve(self, addr):
         return gethostbyname(addr)
 
-    @cachetools.func.ttl_cache(maxsize=2, ttl=15)
+    @cachetools.func.ttl_cache(maxsize=2, ttl=15, timer=time_monotonic_with_jitter)
     def _cached_host(self):
         return self._resolve(self._host)
 
