@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 from datetime import datetime, timedelta
@@ -103,3 +103,23 @@ def test_should_log_but_not_throw_if_socket_errors(app, mocker):
 
     stats_client._send('data')
     mock_logger.exception.assert_called_with('Error sending statsd metric: Mock Exception')
+
+
+def test_should_manage_dns(app, mocker):
+    stats_client = NotifyStatsClient('exporter.apps.internal', 8125, '')
+
+    with patch.object(stats_client, '_resolve', return_value='1.2.3.4'):
+        assert stats_client._cached_host() == '1.2.3.4'
+
+
+def test_should_cache_dns(app, mocker):
+    stats_client = NotifyStatsClient('exporter.apps.internal', 8125, '')
+
+    with patch.object(stats_client, '_resolve', return_value='1.2.3.4'):
+        assert stats_client._cached_host() == '1.2.3.4'
+
+    assert stats_client._cached_host() == '1.2.3.4'
+
+    stats_client._cached_host.cache_clear()
+    with patch.object(stats_client, '_resolve', return_value='4.3.2.1'):
+        assert stats_client._cached_host() == '4.3.2.1'
