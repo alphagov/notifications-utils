@@ -405,10 +405,17 @@ def get_international_phone_info(number):
     prefix = get_international_prefix(number)
 
     return international_phone_info(
-        international=(prefix != uk_prefix),
+        international=(prefix != uk_prefix or _is_a_crown_dependency_number(number)),
         country_prefix=prefix,
         billable_units=get_billable_units_for_prefix(prefix)
     )
+
+
+CROWN_DEPENDENCY_RANGES = ['7781', '7839', '7911', '7509', '7797', '7937', '7700', '7829', '7624', '7524', '7924']
+
+
+def _is_a_crown_dependency_number(number):
+    return number[2:6] in CROWN_DEPENDENCY_RANGES
 
 
 def get_international_prefix(number):
