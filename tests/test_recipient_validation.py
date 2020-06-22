@@ -164,41 +164,49 @@ def test_detect_uk_phone_numbers(phone_number):
 @pytest.mark.parametrize("phone_number, expected_info", [
     ('07900900123', international_phone_info(
         international=False,
+        crown_dependency=False,
         country_prefix='44',  # UK
         billable_units=1,
     )),
     ('07700900123', international_phone_info(
         international=True,
-        country_prefix='44',  # UK Crown dependency
+        crown_dependency=True,
+        country_prefix='44',  # UK Crown dependency, so prefix same as UK
         billable_units=1,
     )),
     ('20-12-1234-1234', international_phone_info(
         international=True,
+        crown_dependency=False,
         country_prefix='20',  # Egypt
         billable_units=3,
     )),
     ('00201212341234', international_phone_info(
         international=True,
+        crown_dependency=False,
         country_prefix='20',  # Egypt
         billable_units=3,
     )),
     ('1664000000000', international_phone_info(
         international=True,
+        crown_dependency=False,
         country_prefix='1664',  # Montserrat
         billable_units=1,
     )),
     ('71234567890', international_phone_info(
         international=True,
+        crown_dependency=False,
         country_prefix='7',  # Russia
         billable_units=1,
     )),
     ('1-202-555-0104', international_phone_info(
         international=True,
+        crown_dependency=False,
         country_prefix='1',  # USA
         billable_units=1,
     )),
     ('+23051234567', international_phone_info(
         international=True,
+        crown_dependency=False,
         country_prefix='230',  # Mauritius
         billable_units=2,
     ))
