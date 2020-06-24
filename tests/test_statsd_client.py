@@ -102,7 +102,7 @@ def test_should_log_but_not_throw_if_socket_errors(app, mocker):
     mock_logger = mocker.patch('flask.Flask.logger')
 
     stats_client._send('data')
-    mock_logger.exception.assert_called_with('Error sending statsd metric: Mock Exception')
+    mock_logger.warning.assert_called_with('Error sending statsd metric: Mock Exception')
 
 
 def test_should_manage_dns(app, mocker):
