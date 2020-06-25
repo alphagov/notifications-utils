@@ -25,6 +25,9 @@ from notifications_utils.template import (
     EmailPreviewTemplate,
     LetterPrintTemplate,
     SubjectMixin,
+    BaseBroadcastTemplate,
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
 )
 
 
@@ -37,6 +40,9 @@ from notifications_utils.template import (
     )),
     (BaseLetterTemplate, (
         "Can't instantiate abstract class BaseLetterTemplate with abstract methods __str__"
+    )),
+    (BaseBroadcastTemplate, (
+        "Can't instantiate abstract class BaseBroadcastTemplate with abstract methods __str__"
     )),
 ))
 def test_abstract_classes_cant_be_instantiated(template_class, expected_error):
@@ -51,6 +57,9 @@ def test_abstract_classes_cant_be_instantiated(template_class, expected_error):
     )),
     (LetterPreviewTemplate, (
         'Cannot initialise LetterPreviewTemplate with sms template_type'
+    )),
+    (BroadcastPreviewTemplate, (
+        'Cannot initialise BroadcastPreviewTemplate with sms template_type'
     )),
 ))
 def test_errors_for_incompatible_template_type(template_class, expected_error):
@@ -350,6 +359,7 @@ def test_markdown_in_templates(
         (HTMLEmailTemplate, 'email'),
         (EmailPreviewTemplate, 'email'),
         (SMSPreviewTemplate, 'sms'),
+        (BroadcastPreviewTemplate, 'broadcast'),
         pytest.param(SMSBodyPreviewTemplate, 'sms', marks=pytest.mark.xfail),
     ]
 )
@@ -451,14 +461,20 @@ def test_stripping_of_unsupported_characters_in_email_templates():
     "template_class, prefix, body, expected_call", [
         (SMSMessageTemplate, "a", "b", (Markup("b"), "a")),
         (SMSPreviewTemplate, "a", "b", (Markup("b"), "a")),
+        (BroadcastMessageTemplate, "a", "b", (Markup("b"), "a")),
+        (BroadcastPreviewTemplate, "a", "b", (Markup("b"), "a")),
         (SMSMessageTemplate, None, "b", (Markup("b"), None)),
         (SMSPreviewTemplate, None, "b", (Markup("b"), None)),
+        (BroadcastMessageTemplate, None, "b", (Markup("b"), None)),
+        (BroadcastPreviewTemplate, None, "b", (Markup("b"), None)),
         (SMSMessageTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '<em>ht&ml</em>')),
         (SMSPreviewTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '&lt;em&gt;ht&amp;ml&lt;/em&gt;')),
+        (BroadcastMessageTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '<em>ht&ml</em>')),
+        (BroadcastPreviewTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '&lt;em&gt;ht&amp;ml&lt;/em&gt;')),
     ]
 )
 def test_sms_message_adds_prefix(add_prefix, template_class, prefix, body, expected_call):
-    template = template_class({'content': body, 'template_type': 'sms'})
+    template = template_class({'content': body, 'template_type': template_class.template_type})
     template.prefix = prefix
     template.sender = None
     str(template)
@@ -467,7 +483,12 @@ def test_sms_message_adds_prefix(add_prefix, template_class, prefix, body, expec
 
 @mock.patch('notifications_utils.template.add_prefix', return_value='')
 @pytest.mark.parametrize(
-    'template_class', [SMSMessageTemplate, SMSPreviewTemplate]
+    'template_class', [
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+        BroadcastMessageTemplate,
+        BroadcastPreviewTemplate,
+    ]
 )
 @pytest.mark.parametrize(
     "show_prefix, prefix, body, sender, expected_call", [
@@ -486,7 +507,7 @@ def test_sms_message_adds_prefix_only_if_asked_to(
     template_class,
 ):
     template = template_class(
-        {'content': body, 'template_type': 'sms'},
+        {'content': body, 'template_type': template_class.template_type},
         prefix=prefix,
         show_prefix=show_prefix,
         sender=sender,
@@ -524,6 +545,8 @@ def test_sms_message_preview_hides_sender_by_default():
     'template_class, extra_args, expected_call', (
         (SMSMessageTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
         (SMSPreviewTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
+        (BroadcastMessageTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
+        (BroadcastPreviewTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
         (SMSBodyPreviewTemplate, {}, 'Message'),
     )
 )
@@ -534,17 +557,20 @@ def test_sms_messages_downgrade_non_sms(
     expected_call,
 ):
     template = str(template_class(
-        {'content': 'Message', 'template_type': 'sms'},
+        {'content': 'Message', 'template_type': template_class.template_type},
         **extra_args
     ))
     assert 'downgraded' in str(template)
     mock_sms_encode.assert_called_once_with(expected_call)
 
 
+@pytest.mark.parametrize('template_class', (
+    SMSPreviewTemplate, BroadcastPreviewTemplate,
+))
 @mock.patch('notifications_utils.template.sms_encode', return_value='downgraded')
-def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode):
-    template = str(SMSPreviewTemplate(
-        {'content': '😎', 'template_type': 'sms'},
+def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode, template_class):
+    template = str(template_class(
+        {'content': '😎', 'template_type': template_class.template_type},
         prefix='👉',
         downgrade_non_sms_characters=False,
     ))
@@ -552,13 +578,19 @@ def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode
     assert mock_sms_encode.called is False
 
 
+@pytest.mark.parametrize('template_class', (
+    SMSPreviewTemplate, BroadcastPreviewTemplate,
+))
 @mock.patch('notifications_utils.template.nl2br')
-def test_sms_preview_adds_newlines(nl2br):
+def test_sms_preview_adds_newlines(nl2br, template_class):
     content = "the\nquick\n\nbrown fox"
-    str(SMSPreviewTemplate({'content': content, 'template_type': 'sms'}))
+    str(template_class({'content': content, 'template_type': template_class.template_type}))
     nl2br.assert_called_once_with(content)
 
 
+@pytest.mark.parametrize('template_class', (
+    SMSMessageTemplate, BroadcastMessageTemplate,
+))
 @pytest.mark.parametrize('content', [
     (  # Unix-style
         'one newline\n'
@@ -585,9 +617,9 @@ def test_sms_preview_adds_newlines(nl2br):
         'end\n\n  \r \n \t '
     ),
 ])
-def test_sms_message_normalises_newlines(content):
+def test_sms_message_normalises_newlines(content, template_class):
     assert repr(str(
-        SMSMessageTemplate({'content': content, 'template_type': 'sms'})
+        template_class({'content': content, 'template_type': template_class.template_type})
     )) == repr(
         'one newline\n'
         'two newlines\n'
@@ -934,12 +966,15 @@ def test_letter_image_renderer_passes_postage_to_html_attribute(
     SMSBodyPreviewTemplate,
     SMSMessageTemplate,
     SMSPreviewTemplate,
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
 ))
 @pytest.mark.parametrize('template_json', (
-    {"content": '', 'template_type': 'sms'},
-    {"content": '', 'subject': 'subject', 'template_type': 'sms'},
+    {"content": ''},
+    {"content": '', 'subject': 'subject'},
 ))
 def test_sms_templates_have_no_subject(template_class, template_json):
+    template_json.update(template_type=template_class.template_type)
     assert not hasattr(
         template_class(template_json),
         'subject',
@@ -959,6 +994,8 @@ def test_subject_line_gets_applied_to_correct_template_types():
         SMSBodyPreviewTemplate,
         SMSMessageTemplate,
         SMSPreviewTemplate,
+        BroadcastMessageTemplate,
+        BroadcastPreviewTemplate,
     ]:
         assert not issubclass(cls, SubjectMixin)
 
@@ -1019,6 +1056,8 @@ def test_character_count_for_non_sms_templates(
 @pytest.mark.parametrize('template_class', [
     SMSMessageTemplate,
     SMSPreviewTemplate,
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
 ])
 @pytest.mark.parametrize("content, values, prefix, expected_count_in_template, expected_count_in_notification", [
     # is an unsupported unicode character so should be replaced with a ?
@@ -1043,7 +1082,7 @@ def test_character_count_for_sms_templates(
     content, values, prefix, expected_count_in_template, expected_count_in_notification, template_class
 ):
     template = template_class(
-        {"content": content, 'template_type': 'sms'},
+        {"content": content, 'template_type': template_class.template_type},
         prefix=prefix,
     )
     template.sender = None
@@ -1052,6 +1091,10 @@ def test_character_count_for_sms_templates(
     assert template.content_count == expected_count_in_notification
 
 
+@pytest.mark.parametrize('template_class', (
+    SMSMessageTemplate,
+    BroadcastMessageTemplate,
+))
 @pytest.mark.parametrize(
     "msg, expected_sms_fragment_count",
     [
@@ -1078,12 +1121,21 @@ def test_character_count_for_sms_templates(
         ('à' * 70 + 'ÿ', 2),  # just one non-gsm character means it's sent at unicode
         ('🚀' * 160, 1),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
     ])
-def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(msg, expected_sms_fragment_count):
-    template = SMSMessageTemplate({'content': msg, 'template_type': 'sms'})
+def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
+    template_class,
+    msg,
+    expected_sms_fragment_count,
+):
+    template = template_class({'content': msg, 'template_type': template_class.template_type})
     assert template.fragment_count == expected_sms_fragment_count
 
 
-@pytest.mark.parametrize('template_class', [SMSMessageTemplate, SMSPreviewTemplate])
+@pytest.mark.parametrize('template_class', [
+    SMSMessageTemplate,
+    SMSPreviewTemplate,
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
+])
 @pytest.mark.parametrize('content, values, prefix, expected_result', [
     ("", {}, None, True),
     ("", {}, "GDS", True),
@@ -1093,7 +1145,7 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(msg, expec
 ])
 def test_is_message_empty_sms_templates(content, values, prefix, expected_result, template_class):
     template = template_class(
-        {"content": content, 'template_type': 'sms'},
+        {"content": content, 'template_type': template_class.template_type},
         prefix=prefix,
     )
     template.sender = None
@@ -1119,7 +1171,7 @@ def test_is_message_empty_email_and_letter_templates(
     expected_result,
 ):
     template = template_class({
-        "content": content, 'subject': 'Hi', 'template_type': template_type,
+        "content": content, 'subject': 'Hi', 'template_type': template_class.template_type,
     })
     template.sender = None
     template.values = values
@@ -1143,6 +1195,13 @@ def test_is_message_empty_email_and_letter_templates(
         mock.call('content', {}, html='passthrough'),
     ]),
     (SMSPreviewTemplate, 'sms', {}, [
+        mock.call('((phone number))', {}, with_brackets=False, html='escape'),
+        mock.call('content', {}, html='escape', redact_missing_personalisation=False),
+    ]),
+    (BroadcastMessageTemplate, 'broadcast', {}, [
+        mock.call('content', {}, html='passthrough'),
+    ]),
+    (BroadcastPreviewTemplate, 'broadcast', {}, [
         mock.call('((phone number))', {}, with_brackets=False, html='escape'),
         mock.call('content', {}, html='escape', redact_missing_personalisation=False),
     ]),
@@ -1182,6 +1241,10 @@ def test_is_message_empty_email_and_letter_templates(
         mock.call('((email address))', {}, with_brackets=False),
     ]),
     (SMSPreviewTemplate, 'sms', {'redact_missing_personalisation': True}, [
+        mock.call('((phone number))', {}, with_brackets=False, html='escape'),
+        mock.call('content', {}, html='escape', redact_missing_personalisation=True),
+    ]),
+    (BroadcastPreviewTemplate, 'broadcast', {'redact_missing_personalisation': True}, [
         mock.call('((phone number))', {}, with_brackets=False, html='escape'),
         mock.call('content', {}, html='escape', redact_missing_personalisation=True),
     ]),
@@ -1255,6 +1318,12 @@ def test_templates_handle_html_and_redacting(
     (SMSBodyPreviewTemplate, 'sms', {}, [
         mock.call('content'),
     ]),
+    (BroadcastMessageTemplate, 'broadcast', {}, [
+        mock.call('content'),
+    ]),
+    (BroadcastPreviewTemplate, 'broadcast', {}, [
+        mock.call('content'),
+    ]),
     (LetterPreviewTemplate, 'letter', {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
         mock.call(Markup('<p>content</p>')),
@@ -1311,6 +1380,10 @@ def test_templates_remove_whitespace_before_punctuation(
     (SMSPreviewTemplate, 'sms', {}, [
     ]),
     (SMSBodyPreviewTemplate, 'sms', {}, [
+    ]),
+    (BroadcastMessageTemplate, 'broadcast', {}, [
+    ]),
+    (BroadcastPreviewTemplate, 'broadcast', {}, [
     ]),
     (LetterPreviewTemplate, 'letter', {'contact_block': 'www.gov.uk'}, [
         mock.call(Markup('subject')),
@@ -1389,6 +1462,18 @@ def test_smart_quotes_removed_from_long_template_in_under_a_second():
     (
         SMSBodyPreviewTemplate(
             {"content": "((content))", "subject": "((subject))", "template_type": "sms"},
+        ),
+        ['content'],
+    ),
+    (
+        BroadcastMessageTemplate(
+            {"content": "((content))", "subject": "((subject))", "template_type": "broadcast"},
+        ),
+        ['content'],
+    ),
+    (
+        BroadcastPreviewTemplate(
+            {"content": "((content))", "subject": "((subject))", "template_type": "broadcast"},
         ),
         ['content'],
     ),
@@ -1700,11 +1785,13 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
 @pytest.mark.parametrize('template_class', [
     SMSMessageTemplate,
     SMSPreviewTemplate,
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
 ])
 def test_message_too_long_ignoring_prefix(template_class):
     body = ('b' * 917) + '((foo))'
     template = template_class(
-        {'content': body, 'template_type': 'sms'},
+        {'content': body, 'template_type': template_class.template_type},
         prefix='a' * 100,
         values={'foo': 'cc'}
     )
@@ -1715,11 +1802,13 @@ def test_message_too_long_ignoring_prefix(template_class):
 @pytest.mark.parametrize('template_class', [
     SMSMessageTemplate,
     SMSPreviewTemplate,
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
 ])
 def test_message_is_not_too_long_ignoring_prefix(template_class):
     body = ('b' * 917) + '((foo))'
     template = template_class(
-        {'content': body, 'template_type': 'sms'},
+        {'content': body, 'template_type': template_class.template_type},
         prefix='a' * 100,
         values={'foo': 'c'},
     )
@@ -2042,13 +2131,25 @@ def test_image_not_present_if_no_logo(template_class):
         '  The quick brown fox.<br><br>Jumps over the lazy dog.<br>Single linebreak above.\n'
         '</div>'
     )),
+    (BroadcastPreviewTemplate, (
+        '\n\n'
+        '<div class="sms-message-wrapper">\n'
+        '  The quick brown fox.<br><br>Jumps over the lazy dog.<br>Single linebreak above.\n'
+        '</div>'
+    )),
+    (BroadcastMessageTemplate, (
+        'The quick brown fox.\n'
+        '\n'
+        'Jumps over the lazy dog.\n'
+        'Single linebreak above.'
+    )),
 ))
 def test_text_messages_collapse_consecutive_whitespace(
     template_class,
     content,
     expected,
 ):
-    template = template_class({"content": content, "template_type": "sms"})
+    template = template_class({"content": content, "template_type": template_class.template_type})
     assert str(template) == expected
     assert template.content_count == 70 == len(
         'The quick brown fox.\n'

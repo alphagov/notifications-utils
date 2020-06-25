@@ -343,6 +343,18 @@ class SMSPreviewTemplate(BaseSMSTemplate):
         }))
 
 
+class BaseBroadcastTemplate(BaseSMSTemplate):
+    template_type = 'broadcast'
+
+
+class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
+    pass
+
+
+class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
+    pass
+
+
 class SubjectMixin():
 
     def __init__(
