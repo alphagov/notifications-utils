@@ -25,13 +25,23 @@ class NotifyStatsClient(StatsClientBase):
 
     @cachetools.func.ttl_cache(maxsize=2, ttl=15, timer=time_monotonic_with_jitter)
     def _cached_host(self):
-        return self._resolve(self._host)
+        try:
+            return self._resolve(self._host)
+        except Exception as e:
+            # if we get an error store None in the cache so that we don't keep trying to retrieve the DNS
+            # if paas's dns server is having issues
+            current_app.logger.warning('Error resolving statsd dns: {}'.format(str(e)))
+            return None
 
     def _send(self, data):
         try:
-            self._sock.sendto(data.encode('ascii'), (self._cached_host(), self._port))
+            host = self._cached_host()
+
+            # if we can't resolve DNS then host is none - just skip sending stats for next 15 secs
+            if host:
+                self._sock.sendto(data.encode('ascii'), (host, self._port))
         except Exception as e:
-            current_app.logger.exception('Error sending statsd metric: {}'.format(str(e)))
+            current_app.logger.warning('Error sending statsd metric: {}'.format(str(e)))
             pass
 
 
