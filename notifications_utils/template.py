@@ -348,7 +348,7 @@ class BaseBroadcastTemplate(BaseSMSTemplate):
 
 
 class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
-    pass
+    jinja_template = template_env.get_template('broadcast_preview_template.jinja2')
 
 
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
