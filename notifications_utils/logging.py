@@ -6,7 +6,6 @@ import sys
 from flask import request, g
 from flask.ctx import has_request_context, has_app_context
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseJSONFormatter
-from time import monotonic
 
 import logging
 import logging.handlers
@@ -29,55 +28,10 @@ def build_log_line(extra_fields):
     return ' '.join(fields)
 
 
-def build_statsd_line(extra_fields):
-    fields = []
-    if 'service_id' in extra_fields:
-        if extra_fields.get('service_id') == 'notify-admin':
-            fields = [str(extra_fields.get('service_id'))]
-        else:
-            fields = ["service-id", str(extra_fields.get('service_id'))]
-    standard_fields = [extra_fields.get('method'), extra_fields.get('endpoint'), extra_fields.get('status')]
-    fields += [str(field) for field in standard_fields if field is not None]
-    return '.'.join(fields)
-
-
 def init_app(app, statsd_client=None):
     app.config.setdefault('NOTIFY_LOG_LEVEL', 'INFO')
     app.config.setdefault('NOTIFY_APP_NAME', 'none')
     app.config.setdefault('NOTIFY_LOG_PATH', './log/application.log')
-
-    @app.after_request
-    def after_request(response):
-        extra_fields = {
-            'method': request.method,
-            'url': request.url,
-            'status': response.status_code
-        }
-
-        if 'service_id' in g:
-            extra_fields.update({
-                'service_id': g.service_id
-            })
-
-        if 'start' in g:
-            time_taken = monotonic() - g.start
-            extra_fields.update({
-                'time_taken': "%.5f" % time_taken
-            })
-
-        if 'endpoint' in g:
-            extra_fields.update({
-                'endpoint': g.endpoint
-            })
-
-        if statsd_client:
-            stat = build_statsd_line(extra_fields)
-            statsd_client.incr(stat)
-
-            if 'time_taken' in extra_fields:
-                statsd_client.timing(stat, time_taken)
-
-        return response
 
     logging.getLogger().addHandler(logging.NullHandler())
 
