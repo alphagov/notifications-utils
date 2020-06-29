@@ -1,6 +1,7 @@
 import pytest
 import itertools
 import unicodedata
+import string
 from functools import partial
 from orderedset import OrderedSet
 from random import choice, randrange
@@ -1214,3 +1215,23 @@ def test_address_validation_speed():
     )
     for row in recipients:
         assert not row.has_bad_postal_address
+
+
+def test_email_validation_speed():
+    # We should be able to validate 1000 email addresses in under a second – if it starts to get slow, something is inefficient
+    number_of_lines = 1000
+    email_addresses = '\n'.join((
+        '{n}@{domain}.{ending}'.format(
+            n=''.join(choice(string.ascii_letters + string.digits + ".+-^_") for x in range(20)),
+            domain=''.join(choice(string.ascii_letters) for x in range(15)),
+            ending=choice(['com', 'eu', 'org.uk', 'service.gov.uk', 'example.com']),
+        )
+        for i in range(number_of_lines)
+    ))
+    recipients = RecipientCSV(
+        'email_address\n' + (
+            email_addresses
+        ),
+        template=_sample_template('email'),
+    )
+    assert not recipients.has_errors
