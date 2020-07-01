@@ -1160,8 +1160,12 @@ def test_is_message_empty_sms_templates(content, values, prefix, expected_result
 @pytest.mark.parametrize('content, values, expected_result', [
     ("", {}, True),
     ("((placeholder))", {"placeholder": ""}, True),
+    ("((placeholder))", {"placeholder": "   \t   \r\n"}, True),
     ("((placeholder))", {"placeholder": "Some content"}, False),
+    ("((placeholder??show_or_hide))", {"placeholder": False}, True),
     ("Some content", {}, False),
+    ("((placeholder)) some content", {"placeholder": ""}, False),
+    ("Some content ((placeholder))", {"placeholder": ""}, False),
 ])
 def test_is_message_empty_email_and_letter_templates(
     template_class,
@@ -1176,6 +1180,41 @@ def test_is_message_empty_email_and_letter_templates(
     template.sender = None
     template.values = values
     assert template.is_message_empty() == expected_result
+
+
+@pytest.mark.parametrize('template_class, template_type', (
+    (HTMLEmailTemplate, 'email'),
+    (LetterPrintTemplate, 'letter'),
+))
+@pytest.mark.parametrize('content, values', [
+    ("Some content", {}),
+    ("((placeholder)) some content", {"placeholder": ""}),
+    ("Some content ((placeholder))", {"placeholder": ""}),
+    pytest.param(
+        "((placeholder))", {"placeholder": "Some content"},
+        marks=pytest.mark.xfail(raises=AssertionError),
+    ),
+])
+def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
+    mocker,
+    template_class,
+    template_type,
+    content,
+    values,
+):
+    template = template_class({
+        "content": content, 'subject': 'Hi', 'template_type': template_type,
+    })
+    mock_content = mocker.patch.object(
+        template_class,
+        'content_count',
+        create=True,
+        new_callable=mock.PropertyMock,
+        return_value=None,
+    )
+    template.values = values
+    template.is_message_empty()
+    assert mock_content.called is False
 
 
 @pytest.mark.parametrize('template_class, template_type, extra_args, expected_field_calls', [
