@@ -1,6 +1,9 @@
 import pytest
 
-from notifications_utils.safe_string import email_safe, id_safe
+from notifications_utils.safe_string import (
+    make_string_safe_for_email_local_part,
+    make_string_safe_for_id,
+)
 
 
 @pytest.mark.parametrize('unsafe_string, expected_safe', [
@@ -16,7 +19,7 @@ from notifications_utils.safe_string import email_safe, id_safe
     ('üńïçödë wördś', 'unicode.words'),
 ])
 def test_email_safe_return_dot_separated_email_local_part(unsafe_string, expected_safe):
-    assert email_safe(unsafe_string) == expected_safe
+    assert make_string_safe_for_email_local_part(unsafe_string) == expected_safe
 
 
 @pytest.mark.parametrize('unsafe_string, expected_safe', [
@@ -35,4 +38,4 @@ def test_email_safe_return_dot_separated_email_local_part(unsafe_string, expecte
     ('üńïçödë wördś', 'unicode-words'),
 ])
 def test_id_safe_return_dash_separated_string(unsafe_string, expected_safe):
-    assert id_safe(unsafe_string) == expected_safe
+    assert make_string_safe_for_id(unsafe_string) == expected_safe

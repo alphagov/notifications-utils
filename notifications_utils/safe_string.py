@@ -2,7 +2,7 @@ import re
 import unicodedata
 
 
-def email_safe(string, whitespace='.'):
+def make_string_safe(string, whitespace='.'):
     # strips accents, diacritics etc
     string = ''.join(
         c for c in unicodedata.normalize('NFD', string)
@@ -16,5 +16,9 @@ def email_safe(string, whitespace='.'):
     return string.strip('.')
 
 
-def id_safe(string):
-    return email_safe(string, whitespace='-')
+def make_string_safe_for_email_local_part(string):
+    return make_string_safe(string, whitespace='.')
+
+
+def make_string_safe_for_id(string):
+    return make_string_safe(string, whitespace='-')
