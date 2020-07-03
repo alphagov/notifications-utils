@@ -2,7 +2,7 @@ import re
 import unicodedata
 
 
-def make_string_safe(string, whitespace='.'):
+def make_string_safe(string, whitespace):
     # strips accents, diacritics etc
     string = ''.join(
         c for c in unicodedata.normalize('NFD', string)
