@@ -137,6 +137,16 @@ class Template(ABC):
         return len(self.content_with_placeholders_filled_in)
 
     def is_message_empty(self):
+
+        if not self.content:
+            return True
+
+        if not self.content.startswith('((') or not self.content.endswith('))'):
+            # If the content doesn’t start or end with a placeholder we
+            # can guarantee it’s not empty, no matter what
+            # personalisation has been provided.
+            return False
+
         return self.content_count == 0
 
     def is_message_too_long(self):
