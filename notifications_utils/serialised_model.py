@@ -22,7 +22,7 @@ class SerialisedModel(ABC):
         pass
 
     def __init__(self, _dict):
-        for property in sorted(self.ALLOWED_PROPERTIES):
+        for property in self.ALLOWED_PROPERTIES:
             setattr(self, property, _dict[property])
 
 
