@@ -41,6 +41,7 @@ setup(
         'pypdf2==1.26.0',
         'itsdangerous==1.1.0',
         'govuk-bank-holidays==0.6',
+        'geojson==2.5.0',
 
         # required by both api and admin
         'awscli==1.16.302',
