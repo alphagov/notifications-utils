@@ -30,6 +30,8 @@ from notifications_utils.template import (
     BroadcastPreviewTemplate,
 )
 
+from tests.xml_schemas import XMLSyntaxError, validate_xml
+
 
 @pytest.mark.parametrize('template_class, expected_error', (
     (Template, (
@@ -2318,3 +2320,14 @@ def test_broadcast_message_outputs_polygons():
         '0.001,-0.001 0.002,-0.002 0.003,-0.003',
         '-99.999,1.234 -99.998,5.678',
     ]
+
+
+@pytest.mark.xfail(raises=XMLSyntaxError)
+def test_broadcast_message_outputs_valid_xml_according_to_schema():
+    raw_xml = str(BroadcastMessageTemplate(
+        {'content': 'foo', 'template_type': 'broadcast'},
+        polygons=[
+            [[1, -1], [2, -2]],
+        ]
+    ))
+    validate_xml(raw_xml.encode('utf-8'), 'CAP-v1.2.xsd')
