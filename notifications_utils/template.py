@@ -365,6 +365,15 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
     jinja_template = template_env.get_template('broadcast_message_template.jinja2')
 
+    def __init__(
+        self,
+        template,
+        values=None,
+        polygons=None,
+    ):
+        self._polygons = polygons or []
+        super().__init__(template, values)
+
     def __str__(self):
 
         return self.jinja_template.render({
@@ -380,8 +389,18 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
                 normalise_whitespace_and_newlines
             ).then(
                 normalise_multiple_newlines
-            )
+            ),
+            'polygons': list(self.polygons),
         })
+
+    @property
+    def polygons(self):
+        return [
+            ' '.join(
+                f'{lat},{long}' for lat, long in polygon
+            )
+            for polygon in self._polygons
+        ]
 
 
 class SubjectMixin():

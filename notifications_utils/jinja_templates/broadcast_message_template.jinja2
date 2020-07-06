@@ -25,7 +25,9 @@
     <contact></contact>
     <area>
       <areaDesc></areaDesc>
-      <polygon></polygon>
+      {% for polygon in polygons %}
+        <polygon>{{ polygon }}</polygon>
+      {% endfor %}
     </area>
   </info>
 </alert>
