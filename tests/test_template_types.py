@@ -461,15 +461,12 @@ def test_stripping_of_unsupported_characters_in_email_templates():
     "template_class, prefix, body, expected_call", [
         (SMSMessageTemplate, "a", "b", (Markup("b"), "a")),
         (SMSPreviewTemplate, "a", "b", (Markup("b"), "a")),
-        (BroadcastMessageTemplate, "a", "b", (Markup("b"), "a")),
         (BroadcastPreviewTemplate, "a", "b", (Markup("b"), "a")),
         (SMSMessageTemplate, None, "b", (Markup("b"), None)),
         (SMSPreviewTemplate, None, "b", (Markup("b"), None)),
-        (BroadcastMessageTemplate, None, "b", (Markup("b"), None)),
         (BroadcastPreviewTemplate, None, "b", (Markup("b"), None)),
         (SMSMessageTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '<em>ht&ml</em>')),
         (SMSPreviewTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '&lt;em&gt;ht&amp;ml&lt;/em&gt;')),
-        (BroadcastMessageTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '<em>ht&ml</em>')),
         (BroadcastPreviewTemplate, '<em>ht&ml</em>', "b", (Markup("b"), '&lt;em&gt;ht&amp;ml&lt;/em&gt;')),
     ]
 )
@@ -486,7 +483,6 @@ def test_sms_message_adds_prefix(add_prefix, template_class, prefix, body, expec
     'template_class', [
         SMSMessageTemplate,
         SMSPreviewTemplate,
-        BroadcastMessageTemplate,
         BroadcastPreviewTemplate,
     ]
 )
@@ -545,7 +541,7 @@ def test_sms_message_preview_hides_sender_by_default():
     'template_class, extra_args, expected_call', (
         (SMSMessageTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
         (SMSPreviewTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
-        (BroadcastMessageTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
+        (BroadcastMessageTemplate, {'prefix': 'Service name'}, 'Message'),
         (BroadcastPreviewTemplate, {'prefix': 'Service name'}, 'Service name: Message'),
         (SMSBodyPreviewTemplate, {}, 'Message'),
     )
@@ -588,9 +584,6 @@ def test_sms_preview_adds_newlines(nl2br, template_class):
     nl2br.assert_called_once_with(content)
 
 
-@pytest.mark.parametrize('template_class', (
-    SMSMessageTemplate, BroadcastMessageTemplate,
-))
 @pytest.mark.parametrize('content', [
     (  # Unix-style
         'one newline\n'
@@ -617,10 +610,51 @@ def test_sms_preview_adds_newlines(nl2br, template_class):
         'end\n\n  \r \n \t '
     ),
 ])
-def test_sms_message_normalises_newlines(content, template_class):
+def test_sms_message_normalises_newlines(content):
     assert repr(str(
-        template_class({'content': content, 'template_type': template_class.template_type})
+        SMSMessageTemplate({'content': content, 'template_type': 'sms'})
     )) == repr(
+        'one newline\n'
+        'two newlines\n'
+        '\n'
+        'end'
+    )
+
+
+@pytest.mark.parametrize('content', [
+    (  # Unix-style
+        'one newline\n'
+        'two newlines\n'
+        '\n'
+        'end'
+    ),
+    (  # Windows-style
+        'one newline\r\n'
+        'two newlines\r\n'
+        '\r\n'
+        'end'
+    ),
+    (  # Mac Classic style
+        'one newline\r'
+        'two newlines\r'
+        '\r'
+        'end'
+    ),
+    (  # A mess
+        '\t\t\n\r one newline\xa0\n'
+        'two newlines\r'
+        '\r\n'
+        'end\n\n  \r \n \t '
+    ),
+])
+def test_broadcast_message_normalises_newlines(content):
+    xml = BeautifulSoup(
+        str(BroadcastMessageTemplate(
+            {'content': content, 'template_type': 'broadcast'}
+        )),
+        'lxml',
+    )
+    assert xml.select_one('alert info description').text == (
         'one newline\n'
         'two newlines\n'
         '\n'
@@ -1238,7 +1272,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
         mock.call('content', {}, html='escape', redact_missing_personalisation=False),
     ]),
     (BroadcastMessageTemplate, 'broadcast', {}, [
-        mock.call('content', {}, html='passthrough'),
+        mock.call('content', {}, html='escape'),
     ]),
     (BroadcastPreviewTemplate, 'broadcast', {}, [
         mock.call('((phone number))', {}, with_brackets=False, html='escape'),
@@ -2174,12 +2208,6 @@ def test_image_not_present_if_no_logo(template_class):
         '<div class="broadcast-message-wrapper">\n'
         '  The quick brown fox.<br><br>Jumps over the lazy dog.<br>Single linebreak above.\n'
         '</div>'
-    )),
-    (BroadcastMessageTemplate, (
-        'The quick brown fox.\n'
-        '\n'
-        'Jumps over the lazy dog.\n'
-        'Single linebreak above.'
     )),
 ))
 def test_text_messages_collapse_consecutive_whitespace(

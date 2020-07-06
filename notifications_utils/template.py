@@ -362,7 +362,26 @@ class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
 
 
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
-    pass
+
+    jinja_template = template_env.get_template('broadcast_message_template.jinja2')
+
+    def __str__(self):
+
+        return self.jinja_template.render({
+            'body': Take(Field(
+                self.content.strip(),
+                self.values,
+                html='escape',
+            )).then(
+                sms_encode
+            ).then(
+                remove_whitespace_before_punctuation
+            ).then(
+                normalise_whitespace_and_newlines
+            ).then(
+                normalise_multiple_newlines
+            )
+        })
 
 
 class SubjectMixin():
