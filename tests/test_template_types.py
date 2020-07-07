@@ -29,8 +29,7 @@ from notifications_utils.template import (
     BroadcastMessageTemplate,
     BroadcastPreviewTemplate,
 )
-
-from tests.xml_schemas import XMLSyntaxError, validate_xml
+from tests.xml_schemas import validate_xml
 
 
 @pytest.mark.parametrize('template_class, expected_error', (
@@ -2322,7 +2321,6 @@ def test_broadcast_message_outputs_polygons():
     ]
 
 
-@pytest.mark.xfail(raises=XMLSyntaxError)
 def test_broadcast_message_outputs_valid_xml_according_to_schema():
     raw_xml = str(BroadcastMessageTemplate(
         {'content': 'foo', 'template_type': 'broadcast'},

@@ -1,7 +1,8 @@
 import math
+import pytz
 from abc import ABC, abstractmethod
 from os import path
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import lru_cache
 
 from jinja2 import Environment, FileSystemLoader
@@ -364,6 +365,7 @@ class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
     jinja_template = template_env.get_template('broadcast_message_template.jinja2')
+    default_ttl_hours = 72
 
     def __init__(
         self,
@@ -372,11 +374,23 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         polygons=None,
     ):
         self._polygons = polygons or []
+        self.sent = datetime.utcnow()
+        self.expires = datetime.utcnow() + timedelta(hours=self.default_ttl_hours)
+        self.status = 'Actual'
+        self.msg_type = 'Alert'
+        self.scope = 'Public'
+        self.category = 'Health'
+        self.response_type = 'None'
+        self.urgency = 'Immediate'
+        self.severity = 'Extreme'
+        self.certainty = 'Observed'
         super().__init__(template, values)
 
     def __str__(self):
 
-        return self.jinja_template.render({
+        properties = dict(self.__dict__)
+
+        properties.update({
             'body': Take(Field(
                 self.content.strip(),
                 self.values,
@@ -390,8 +404,12 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
             ).then(
                 normalise_multiple_newlines
             ),
-            'polygons': list(self.polygons),
+            'polygons': self.polygons,
+            'sent': self.formatted_datetime_for('sent'),
+            'expires': self.formatted_datetime_for('expires'),
         })
+
+        return self.jinja_template.render(**properties)
 
     @property
     def polygons(self):
@@ -401,6 +419,13 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
             )
             for polygon in self._polygons
         ]
+
+    def formatted_datetime_for(self, property_name):
+        property = getattr(self, property_name).astimezone(pytz.UTC)
+        return (
+            property.strftime('%Y-%m-%dT%H:%M:%S%z')[:-2]
+            + ':' + property.strftime('%z')[-2:]
+        )
 
 
 class SubjectMixin():

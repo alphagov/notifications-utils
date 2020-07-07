@@ -2,27 +2,19 @@
 <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
   <identifier></identifier>
   <sender></sender>
-  <sent></sent>
-  <status></status>
-  <msgType></msgType>
-  <scope></scope>
+  <sent>{{ sent }}</sent>
+  <status>{{ status }}</status>
+  <msgType>{{ msg_type }}</msgType>
+  <scope>{{ scope }}</scope>
   <info>
-    <category></category>
+    <category>{{ category }}</category>
     <event></event>
-    <responseType></responseType>
-    <urgency></urgency>
-    <severity></severity>
-    <certainty></certainty>
-    <eventCode>
-      <valueName></valueName>
-      <value></value>
-    </eventCode>
-    <expires></expires>
-    <senderName></senderName>
-    <headline></headline>
+    <responseType>{{ response_type }}</responseType>
+    <urgency>{{ urgency }}</urgency>
+    <severity>{{ severity }}</severity>
+    <certainty>{{ certainty }}</certainty>
+    <expires>{{ expires }}</expires>
     <description>{{ body }}</description>
-    <instruction></instruction>
-    <contact></contact>
     <area>
       <areaDesc></areaDesc>
       {% for polygon in polygons %}
