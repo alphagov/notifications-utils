@@ -2329,3 +2329,24 @@ def test_broadcast_message_outputs_valid_xml_according_to_schema():
         ]
     ))
     validate_xml(raw_xml.encode('utf-8'), 'CAP-v1.2.xsd')
+
+
+def test_broadcast_message_puts_correct_values_in_elements():
+    raw_xml = str(BroadcastMessageTemplate(
+        {'content': 'this is a ((alert_type))', 'template_type': 'broadcast'},
+        values={'alert_type': 'test'},
+        polygons=[],
+    ))
+    tree = BeautifulSoup(raw_xml, 'lxml-xml')
+    for element, expected_text in (
+        ('status', 'Actual'),
+        ('msgType', 'Alert'),
+        ('scope', 'Public'),
+        ('info category', 'Health'),
+        ('info responseType', 'None'),
+        ('info urgency', 'Immediate'),
+        ('info severity', 'Extreme'),
+        ('info certainty', 'Observed'),
+        ('info description', 'this is a test'),
+    ):
+        assert tree.select_one(element).text == expected_text
