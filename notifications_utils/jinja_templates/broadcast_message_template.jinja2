@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier></identifier>
+  <sender></sender>
+  <sent>{{ sent }}</sent>
+  <status>{{ status }}</status>
+  <msgType>{{ msg_type }}</msgType>
+  <scope>{{ scope }}</scope>
+  <info>
+    <category>{{ category }}</category>
+    <event></event>
+    <responseType>{{ response_type }}</responseType>
+    <urgency>{{ urgency }}</urgency>
+    <severity>{{ severity }}</severity>
+    <certainty>{{ certainty }}</certainty>
+    <expires>{{ expires }}</expires>
+    <description>{{ body }}</description>
+    <area>
+      <areaDesc></areaDesc>
+      {% for polygon in polygons %}
+        <polygon>{{ polygon }}</polygon>
+      {% endfor %}
+    </area>
+  </info>
+</alert>
