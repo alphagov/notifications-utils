@@ -372,10 +372,13 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         template,
         values=None,
         polygons=None,
+        identifier='',
     ):
         self._polygons = polygons or []
         self.sent = datetime.utcnow()
         self.expires = datetime.utcnow() + timedelta(hours=self.default_ttl_hours)
+        self.sender = 'Notify'
+        self.identifier = identifier
         self.status = 'Actual'
         self.msg_type = 'Alert'
         self.scope = 'Public'
@@ -384,7 +387,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self.urgency = 'Immediate'
         self.severity = 'Extreme'
         self.certainty = 'Observed'
-        super().__init__(template, values)
+        super().__init__(template, values, sender=self.sender)
 
     def __str__(self):
 
