@@ -2359,7 +2359,7 @@ def test_broadcast_message_puts_correct_values_in_elements():
     tree = BeautifulSoup(raw_xml, 'lxml-xml')
 
     for element, expected_text in (
-        ('sender', 'Notify'),
+        ('sender', 'https://www.notifications.service.gov.uk/'),
         ('identifier', 'unique'),
         ('status', 'Actual'),
         ('msgType', 'Alert'),
