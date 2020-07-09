@@ -40,6 +40,7 @@ from notifications_utils.countries.data import Postage
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 from notifications_utils.sanitise_text import SanitiseSMS
+from notifications_utils.broadcast_areas import broadcast_area_libraries
 
 
 template_env = Environment(loader=FileSystemLoader(
@@ -372,12 +373,19 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         template,
         values=None,
         polygons=None,
+        areas=None,
         identifier='',
     ):
-        self._polygons = polygons or []
+        super().__init__(template, values)
+
+        if areas is not None:
+            self._polygons = broadcast_area_libraries.get_polygons_for_areas_lat_long(areas)
+        else:
+            self._polygons = polygons or []
+
         self.sent = datetime.utcnow()
         self.expires = datetime.utcnow() + timedelta(hours=self.default_ttl_hours)
-        self.sender = 'Notify'
+        self.notify_identifier = 'https://www.notifications.service.gov.uk/'
         self.identifier = identifier
         self.status = 'Actual'
         self.msg_type = 'Alert'
@@ -387,7 +395,6 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self.urgency = 'Immediate'
         self.severity = 'Extreme'
         self.certainty = 'Observed'
-        super().__init__(template, values, sender=self.sender)
 
     def __str__(self):
 

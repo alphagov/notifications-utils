@@ -29,6 +29,8 @@ from notifications_utils.template import (
     BroadcastMessageTemplate,
     BroadcastPreviewTemplate,
 )
+from notifications_utils.broadcast_areas import broadcast_area_libraries
+
 from tests.xml_schemas import validate_xml
 
 
@@ -2321,6 +2323,22 @@ def test_broadcast_message_outputs_polygons():
     ]
 
 
+def test_broadcast_message_outputs_polygons_from_broadcast_areas():
+    raw_xml = str(BroadcastMessageTemplate(
+        {'content': 'foo', 'template_type': 'broadcast'},
+        polygons=broadcast_area_libraries.get_polygons_for_areas_long_lat('redcar-and-cleveland')
+    ))
+    tree = BeautifulSoup(raw_xml, 'lxml-xml')
+    polygons = [
+        polygon.text
+        for polygon in tree.select_one('alert info area').select('polygon')
+    ]
+    assert len(polygons) == 2
+    assert polygons[0].startswith('-1.118813,54.628861 -1.138746,54.640693 ')
+    assert polygons[0].endswith(' -1.084666,54.620409 -1.118813,54.628861')
+    assert polygons[1] == '-1.149409,54.634682 -1.150512,54.635162 -1.15097,54.631955 -1.149409,54.634682'
+
+
 def test_broadcast_message_outputs_valid_xml_according_to_schema():
     raw_xml = str(BroadcastMessageTemplate(
         {'content': 'foo', 'template_type': 'broadcast'},
@@ -2341,7 +2359,7 @@ def test_broadcast_message_puts_correct_values_in_elements():
     tree = BeautifulSoup(raw_xml, 'lxml-xml')
 
     for element, expected_text in (
-        ('sender', 'Notify'),
+        ('sender', 'https://www.notifications.service.gov.uk/'),
         ('identifier', 'unique'),
         ('status', 'Actual'),
         ('msgType', 'Alert'),
