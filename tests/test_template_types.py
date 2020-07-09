@@ -2336,9 +2336,13 @@ def test_broadcast_message_puts_correct_values_in_elements():
         {'content': 'this is a ((alert_type))', 'template_type': 'broadcast'},
         values={'alert_type': 'test'},
         polygons=[],
+        identifier='unique',
     ))
     tree = BeautifulSoup(raw_xml, 'lxml-xml')
+
     for element, expected_text in (
+        ('sender', 'Notify'),
+        ('identifier', 'unique'),
         ('status', 'Actual'),
         ('msgType', 'Alert'),
         ('scope', 'Public'),
