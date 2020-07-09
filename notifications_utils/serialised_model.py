@@ -14,6 +14,11 @@ class SerialisedModel(ABC):
       dictionary
     - any other abritrary properties of the underlying dictionary can’t
       be accessed
+
+    If you are adding a new field to a model, you should ensure that
+    all sources of the cache data are updated to return that new field,
+    then clear the cache, before adding that field to the
+    ALLOWED_PROPERTIES list.
     """
 
     @property
