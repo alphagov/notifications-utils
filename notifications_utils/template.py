@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from os import path
 from datetime import datetime, timedelta
 from functools import lru_cache
-from uuid import uuid4
 
 from jinja2 import Environment, FileSystemLoader
 from flask import Markup
