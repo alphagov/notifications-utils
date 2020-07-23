@@ -2372,3 +2372,14 @@ def test_broadcast_message_puts_correct_values_in_elements():
         ('info description', 'this is a test'),
     ):
         assert tree.select_one(element).text == expected_text
+
+
+@freeze_time('2020-06-01 02:03:04')
+def test_broadcast_message_formats_timestamps_correctly():
+    raw_xml = str(BroadcastMessageTemplate(
+        {'content': 'content', 'template_type': 'broadcast'},
+        identifier='unique',
+    ))
+    tree = BeautifulSoup(raw_xml, 'lxml-xml')
+    # note the `-00:00` timezone
+    assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
