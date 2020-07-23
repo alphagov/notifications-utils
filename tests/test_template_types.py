@@ -2383,3 +2383,13 @@ def test_broadcast_message_formats_timestamps_correctly():
     tree = BeautifulSoup(raw_xml, 'lxml-xml')
     # note the `-00:00` timezone
     assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
+
+
+@freeze_time('2020-06-01 02:03:04')
+def test_broadcast_message_reference():
+    msg = BroadcastMessageTemplate(
+        {'content': 'content', 'template_type': 'broadcast'},
+        identifier='unique',
+    )
+
+    assert msg.reference == 'https://www.notifications.service.gov.uk/,unique,2020-06-01T02:03:04-00:00'

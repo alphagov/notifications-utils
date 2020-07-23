@@ -1,5 +1,4 @@
 import math
-import pytz
 from abc import ABC, abstractmethod
 from os import path
 from datetime import datetime, timedelta
@@ -442,6 +441,19 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
     def formatted_datetime_for(self, property_name):
         prop = getattr(self, property_name)
         return self.convert_naive_utc_datetime_to_cap_standard_string(prop)
+
+    @property
+    def reference(self):
+        """
+        The format looks like: f'{sender},{identifier},{sent}'
+
+        this string can be used to refer to a broadcast in the `<references>` field of a future update or cancel.
+        """
+        return ','.join([
+            self.notify_identifier,
+            self.identifier,
+            self.convert_naive_utc_datetime_to_cap_standard_string(self.sent)
+        ])
 
 
 class SubjectMixin():
