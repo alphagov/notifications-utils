@@ -210,6 +210,40 @@ def test_postcode(address, expected_postcode):
     assert PostalAddress(address).postcode == expected_postcode
 
 
+@pytest.mark.parametrize('address, expected_result', [
+    (
+        '',
+        False,
+    ),
+    (
+        '''
+        1[23 Example Street)
+        C@ity of Town
+        SW1A 1AA
+        ''',
+        False,
+    ),
+    (
+        '''
+        [123 Example Street
+        (ity of Town
+        ]S W1 A 1 AA
+        ''',
+        True,
+    ),
+    (
+        r'''
+        123 Example Straße
+        SW1A 1AA
+        \Deutschland
+        ''',
+        True,
+    ),
+])
+def test_has_invalid_characters(address, expected_result):
+    assert PostalAddress(address).has_invalid_characters is expected_result
+
+
 @pytest.mark.parametrize('address, expected_international', (
     (
         '',
@@ -676,6 +710,11 @@ def test_valid_last_line_too_short_too_long(address):
     postal_address = PostalAddress(address, allow_international_letters=True)
     assert postal_address.valid is False
     assert postal_address.has_valid_last_line is True
+
+
+def test_valid_with_invalid_characters():
+    address = 'Valid\nExcept\n[For one character\nBhutan\n'
+    assert PostalAddress(address, allow_international_letters=True).valid is False
 
 
 @pytest.mark.parametrize('international, expected_valid', (
