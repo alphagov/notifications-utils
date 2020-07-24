@@ -2327,17 +2327,20 @@ def test_broadcast_message_outputs_polygons():
 def test_broadcast_message_outputs_polygons_from_broadcast_areas():
     raw_xml = str(BroadcastMessageTemplate(
         {'content': 'foo', 'template_type': 'broadcast'},
-        polygons=broadcast_area_libraries.get_polygons_for_areas_long_lat('redcar-and-cleveland')
+        polygons=broadcast_area_libraries.get_polygons_for_areas_long_lat('electoral-wards-of-the-united-kingdom-E07000093')
     ))
     tree = BeautifulSoup(raw_xml, 'lxml-xml')
     polygons = [
         polygon.text
         for polygon in tree.select_one('alert info area').select('polygon')
     ]
-    assert len(polygons) == 2
-    assert polygons[0].startswith('-1.118813,54.628861 -1.138746,54.640693 ')
-    assert polygons[0].endswith(' -1.084666,54.620409 -1.118813,54.628861')
-    assert polygons[1] == '-1.149409,54.634682 -1.150512,54.635162 -1.15097,54.631955 -1.149409,54.634682'
+    assert len(polygons) == 4
+
+    assert polygons[0].startswith('-1.498313,51.329379 -1.499777,51.330339')
+    assert polygons[0].endswith('-1.49805,51.329029 -1.498313,51.329379')
+
+    assert polygons[1].startswith('-1.482268,50.928948 -1.481829,50.928906')
+    assert polygons[1].endswith('-1.482597,50.928992 -1.482268,50.928948')
 
 
 def test_broadcast_message_outputs_valid_xml_according_to_schema():

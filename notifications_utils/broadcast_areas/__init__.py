@@ -1,34 +1,14 @@
-import itertools
-from contextlib import suppress
-from pathlib import Path
-from functools import lru_cache
 import geojson
-from notifications_utils.formatters import formatted_list
+import itertools
+
+from werkzeug.utils import cached_property
 
 from notifications_utils.serialised_model import SerialisedModelCollection
-from notifications_utils.safe_string import make_string_safe_for_id
+
+from .repo import BroadcastAreasRepository
 
 
-@lru_cache(maxsize=128)
-def load_geojson_file(filename):
-
-    path = Path(__file__).resolve().parent / filename
-
-    geojson_data = geojson.loads(path.read_text())
-
-    if not isinstance(geojson_data, geojson.GeoJSON) or not geojson_data.is_valid:
-        raise ValueError(
-            f'Contents of {path} are not valid GeoJSON'
-        )
-
-    return path.stem, geojson_data
-
-
-class IdFromNameMixin:
-
-    @property
-    def id(self):
-        return make_string_safe_for_id(self.name)
+class SortableMixin:
 
     def __repr__(self):
         return f'{self.__class__.__name__}(<{self.id}>)'
@@ -36,7 +16,7 @@ class IdFromNameMixin:
     def __lt__(self, other):
         # Implementing __lt__ means any classes inheriting from this
         # method are sortable
-        return self.id < other.id
+        return self.name < other.name
 
 
 class GetItemByIdMixin:
@@ -47,10 +27,16 @@ class GetItemByIdMixin:
         raise KeyError(id)
 
 
-class BroadcastArea(IdFromNameMixin):
+class BroadcastArea(SortableMixin):
 
-    def __init__(self, feature):
-        self.feature = feature
+    def __init__(self, row):
+        id, name, feature, simple_feature = row
+
+        self.id = id
+        self.name = name
+
+        self._feature = feature
+        self._simple_feature = simple_feature
 
         for coordinates in self.polygons:
             if coordinates[0] != coordinates[-1]:
@@ -63,60 +49,76 @@ class BroadcastArea(IdFromNameMixin):
     def __eq__(self, other):
         return self.id == other.id
 
-    @property
-    def name(self):
-        for possible_name_key in {
-            'rgn18nm', 'ctyua16nm', 'ctry19nm',
-        }:
-            with suppress(KeyError):
-                return self.feature['properties'][possible_name_key]
-
-        raise KeyError(f'No name found in {self.feature["properties"]}')
-
-    @property
-    def polygons(self):
-        if self.feature['geometry']['type'] == 'MultiPolygon':
+    def _polygons(self, feature):
+        if feature['geometry']['type'] == 'MultiPolygon':
             return [
                 polygons[0]
-                for polygons in self.feature['geometry']['coordinates']
+                for polygons in feature['geometry']['coordinates']
             ]
-        if self.feature['geometry']['type'] == 'Polygon':
+        if feature['geometry']['type'] == 'Polygon':
             return [
-                self.feature['geometry']['coordinates'][0]
+                feature['geometry']['coordinates'][0]
             ]
         raise TypeError(
             f'Unknown geometry type {self.feature["geometry"]["type"]} '
             f'in {self.__class__.__name} {self.name}'
         )
 
-    @property
-    def unenclosed_polygons(self):
+    def _unenclosed_polygons(self, feature):
         # Some mapping tools require shapes to be unenclosed, i.e. the
         # last point joins the first point implicitly
         return [
-            coordinates[:-1] for coordinates in self.polygons
+            coordinates[:-1] for coordinates in self._polygons(feature)
+        ]
+
+    @property
+    def polygons(self):
+        return self._polygons(self.feature)
+
+    @property
+    def unenclosed_polygons(self):
+        return self._unenclosed_polygons(self.feature)
+
+    @property
+    def simple_polygons(self):
+        return self._polygons(self.simple_feature)
+
+    @property
+    def simple_unenclosed_polygons(self):
+        return self._unenclosed_polygons(self.simple_feature)
+
+    @cached_property
+    def feature(self):
+        return geojson.loads(self._feature)
+
+    @cached_property
+    def simple_feature(self):
+        return geojson.loads(self._simple_feature)
+
+    @property
+    def sub_areas(self):
+        return [
+            BroadcastArea(row)
+            for row in BroadcastAreasRepository().get_all_areas_for_group(self.id)
         ]
 
 
-class BroadcastAreaLibrary(SerialisedModelCollection, IdFromNameMixin, GetItemByIdMixin):
+class BroadcastAreaLibrary(SerialisedModelCollection, SortableMixin, GetItemByIdMixin):
 
     model = BroadcastArea
 
-    def __init__(self, filename):
-        self.name, geojson_data = load_geojson_file(filename)
-        self.items = geojson_data['features']
+    def __init__(self, row):
+        id, name, is_group = row
+        self.id = id
+        self.name = name
+        self.is_group = bool(is_group)
 
-    def get_examples(self, max_displayed=4):
+    def get_examples(self):
+        return BroadcastAreasRepository().get_library_description(self.id)
 
-        truncate_at = max_displayed - 1
-
-        names = [area.name for area in sorted(self)]
-        count_of_excess_names = len(names) - truncate_at
-
-        if count_of_excess_names > 1:
-            names = names[:truncate_at] + [f'{count_of_excess_names} more…']
-
-        return formatted_list(names, before_each='', after_each='')
+    @property
+    def items(self):
+        return BroadcastAreasRepository().get_all_areas_for_library(self.id)
 
 
 class BroadcastAreaLibraries(SerialisedModelCollection, GetItemByIdMixin):
@@ -125,36 +127,16 @@ class BroadcastAreaLibraries(SerialisedModelCollection, GetItemByIdMixin):
 
     def __init__(self):
 
-        self.items = list(
-            Path(__file__).resolve().parent.glob('*.geojson')
-        )
-
-        self.all_areas = list(self.get_all_areas())
-
-        seen_area_ids = set()
-
-        for area_id in (area.id for area in self.all_areas):
-            if area_id in seen_area_ids:
-                raise ValueError(
-                    f'{area_id} found more than once in '
-                    f'{self.__class__.__name__}'
-                )
-            seen_area_ids.add(area_id)
-
-    def get_all_areas(self):
-        for library in self:
-            for area in library:
-                yield area
+        self.libraries = BroadcastAreasRepository().get_libraries()
+        self.items = self.libraries
 
     def get_areas(self, *area_ids):
         # allow people to call `get_areas('a', 'b') or get_areas(['a', 'b'])`
         if len(area_ids) == 1 and isinstance(area_ids[0], list):
             area_ids = area_ids[0]
 
-        return list(itertools.chain(*(
-            [area for area in self.all_areas if area.id == area_id]
-            for area_id in area_ids
-        )))
+        areas = BroadcastAreasRepository().get_areas(area_ids)
+        return [BroadcastArea(area) for area in areas]
 
     def get_polygons_for_areas_long_lat(self, *area_ids):
         return list(itertools.chain(*(
