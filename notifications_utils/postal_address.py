@@ -30,6 +30,7 @@ class PostalAddress():
 
     MIN_LINES = 3
     MAX_LINES = 7
+    INVALID_CHARACTERS = r'[\/()@]",='
 
     def __init__(self, raw_address, allow_international_letters=False):
 
@@ -103,6 +104,13 @@ class PostalAddress():
         ) or self.has_valid_postcode
 
     @property
+    def has_invalid_characters(self):
+        return any(
+            line.startswith(tuple(self.INVALID_CHARACTERS))
+            for line in self.normalised_lines
+        )
+
+    @property
     def international(self):
         return self.postage != Postage.UK
 
@@ -137,6 +145,7 @@ class PostalAddress():
             self.has_valid_last_line
             and self.has_enough_lines
             and not self.has_too_many_lines
+            and not self.has_invalid_characters
         )
 
 
