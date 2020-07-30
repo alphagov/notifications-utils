@@ -1,3 +1,4 @@
+import uuid
 import datetime
 from time import process_time
 import os
@@ -2393,3 +2394,51 @@ def test_broadcast_message_reference():
     )
 
     assert msg.reference == 'https://www.notifications.service.gov.uk/,unique,2020-06-01T02:03:04-00:00'
+
+
+def test_broadcast_message_from_event():
+    event = {
+        'id': str(uuid.UUID(int=0)),
+        'sent_at': '2020-06-01T02:03:04.000Z',
+        'message_type': 'update',
+        'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': ['London'],
+        'transmitted_sender': 'currently unused',
+        'transmitted_starts_at': None,
+        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z'
+    }
+
+    msg = BroadcastMessageTemplate.from_event(event)
+
+    assert msg.identifier == event['id']
+    assert msg.sent == datetime.datetime(2020, 6, 1, 2, 3, 4)  # nb: no timezone
+    assert msg.msg_type == 'Update'  # nb: title case
+    xml = str(msg)
+    tree = BeautifulSoup(xml, 'lxml-xml')
+    # note the `-00:00` timezone
+    assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
+    assert tree.select_one('expires').text == '2020-06-07T12:00:00-00:00'
+    assert tree.select_one('info description').text == 'test content'
+
+
+def test_broadcast_message_from_event_matches_from_template():
+    event = {
+        'id': str(uuid.UUID(int=0)),
+        'sent_at': '2020-06-07T12:00:00.000Z',
+        'message_type': 'alert',
+        'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': ['London'],
+        'transmitted_sender': 'currently unused',
+        'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
+        'transmitted_finishes_at': '2020-06-10T12:00:00.000Z'
+    }
+
+    event_msg = BroadcastMessageTemplate.from_event(event)
+    with freeze_time('2020-06-07T12:00:00.000Z'):
+        template_msg = BroadcastMessageTemplate(
+            {'content': 'test content', 'template_type': 'broadcast'},
+            areas=['London'],
+            identifier=str(uuid.UUID(int=0)),
+        )
+
+    assert str(event_msg) == str(template_msg)
