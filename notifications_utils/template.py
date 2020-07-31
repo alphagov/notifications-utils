@@ -1,5 +1,4 @@
 import math
-import pytz
 from abc import ABC, abstractmethod
 from os import path
 from datetime import datetime, timedelta
@@ -430,12 +429,31 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
             for polygon in self._polygons
         ]
 
+    @staticmethod
+    def convert_naive_utc_datetime_to_cap_standard_string(dt):
+        """
+        As defined in section 3.3.2 of http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html.
+
+        They define the standard "YYYY-MM-DDThh:mm:ssXzh:zm", where X is `+` if the timezone is > UTC, otherwise `-`.
+        """
+        return f"{dt.strftime('%Y-%m-%dT%H:%M:%S')}-00:00"
+
     def formatted_datetime_for(self, property_name):
-        property = getattr(self, property_name).astimezone(pytz.UTC)
-        return (
-            property.strftime('%Y-%m-%dT%H:%M:%S%z')[:-2]
-            + ':' + property.strftime('%z')[-2:]
-        )
+        prop = getattr(self, property_name)
+        return self.convert_naive_utc_datetime_to_cap_standard_string(prop)
+
+    @property
+    def reference(self):
+        """
+        The format looks like: f'{sender},{identifier},{sent}'
+
+        this string can be used to refer to a broadcast in the `<references>` field of a future update or cancel.
+        """
+        return ','.join([
+            self.notify_identifier,
+            self.identifier,
+            self.convert_naive_utc_datetime_to_cap_standard_string(self.sent)
+        ])
 
 
 class SubjectMixin():
