@@ -2405,7 +2405,8 @@ def test_broadcast_message_from_event():
         'transmitted_areas': ['London'],
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': None,
-        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z'
+        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
+        'previous_event_references': []
     }
 
     msg = BroadcastMessageTemplate.from_event(event)
@@ -2430,7 +2431,8 @@ def test_broadcast_message_from_event_matches_from_template():
         'transmitted_areas': ['London'],
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
-        'transmitted_finishes_at': '2020-06-10T12:00:00.000Z'
+        'transmitted_finishes_at': '2020-06-10T12:00:00.000Z',
+        'previous_event_references': []
     }
 
     event_msg = BroadcastMessageTemplate.from_event(event)
@@ -2442,3 +2444,26 @@ def test_broadcast_message_from_event_matches_from_template():
         )
 
     assert str(event_msg) == str(template_msg)
+
+
+def test_broadcast_message_from_event_renders_references_list():
+    event = {
+        'id': str(uuid.UUID(int=0)),
+        'sent_at': '2020-06-01T02:03:04.000Z',
+        'message_type': 'update',
+        'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': ['London'],
+        'transmitted_sender': 'currently unused',
+        'transmitted_starts_at': None,
+        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
+        'previous_event_references': [
+            'notify,unique-1,2020-06-01T00:00:00-00:00',
+            'notify,unique-2,2020-06-01T01:01:01-00:00'
+        ]
+    }
+
+    raw_xml = str(BroadcastMessageTemplate.from_event(event))
+    tree = BeautifulSoup(raw_xml, 'lxml-xml')
+
+    expected_references = 'notify,unique-1,2020-06-01T00:00:00-00:00 notify,unique-2,2020-06-01T01:01:01-00:00'
+    assert tree.select_one('references').text == expected_references

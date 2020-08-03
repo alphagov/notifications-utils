@@ -6,6 +6,11 @@
   <status>{{ status }}</status>
   <msgType>{{ msg_type }}</msgType>
   <scope>{{ scope }}</scope>
+  {% if references %}
+    <references>
+      {{- references | join(' ') -}}
+    </references
+  {% endif %}
   <info>
     <category>{{ category }}</category>
     <event></event>
