@@ -396,6 +396,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self.urgency = 'Immediate'
         self.severity = 'Extreme'
         self.certainty = 'Observed'
+        self.previous_event_references = []
 
     @classmethod
     def from_event(cls, broadcast_event):
@@ -416,6 +417,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         obj.msg_type = broadcast_event['message_type'].title()
         obj.sent = parser.parse(broadcast_event['sent_at']).replace(tzinfo=None)
         obj.expires = parser.parse(broadcast_event['transmitted_finishes_at']).replace(tzinfo=None)
+        obj.previous_event_references = broadcast_event['previous_event_references']
         return obj
 
     def __str__(self):
@@ -439,6 +441,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
             'polygons': self.polygons,
             'sent': self.formatted_datetime_for('sent'),
             'expires': self.formatted_datetime_for('expires'),
+            'references': self.previous_event_references,
         })
 
         return self.jinja_template.render(**properties)
