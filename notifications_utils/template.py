@@ -4,6 +4,7 @@ from os import path
 from datetime import datetime, timedelta
 from functools import lru_cache
 
+from dateutil import parser
 from jinja2 import Environment, FileSystemLoader
 from flask import Markup
 from html import unescape
@@ -374,6 +375,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         polygons=None,
         areas=None,
         identifier='',
+        msg_type='Alert'
     ):
         super().__init__(template, values)
 
@@ -394,6 +396,27 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self.urgency = 'Immediate'
         self.severity = 'Extreme'
         self.certainty = 'Observed'
+
+    @classmethod
+    def from_event(cls, broadcast_event):
+        """
+        should be directly callable with the results of the BroadcastEvent.serialize() function from api/models.py
+        """
+        template_dict = {
+            'template_type': 'broadcast',
+            'content': broadcast_event['transmitted_content']['body']
+        }
+        obj = cls(
+            template=template_dict,
+            values=None,  # events have already done interpolation of any personalisation
+            polygons=None,
+            areas=broadcast_event['transmitted_areas'],
+            identifier=broadcast_event['id'],
+        )
+        obj.msg_type = broadcast_event['message_type'].title()
+        obj.sent = parser.parse(broadcast_event['sent_at']).replace(tzinfo=None)
+        obj.expires = parser.parse(broadcast_event['transmitted_finishes_at']).replace(tzinfo=None)
+        return obj
 
     def __str__(self):
 
