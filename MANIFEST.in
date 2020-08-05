@@ -2,4 +2,5 @@ recursive-include notifications_utils *.geojson
 recursive-include notifications_utils *.jinja2
 recursive-include notifications_utils *.json
 recursive-include notifications_utils *.txt
+recursive-include notifications_utils *.sqlite3
 include notifications_utils/international_billing_rates.yml
