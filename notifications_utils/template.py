@@ -40,7 +40,6 @@ from notifications_utils.countries.data import Postage
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 from notifications_utils.sanitise_text import SanitiseSMS
-from notifications_utils.broadcast_areas import broadcast_area_libraries
 
 
 template_env = Environment(loader=FileSystemLoader(
@@ -372,17 +371,13 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self,
         template,
         values=None,
-        polygons=None,
-        areas=None,
+        polygons=[],
         identifier='',
         msg_type='Alert'
     ):
         super().__init__(template, values)
 
-        if areas is not None:
-            self._polygons = broadcast_area_libraries.get_polygons_for_areas_lat_long(areas)
-        else:
-            self._polygons = polygons or []
+        self._polygons = polygons
 
         self.sent = datetime.utcnow()
         self.expires = datetime.utcnow() + timedelta(hours=self.default_ttl_hours)
@@ -410,8 +405,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         obj = cls(
             template=template_dict,
             values=None,  # events have already done interpolation of any personalisation
-            polygons=None,
-            areas=broadcast_event['transmitted_areas'],
+            polygons=broadcast_event['polygons'],
             identifier=broadcast_event['id'],
         )
         obj.msg_type = broadcast_event['message_type'].title()

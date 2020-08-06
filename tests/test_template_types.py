@@ -30,7 +30,6 @@ from notifications_utils.template import (
     BroadcastMessageTemplate,
     BroadcastPreviewTemplate,
 )
-from notifications_utils.broadcast_areas import broadcast_area_libraries
 
 from tests.xml_schemas import validate_xml
 
@@ -2324,25 +2323,6 @@ def test_broadcast_message_outputs_polygons():
     ]
 
 
-def test_broadcast_message_outputs_polygons_from_broadcast_areas():
-    raw_xml = str(BroadcastMessageTemplate(
-        {'content': 'foo', 'template_type': 'broadcast'},
-        polygons=broadcast_area_libraries.get_polygons_for_areas_long_lat('electoral-wards-of-the-united-kingdom-E07000093')
-    ))
-    tree = BeautifulSoup(raw_xml, 'lxml-xml')
-    polygons = [
-        polygon.text
-        for polygon in tree.select_one('alert info area').select('polygon')
-    ]
-    assert len(polygons) == 4
-
-    assert polygons[0].startswith('-1.498313,51.329379 -1.499777,51.330339')
-    assert polygons[0].endswith('-1.49805,51.329029 -1.498313,51.329379')
-
-    assert polygons[1].startswith('-1.482268,50.928948 -1.481829,50.928906')
-    assert polygons[1].endswith('-1.482597,50.928992 -1.482268,50.928948')
-
-
 def test_broadcast_message_outputs_valid_xml_according_to_schema():
     raw_xml = str(BroadcastMessageTemplate(
         {'content': 'foo', 'template_type': 'broadcast'},
@@ -2405,11 +2385,11 @@ def test_broadcast_message_from_event():
         'sent_at': '2020-06-01T02:03:04.000Z',
         'message_type': 'update',
         'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': ['London'],
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': None,
         'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
-        'previous_event_references': []
+        'previous_event_references': [],
+        'polygons': [],
     }
 
     msg = BroadcastMessageTemplate.from_event(event)
@@ -2431,18 +2411,17 @@ def test_broadcast_message_from_event_matches_from_template():
         'sent_at': '2020-06-07T12:00:00.000Z',
         'message_type': 'alert',
         'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': ['London'],
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
         'transmitted_finishes_at': '2020-06-10T12:00:00.000Z',
-        'previous_event_references': []
+        'previous_event_references': [],
+        'polygons': [],
     }
 
     event_msg = BroadcastMessageTemplate.from_event(event)
     with freeze_time('2020-06-07T12:00:00.000Z'):
         template_msg = BroadcastMessageTemplate(
             {'content': 'test content', 'template_type': 'broadcast'},
-            areas=['London'],
             identifier=str(uuid.UUID(int=0)),
         )
 
@@ -2455,14 +2434,14 @@ def test_broadcast_message_from_event_renders_references_list():
         'sent_at': '2020-06-01T02:03:04.000Z',
         'message_type': 'update',
         'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': ['London'],
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': None,
         'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
         'previous_event_references': [
             'notify,unique-1,2020-06-01T00:00:00-00:00',
             'notify,unique-2,2020-06-01T01:01:01-00:00'
-        ]
+        ],
+        'polygons': [],
     }
 
     raw_xml = str(BroadcastMessageTemplate.from_event(event))
