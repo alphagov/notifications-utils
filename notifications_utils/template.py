@@ -371,12 +371,14 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self,
         template,
         values=None,
+        areas=[],
         polygons=[],
         identifier='',
         msg_type='Alert'
     ):
         super().__init__(template, values)
 
+        self.areas = areas
         self._polygons = polygons
 
         self.sent = datetime.utcnow()
@@ -406,6 +408,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
             template=template_dict,
             values=None,  # events have already done interpolation of any personalisation
             polygons=broadcast_event['polygons'],
+            areas=broadcast_event['areas'],
             identifier=broadcast_event['id'],
         )
         obj.msg_type = broadcast_event['message_type'].title()

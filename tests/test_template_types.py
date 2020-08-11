@@ -2389,6 +2389,7 @@ def test_broadcast_message_from_event():
         'transmitted_starts_at': None,
         'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
         'previous_event_references': [],
+        'areas': [],
         'polygons': [],
     }
 
@@ -2415,6 +2416,7 @@ def test_broadcast_message_from_event_matches_from_template():
         'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
         'transmitted_finishes_at': '2020-06-10T12:00:00.000Z',
         'previous_event_references': [],
+        'areas': [],
         'polygons': [],
     }
 
@@ -2441,6 +2443,7 @@ def test_broadcast_message_from_event_renders_references_list():
             'notify,unique-1,2020-06-01T00:00:00-00:00',
             'notify,unique-2,2020-06-01T01:01:01-00:00'
         ],
+        'areas': [],
         'polygons': [],
     }
 
