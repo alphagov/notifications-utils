@@ -371,15 +371,15 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self,
         template,
         values=None,
-        areas=[],
-        polygons=[],
+        areas=None,
+        polygons=None,
         identifier='',
         msg_type='Alert'
     ):
         super().__init__(template, values)
 
-        self.areas = areas
-        self._polygons = polygons
+        self.areas = areas or []
+        self._polygons = polygons or []
 
         self.sent = datetime.utcnow()
         self.expires = datetime.utcnow() + timedelta(hours=self.default_ttl_hours)
