@@ -4,7 +4,7 @@
       {% if show_recipient %}
         {% if from_name %}
           <tr>
-            <th>From</th>
+            <th scope="row">From</th>
             <td>
               {{ from_name }}
             </td>
@@ -12,21 +12,21 @@
         {% endif %}
         {% if reply_to %}
           <tr>
-            <th>Reply&nbsp;to</th>
+            <th scope="row">Reply&nbsp;to</th>
             <td>
               {{ reply_to }}
             </td>
           </tr>
         {% endif %}
         <tr>
-          <th>To</th>
+          <th scope="row">To</th>
           <td>
             {{ recipient }}
           </td>
         </tr>
       {% endif %}
       <tr class="email-message-meta">
-        <th>Subject</th>
+        <th scope="row">Subject</th>
         <td>
           {{ subject }}
         </td>
