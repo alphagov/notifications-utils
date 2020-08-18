@@ -365,7 +365,7 @@ class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
     jinja_template = template_env.get_template('broadcast_message_template.jinja2')
-    default_ttl_hours = 72
+    default_ttl_hours = 24
 
     def __init__(
         self,
@@ -382,7 +382,10 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         self._polygons = polygons or []
 
         self.sent = datetime.utcnow()
-        self.expires = datetime.utcnow() + timedelta(hours=self.default_ttl_hours)
+        self.expires = datetime.utcnow() + timedelta(
+            hours=(self.default_ttl_hours - 1),
+            minutes=59,
+        )
         self.notify_identifier = 'https://www.notifications.service.gov.uk/'
         self.identifier = identifier
         self.status = 'Actual'

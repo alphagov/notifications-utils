@@ -2414,7 +2414,7 @@ def test_broadcast_message_from_event_matches_from_template():
         'transmitted_content': {'body': 'test content'},
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
-        'transmitted_finishes_at': '2020-06-10T12:00:00.000Z',
+        'transmitted_finishes_at': '2020-06-08T11:59:00.000Z',
         'previous_event_references': [],
         'areas': [],
         'polygons': [],
