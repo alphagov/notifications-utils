@@ -50,7 +50,7 @@ mistune.BlockGrammar.list_bullet = re.compile(r'^ *(?:[•*-]|\d+\.)')
 mistune.InlineGrammar.url = re.compile(r'''^(https?:\/\/[^\s<]+[^<.,:"')\]\s])''')
 
 govuk_not_a_link = re.compile(
-    r'(?<!\.|\/)(GOV)\.(UK)(?!\/|\?)',
+    r'(^|\s)(#|\*|\^)?(GOV)\.(UK)(?!\/|\?|#)',
     re.IGNORECASE
 )
 
@@ -78,7 +78,7 @@ more_than_two_newlines_in_a_row = re.compile(r'\n{3,}')
 def unlink_govuk_escaped(message):
     return re.sub(
         govuk_not_a_link,
-        r'\1' + '.\u200B' + r'\2',  # Unicode zero-width space
+        r'\1\2\3' + '.\u200B' + r'\4',  # Unicode zero-width space
         message
     )
 
