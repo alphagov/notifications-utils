@@ -836,7 +836,13 @@ class LetterImageTemplate(BaseLetterTemplate):
             )))
         self.image_url = image_url
         self.page_count = int(page_count)
-        self.postage = postage
+        self._postage = postage
+
+    @property
+    def postage(self):
+        if self.postal_address.international:
+            return self.postal_address.postage
+        return self._postage
 
     @property
     def last_page_number(self):
