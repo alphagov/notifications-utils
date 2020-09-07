@@ -677,7 +677,7 @@ def test_broadcast_message_normalises_newlines(content):
         "<span class='placeholder-no-brackets'>address line 4</span>",
         "<span class='placeholder-no-brackets'>address line 5</span>",
         "<span class='placeholder-no-brackets'>address line 6</span>",
-        "<span class='placeholder-no-brackets'>postcode</span>",
+        "<span class='placeholder-no-brackets'>address line 7</span>",
     ]),
     ({
         'address line 1': '123 Fake Street',
@@ -689,7 +689,7 @@ def test_broadcast_message_normalises_newlines(content):
         "<span class='placeholder-no-brackets'>address line 4</span>",
         "<span class='placeholder-no-brackets'>address line 5</span>",
         "United Kingdom",
-        "<span class='placeholder-no-brackets'>postcode</span>",
+        "<span class='placeholder-no-brackets'>address line 7</span>",
     ]),
     ({
         'address line 1': '123 Fake Street',
@@ -868,7 +868,7 @@ def test_letter_image_renderer(
             "<span class='placeholder-no-brackets'>address line 4</span>",
             "<span class='placeholder-no-brackets'>address line 5</span>",
             "<span class='placeholder-no-brackets'>address line 6</span>",
-            "<span class='placeholder-no-brackets'>postcode</span>",
+            "<span class='placeholder-no-brackets'>address line 7</span>",
         ],
         'contact_block': '10 Downing Street',
         'date': '12 December 2012',
@@ -1336,7 +1336,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
             '((address line 4))\n'
             '((address line 5))\n'
             '((address line 6))\n'
-            '((postcode))'
+            '((address line 7))'
         ), {}, with_brackets=False, html='escape'),
         mock.call('www.gov.uk', {}, html='escape', redact_missing_personalisation=False),
     ]),
@@ -1350,7 +1350,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
             '((address line 4))\n'
             '((address line 5))\n'
             '((address line 6))\n'
-            '((postcode))'
+            '((address line 7))'
         ), {}, with_brackets=False, html='escape'),
         mock.call('www.gov.uk', {}, html='escape', redact_missing_personalisation=False),
         mock.call('subject', {}, html='escape', redact_missing_personalisation=False),
@@ -1382,7 +1382,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
             '((address line 4))\n'
             '((address line 5))\n'
             '((address line 6))\n'
-            '((postcode))'
+            '((address line 7))'
         ), {}, with_brackets=False, html='escape'),
         mock.call('www.gov.uk', {}, html='escape', redact_missing_personalisation=True),
     ]),

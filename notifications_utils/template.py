@@ -37,6 +37,7 @@ from notifications_utils.formatters import (
     formatted_list,
 )
 from notifications_utils.countries.data import Postage
+from notifications_utils.postal_address import address_lines_1_to_7_keys
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 from notifications_utils.sanitise_text import SanitiseSMS
@@ -682,15 +683,9 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     template_type = 'letter'
 
-    address_block = '\n'.join([
-        '((address line 1))',
-        '((address line 2))',
-        '((address line 3))',
-        '((address line 4))',
-        '((address line 5))',
-        '((address line 6))',
-        '((postcode))',
-    ])
+    address_block = '\n'.join(
+        f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys
+    )
 
     def __init__(
         self,
@@ -733,6 +728,9 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
         if postal_address.has_enough_lines and not postal_address.has_too_many_lines:
             return postal_address.normalised_lines
+
+        if 'address line 7' not in self.values and 'postcode' in self.values:
+            self.values['address line 7'] = self.values['postcode']
 
         return Field(
             self.address_block,
