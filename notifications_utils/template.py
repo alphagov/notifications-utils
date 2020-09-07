@@ -37,7 +37,7 @@ from notifications_utils.formatters import (
     formatted_list,
 )
 from notifications_utils.countries.data import Postage
-from notifications_utils.postal_address import address_lines_1_to_7_keys
+from notifications_utils.postal_address import PostalAddress, address_lines_1_to_7_keys
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 from notifications_utils.sanitise_text import SanitiseSMS
@@ -721,13 +721,14 @@ class BaseLetterTemplate(SubjectMixin, Template):
         return get_placeholders(self.contact_block) | super().placeholders
 
     @property
+    def postal_address(self):
+        return PostalAddress.from_personalisation(Columns(self.values))
+
+    @property
     def _address_block(self):
-        from notifications_utils.postal_address import PostalAddress
 
-        postal_address = PostalAddress.from_personalisation(Columns(self.values))
-
-        if postal_address.has_enough_lines and not postal_address.has_too_many_lines:
-            return postal_address.normalised_lines
+        if self.postal_address.has_enough_lines and not self.postal_address.has_too_many_lines:
+            return self.postal_address.normalised_lines
 
         if 'address line 7' not in self.values and 'postcode' in self.values:
             self.values['address line 7'] = self.values['postcode']
