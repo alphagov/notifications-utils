@@ -880,6 +880,31 @@ def test_letter_image_renderer(
     })
 
 
+@freeze_time("2012-12-12 12:12:12")
+@mock.patch('notifications_utils.template.LetterImageTemplate.jinja_template.render')
+@pytest.mark.parametrize('postage_argument', (
+    None, 'first', 'second', 'europe', 'rest-of-world',
+))
+def test_letter_image_renderer_shows_international_post(
+    jinja_template,
+    postage_argument,
+):
+    str(LetterImageTemplate(
+        {'content': 'Content', 'subject': 'Subject', 'template_type': 'letter'},
+        {
+            'address line 1': '123 Example Street',
+            'address line 2': 'Lima',
+            'address line 3': 'Peru',
+        },
+        image_url='http://example.com/endpoint.png',
+        page_count=1,
+        postage=postage_argument,
+    ))
+    assert jinja_template.call_args_list[0][0][0]['postage_description'] == (
+        'international'
+    )
+
+
 def test_letter_image_template_renders_visually_hidden_address():
     template = BeautifulSoup(
         str(LetterImageTemplate(
