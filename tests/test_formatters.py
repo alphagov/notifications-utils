@@ -228,7 +228,15 @@ def test_escaping_govuk_in_email_templates():
         ("*GOV.UK/foo", "*GOV.UK/foo"),
         ("#GOV.UK/foo", "#GOV.UK/foo"),
         ("^GOV.UK/foo", "^GOV.UK/foo"),
-        ("gov.uk#departments-and-policy", "gov.uk#departments-and-policy")
+        ("gov.uk#departments-and-policy", "gov.uk#departments-and-policy"),
+
+        # Cases that we know currently aren't supported by our regex and have a non breaking space added when they
+        # shouldn't however, we accept the fact that our regex isn't perfect as we think the chance of a user using a
+        # URL like this in their content is very small.
+        # We document these edge cases here
+        pytest.param("gov.uk.com", "gov.uk.com", marks=pytest.mark.xfail),
+        pytest.param("gov.ukandi.com", "gov.ukandi.com", marks=pytest.mark.xfail),
+        pytest.param("gov.uks", "gov.uks", marks=pytest.mark.xfail),
     ]
 )
 def test_unlink_govuk_escaped(template_content, expected):
