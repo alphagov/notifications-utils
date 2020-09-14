@@ -2407,15 +2407,16 @@ def test_broadcast_message_reference():
 def test_broadcast_message_from_event():
     event = {
         'id': str(uuid.UUID(int=0)),
+        'service_id': str(uuid.UUID(int=2)),
+        'previous_event_references': [],
+        'broadcast_message_id': str(uuid.UUID(int=1)),
         'sent_at': '2020-06-01T02:03:04.000Z',
         'message_type': 'update',
         'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': {'areas': ['london'], 'simple_polygons': [[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]]},
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': None,
         'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
-        'previous_event_references': [],
-        'areas': [],
-        'polygons': [],
     }
 
     msg = BroadcastMessageTemplate.from_event(event)
@@ -2429,20 +2430,59 @@ def test_broadcast_message_from_event():
     assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
     assert tree.select_one('expires').text == '2020-06-07T12:00:00-00:00'
     assert tree.select_one('info description').text == 'test content'
+    assert tree.select_one('area polygon').text == '50.12,1.2 50.13,1.2 50.14,1.21'
+
+
+def test_broadcast_message_from_event_renders_multiple_polygons():
+    event = {
+        'id': str(uuid.UUID(int=0)),
+        'service_id': str(uuid.UUID(int=2)),
+        'previous_event_references': [],
+        'broadcast_message_id': str(uuid.UUID(int=1)),
+        'sent_at': '2020-06-01T02:03:04.000Z',
+        'message_type': 'update',
+        'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': {
+            'areas': ['london'],
+            'simple_polygons': [
+                [[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]],
+                [[60.12, 1.2], [60.13, 1.2], [60.14, 1.21]]
+            ]
+        },
+        'transmitted_sender': 'currently unused',
+        'transmitted_starts_at': None,
+        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
+    }
+
+    msg = BroadcastMessageTemplate.from_event(event)
+
+    assert msg.identifier == event['id']
+    assert msg.sent == datetime.datetime(2020, 6, 1, 2, 3, 4)  # nb: no timezone
+    assert msg.msg_type == 'Update'  # nb: title case
+    xml = str(msg)
+    tree = BeautifulSoup(xml, 'lxml-xml')
+    # note the `-00:00` timezone
+    assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
+    assert tree.select_one('expires').text == '2020-06-07T12:00:00-00:00'
+    assert tree.select_one('info description').text == 'test content'
+    assert [x.text for x in tree.select('area polygon')] == [
+        '50.12,1.2 50.13,1.2 50.14,1.21', '60.12,1.2 60.13,1.2 60.14,1.21'
+    ]
 
 
 def test_broadcast_message_from_event_matches_from_template():
     event = {
         'id': str(uuid.UUID(int=0)),
+        'service_id': str(uuid.UUID(int=2)),
+        'previous_event_references': [],
+        'broadcast_message_id': str(uuid.UUID(int=1)),
         'sent_at': '2020-06-07T12:00:00.000Z',
         'message_type': 'alert',
         'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': {'areas': ['london'], 'simple_polygons': [[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]]},
         'transmitted_sender': 'currently unused',
         'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
         'transmitted_finishes_at': '2020-06-08T11:59:00.000Z',
-        'previous_event_references': [],
-        'areas': [],
-        'polygons': [],
     }
 
     event_msg = BroadcastMessageTemplate.from_event(event)
@@ -2450,6 +2490,8 @@ def test_broadcast_message_from_event_matches_from_template():
         template_msg = BroadcastMessageTemplate(
             {'content': 'test content', 'template_type': 'broadcast'},
             identifier=str(uuid.UUID(int=0)),
+            areas=['london'],
+            polygons=[[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]],
         )
 
     assert str(event_msg) == str(template_msg)
@@ -2458,18 +2500,19 @@ def test_broadcast_message_from_event_matches_from_template():
 def test_broadcast_message_from_event_renders_references_list():
     event = {
         'id': str(uuid.UUID(int=0)),
-        'sent_at': '2020-06-01T02:03:04.000Z',
-        'message_type': 'update',
-        'transmitted_content': {'body': 'test content'},
-        'transmitted_sender': 'currently unused',
-        'transmitted_starts_at': None,
-        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
+        'service_id': str(uuid.UUID(int=2)),
         'previous_event_references': [
             'notify,unique-1,2020-06-01T00:00:00-00:00',
             'notify,unique-2,2020-06-01T01:01:01-00:00'
         ],
-        'areas': [],
-        'polygons': [],
+        'broadcast_message_id': str(uuid.UUID(int=1)),
+        'sent_at': '2020-06-01T02:03:04.000Z',
+        'message_type': 'update',
+        'transmitted_content': {'body': 'test content'},
+        'transmitted_areas': {'areas': ['london'], 'simple_polygons': [[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]]},
+        'transmitted_sender': 'currently unused',
+        'transmitted_starts_at': None,
+        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
     }
 
     raw_xml = str(BroadcastMessageTemplate.from_event(event))
