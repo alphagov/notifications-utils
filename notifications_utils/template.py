@@ -411,8 +411,8 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         obj = cls(
             template=template_dict,
             values=None,  # events have already done interpolation of any personalisation
-            polygons=broadcast_event['polygons'],
-            areas=broadcast_event['areas'],
+            polygons=broadcast_event['transmitted_areas']['simple_polygons'],
+            areas=broadcast_event['transmitted_areas']['areas'],
             identifier=broadcast_event['id'],
         )
         obj.msg_type = broadcast_event['message_type'].title()
