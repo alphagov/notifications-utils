@@ -47,7 +47,7 @@ address_columns = Columns.from_keys(first_column_headings['letter'])
 
 class RecipientCSV():
 
-    max_rows = 50000
+    max_rows = 100_000
 
     def __init__(
         self,
