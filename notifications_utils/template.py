@@ -622,6 +622,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
     def __str__(self):
 
         return self.jinja_template.render({
+            'subject': self.subject,
             'body': self.html_body,
             'preheader': self.preheader,
             'govuk_banner': self.govuk_banner,

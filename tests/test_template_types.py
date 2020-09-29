@@ -228,6 +228,16 @@ def test_complete_html(complete_html, branding_should_be_present, brand_logo, br
             assert '##' not in email
 
 
+def test_subject_is_page_title():
+    email = BeautifulSoup(
+        str(HTMLEmailTemplate(
+            {'content': '', 'subject': 'this is the subject', 'template_type': 'email'},
+        )),
+        features='html.parser',
+    )
+    assert email.select_one('title').text == 'this is the subject'
+
+
 def test_preheader_is_at_start_of_html_emails():
     assert (
         '<body style="font-family: Helvetica, Arial, sans-serif;font-size: 16px;margin: 0;color:#0b0c0c;">\n'
@@ -1329,6 +1339,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
         mock.call('content', {}, html='passthrough', markdown_lists=True)
     ]),
     (HTMLEmailTemplate, 'email', {}, [
+        mock.call('subject', {}, html='escape', redact_missing_personalisation=False),
         mock.call('content', {}, html='escape', markdown_lists=True, redact_missing_personalisation=False),
         mock.call('content', {}, html='escape', markdown_lists=True),
     ]),
@@ -1436,6 +1447,7 @@ def test_templates_handle_html_and_redacting(
         mock.call(Markup('subject')),
     ]),
     (HTMLEmailTemplate, 'email', {}, [
+        mock.call(Markup('subject')),
         mock.call(
             '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
             'content'
