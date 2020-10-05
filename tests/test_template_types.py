@@ -2304,6 +2304,9 @@ def test_image_not_present_if_no_logo(template_class):
     )),
     (BroadcastPreviewTemplate, (
         '<div class="broadcast-message-wrapper">\n'
+        '  <h2 class="broadcast-message-heading">\n'
+        '    Emergency alert\n'
+        '  </h2>\n'
         '  The quick brown fox.<br><br>Jumps over the lazy dog.<br>Single linebreak above.\n'
         '</div>'
     )),
