@@ -1,5 +1,6 @@
 import pytest
 import itertools
+import string
 import unicodedata
 from functools import partial
 from orderedset import OrderedSet
@@ -1214,3 +1215,27 @@ def test_address_validation_speed():
     )
     for row in recipients:
         assert not row.has_bad_postal_address
+
+
+def test_email_validation_speed():
+    email_addresses = '\n'.join((
+        '{a}{b}@example-{n}.com,Example,Thursday'.format(
+            n=randrange(1000),
+            a=choice(string.ascii_letters),
+            b=choice(string.ascii_letters),
+        )
+        for i in range(1000)
+    ))
+    recipients = RecipientCSV(
+        'email address,name,day\n' + email_addresses,
+        template=_sample_template(
+            'email',
+            content=f'''
+                hello ((name)) today is ((day))
+                here’s the letter ‘a’ 1000 times:
+                {'a' * 1000}
+            '''
+        ),
+    )
+    for row in recipients:
+        assert not row.has_error
