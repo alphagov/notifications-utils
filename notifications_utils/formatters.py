@@ -11,7 +11,7 @@ from notifications_utils.sanitise_text import SanitiseSMS
 import smartypants
 
 
-LINK_STYLE = 'word-wrap: break-word; color: #005ea5;'
+LINK_STYLE = 'word-wrap: break-word; color: #1D70B8;'
 
 OBSCURE_WHITESPACE = (
     '\u180E'  # Mongolian vowel separator
@@ -377,7 +377,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
 
     def hrule(self):
         return (
-            '<hr style="border: 0; height: 1px; background: #BFC1C3; Margin: 30px 0 30px 0;">'
+            '<hr style="border: 0; height: 1px; background: #B1B4B6; Margin: 30px 0 30px 0;">'
         )
 
     def linebreak(self):
@@ -432,7 +432,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def block_quote(self, text):
         return (
             '<blockquote '
-            'style="Margin: 0 0 20px 0; border-left: 10px solid #BFC1C3;'
+            'style="Margin: 0 0 20px 0; border-left: 10px solid #B1B4B6;'
             'padding: 15px 0 0.1px 15px; font-size: 19px; line-height: 25px;"'
             '>'
             '{}'
