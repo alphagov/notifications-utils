@@ -1,4 +1,3 @@
-import uuid
 import datetime
 from time import process_time
 import os
@@ -30,8 +29,6 @@ from notifications_utils.template import (
     BroadcastMessageTemplate,
     BroadcastPreviewTemplate,
 )
-
-from tests.xml_schemas import validate_xml
 
 
 @pytest.mark.parametrize('template_class, expected_error', (
@@ -661,13 +658,9 @@ def test_sms_message_normalises_newlines(content):
     ),
 ])
 def test_broadcast_message_normalises_newlines(content):
-    xml = BeautifulSoup(
-        str(BroadcastMessageTemplate(
-            {'content': content, 'template_type': 'broadcast'}
-        )),
-        'lxml-xml',
-    )
-    assert xml.select_one('alert info description').text == (
+    assert str(BroadcastMessageTemplate(
+        {'content': content, 'template_type': 'broadcast'}
+    )) == (
         'one newline\n'
         'two newlines\n'
         '\n'
@@ -2345,193 +2338,12 @@ def test_letter_preview_template_lazy_loads_images():
     ]
 
 
-def test_broadcast_message_outputs_polygons():
-    raw_xml = str(BroadcastMessageTemplate(
-        {'content': 'foo', 'template_type': 'broadcast'},
-        polygons=[
-            [[0.001, -0.001], [0.002, -0.002], [0.003, -0.003]],
-            [[-99.999, 1.234], [-99.998, 5.678]],
-        ]
-    ))
-    tree = BeautifulSoup(raw_xml, 'lxml-xml')
-    assert [
-        polygon.text
-        for polygon in tree.select_one('alert info area').select('polygon')
-    ] == [
-        '0.001,-0.001 0.002,-0.002 0.003,-0.003',
-        '-99.999,1.234 -99.998,5.678',
-    ]
-
-
-def test_broadcast_message_outputs_valid_xml_according_to_schema():
-    raw_xml = str(BroadcastMessageTemplate(
-        {'content': 'foo', 'template_type': 'broadcast'},
-        polygons=[
-            [[1, -1], [2, -2]],
-        ]
-    ))
-    validate_xml(raw_xml.encode('utf-8'), 'CAP-v1.2.xsd')
-
-
-def test_broadcast_message_puts_correct_values_in_elements():
-    raw_xml = str(BroadcastMessageTemplate(
-        {'content': 'this is a ((alert_type))', 'template_type': 'broadcast'},
-        values={'alert_type': 'test'},
-        polygons=[],
-        identifier='unique',
-    ))
-    tree = BeautifulSoup(raw_xml, 'lxml-xml')
-
-    for element, expected_text in (
-        ('sender', 'https://www.notifications.service.gov.uk/'),
-        ('identifier', 'unique'),
-        ('status', 'Actual'),
-        ('msgType', 'Alert'),
-        ('scope', 'Public'),
-        ('info category', 'Health'),
-        ('info responseType', 'None'),
-        ('info urgency', 'Immediate'),
-        ('info severity', 'Extreme'),
-        ('info certainty', 'Observed'),
-        ('info description', 'this is a test'),
-    ):
-        assert tree.select_one(element).text == expected_text
-
-
-@freeze_time('2020-06-01 02:03:04')
-def test_broadcast_message_formats_timestamps_correctly():
-    raw_xml = str(BroadcastMessageTemplate(
-        {'content': 'content', 'template_type': 'broadcast'},
-        identifier='unique',
-    ))
-    tree = BeautifulSoup(raw_xml, 'lxml-xml')
-    # note the `-00:00` timezone
-    assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
-
-
-@freeze_time('2020-06-01 02:03:04')
-def test_broadcast_message_reference():
-    msg = BroadcastMessageTemplate(
-        {'content': 'content', 'template_type': 'broadcast'},
-        identifier='unique',
-    )
-
-    assert msg.reference == 'https://www.notifications.service.gov.uk/,unique,2020-06-01T02:03:04-00:00'
-
-
 def test_broadcast_message_from_event():
     event = {
-        'id': str(uuid.UUID(int=0)),
-        'service_id': str(uuid.UUID(int=2)),
-        'previous_event_references': [],
-        'broadcast_message_id': str(uuid.UUID(int=1)),
-        'sent_at': '2020-06-01T02:03:04.000Z',
-        'message_type': 'update',
         'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': {'areas': ['london'], 'simple_polygons': [[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]]},
-        'transmitted_sender': 'currently unused',
-        'transmitted_starts_at': None,
-        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
     }
-
-    msg = BroadcastMessageTemplate.from_event(event)
-
-    assert msg.identifier == event['id']
-    assert msg.sent == datetime.datetime(2020, 6, 1, 2, 3, 4)  # nb: no timezone
-    assert msg.msg_type == 'Update'  # nb: title case
-    xml = str(msg)
-    tree = BeautifulSoup(xml, 'lxml-xml')
-    # note the `-00:00` timezone
-    assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
-    assert tree.select_one('expires').text == '2020-06-07T12:00:00-00:00'
-    assert tree.select_one('info description').text == 'test content'
-    assert tree.select_one('area polygon').text == '50.12,1.2 50.13,1.2 50.14,1.21'
-
-
-def test_broadcast_message_from_event_renders_multiple_polygons():
-    event = {
-        'id': str(uuid.UUID(int=0)),
-        'service_id': str(uuid.UUID(int=2)),
-        'previous_event_references': [],
-        'broadcast_message_id': str(uuid.UUID(int=1)),
-        'sent_at': '2020-06-01T02:03:04.000Z',
-        'message_type': 'update',
-        'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': {
-            'areas': ['london'],
-            'simple_polygons': [
-                [[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]],
-                [[60.12, 1.2], [60.13, 1.2], [60.14, 1.21]]
-            ]
-        },
-        'transmitted_sender': 'currently unused',
-        'transmitted_starts_at': None,
-        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
-    }
-
-    msg = BroadcastMessageTemplate.from_event(event)
-
-    assert msg.identifier == event['id']
-    assert msg.sent == datetime.datetime(2020, 6, 1, 2, 3, 4)  # nb: no timezone
-    assert msg.msg_type == 'Update'  # nb: title case
-    xml = str(msg)
-    tree = BeautifulSoup(xml, 'lxml-xml')
-    # note the `-00:00` timezone
-    assert tree.select_one('sent').text == '2020-06-01T02:03:04-00:00'
-    assert tree.select_one('expires').text == '2020-06-07T12:00:00-00:00'
-    assert tree.select_one('info description').text == 'test content'
-    assert [x.text for x in tree.select('area polygon')] == [
-        '50.12,1.2 50.13,1.2 50.14,1.21', '60.12,1.2 60.13,1.2 60.14,1.21'
-    ]
-
-
-def test_broadcast_message_from_event_matches_from_template():
-    event = {
-        'id': str(uuid.UUID(int=0)),
-        'service_id': str(uuid.UUID(int=2)),
-        'previous_event_references': [],
-        'broadcast_message_id': str(uuid.UUID(int=1)),
-        'sent_at': '2020-06-07T12:00:00.000Z',
-        'message_type': 'alert',
-        'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': {'areas': ['london'], 'simple_polygons': [[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]]},
-        'transmitted_sender': 'currently unused',
-        'transmitted_starts_at': '2020-06-07T12:00:00.000Z',
-        'transmitted_finishes_at': '2020-06-08T11:59:00.000Z',
-    }
-
-    event_msg = BroadcastMessageTemplate.from_event(event)
-    with freeze_time('2020-06-07T12:00:00.000Z'):
-        template_msg = BroadcastMessageTemplate(
-            {'content': 'test content', 'template_type': 'broadcast'},
-            identifier=str(uuid.UUID(int=0)),
-            areas=['london'],
-            polygons=[[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]],
-        )
-
-    assert str(event_msg) == str(template_msg)
-
-
-def test_broadcast_message_from_event_renders_references_list():
-    event = {
-        'id': str(uuid.UUID(int=0)),
-        'service_id': str(uuid.UUID(int=2)),
-        'previous_event_references': [
-            'notify,unique-1,2020-06-01T00:00:00-00:00',
-            'notify,unique-2,2020-06-01T01:01:01-00:00'
-        ],
-        'broadcast_message_id': str(uuid.UUID(int=1)),
-        'sent_at': '2020-06-01T02:03:04.000Z',
-        'message_type': 'update',
-        'transmitted_content': {'body': 'test content'},
-        'transmitted_areas': {'areas': ['london'], 'simple_polygons': [[[50.12, 1.2], [50.13, 1.2], [50.14, 1.21]]]},
-        'transmitted_sender': 'currently unused',
-        'transmitted_starts_at': None,
-        'transmitted_finishes_at': '2020-06-07T12:00:00.000Z',
-    }
-
-    raw_xml = str(BroadcastMessageTemplate.from_event(event))
-    tree = BeautifulSoup(raw_xml, 'lxml-xml')
-
-    expected_references = 'notify,unique-1,2020-06-01T00:00:00-00:00 notify,unique-2,2020-06-01T01:01:01-00:00'
-    assert tree.select_one('references').text == expected_references
+    assert str(
+        BroadcastMessageTemplate.from_event(event)
+    ) == (
+        'test content'
+    )
