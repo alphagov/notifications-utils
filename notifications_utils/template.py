@@ -1,10 +1,9 @@
 import math
 from abc import ABC, abstractmethod
 from os import path
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import lru_cache
 
-from dateutil import parser
 from jinja2 import Environment, FileSystemLoader
 from flask import Markup
 from html import unescape
@@ -366,121 +365,34 @@ class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
     jinja_template = template_env.get_template('broadcast_message_template.jinja2')
-    default_ttl_hours = 24
-
-    def __init__(
-        self,
-        template,
-        values=None,
-        areas=None,
-        polygons=None,
-        identifier='',
-        msg_type='Alert'
-    ):
-        super().__init__(template, values)
-
-        self.areas = areas or []
-        self._polygons = polygons or []
-
-        self.sent = datetime.utcnow()
-        self.expires = datetime.utcnow() + timedelta(
-            hours=(self.default_ttl_hours - 1),
-            minutes=59,
-        )
-        self.notify_identifier = 'https://www.notifications.service.gov.uk/'
-        self.identifier = identifier
-        self.status = 'Actual'
-        self.msg_type = 'Alert'
-        self.scope = 'Public'
-        self.category = 'Health'
-        self.response_type = 'None'
-        self.urgency = 'Immediate'
-        self.severity = 'Extreme'
-        self.certainty = 'Observed'
-        self.previous_event_references = []
 
     @classmethod
     def from_event(cls, broadcast_event):
         """
         should be directly callable with the results of the BroadcastEvent.serialize() function from api/models.py
         """
-        template_dict = {
-            'template_type': 'broadcast',
-            'content': broadcast_event['transmitted_content']['body']
-        }
-        obj = cls(
-            template=template_dict,
+        return cls(
+            template={
+                'template_type': 'broadcast',
+                'content': broadcast_event['transmitted_content']['body']
+            },
             values=None,  # events have already done interpolation of any personalisation
-            polygons=broadcast_event['transmitted_areas']['simple_polygons'],
-            areas=broadcast_event['transmitted_areas']['areas'],
-            identifier=broadcast_event['id'],
         )
-        obj.msg_type = broadcast_event['message_type'].title()
-        obj.sent = parser.parse(broadcast_event['sent_at']).replace(tzinfo=None)
-        obj.expires = parser.parse(broadcast_event['transmitted_finishes_at']).replace(tzinfo=None)
-        obj.previous_event_references = broadcast_event['previous_event_references']
-        return obj
 
     def __str__(self):
-
-        properties = dict(self.__dict__)
-
-        properties.update({
-            'body': Take(Field(
-                self.content.strip(),
-                self.values,
-                html='escape',
-            )).then(
-                sms_encode
-            ).then(
-                remove_whitespace_before_punctuation
-            ).then(
-                normalise_whitespace_and_newlines
-            ).then(
-                normalise_multiple_newlines
-            ),
-            'polygons': self.polygons,
-            'sent': self.formatted_datetime_for('sent'),
-            'expires': self.formatted_datetime_for('expires'),
-            'references': self.previous_event_references,
-        })
-
-        return self.jinja_template.render(**properties)
-
-    @property
-    def polygons(self):
-        return [
-            ' '.join(
-                f'{lat},{long}' for lat, long in polygon
-            )
-            for polygon in self._polygons
-        ]
-
-    @staticmethod
-    def convert_naive_utc_datetime_to_cap_standard_string(dt):
-        """
-        As defined in section 3.3.2 of http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html.
-
-        They define the standard "YYYY-MM-DDThh:mm:ssXzh:zm", where X is `+` if the timezone is > UTC, otherwise `-`.
-        """
-        return f"{dt.strftime('%Y-%m-%dT%H:%M:%S')}-00:00"
-
-    def formatted_datetime_for(self, property_name):
-        prop = getattr(self, property_name)
-        return self.convert_naive_utc_datetime_to_cap_standard_string(prop)
-
-    @property
-    def reference(self):
-        """
-        The format looks like: f'{sender},{identifier},{sent}'
-
-        this string can be used to refer to a broadcast in the `<references>` field of a future update or cancel.
-        """
-        return ','.join([
-            self.notify_identifier,
-            self.identifier,
-            self.convert_naive_utc_datetime_to_cap_standard_string(self.sent)
-        ])
+        return Take(Field(
+            self.content.strip(),
+            self.values,
+            html='escape',
+        )).then(
+            sms_encode
+        ).then(
+            remove_whitespace_before_punctuation
+        ).then(
+            normalise_whitespace_and_newlines
+        ).then(
+            normalise_multiple_newlines
+        )
 
 
 class SubjectMixin():
