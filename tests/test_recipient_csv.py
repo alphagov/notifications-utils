@@ -361,6 +361,30 @@ def test_big_list_validates_right_through(template_type, row_count, header, fill
     assert big_csv.has_errors
 
 
+@pytest.mark.parametrize('template_type, row_count, header, filler', [
+    ('email', 50, "email address\n", "test@example.com\n"),
+    ('sms', 50, "phone number\n", "07900900123\n"),
+])
+def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(
+    mocker, template_type, row_count, header, filler
+):
+    # we do not validate email size for CSVs to avoid performance issues
+    RecipientCSV(
+        header + filler * row_count,
+        template=_sample_template(template_type),
+        max_errors_shown=100,
+        max_initial_rows_shown=3
+    )
+    is_message_too_long = mocker.patch(
+        'notifications_utils.template.Template.is_message_too_long',
+        side_effect=False
+    )
+    if template_type == 'email':
+        is_message_too_long.assert_not_called
+    else:
+        is_message_too_long.called
+
+
 def test_big_list():
     big_csv = RecipientCSV(
         "email address,name\n" + ("a@b.com\n" * RecipientCSV.max_rows),
