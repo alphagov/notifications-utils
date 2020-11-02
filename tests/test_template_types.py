@@ -1223,6 +1223,33 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
     assert template.fragment_count == expected_sms_fragment_count
 
 
+@pytest.mark.parametrize('template_class', (
+    SMSMessageTemplate,
+    BroadcastMessageTemplate,
+))
+@pytest.mark.parametrize(
+    "msg, expected_sms_fragment_count",
+    [
+        # all extended GSM characters
+        ('^' * 81, 2),
+        # GSM characters plus extended GSM
+        ('a' * 158 + '|', 1),
+        ('a' * 159 + '|', 2),
+        ('a' * 304 + '[', 2),
+        ('a' * 304 + '[]', 3),
+        # Welsh character plus extended GSM
+        ('â' * 132 + '{', 2),
+        ('â' * 133 + '}', 3),
+    ])
+def test_sms_fragment_count_accounts_for_extended_gsm_characters(
+    template_class,
+    msg,
+    expected_sms_fragment_count,
+):
+    template = template_class({'content': msg, 'template_type': template_class.template_type})
+    assert template.fragment_count == expected_sms_fragment_count
+
+
 @pytest.mark.parametrize('template_class', [
     SMSMessageTemplate,
     SMSPreviewTemplate,
