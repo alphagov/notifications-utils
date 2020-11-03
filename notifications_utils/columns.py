@@ -87,11 +87,7 @@ class Row(Columns):
         if template:
             template.values = row_dict
             self.template_type = template.template_type
-            # we do not validate email size for CSVs to avoid performance issues
-            if self.template_type == "email":
-                self.message_too_long = False
-            else:
-                self.message_too_long = template.is_message_too_long()
+            self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
 
         super().__init__(OrderedDict(
