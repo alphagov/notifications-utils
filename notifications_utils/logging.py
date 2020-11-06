@@ -17,17 +17,6 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 logger = logging.getLogger(__name__)
 
 
-def build_log_line(extra_fields):
-    fields = []
-    if 'service_id' in extra_fields:
-        fields.append(str(extra_fields.get('service_id')))
-    standard_fields = [extra_fields.get('method'), extra_fields.get('url'), extra_fields.get('status')]
-    fields += [str(field) for field in standard_fields if field is not None]
-    if 'time_taken' in extra_fields:
-        fields.append(extra_fields.get('time_taken'))
-    return ' '.join(fields)
-
-
 def init_app(app, statsd_client=None):
     app.config.setdefault('NOTIFY_LOG_LEVEL', 'INFO')
     app.config.setdefault('NOTIFY_APP_NAME', 'none')
