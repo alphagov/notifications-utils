@@ -1987,8 +1987,52 @@ def test_broadcast_message_too_long(template_class, extra_characters, expected_t
     (LetterPreviewTemplate, 'letter', {}),
     (LetterImageTemplate, 'letter', {'image_url': 'foo', 'page_count': 1}),
 ])
-def test_non_sms_ignores_message_too_long(template_class, template_type, kwargs):
+def test_message_too_long_limit_bigger_or_nonexistent_for_non_sms_templates(template_class, template_type, kwargs):
     body = 'a' * 1000
+    template = template_class(
+        {'content': body, 'subject': 'foo', 'template_type': template_type},
+        **kwargs
+    )
+    assert template.is_message_too_long() is False
+
+
+@pytest.mark.parametrize('template_class, template_type, kwargs', [
+    (EmailPreviewTemplate, 'email', {}),
+    (HTMLEmailTemplate, 'email', {}),
+    (PlainTextEmailTemplate, 'email', {}),
+])
+def test_content_size_in_bytes_for_email_messages(template_class, template_type, kwargs):
+    # Message being a Markup objects adds 81 bytes overhead, so it's 100 bytes for 100 x 'b' and 81 bytes overhead
+    body = 'b' * 100
+    template = template_class(
+        {'content': body, 'subject': 'foo', 'template_type': template_type},
+        **kwargs
+    )
+    assert template.content_size_in_bytes == 181
+
+
+@pytest.mark.parametrize('template_class, template_type, kwargs', [
+    (EmailPreviewTemplate, 'email', {}),
+    (HTMLEmailTemplate, 'email', {}),
+    (PlainTextEmailTemplate, 'email', {}),
+])
+def test_message_too_long_for_a_too_big_email_message(template_class, template_type, kwargs):
+    # Message being a Markup objects adds 81 bytes overhead, taking our message over the limit
+    body = 'b' * 1000000
+    template = template_class(
+        {'content': body, 'subject': 'foo', 'template_type': template_type},
+        **kwargs
+    )
+    assert template.is_message_too_long() is True
+
+
+@pytest.mark.parametrize('template_class, template_type, kwargs', [
+    (EmailPreviewTemplate, 'email', {}),
+    (HTMLEmailTemplate, 'email', {}),
+    (PlainTextEmailTemplate, 'email', {}),
+])
+def test_message_too_long_for_an_email_message_within_limits(template_class, template_type, kwargs):
+    body = 'b' * 999900
     template = template_class(
         {'content': body, 'subject': 'foo', 'template_type': template_type},
         **kwargs
