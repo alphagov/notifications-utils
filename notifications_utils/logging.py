@@ -81,6 +81,7 @@ def configure_handler(handler, app, formatter):
     handler.setFormatter(formatter)
     handler.addFilter(AppNameFilter(app.config['NOTIFY_APP_NAME']))
     handler.addFilter(RequestIdFilter())
+    handler.addFilter(ServiceIdFilter())
 
     return handler
 
@@ -111,6 +112,20 @@ class RequestIdFilter(logging.Filter):
         return record
 
 
+class ServiceIdFilter(logging.Filter):
+    @property
+    def service_id(self):
+        if has_app_context() and 'service_id' in g:
+            return g.service_id
+        else:
+            return 'no-service-id'
+
+    def filter(self, record):
+        record.service_id = self.service_id
+
+        return record
+
+
 class CustomLogFormatter(logging.Formatter):
     """Accepts a format string for the message and formats it with the extra fields"""
 
@@ -136,6 +151,7 @@ class JSONFormatter(BaseJSONFormatter):
             "asctime": "time",
             "request_id": "requestId",
             "app_name": "application",
+            "service_id": "service_id"
         }
         for key, newkey in rename_map.items():
             log_record[newkey] = log_record.pop(key)

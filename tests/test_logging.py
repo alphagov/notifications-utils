@@ -1,3 +1,4 @@
+import json
 import logging as builtin_logging
 import logging.handlers as builtin_logging_handlers
 
@@ -47,3 +48,13 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug(tmpdir):
     dir_contents = tmpdir.listdir()
     assert len(dir_contents) == 1
     assert dir_contents[0].basename == 'foo.json'
+
+
+def test_base_json_formatter_contains_service_id(tmpdir):
+    record = builtin_logging.LogRecord(name="log thing", level="info",
+                                       pathname="path", lineno=123, msg='message to log',
+                                       exc_info=None, args=None)
+
+    service_id_filter = logging.ServiceIdFilter()
+    assert json.loads(logging.BaseJSONFormatter().format(record))['message'] == 'message to log'
+    assert service_id_filter.filter(record).service_id == "no-service-id"
