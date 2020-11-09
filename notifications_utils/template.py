@@ -1,4 +1,5 @@
 import math
+import sys
 from abc import ABC, abstractmethod
 from os import path
 from datetime import datetime
@@ -446,6 +447,41 @@ class BaseEmailTemplate(SubjectMixin, Template):
         ).then(
             do_nice_typography
         )
+
+    @property
+    def content_size_in_bytes(self):
+        return sys.getsizeof(self.content_with_placeholders_filled_in)
+
+    def is_message_too_long(self):
+        """
+            SES rejects email messages bigger than 10485760 bytes (just over 10 MB per message (after base64 encoding)):
+            https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html#limits-message
+
+            Base64 is apparently wasteful because we use just 64 different values per byte, whereas a byte can represent
+            256 different characters. That is, we use bytes (which are 8-bit words) as 6-bit words. There is
+            a waste of 2 bits for each 8 bits of transmission data. To send three bytes of information
+            (3 times 8 is 24 bits), you need to use four bytes (4 times 6 is again 24 bits). Thus the base64 version
+            of a file is 4/3 larger than it might be. So we use 33% more storage than we could.
+            https://lemire.me/blog/2019/01/30/what-is-the-space-overhead-of-base64-encoding/
+
+            That brings down our max safe size to 7.5 MB == 7500000 bytes before base64 encoding
+
+            But this is not the end! The message we send to SES is structured as follows:
+            "Message": {
+                'Subject': {
+                    'Data': subject,
+                },
+                'Body': {'Text': {'Data': body}, 'Html': {'Data': html_body}}
+            },
+            Which means that we are sending the contents of email message twice in one request: once in plain text
+            and once with html tags. That means our plain text content needs to be much shorter to make sure we
+            fit within the limit, especially since HTML body can be much byte-heavier than plain text body.
+
+            Hence, we decided to put the limit at 1MB, which is equivalent of between 250 and 500 pages of text.
+            That's still an extremely long email, and should be sufficient for all normal use, while at the same
+            time giving us safe margin while sending the emails through Amazon SES.
+        """
+        return self.content_size_in_bytes > 1000000
 
 
 class PlainTextEmailTemplate(BaseEmailTemplate):

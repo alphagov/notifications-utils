@@ -1,5 +1,6 @@
 import pytest
 import itertools
+import string
 import unicodedata
 from functools import partial
 from orderedset import OrderedSet
@@ -358,6 +359,30 @@ def test_big_list_validates_right_through(template_type, row_count, header, fill
     assert _index_rows(big_csv.rows_with_errors) == {row_count - 1}
     assert len(list(big_csv.initial_rows_with_errors)) == 1
     assert big_csv.has_errors
+
+
+@pytest.mark.parametrize('template_type, row_count, header, filler', [
+    ('email', 50, "email address\n", "test@example.com\n"),
+    ('sms', 50, "phone number\n", "07900900123\n"),
+])
+def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(
+    mocker, template_type, row_count, header, filler
+):
+    # we do not validate email size for CSVs to avoid performance issues
+    RecipientCSV(
+        header + filler * row_count,
+        template=_sample_template(template_type),
+        max_errors_shown=100,
+        max_initial_rows_shown=3
+    )
+    is_message_too_long = mocker.patch(
+        'notifications_utils.template.Template.is_message_too_long',
+        side_effect=False
+    )
+    if template_type == 'email':
+        is_message_too_long.assert_not_called
+    else:
+        is_message_too_long.called
 
 
 def test_big_list():
@@ -1214,3 +1239,27 @@ def test_address_validation_speed():
     )
     for row in recipients:
         assert not row.has_bad_postal_address
+
+
+def test_email_validation_speed():
+    email_addresses = '\n'.join((
+        '{a}{b}@example-{n}.com,Example,Thursday'.format(
+            n=randrange(1000),
+            a=choice(string.ascii_letters),
+            b=choice(string.ascii_letters),
+        )
+        for i in range(1000)
+    ))
+    recipients = RecipientCSV(
+        'email address,name,day\n' + email_addresses,
+        template=_sample_template(
+            'email',
+            content=f'''
+                hello ((name)) today is ((day))
+                here’s the letter ‘a’ 1000 times:
+                {'a' * 1000}
+            '''
+        ),
+    )
+    for row in recipients:
+        assert not row.has_error
