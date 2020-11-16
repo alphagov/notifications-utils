@@ -17,17 +17,6 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 logger = logging.getLogger(__name__)
 
 
-def build_log_line(extra_fields):
-    fields = []
-    if 'service_id' in extra_fields:
-        fields.append(str(extra_fields.get('service_id')))
-    standard_fields = [extra_fields.get('method'), extra_fields.get('url'), extra_fields.get('status')]
-    fields += [str(field) for field in standard_fields if field is not None]
-    if 'time_taken' in extra_fields:
-        fields.append(extra_fields.get('time_taken'))
-    return ' '.join(fields)
-
-
 def init_app(app, statsd_client=None):
     app.config.setdefault('NOTIFY_LOG_LEVEL', 'INFO')
     app.config.setdefault('NOTIFY_APP_NAME', 'none')
@@ -92,6 +81,7 @@ def configure_handler(handler, app, formatter):
     handler.setFormatter(formatter)
     handler.addFilter(AppNameFilter(app.config['NOTIFY_APP_NAME']))
     handler.addFilter(RequestIdFilter())
+    handler.addFilter(ServiceIdFilter())
 
     return handler
 
@@ -122,6 +112,20 @@ class RequestIdFilter(logging.Filter):
         return record
 
 
+class ServiceIdFilter(logging.Filter):
+    @property
+    def service_id(self):
+        if has_app_context() and 'service_id' in g:
+            return g.service_id
+        else:
+            return 'no-service-id'
+
+    def filter(self, record):
+        record.service_id = self.service_id
+
+        return record
+
+
 class CustomLogFormatter(logging.Formatter):
     """Accepts a format string for the message and formats it with the extra fields"""
 
@@ -147,6 +151,7 @@ class JSONFormatter(BaseJSONFormatter):
             "asctime": "time",
             "request_id": "requestId",
             "app_name": "application",
+            "service_id": "service_id"
         }
         for key, newkey in rename_map.items():
             log_record[newkey] = log_record.pop(key)
