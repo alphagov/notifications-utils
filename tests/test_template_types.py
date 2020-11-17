@@ -149,7 +149,7 @@ def test_alt_text_with_brand_text_and_govuk_banner_shown():
         brand_banner=True,
         brand_name='Notify Logo'
     ))
-    assert 'alt=" "' in email
+    assert 'alt=""' in email
     assert 'alt="Notify Logo"' not in email
 
 
@@ -162,14 +162,14 @@ def test_alt_text_with_no_brand_text_and_govuk_banner_shown():
         brand_banner=True,
         brand_name='Notify Logo'
     ))
-    assert 'alt=" "' in email
+    assert 'alt=""' in email
     assert 'alt="Notify Logo"' in email
 
 
 @pytest.mark.parametrize('brand_banner, brand_text, expected_alt_text', [
     (True, None, 'alt="Notify Logo"'),
-    (True, 'Example', 'alt=" "'),
-    (False, 'Example', 'alt=" "'),
+    (True, 'Example', 'alt=""'),
+    (False, 'Example', 'alt=""'),
     (False, None, 'alt="Notify Logo"'),
 ])
 def test_alt_text_with_no_govuk_banner(brand_banner, brand_text, expected_alt_text):
