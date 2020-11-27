@@ -6,6 +6,7 @@ import mistune
 import bleach
 from itertools import count
 from flask import Markup
+from orderedset import OrderedSet
 from . import email_with_smart_quotes_regex
 from notifications_utils.sanitise_text import SanitiseSMS
 import smartypants
@@ -48,6 +49,19 @@ mistune.BlockGrammar.list_item = re.compile(
 )
 mistune.BlockGrammar.list_bullet = re.compile(r'^ *(?:[•*-]|\d+\.)')
 mistune.InlineGrammar.url = re.compile(r'''^(https?:\/\/[^\s<]+[^<.,:"')\]\s])''')
+
+mistune.InlineLexer.default_rules = list(
+    OrderedSet(mistune.InlineLexer.default_rules) - set((
+        'emphasis',
+        'double_emphasis',
+    ))
+)
+mistune.InlineLexer.inline_html_rules = list(
+    set(mistune.InlineLexer.inline_html_rules) - set((
+        'emphasis',
+        'double_emphasis',
+    ))
+)
 
 govuk_not_a_link = re.compile(
     r'(^|\s)(#|\*|\^)?(GOV)\.(UK)(?!\/|\?|#)',

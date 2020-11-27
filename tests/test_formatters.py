@@ -720,7 +720,7 @@ def test_codespan(markdown_function, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>something important</p>'
+        '<p>something **important**</p>'
     ],
     [
         notify_email_markdown,
@@ -737,24 +737,40 @@ def test_double_emphasis(markdown_function, expected):
     ) == expected
 
 
-@pytest.mark.parametrize('markdown_function, expected', (
+@pytest.mark.parametrize('markdown_function, text, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>something important</p>'
+        'something *important*',
+        '<p>something *important*</p>'
     ],
     [
         notify_email_markdown,
+        'something *important*',
         '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">something *important*</p>'
     ],
     [
         notify_plain_text_email_markdown,
+        'something *important*',
         '\n\nsomething *important*',
     ],
+    [
+        notify_plain_text_email_markdown,
+        'something _important_',
+        '\n\nsomething _important_',
+    ],
+    [
+        notify_plain_text_email_markdown,
+        'before*after',
+        '\n\nbefore*after',
+    ],
+    [
+        notify_plain_text_email_markdown,
+        'before_after',
+        '\n\nbefore_after',
+    ],
 ))
-def test_emphasis(markdown_function, expected):
-    assert markdown_function(
-        'something *important*'
-    ) == expected
+def test_emphasis(markdown_function, text, expected):
+    assert markdown_function(text) == expected
 
 
 @pytest.mark.parametrize('markdown_function, expected', (
