@@ -341,12 +341,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def codespan(self, text):
         return text
 
-    def double_emphasis(self, text):
-        return text
-
-    def emphasis(self, text):
-        return text
-
     def image(self, src, title, alt_text):
         return ""
 
@@ -469,12 +463,6 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         if is_email:
             return link
         return create_sanitised_html_for_url(link)
-
-    def double_emphasis(self, text):
-        return '**{}**'.format(text)
-
-    def emphasis(self, text):
-        return '*{}*'.format(text)
 
 
 class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
