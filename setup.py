@@ -44,7 +44,7 @@ setup(
         'geojson==2.5.0',
 
         # required by both api and admin
-        'awscli==1.16.302',
-        'boto3==1.10.38',
+        'awscli',
+        'boto3',
     ]
 )
