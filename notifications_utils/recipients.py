@@ -458,6 +458,9 @@ def validate_phone_number(number, column=None, international=False):
     if len(number) < 8:
         raise InvalidPhoneError('Not enough digits')
 
+    if len(number) > 15:
+        raise InvalidPhoneError('Too many digits')
+
     if get_international_prefix(number) is None:
         raise InvalidPhoneError('Not a valid country prefix')
 

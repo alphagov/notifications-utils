@@ -44,6 +44,7 @@ valid_international_phone_numbers = [
     '+682 12345',  # Cook islands
     '+3312345678',
     '003312345678',
+    '1-2345-12345-12345',  # 15 digits
 ]
 
 
@@ -97,6 +98,7 @@ invalid_phone_numbers = list(filter(
     ('800000000000', 'Not a valid country prefix'),
     ('1234567', 'Not enough digits'),
     ('+682 1234', 'Not enough digits'),  # Cook Islands phone numbers can be 5 digits
+    ('+12345 12345 12345 6', 'Too many digits'),
 ]
 
 
@@ -233,7 +235,7 @@ def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
 @pytest.mark.parametrize('phone_number', [
     '+21 4321 0987',
     '00997 1234 7890',
-    '801234-7890'
+    '801234-7890',
     '(8-0)-1234-7890',
 ])
 def test_get_international_info_raises(phone_number):
@@ -358,7 +360,6 @@ def test_validates_against_whitelist_of_email_addresses(email_address):
     ('1-202-555-0104', '+1 202-555-0104'),  # Washington DC (USA)
     ('+23051234567', '+230 5123 4567'),  # Mauritius
     ('33(0)1 12345678', '+33 1 12 34 56 78'),  # Paris (France)
-    ('33(0)1 12 34 56 78 90 12 34', '+33 112345678901234'),  # Long, not real, number
 ])
 def test_format_uk_and_international_phone_numbers(phone_number, expected_formatted):
     assert format_phone_number_human_readable(phone_number) == expected_formatted
