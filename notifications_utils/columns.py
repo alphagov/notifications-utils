@@ -5,6 +5,10 @@ from orderedset import OrderedSet
 
 class Columns(OrderedDict):
 
+    KEY_TRANSLATION_TABLE = {
+        ord(c): None for c in ' _-'
+    }
+
     """
     `Columns` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.
@@ -57,9 +61,7 @@ class Columns(OrderedDict):
     def make_key(original_key):
         if original_key is None:
             return None
-        return "".join(
-            character.lower() for character in original_key if character not in ' _-'
-        )
+        return original_key.translate(Columns.KEY_TRANSLATION_TABLE).lower()
 
 
 class Row(Columns):
