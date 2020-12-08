@@ -54,12 +54,14 @@ mistune.InlineLexer.default_rules = list(
     OrderedSet(mistune.InlineLexer.default_rules) - set((
         'emphasis',
         'double_emphasis',
+        'strikethrough',
     ))
 )
 mistune.InlineLexer.inline_html_rules = list(
     set(mistune.InlineLexer.inline_html_rules) - set((
         'emphasis',
         'double_emphasis',
+        'strikethrough',
     ))
 )
 
@@ -355,9 +357,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def link(self, link, title, content):
         return '{}: {}'.format(content, self.autolink(link))
-
-    def strikethrough(self, text):
-        return text
 
     def footnote_ref(self, key, index):
         return ""

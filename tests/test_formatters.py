@@ -865,15 +865,15 @@ def test_link_with_title(markdown_function, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>Strike</p>'
+        '<p>~~Strike~~</p>'
     ],
     [
         notify_email_markdown,
-        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">Strike</p>'
+        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">~~Strike~~</p>'
     ],
     [
         notify_plain_text_email_markdown,
-        '\n\nStrike'
+        '\n\n~~Strike~~'
     ],
 ))
 def test_strikethrough(markdown_function, expected):
