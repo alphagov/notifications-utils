@@ -54,12 +54,16 @@ mistune.InlineLexer.default_rules = list(
     OrderedSet(mistune.InlineLexer.default_rules) - set((
         'emphasis',
         'double_emphasis',
+        'strikethrough',
+        'code',
     ))
 )
 mistune.InlineLexer.inline_html_rules = list(
     set(mistune.InlineLexer.inline_html_rules) - set((
         'emphasis',
         'double_emphasis',
+        'strikethrough',
+        'code',
     ))
 )
 
@@ -338,9 +342,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
             link.replace('http://', '').replace('https://', '')
         )
 
-    def codespan(self, text):
-        return text
-
     def image(self, src, title, alt_text):
         return ""
 
@@ -355,9 +356,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def link(self, link, title, content):
         return '{}: {}'.format(content, self.autolink(link))
-
-    def strikethrough(self, text):
-        return text
 
     def footnote_ref(self, key, index):
         return ""
