@@ -148,7 +148,7 @@ def strip_html(value):
 def escape_html(value):
     if not value:
         return value
-    value = str(value).replace('<', '&lt;')
+    value = str(value)
     # If the content contains a HTML encoded non-breaking space then we
     # need to protect it from the escape/unescape process by temporarily
     # turning it into something else
