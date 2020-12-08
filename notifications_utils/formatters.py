@@ -55,6 +55,7 @@ mistune.InlineLexer.default_rules = list(
         'emphasis',
         'double_emphasis',
         'strikethrough',
+        'code',
     ))
 )
 mistune.InlineLexer.inline_html_rules = list(
@@ -62,6 +63,7 @@ mistune.InlineLexer.inline_html_rules = list(
         'emphasis',
         'double_emphasis',
         'strikethrough',
+        'code',
     ))
 )
 
@@ -339,9 +341,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return '<strong>{}</strong>'.format(
             link.replace('http://', '').replace('https://', '')
         )
-
-    def codespan(self, text):
-        return text
 
     def image(self, src, title, alt_text):
         return ""

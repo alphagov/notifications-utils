@@ -700,15 +700,15 @@ def test_autolink(markdown_function, link, expected):
 @pytest.mark.parametrize('markdown_function, expected', (
     [
         notify_letter_preview_markdown,
-        '<p>variable called thing</p>'
+        '<p>variable called `thing`</p>'
     ],
     [
         notify_email_markdown,
-        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">variable called thing</p>'
+        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">variable called `thing`</p>'
     ],
     [
         notify_plain_text_email_markdown,
-        '\n\nvariable called thing',
+        '\n\nvariable called `thing`',
     ],
 ))
 def test_codespan(markdown_function, expected):
