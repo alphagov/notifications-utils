@@ -4,6 +4,7 @@ import urllib
 
 import mistune
 import bleach
+from html import escape, unescape
 from itertools import count
 from flask import Markup
 from orderedset import OrderedSet
@@ -151,7 +152,13 @@ def strip_html(value):
 def escape_html(value):
     if not value:
         return value
-    value = str(value).replace('<', '&lt;')
+    value = str(value)
+    # If the content contains a HTML encoded non-breaking space then we
+    # need to protect it from the escape/unescape process by temporarily
+    # turning it into something else
+    value = value.replace('&nbsp;', MAGIC_SEQUENCE)
+    value = escape(unescape(value), quote=False)
+    value = value.replace(MAGIC_SEQUENCE, '&nbsp;')
     return bleach.clean(value, tags=[], strip=False)
 
 

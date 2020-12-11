@@ -1,3 +1,4 @@
+import bleach
 import pytest
 from flask import Markup
 
@@ -916,6 +917,18 @@ def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     ) == (
         "&lt;to cancel daily cat facts reply 'cancel'&gt;"
     )
+
+
+def test_work_around_bleach_entity_bug():
+    # This content looks a bit like a HTML escape sequence (for example
+    # &copy; or &gt;) but it has a naughty question mark in it:
+    content = '&?a;'
+    # Bleach (the underlying library we use) handles it incorrectly,
+    # replacing the `a` with a second semicolon:
+    assert bleach.clean(content) == '&?;;'
+    # But we work around Bleach and handle it correctly, encoding the
+    # ampersand and preserving the `a`:
+    assert escape_html(content) == '&amp;?a;'
 
 
 @pytest.mark.parametrize('dirty, clean', [
