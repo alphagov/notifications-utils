@@ -4,7 +4,7 @@ import urllib
 
 import mistune
 import bleach
-from html import escape, unescape
+from html import escape
 from itertools import count
 from flask import Markup
 from orderedset import OrderedSet
@@ -85,6 +85,13 @@ MAGIC_SEQUENCE = "🇬🇧🐦✉️"
 
 magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
 
+AMPERSAND_MAGIC_SEQUENCE = "➕🐦🥴"
+
+HTML_ENTITY_MAPPING = (
+    ('&nbsp;', MAGIC_SEQUENCE),
+    ('&amp;', AMPERSAND_MAGIC_SEQUENCE),
+)
+
 # The Mistune URL regex only matches URLs at the start of a string,
 # using `^`, so we slice that off and recompile
 url = re.compile(mistune.InlineGrammar.url.pattern[1:])
@@ -153,13 +160,16 @@ def escape_html(value):
     if not value:
         return value
     value = str(value)
-    # If the content contains a HTML encoded non-breaking space then we
-    # need to protect it from the escape/unescape process by temporarily
-    # turning it into something else
-    value = value.replace('&nbsp;', MAGIC_SEQUENCE)
-    value = escape(unescape(value), quote=False)
-    value = value.replace(MAGIC_SEQUENCE, '&nbsp;')
-    return bleach.clean(value, tags=[], strip=False)
+
+    for entity, temporary_replacement in HTML_ENTITY_MAPPING:
+        value = value.replace(entity, temporary_replacement)
+
+    value = escape(value, quote=False)
+
+    for entity, temporary_replacement in HTML_ENTITY_MAPPING:
+        value = value.replace(temporary_replacement, entity)
+
+    return value
 
 
 def url_encode_full_stops(value):
