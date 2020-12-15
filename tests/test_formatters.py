@@ -919,16 +919,26 @@ def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     )
 
 
-def test_work_around_bleach_entity_bug():
-    # This content looks a bit like a HTML escape sequence (for example
-    # &copy; or &gt;) but it has a naughty question mark in it:
-    content = '&?a;'
+@pytest.mark.parametrize('content, expected_bleached, expected_escaped', (
+    ('&?a;', '&?;;', '&amp;?a;'),
+    ('&>a;', '&>;;', '&amp;&gt;a;'),
+    ('&*a;', '&*;;', '&amp;*a;'),
+    ('&a?;', '&a?;', '&amp;a?;'),
+    ('&x?xa;', '&amp;x?xa;', '&amp;x?xa;'),
+))
+def test_work_around_bleach_entity_bug(
+    content,
+    expected_bleached,
+    expected_escaped,
+):
+    # `content` looks a bit like a HTML escape sequence (for example
+    # &copy; or &gt;) but it has a naughty character in it.
     # Bleach (the underlying library we use) handles it incorrectly,
     # replacing the `a` with a second semicolon:
-    assert bleach.clean(content) == '&?;;'
+    assert bleach.clean(content) == expected_bleached
     # But we work around Bleach and handle it correctly, encoding the
     # ampersand and preserving the `a`:
-    assert escape_html(content) == '&amp;?a;'
+    assert escape_html(content) == expected_escaped
 
 
 @pytest.mark.parametrize('dirty, clean', [
