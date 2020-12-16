@@ -2045,7 +2045,7 @@ def test_content_size_in_bytes_for_email_messages(template_class, template_type,
 ])
 def test_message_too_long_for_a_too_big_email_message(template_class, template_type, kwargs):
     # Message being a Markup objects adds 81 bytes overhead, taking our message over the limit
-    body = 'b' * 1000000
+    body = 'b' * 2000000
     template = template_class(
         {'content': body, 'subject': 'foo', 'template_type': template_type},
         **kwargs
@@ -2059,7 +2059,7 @@ def test_message_too_long_for_a_too_big_email_message(template_class, template_t
     (PlainTextEmailTemplate, 'email', {}),
 ])
 def test_message_too_long_for_an_email_message_within_limits(template_class, template_type, kwargs):
-    body = 'b' * 999900
+    body = 'b' * 1999900
     template = template_class(
         {'content': body, 'subject': 'foo', 'template_type': template_type},
         **kwargs
