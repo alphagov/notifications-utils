@@ -947,7 +947,7 @@ def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     # impossible to put brackets in the body of conditional placeholders
     ('((var??&lpar;in brackets&rpar;))', '((var??&lpar;in brackets&rpar;))'),
 ))
-def test_work_around_bleach_entity_bug(
+def test_escaping_html_entities(
     content,
     expected_escaped,
 ):
