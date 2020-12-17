@@ -86,7 +86,7 @@ MAGIC_SEQUENCE = "🇬🇧🐦✉️"
 magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
 
 HTML_ENTITY_MAPPING = (
-    ('&nbsp;', MAGIC_SEQUENCE),
+    ('&nbsp;', "👾🐦🥴"),
     ('&amp;', "➕🐦🥴"),
     ('&lpar;', "◀️🐦🥴"),
     ('&rpar;', "▶️🐦🥴"),
