@@ -925,12 +925,12 @@ def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     ('&a?;', '&amp;a?;'),
     ('&x?xa;', '&amp;x?xa;'),
     # We need to be careful that query arguments don’t get turned into entities
-    ('&timestamp=&times;', '&amp;timestamp=&amp;times;'),
+    ('&timestamp=&times;', '&amp;timestamp=×'),
     ('&times=1,2,3', '&amp;times=1,2,3'),
     # &minus; should have a trailing semicolon according to the HTML5
     # spec but &micro doesn’t need one
-    ('2&minus;1', '2&amp;minus;1'),
-    ('200&micro;g', '200&amp;micro;g'),
+    ('2&minus;1', '2−1'),
+    ('200&micro;g', '200µg'),
     # …we ignore it when it’s ambiguous
     ('2&minus1', '2&amp;minus1'),
     ('200&microg', '200&amp;microg'),
@@ -938,7 +938,7 @@ def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     ('2 &minus 1', '2 &amp;minus 1'),
     ('200&micro g', '200&amp;micro g'),
     # Things which aren’t real entities are ignored, not removed
-    ('This is &notarealentity;', 'This is &amp;notarealentity;'),
+    ('This &isnotarealentity;', 'This &amp;isnotarealentity;'),
     # We let users use &nbsp; for backwards compatibility
     ('Before&nbsp;after', 'Before&nbsp;after'),
     # We let users use &amp; because it’s often pasted in URLs

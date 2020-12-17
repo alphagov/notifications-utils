@@ -4,7 +4,7 @@ import urllib
 
 import mistune
 import bleach
-from html import escape
+from html import escape, _replace_charref
 from itertools import count
 from flask import Markup
 from orderedset import OrderedSet
@@ -156,6 +156,25 @@ def strip_html(value):
     return bleach.clean(value, tags=[], strip=True)
 
 
+"""
+Re-implements html._charref but makes trailing semicolons non-optional
+"""
+_charref = re.compile(
+    r'&(#[0-9]+;'
+    r'|#[xX][0-9a-fA-F]+;'
+    r'|[^\t\n\f <&#;]{1,32};)'
+)
+
+
+def unescape_strict(s):
+    """
+    Re-implements html.unescape to use our own definition of `_charref`
+    """
+    if '&' not in s:
+        return s
+    return _charref.sub(_replace_charref, s)
+
+
 def escape_html(value):
     if not value:
         return value
@@ -164,7 +183,7 @@ def escape_html(value):
     for entity, temporary_replacement in HTML_ENTITY_MAPPING:
         value = value.replace(entity, temporary_replacement)
 
-    value = escape(value, quote=False)
+    value = escape(unescape_strict(value), quote=False)
 
     for entity, temporary_replacement in HTML_ENTITY_MAPPING:
         value = value.replace(temporary_replacement, entity)
