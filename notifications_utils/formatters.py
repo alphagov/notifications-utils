@@ -85,11 +85,11 @@ MAGIC_SEQUENCE = "🇬🇧🐦✉️"
 
 magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
 
-AMPERSAND_MAGIC_SEQUENCE = "➕🐦🥴"
-
 HTML_ENTITY_MAPPING = (
     ('&nbsp;', MAGIC_SEQUENCE),
-    ('&amp;', AMPERSAND_MAGIC_SEQUENCE),
+    ('&amp;', "➕🐦🥴"),
+    ('&lpar;', "◀️🐦🥴"),
+    ('&rpar;', "▶️🐦🥴"),
 )
 
 # The Mistune URL regex only matches URLs at the start of a string,
