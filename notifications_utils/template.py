@@ -1,5 +1,4 @@
 import math
-import sys
 from abc import ABC, abstractmethod
 from os import path
 from datetime import datetime
@@ -457,7 +456,7 @@ class BaseEmailTemplate(SubjectMixin, Template):
 
     @property
     def content_size_in_bytes(self):
-        return sys.getsizeof(self.content_with_placeholders_filled_in)
+        return len(self.content_with_placeholders_filled_in.encode("utf8"))
 
     def is_message_too_long(self):
         """
