@@ -4,7 +4,7 @@ import urllib
 
 import mistune
 import bleach
-from html import escape, unescape
+from html import escape, _replace_charref
 from itertools import count
 from flask import Markup
 from orderedset import OrderedSet
@@ -85,6 +85,13 @@ MAGIC_SEQUENCE = "🇬🇧🐦✉️"
 
 magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
 
+HTML_ENTITY_MAPPING = (
+    ('&nbsp;', "👾🐦🥴"),
+    ('&amp;', "➕🐦🥴"),
+    ('&lpar;', "◀️🐦🥴"),
+    ('&rpar;', "▶️🐦🥴"),
+)
+
 # The Mistune URL regex only matches URLs at the start of a string,
 # using `^`, so we slice that off and recompile
 url = re.compile(mistune.InlineGrammar.url.pattern[1:])
@@ -149,17 +156,39 @@ def strip_html(value):
     return bleach.clean(value, tags=[], strip=True)
 
 
+"""
+Re-implements html._charref but makes trailing semicolons non-optional
+"""
+_charref = re.compile(
+    r'&(#[0-9]+;'
+    r'|#[xX][0-9a-fA-F]+;'
+    r'|[^\t\n\f <&#;]{1,32};)'
+)
+
+
+def unescape_strict(s):
+    """
+    Re-implements html.unescape to use our own definition of `_charref`
+    """
+    if '&' not in s:
+        return s
+    return _charref.sub(_replace_charref, s)
+
+
 def escape_html(value):
     if not value:
         return value
     value = str(value)
-    # If the content contains a HTML encoded non-breaking space then we
-    # need to protect it from the escape/unescape process by temporarily
-    # turning it into something else
-    value = value.replace('&nbsp;', MAGIC_SEQUENCE)
-    value = escape(unescape(value), quote=False)
-    value = value.replace(MAGIC_SEQUENCE, '&nbsp;')
-    return bleach.clean(value, tags=[], strip=False)
+
+    for entity, temporary_replacement in HTML_ENTITY_MAPPING:
+        value = value.replace(entity, temporary_replacement)
+
+    value = escape(unescape_strict(value), quote=False)
+
+    for entity, temporary_replacement in HTML_ENTITY_MAPPING:
+        value = value.replace(temporary_replacement, entity)
+
+    return value
 
 
 def url_encode_full_stops(value):

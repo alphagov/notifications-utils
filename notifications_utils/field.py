@@ -120,12 +120,12 @@ class Field:
 
         if placeholder.is_conditional():
             return self.conditional_placeholder_tag.format(
-                self.sanitizer(placeholder.name),
-                self.sanitizer(placeholder.conditional_text)
+                placeholder.name,
+                placeholder.conditional_text
             )
 
         return self.placeholder_tag.format(
-            self.sanitizer(placeholder.name)
+            placeholder.name
         )
 
     def replace_match(self, match):

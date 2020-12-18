@@ -1,4 +1,3 @@
-import bleach
 import pytest
 from flask import Markup
 
@@ -919,16 +918,40 @@ def test_bleach_doesnt_try_to_make_valid_html_before_cleaning():
     )
 
 
-def test_work_around_bleach_entity_bug():
-    # This content looks a bit like a HTML escape sequence (for example
-    # &copy; or &gt;) but it has a naughty question mark in it:
-    content = '&?a;'
-    # Bleach (the underlying library we use) handles it incorrectly,
-    # replacing the `a` with a second semicolon:
-    assert bleach.clean(content) == '&?;;'
-    # But we work around Bleach and handle it correctly, encoding the
-    # ampersand and preserving the `a`:
-    assert escape_html(content) == '&amp;?a;'
+@pytest.mark.parametrize('content, expected_escaped', (
+    ('&?a;', '&amp;?a;'),
+    ('&>a;', '&amp;&gt;a;'),
+    ('&*a;', '&amp;*a;'),
+    ('&a?;', '&amp;a?;'),
+    ('&x?xa;', '&amp;x?xa;'),
+    # We need to be careful that query arguments don’t get turned into entities
+    ('&timestamp=&times;', '&amp;timestamp=×'),
+    ('&times=1,2,3', '&amp;times=1,2,3'),
+    # &minus; should have a trailing semicolon according to the HTML5
+    # spec but &micro doesn’t need one
+    ('2&minus;1', '2−1'),
+    ('200&micro;g', '200µg'),
+    # …we ignore it when it’s ambiguous
+    ('2&minus1', '2&amp;minus1'),
+    ('200&microg', '200&amp;microg'),
+    # …we still ignore when there’s a space afterwards
+    ('2 &minus 1', '2 &amp;minus 1'),
+    ('200&micro g', '200&amp;micro g'),
+    # Things which aren’t real entities are ignored, not removed
+    ('This &isnotarealentity;', 'This &amp;isnotarealentity;'),
+    # We let users use &nbsp; for backwards compatibility
+    ('Before&nbsp;after', 'Before&nbsp;after'),
+    # We let users use &amp; because it’s often pasted in URLs
+    ('?a=1&amp;b=2', '?a=1&amp;b=2'),
+    # We let users use &lpar; and &rpar; because otherwise it’s
+    # impossible to put brackets in the body of conditional placeholders
+    ('((var??&lpar;in brackets&rpar;))', '((var??&lpar;in brackets&rpar;))'),
+))
+def test_escaping_html_entities(
+    content,
+    expected_escaped,
+):
+    assert escape_html(content) == expected_escaped
 
 
 @pytest.mark.parametrize('dirty, clean', [
