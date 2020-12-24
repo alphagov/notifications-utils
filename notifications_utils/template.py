@@ -236,11 +236,8 @@ class BaseSMSTemplate(Template):
     def fragment_count(self):
         content_with_placeholders = str(self)
 
-        no_of_extended_gsm_chars = sum(
-            map(content_with_placeholders.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS)
-        )
         # Extended GSM characters count as 2 characters
-        character_count = self.content_count + no_of_extended_gsm_chars
+        character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
 
         return get_sms_fragment_count(character_count, non_gsm_characters(content_with_placeholders))
 
@@ -363,6 +360,31 @@ class SMSPreviewTemplate(BaseSMSTemplate):
 
 class BaseBroadcastTemplate(BaseSMSTemplate):
     template_type = 'broadcast'
+
+    MAX_CONTENT_COUNT_GSM = 1_395
+    MAX_CONTENT_COUNT_UCS2 = 615
+
+    @property
+    def encoded_content_count(self):
+        if self.non_gsm_characters:
+            return self.content_count
+        return self.content_count + count_extended_gsm_chars(
+            self.content_with_placeholders_filled_in
+        )
+
+    @property
+    def non_gsm_characters(self):
+        return non_gsm_characters(self.content)
+
+    @property
+    def max_content_count(self):
+        if self.non_gsm_characters:
+            return self.MAX_CONTENT_COUNT_UCS2
+        return self.MAX_CONTENT_COUNT_GSM
+
+    @property
+    def content_too_long(self):
+        return self.encoded_content_count > self.max_content_count
 
 
 class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
@@ -856,6 +878,12 @@ def non_gsm_characters(content):
     with UCS-2.
     """
     return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
+
+
+def count_extended_gsm_chars(content):
+    return sum(
+        map(content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS)
+    )
 
 
 def do_nice_typography(value):

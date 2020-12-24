@@ -2418,3 +2418,99 @@ def test_broadcast_message_from_event():
     ) == (
         'test content'
     )
+
+
+@pytest.mark.parametrize('content, expected_non_gsm, expected_max, expected_too_long', (
+    (
+        'a' * 1395,
+        set(),
+        1395,
+        False,
+    ),
+    (
+        'a' * 1396,
+        set(),
+        1395,
+        True,
+    ),
+    (
+        'ŵ' * 615,
+        {'ŵ'},
+        615,
+        False,
+    ),
+    (
+        # Using a non-GSM character reduces the max content count
+        'ŵ' * 616,
+        {'ŵ'},
+        615,
+        True,
+    ),
+    (
+        '[' * 697,  # Half of 1395, rounded down
+        set(),
+        1395,
+        False,
+    ),
+    (
+        '[' * 698,  # Half of 1395, rounded up
+        set(),
+        1395,
+        True,
+    ),
+    (
+        # In USC2 extended GSM characters are not double counted
+        'ŵ]' * 307,
+        {'ŵ'},
+        615,
+        False,
+    ),
+))
+def test_broadcast_message_content_count(
+    content, expected_non_gsm, expected_max, expected_too_long
+):
+    template = BroadcastMessageTemplate({
+        'template_type': 'broadcast',
+        'content': content,
+    })
+    assert template.non_gsm_characters == expected_non_gsm
+    assert template.max_content_count == expected_max
+    assert template.content_too_long is expected_too_long
+
+
+@pytest.mark.parametrize('content', (
+    '^{}\\[~]|€'
+))
+def test_broadcast_message_double_counts_extended_gsm(content):
+    template = BroadcastMessageTemplate({
+        'template_type': 'broadcast',
+        'content': content,
+    })
+    assert template.encoded_content_count == 2
+    assert template.max_content_count == 1_395
+
+
+@pytest.mark.parametrize('content', (
+    'ÁÍÓÚẂÝ' 'ËÏẄŸ' 'ÂÊÎÔÛŴŶ' 'ÀÈÌÒẀÙỲ'
+    'áíóúẃý' 'ëïẅÿ' 'âêîôûŵŷ' 'ẁỳ'
+))
+def test_broadcast_message_single_counts_diacritics_in_extended_gsm(content):
+    template = BroadcastMessageTemplate({
+        'template_type': 'broadcast',
+        'content': content,
+    })
+    assert template.encoded_content_count == 1
+    assert template.max_content_count == 615
+
+
+@pytest.mark.parametrize('content', (
+    'ÄÖÜ' 'É'
+    'äöü' 'é' 'àèìòù'
+))
+def test_broadcast_message_single_counts_diacritics_in_gsm(content):
+    template = BroadcastMessageTemplate({
+        'template_type': 'broadcast',
+        'content': content,
+    })
+    assert template.encoded_content_count == 1
+    assert template.max_content_count == 1_395
