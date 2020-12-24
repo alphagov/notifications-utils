@@ -371,8 +371,6 @@ class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
 
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
-    jinja_template = template_env.get_template('broadcast_message_template.jinja2')
-
     @classmethod
     def from_event(cls, broadcast_event):
         """
