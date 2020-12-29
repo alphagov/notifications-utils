@@ -233,7 +233,7 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
     )
 
     rows = recipients.get_rows()
-    for i in range(3):
+    for _ in range(3):
         assert next(rows).recipient == 'a@b.com'
 
     assert has_error_mock.called is False
@@ -258,7 +258,7 @@ def test_get_rows_only_iterates_over_file_once(mocker):
     )
 
     rows = recipients.get_rows()
-    for i in range(3):
+    for _ in range(3):
         next(rows)
 
     assert row_mock.call_count == 3
@@ -402,7 +402,7 @@ def test_big_list():
 def test_processing_a_big_list():
     process = Mock()
 
-    for row in RecipientCSV(
+    for _row in RecipientCSV(
         "phone_number\n" + ("07900900900\n" * RecipientCSV.max_rows),
         template=_sample_template('sms'),
     ).get_rows():
