@@ -14,8 +14,8 @@ from notifications_utils.formatters import (
 
 class Placeholder:
     def __init__(self, body):
-        # body should not include the (( and )).
-        self.body = body.lstrip('((').rstrip('))')
+        # body shouldn’t include leading/trailing brackets, like (( and ))
+        self.body = body.lstrip('(').rstrip(')')
 
     @classmethod
     def from_match(cls, match):
