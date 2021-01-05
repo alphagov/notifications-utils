@@ -3,7 +3,7 @@ import pytest
 from notifications_utils.countries import (
     Country,
     CountryMapping,
-    CountryNotFoundError
+    CountryNotFoundError,
 )
 from notifications_utils.countries.data import (
     _EUROPEAN_ISLANDS_LIST,
@@ -16,7 +16,9 @@ from notifications_utils.countries.data import (
     WELSH_NAMES,
     Postage,
 )
-from .country_synonyms import ALL as ALL_SYNONYMS, CROWDSOURCED_MISTAKES
+
+from .country_synonyms import ALL as ALL_SYNONYMS
+from .country_synonyms import CROWDSOURCED_MISTAKES
 
 
 def test_constants():

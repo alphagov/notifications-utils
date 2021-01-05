@@ -1,5 +1,5 @@
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from uuid import UUID
-from base64 import urlsafe_b64encode, urlsafe_b64decode
 
 
 def base64_to_bytes(key):

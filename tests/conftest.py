@@ -1,7 +1,6 @@
 import pytest
-from flask import Flask
-
 import requests_mock
+from flask import Flask
 
 
 class FakeService():

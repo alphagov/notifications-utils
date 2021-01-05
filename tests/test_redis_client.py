@@ -1,14 +1,18 @@
 import uuid
-import pytest
 from datetime import datetime
 from unittest.mock import Mock, call
+
+import pytest
 from freezegun import freeze_time
 
 from notifications_utils.clients.redis import (
     daily_limit_cache_key,
     rate_limit_cache_key,
 )
-from notifications_utils.clients.redis.redis_client import RedisClient, prepare_value
+from notifications_utils.clients.redis.redis_client import (
+    RedisClient,
+    prepare_value,
+)
 
 
 @pytest.fixture(scope='function')

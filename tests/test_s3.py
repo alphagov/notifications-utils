@@ -3,7 +3,7 @@ from urllib.parse import parse_qs
 import botocore
 import pytest
 
-from notifications_utils.s3 import s3download, s3upload, S3ObjectNotFound
+from notifications_utils.s3 import S3ObjectNotFound, s3download, s3upload
 
 contents = 'some file data'
 region = 'eu-west-1'

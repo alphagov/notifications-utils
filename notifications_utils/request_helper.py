@@ -1,5 +1,5 @@
+from flask import abort, current_app, request
 from flask.wrappers import Request
-from flask import request, current_app, abort
 
 
 class NotifyRequest(Request):

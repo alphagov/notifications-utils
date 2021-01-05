@@ -1,10 +1,13 @@
-import pytest
-import pytz
-
 from datetime import datetime
 
+import pytest
+import pytz
 from freezegun import freeze_time
-from notifications_utils.letter_timings import get_letter_timings, letter_can_be_cancelled
+
+from notifications_utils.letter_timings import (
+    get_letter_timings,
+    letter_can_be_cancelled,
+)
 
 
 @freeze_time('2017-07-14 13:59:59')  # Friday, before print deadline (3PM BST)

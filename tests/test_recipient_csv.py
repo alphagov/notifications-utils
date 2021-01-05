@@ -1,19 +1,25 @@
-import pytest
 import itertools
 import string
 import unicodedata
 from functools import partial
-from orderedset import OrderedSet
 from random import choice, randrange
 from unittest.mock import Mock
 
+import pytest
+from orderedset import OrderedSet
+
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
 from notifications_utils.countries import Country
-from notifications_utils.recipients import Cell, RecipientCSV, Row, first_column_headings
+from notifications_utils.recipients import (
+    Cell,
+    RecipientCSV,
+    Row,
+    first_column_headings,
+)
 from notifications_utils.template import (
-    SMSMessageTemplate,
     EmailPreviewTemplate,
     LetterImageTemplate,
+    SMSMessageTemplate,
 )
 
 

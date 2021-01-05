@@ -2,7 +2,10 @@ from base64 import b64decode
 
 import pytest
 
-from notifications_utils.clients.zendesk.zendesk_client import ZendeskClient, ZendeskError
+from notifications_utils.clients.zendesk.zendesk_client import (
+    ZendeskClient,
+    ZendeskError,
+)
 
 
 @pytest.fixture(scope='function')

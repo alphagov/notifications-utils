@@ -1,8 +1,12 @@
 import io
-import requests
-import pytest
 
-from notifications_utils.clients.antivirus.antivirus_client import AntivirusClient, AntivirusError
+import pytest
+import requests
+
+from notifications_utils.clients.antivirus.antivirus_client import (
+    AntivirusClient,
+    AntivirusError,
+)
 
 
 @pytest.fixture(scope='function')
