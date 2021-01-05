@@ -10,7 +10,6 @@ from flask import Markup
 from freezegun import freeze_time
 from orderedset import OrderedSet
 
-from notifications_utils.field import Field
 from notifications_utils.formatters import unlink_govuk_escaped
 from notifications_utils.template import (
     BaseEmailTemplate,
@@ -1130,17 +1129,18 @@ def test_character_count_for_non_sms_templates(
     ("Ŵ", {}, None, 1, 1),
     ("'First line.\n", {}, None, 12, 12),
     ("\t\n\r", {}, None, 0, 0),
-    ("Content with ((placeholder))", {"placeholder": "something extra here"}, None, 28, 33),
-    ("Content with ((placeholder))", {"placeholder": ""}, None, 28, 12),
+    ("Content with ((placeholder))", {"placeholder": "something extra here"}, None, 13, 33),
+    ("Content with ((placeholder))", {"placeholder": ""}, None, 13, 12),
     ("Just content", {}, None, 12, 12),
-    ("((placeholder))  ", {"placeholder": "  "}, None, 15, 0),
+    ("((placeholder))  ", {"placeholder": "  "}, None, 0, 0),
     ("  ", {}, None, 0, 0),
-    ("Content with ((placeholder))", {"placeholder": "something extra here"}, "GDS", 33, 38),
+    ("Content with ((placeholder))", {"placeholder": "something extra here"}, "GDS", 18, 38),
     ("Just content", {}, "GDS", 17, 17),
-    ("((placeholder))  ", {"placeholder": "  "}, "GDS", 20, 4),
+    ("((placeholder))  ", {"placeholder": "  "}, "GDS", 5, 4),
     ("  ", {}, "GDS", 4, 4),  # Becomes `GDS:`
     ("  G      D       S  ", {}, None, 5, 5),  # Becomes `G D S`
     ("P1 \n\n\n\n\n\n P2", {}, None, 6, 6),  # Becomes `P1\n\nP2`
+    ("a    ((placeholder))    b", {"placeholder": ""}, None, 4, 3),  # Counted as `a  b` then `a b`
 ])
 def test_character_count_for_sms_templates(
     content, values, prefix, expected_count_in_template, expected_count_in_notification, template_class
@@ -1166,10 +1166,10 @@ def test_character_count_for_sms_templates(
     ("Ŵ", {}, 1, 1),
     ("'First line.\n", {}, 12, 12),
     ("\t\n\r", {}, 0, 0),
-    ("Content with ((placeholder))", {"placeholder": "something extra here"}, 28, 33),
-    ("Content with ((placeholder))", {"placeholder": ""}, 28, 12),
+    ("Content with ((placeholder))", {"placeholder": "something extra here"}, 13, 33),
+    ("Content with ((placeholder))", {"placeholder": ""}, 13, 12),
     ("Just content", {}, 12, 12),
-    ("((placeholder))  ", {"placeholder": "  "}, 15, 0),
+    ("((placeholder))  ", {"placeholder": "  "}, 0, 0),
     ("  ", {}, 0, 0),
     ("  G      D       S  ", {}, 5, 5),  # Becomes `G D S`
     ("P1 \n\n\n\n\n\n P2", {}, 6, 6),  # Becomes `P1\n\nP2`
@@ -1370,6 +1370,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
         mock.call('((email address))', {}, with_brackets=False),
     ]),
     (SMSMessageTemplate, 'sms', {}, [
+        mock.call('content'),  # This is to get the placeholders
         mock.call('content', {}, html='passthrough'),
     ]),
     (SMSPreviewTemplate, 'sms', {}, [
