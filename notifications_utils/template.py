@@ -220,7 +220,7 @@ class BaseSMSTemplate(Template):
         as in the message `foo ((placeholder))` has a length of 19.
         """
         if self._content_count is None:
-            self._content_count = len(SMSMessageTemplate._get_unsanitised_content(self))
+            self._content_count = len(self._get_unsanitised_content())
         return self._content_count
 
     @property
@@ -253,15 +253,9 @@ class BaseSMSTemplate(Template):
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
 
-
-class SMSMessageTemplate(BaseSMSTemplate):
-
-    def __str__(self):
-        return sms_encode(self._get_unsanitised_content())
-
     def _get_unsanitised_content(self):
-        # This is faster to call than __str__ if all you need to know is
-        # how many characters are in the message
+        # This is faster to call than SMSMessageTemplate.__str__ if all
+        # you need to know is how many characters are in the message
         return Take(PlainTextField(
             self.content, self.values, html='passthrough'
         )).then(
@@ -275,6 +269,11 @@ class SMSMessageTemplate(BaseSMSTemplate):
         ).then(
             str.strip
         )
+
+
+class SMSMessageTemplate(BaseSMSTemplate):
+    def __str__(self):
+        return sms_encode(self._get_unsanitised_content())
 
 
 class SMSBodyPreviewTemplate(BaseSMSTemplate):

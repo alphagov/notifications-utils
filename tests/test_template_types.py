@@ -2420,6 +2420,10 @@ def test_broadcast_message_from_event():
     )
 
 
+@pytest.mark.parametrize('template_class', (
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
+))
 @pytest.mark.parametrize('content, expected_non_gsm, expected_max, expected_too_long', (
     (
         'a' * 1395,
@@ -2467,9 +2471,9 @@ def test_broadcast_message_from_event():
     ),
 ))
 def test_broadcast_message_content_count(
-    content, expected_non_gsm, expected_max, expected_too_long
+    content, expected_non_gsm, expected_max, expected_too_long, template_class
 ):
-    template = BroadcastMessageTemplate({
+    template = template_class({
         'template_type': 'broadcast',
         'content': content,
     })
@@ -2478,11 +2482,18 @@ def test_broadcast_message_content_count(
     assert template.content_too_long is expected_too_long
 
 
+@pytest.mark.parametrize('template_class', (
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
+))
 @pytest.mark.parametrize('content', (
     '^{}\\[~]|€'
 ))
-def test_broadcast_message_double_counts_extended_gsm(content):
-    template = BroadcastMessageTemplate({
+def test_broadcast_message_double_counts_extended_gsm(
+    content,
+    template_class,
+):
+    template = template_class({
         'template_type': 'broadcast',
         'content': content,
     })
@@ -2490,12 +2501,19 @@ def test_broadcast_message_double_counts_extended_gsm(content):
     assert template.max_content_count == 1_395
 
 
+@pytest.mark.parametrize('template_class', (
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
+))
 @pytest.mark.parametrize('content', (
     'ÁÍÓÚẂÝ' 'ËÏẄŸ' 'ÂÊÎÔÛŴŶ' 'ÀÈÌÒẀÙỲ'
     'áíóúẃý' 'ëïẅÿ' 'âêîôûŵŷ' 'ẁỳ'
 ))
-def test_broadcast_message_single_counts_diacritics_in_extended_gsm(content):
-    template = BroadcastMessageTemplate({
+def test_broadcast_message_single_counts_diacritics_in_extended_gsm(
+    content,
+    template_class,
+):
+    template = template_class({
         'template_type': 'broadcast',
         'content': content,
     })
@@ -2503,12 +2521,19 @@ def test_broadcast_message_single_counts_diacritics_in_extended_gsm(content):
     assert template.max_content_count == 615
 
 
+@pytest.mark.parametrize('template_class', (
+    BroadcastMessageTemplate,
+    BroadcastPreviewTemplate,
+))
 @pytest.mark.parametrize('content', (
     'ÄÖÜ' 'É'
     'äöü' 'é' 'àèìòù'
 ))
-def test_broadcast_message_single_counts_diacritics_in_gsm(content):
-    template = BroadcastMessageTemplate({
+def test_broadcast_message_single_counts_diacritics_in_gsm(
+    content,
+    template_class,
+):
+    template = template_class({
         'template_type': 'broadcast',
         'content': content,
     })
