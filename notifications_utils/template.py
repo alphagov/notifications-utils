@@ -12,6 +12,7 @@ from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
 from notifications_utils.columns import Columns
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
+    MAGIC_SEQUENCE,
     unlink_govuk_escaped,
     nl2br,
     add_prefix,
@@ -256,8 +257,14 @@ class BaseSMSTemplate(Template):
     def _get_unsanitised_content(self):
         # This is faster to call than SMSMessageTemplate.__str__ if all
         # you need to know is how many characters are in the message
+        if self.values:
+            values = self.values
+        else:
+            values = {
+                key: MAGIC_SEQUENCE for key in self.placeholders
+            }
         return Take(PlainTextField(
-            self.content, self.values, html='passthrough'
+            self.content, values, html='passthrough'
         )).then(
             add_prefix, self.prefix
         ).then(
@@ -268,6 +275,8 @@ class BaseSMSTemplate(Template):
             normalise_multiple_newlines
         ).then(
             str.strip
+        ).then(
+            str.replace, MAGIC_SEQUENCE, ''
         )
 
 
