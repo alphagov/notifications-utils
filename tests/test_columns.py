@@ -1,7 +1,8 @@
+from functools import partial
+
 import pytest
 
-from functools import partial
-from notifications_utils.columns import Columns, Row, Cell
+from notifications_utils.columns import Cell, Columns, Row
 
 
 def test_columns_as_dict_with_keys():

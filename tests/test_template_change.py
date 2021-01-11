@@ -1,4 +1,5 @@
 import pytest
+
 from notifications_utils.template_change import TemplateChange
 from tests.test_base_template import ConcreteTemplate
 

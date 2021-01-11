@@ -1,17 +1,18 @@
-import string
 import re
+import string
 import urllib
-
-import mistune
-import bleach
-from html import escape, _replace_charref
+from html import _replace_charref, escape
 from itertools import count
+
+import bleach
+import mistune
+import smartypants
 from flask import Markup
 from orderedset import OrderedSet
-from . import email_with_smart_quotes_regex
-from notifications_utils.sanitise_text import SanitiseSMS
-import smartypants
 
+from notifications_utils.sanitise_text import SanitiseSMS
+
+from . import email_with_smart_quotes_regex
 
 LINK_STYLE = 'word-wrap: break-word; color: #1D70B8;'
 

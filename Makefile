@@ -18,3 +18,7 @@ test: ## Run tests
 
 clean:
 	rm -rf cache venv
+
+.PHONY: fix-imports
+fix-imports:
+	isort -rc ./notifications_utils ./tests

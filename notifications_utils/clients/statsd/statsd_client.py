@@ -1,11 +1,10 @@
 import random
 import time
+from socket import AF_INET, SOCK_DGRAM, gethostbyname, socket
 
 import cachetools.func
-
-from statsd.client.base import StatsClientBase
-from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM
 from flask import current_app
+from statsd.client.base import StatsClientBase
 
 
 def time_monotonic_with_jitter():

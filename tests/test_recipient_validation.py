@@ -1,15 +1,15 @@
-import pytest
-
 from functools import partial
 
+import pytest
+
 from notifications_utils.recipients import (
+    InvalidEmailError,
+    InvalidPhoneError,
     allowed_to_send_to,
     format_phone_number_human_readable,
     format_recipient,
     get_international_phone_info,
     international_phone_info,
-    InvalidEmailError,
-    InvalidPhoneError,
     is_uk_phone_number,
     normalise_phone_number,
     try_validate_and_format_phone_number,
@@ -18,7 +18,6 @@ from notifications_utils.recipients import (
     validate_phone_number,
     validate_recipient,
 )
-
 
 valid_uk_phone_numbers = [
     '7123456789',

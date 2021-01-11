@@ -1,8 +1,12 @@
+from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
-from datetime import datetime, timedelta
-from notifications_utils.clients.statsd.statsd_client import StatsdClient, NotifyStatsClient
+
+from notifications_utils.clients.statsd.statsd_client import (
+    NotifyStatsClient,
+    StatsdClient,
+)
 
 
 @pytest.fixture(scope='function')

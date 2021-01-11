@@ -29,6 +29,9 @@ fi
 flake8 .
 display_result $? 1 "Code style check"
 
+isort --check-only -rc ./notifications_utils ./tests
+display_result $? 2 "Import order"
+
 py.test -n4 tests/
 display_result $? 3 "Unit tests"
 

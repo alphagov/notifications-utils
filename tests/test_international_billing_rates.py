@@ -1,8 +1,8 @@
 import pytest
 
 from notifications_utils.international_billing_rates import (
-    INTERNATIONAL_BILLING_RATES,
     COUNTRY_PREFIXES,
+    INTERNATIONAL_BILLING_RATES,
 )
 
 

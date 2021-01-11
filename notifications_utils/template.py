@@ -1,47 +1,49 @@
 import math
 from abc import ABC, abstractmethod
-from os import path
 from datetime import datetime
 from functools import lru_cache
-
-from jinja2 import Environment, FileSystemLoader
-from flask import Markup
 from html import unescape
+from os import path
+
+from flask import Markup
+from jinja2 import Environment, FileSystemLoader
 
 from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
 from notifications_utils.columns import Columns
+from notifications_utils.countries.data import Postage
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     MAGIC_SEQUENCE,
-    unlink_govuk_escaped,
-    nl2br,
     add_prefix,
-    autolink_sms,
-    notify_email_markdown,
-    notify_email_preheader_markdown,
-    notify_plain_text_email_markdown,
-    notify_letter_preview_markdown,
-    sms_encode,
-    escape_html,
-    remove_whitespace_before_punctuation,
-    make_quotes_smart,
-    replace_hyphens_with_en_dashes,
-    replace_hyphens_with_non_breaking_hyphens,
-    strip_leading_whitespace,
     add_trailing_newline,
+    autolink_sms,
+    escape_html,
+    formatted_list,
+    make_quotes_smart,
+    nl2br,
+    normalise_multiple_newlines,
     normalise_whitespace,
     normalise_whitespace_and_newlines,
-    normalise_multiple_newlines,
+    notify_email_markdown,
+    notify_email_preheader_markdown,
+    notify_letter_preview_markdown,
+    notify_plain_text_email_markdown,
     remove_smart_quotes_from_email_addresses,
+    remove_whitespace_before_punctuation,
+    replace_hyphens_with_en_dashes,
+    replace_hyphens_with_non_breaking_hyphens,
+    sms_encode,
+    strip_leading_whitespace,
     strip_unsupported_characters,
-    formatted_list,
+    unlink_govuk_escaped,
 )
-from notifications_utils.countries.data import Postage
-from notifications_utils.postal_address import PostalAddress, address_lines_1_to_7_keys
+from notifications_utils.postal_address import (
+    PostalAddress,
+    address_lines_1_to_7_keys,
+)
+from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
-from notifications_utils.sanitise_text import SanitiseSMS
-
 
 template_env = Environment(loader=FileSystemLoader(
     path.join(

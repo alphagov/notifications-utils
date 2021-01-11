@@ -1,7 +1,7 @@
 from datetime import datetime
-from dateutil import parser
-import pytz
 
+import pytz
+from dateutil import parser
 
 local_timezone = pytz.timezone("Europe/London")
 

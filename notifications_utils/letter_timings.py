@@ -1,12 +1,14 @@
-import pytz
-
-from datetime import datetime, time, timedelta
 from collections import namedtuple
+from datetime import datetime, time, timedelta
 
+import pytz
 from govuk_bank_holidays.bank_holidays import BankHolidays
-from notifications_utils.countries.data import Postage
-from notifications_utils.timezones import convert_utc_to_bst, utc_string_to_aware_gmt_datetime
 
+from notifications_utils.countries.data import Postage
+from notifications_utils.timezones import (
+    convert_utc_to_bst,
+    utc_string_to_aware_gmt_datetime,
+)
 
 LETTER_PROCESSING_DEADLINE = time(17, 30)
 CANCELLABLE_JOB_LETTER_STATUSES = [

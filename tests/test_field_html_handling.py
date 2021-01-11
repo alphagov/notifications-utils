@@ -1,4 +1,5 @@
 import pytest
+
 from notifications_utils.field import Field
 
 

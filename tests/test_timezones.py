@@ -2,7 +2,11 @@ from datetime import datetime
 
 import pytest
 
-from notifications_utils.timezones import convert_bst_to_utc, convert_utc_to_bst, utc_string_to_aware_gmt_datetime
+from notifications_utils.timezones import (
+    convert_bst_to_utc,
+    convert_utc_to_bst,
+    utc_string_to_aware_gmt_datetime,
+)
 
 
 @pytest.mark.parametrize('input_value', [

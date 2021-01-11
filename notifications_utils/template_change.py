@@ -1,4 +1,5 @@
 from orderedset import OrderedSet
+
 from notifications_utils.columns import Columns
 
 

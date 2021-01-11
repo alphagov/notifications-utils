@@ -1,6 +1,9 @@
 import pytest
 
-from notifications_utils.serialised_model import SerialisedModel, SerialisedModelCollection
+from notifications_utils.serialised_model import (
+    SerialisedModel,
+    SerialisedModelCollection,
+)
 
 
 def test_cant_be_instatiated_with_abstract_properties():

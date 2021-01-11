@@ -1,25 +1,23 @@
-import string
-import re
-import sys
 import csv
-import phonenumbers
-from io import StringIO
+import re
+import string
+import sys
+from collections import OrderedDict, namedtuple
 from contextlib import suppress
 from functools import lru_cache, partial
+from io import StringIO
 from itertools import islice
-from collections import OrderedDict, namedtuple
+
+import phonenumbers
+from flask import current_app
 from orderedset import OrderedSet
 
-from flask import current_app
-
-from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
+from notifications_utils.columns import Cell, Columns, Row
 from notifications_utils.formatters import (
+    OBSCURE_WHITESPACE,
     strip_and_remove_obscure_whitespace,
     strip_whitespace,
-    OBSCURE_WHITESPACE
 )
-from notifications_utils.template import Template
-from notifications_utils.columns import Columns, Row, Cell
 from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
@@ -29,7 +27,9 @@ from notifications_utils.postal_address import (
     address_lines_1_to_6_and_postcode_keys,
     address_lines_1_to_7_keys,
 )
+from notifications_utils.template import Template
 
+from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 
 uk_prefix = '44'
 

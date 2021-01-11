@@ -5,8 +5,12 @@ import PyPDF2
 import pytest
 from PyPDF2.utils import PdfReadError
 
-from notifications_utils.pdf import extract_page_from_pdf, is_letter_too_long, pdf_page_count
-from tests.pdf_consts import one_page_pdf, multi_page_pdf, not_pdf
+from notifications_utils.pdf import (
+    extract_page_from_pdf,
+    is_letter_too_long,
+    pdf_page_count,
+)
+from tests.pdf_consts import multi_page_pdf, not_pdf, one_page_pdf
 
 
 def test_pdf_page_count_src_pdf_is_null():

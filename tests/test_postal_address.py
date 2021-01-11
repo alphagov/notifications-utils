@@ -5,8 +5,8 @@ from notifications_utils.countries import Country
 from notifications_utils.countries.data import Postage
 from notifications_utils.postal_address import (
     PostalAddress,
-    is_a_real_uk_postcode,
     format_postcode_for_printing,
+    is_a_real_uk_postcode,
     normalise_postcode,
 )
 

@@ -1,8 +1,14 @@
-from uuid import UUID
 import os
+from uuid import UUID
 
 import pytest
-from notifications_utils.base64_uuid import base64_to_uuid, uuid_to_base64, base64_to_bytes, bytes_to_base64
+
+from notifications_utils.base64_uuid import (
+    base64_to_bytes,
+    base64_to_uuid,
+    bytes_to_base64,
+    uuid_to_base64,
+)
 
 
 def test_bytes_to_base64_to_bytes():

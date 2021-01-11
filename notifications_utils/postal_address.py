@@ -1,15 +1,13 @@
 import re
-
 from functools import lru_cache
 
 from notifications_utils.countries import UK, Country, CountryNotFoundError
 from notifications_utils.countries.data import Postage
 from notifications_utils.formatters import (
     normalise_lines,
-    remove_whitespace_before_punctuation,
     remove_whitespace,
+    remove_whitespace_before_punctuation,
 )
-
 
 address_lines_1_to_6_keys = [
     # The API only accepts snake_case placeholders

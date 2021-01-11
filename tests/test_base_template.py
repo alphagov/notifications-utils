@@ -1,9 +1,8 @@
-import pytest
 from unittest.mock import patch
-from notifications_utils.template import (
-    Template,
-    SubjectMixin,
-)
+
+import pytest
+
+from notifications_utils.template import SubjectMixin, Template
 
 
 class ConcreteImplementation():

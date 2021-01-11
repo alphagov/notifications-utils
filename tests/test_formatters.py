@@ -2,27 +2,27 @@ import pytest
 from flask import Markup
 
 from notifications_utils.formatters import (
-    unlink_govuk_escaped,
+    escape_html,
+    formatted_list,
+    make_quotes_smart,
+    normalise_whitespace,
     notify_email_markdown,
     notify_letter_preview_markdown,
     notify_plain_text_email_markdown,
-    sms_encode,
-    formatted_list,
-    escape_html,
-    remove_whitespace_before_punctuation,
-    make_quotes_smart,
-    replace_hyphens_with_en_dashes,
-    strip_whitespace,
-    strip_and_remove_obscure_whitespace,
     remove_smart_quotes_from_email_addresses,
+    remove_whitespace_before_punctuation,
+    replace_hyphens_with_en_dashes,
+    sms_encode,
+    strip_and_remove_obscure_whitespace,
     strip_unsupported_characters,
-    normalise_whitespace
+    strip_whitespace,
+    unlink_govuk_escaped,
 )
 from notifications_utils.template import (
     HTMLEmailTemplate,
     PlainTextEmailTemplate,
     SMSMessageTemplate,
-    SMSPreviewTemplate
+    SMSPreviewTemplate,
 )
 
 
