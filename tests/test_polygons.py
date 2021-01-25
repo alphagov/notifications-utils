@@ -83,7 +83,7 @@ def test_perimeter_length(polygons, expected_perimeter_km):
     ([HACKNEY_MARSHES, ISLE_OF_DOGS], 539, 534),
     ([SCOTLAND], 7956, 7127),
 ))
-def test_buffer_outwards_in_degrees(
+def test_buffer_distances(
     polygons,
     expected_buffer_out_metres,
     expected_buffer_in_metres,
