@@ -59,20 +59,20 @@ def close_enough(a, b):
     return isclose(a, b, rel_tol=0.001)  # Within 0.1% difference
 
 
-@pytest.mark.parametrize('polygons, expected_perimeter_km', (
+@pytest.mark.parametrize('polygons, expected_perimeter_length_km', (
     ([], 0),
     ([HACKNEY_MARSHES], 3.78),
     ([ISLE_OF_DOGS], 10.15),
     ([HACKNEY_MARSHES, ISLE_OF_DOGS], 13.92),
     ([SCOTLAND], 2_684),
 ))
-def test_perimeter_length(polygons, expected_perimeter_km):
-    perimeter_length = (
+def test_perimeter_length(polygons, expected_perimeter_length_km):
+    perimeter_length_km = (
         Polygons(polygons).perimeter_length * Polygons.approx_metres_to_degree / 1000
     )
     assert close_enough(
-        perimeter_length,
-        expected_perimeter_km,
+        perimeter_length_km,
+        expected_perimeter_length_km,
     )
 
 
