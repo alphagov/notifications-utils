@@ -37,7 +37,6 @@ setup(
         'phonenumbers>=8.12.13',
         'pytz>=2020.4',
         'smartypants==2.0.1',
-        'monotonic>=1.5',
         'pypdf2>=1.26.0',
         'itsdangerous>=1.1.0',
         'govuk-bank-holidays>=0.8',
