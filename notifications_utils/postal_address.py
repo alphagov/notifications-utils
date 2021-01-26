@@ -28,7 +28,7 @@ class PostalAddress():
 
     MIN_LINES = 3
     MAX_LINES = 7
-    INVALID_CHARACTERS = r'[\/()@]",='
+    INVALID_CHARACTERS = r'[\/()@]<>",='
 
     def __init__(self, raw_address, allow_international_letters=False):
 
