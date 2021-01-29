@@ -170,6 +170,12 @@ def test_detect_uk_phone_numbers(phone_number):
         billable_units=1,
     )),
     ('07700900123', international_phone_info(
+        international=False,
+        crown_dependency=False,
+        country_prefix='44',  # Number in TV range
+        billable_units=1,
+    )),
+    ('07700800123', international_phone_info(
         international=True,
         crown_dependency=True,
         country_prefix='44',  # UK Crown dependency, so prefix same as UK
