@@ -240,12 +240,12 @@ def test_postcode(address, expected_postcode):
         True,
     ),
     (
-            r'''
-            >123 Example Straße
-            SW1A 1AA
-            Deutschland
-            ''',
-            True,
+        r'''
+        >123 Example Straße
+        SW1A 1AA
+        Deutschland
+        ''',
+        True,
     ),
 ])
 def test_has_invalid_characters(address, expected_result):

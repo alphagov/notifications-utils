@@ -23,7 +23,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'bleach==3.2.1',
+        'bleach==3.3.0',
         'cachetools>=4.1.1',
         'mistune==0.8.4',
         'requests>=2.25.0',
@@ -37,11 +37,11 @@ setup(
         'phonenumbers>=8.12.13',
         'pytz>=2020.4',
         'smartypants==2.0.1',
-        'monotonic>=1.5',
         'pypdf2>=1.26.0',
         'itsdangerous>=1.1.0',
         'govuk-bank-holidays>=0.8',
         'geojson>=2.5.0',
+        'Shapely>=1.7.1',
 
         # required by both api and admin
         'awscli',
