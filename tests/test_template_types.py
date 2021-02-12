@@ -2411,6 +2411,14 @@ def test_letter_preview_template_lazy_loads_images():
     ]
 
 
+def test_broadcast_message_from_content():
+    assert str(
+        BroadcastMessageTemplate.from_content('test content')
+    ) == (
+        'test content'
+    )
+
+
 def test_broadcast_message_from_event():
     event = {
         'transmitted_content': {'body': 'test content'},

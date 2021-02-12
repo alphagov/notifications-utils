@@ -404,16 +404,22 @@ class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
     @classmethod
+    def from_content(cls, content):
+        return cls(
+            template={
+                'template_type': cls.template_type,
+                'content': content,
+            },
+            values=None,  # events have already done interpolation of any personalisation
+        )
+
+    @classmethod
     def from_event(cls, broadcast_event):
         """
         should be directly callable with the results of the BroadcastEvent.serialize() function from api/models.py
         """
-        return cls(
-            template={
-                'template_type': 'broadcast',
-                'content': broadcast_event['transmitted_content']['body']
-            },
-            values=None,  # events have already done interpolation of any personalisation
+        return cls.from_content(
+            broadcast_event['transmitted_content']['body']
         )
 
     def __str__(self):
