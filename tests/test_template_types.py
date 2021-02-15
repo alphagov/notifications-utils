@@ -2412,22 +2412,20 @@ def test_letter_preview_template_lazy_loads_images():
 
 
 def test_broadcast_message_from_content():
-    assert str(
-        BroadcastMessageTemplate.from_content('test content')
-    ) == (
-        'test content'
-    )
+    template = BroadcastMessageTemplate.from_content('test content')
+
+    assert isinstance(template, BroadcastMessageTemplate)
+    assert str(template) == 'test content'
 
 
 def test_broadcast_message_from_event():
     event = {
         'transmitted_content': {'body': 'test content'},
     }
-    assert str(
-        BroadcastMessageTemplate.from_event(event)
-    ) == (
-        'test content'
-    )
+    template = BroadcastMessageTemplate.from_event(event)
+
+    assert isinstance(template, BroadcastMessageTemplate)
+    assert str(template) == 'test content'
 
 
 @pytest.mark.parametrize('template_class', (
