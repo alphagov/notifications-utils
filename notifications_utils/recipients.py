@@ -435,6 +435,11 @@ def get_billable_units_for_prefix(prefix):
     return INTERNATIONAL_BILLING_RATES[prefix]['billable_units']
 
 
+def use_numeric_sender(number):
+    prefix = get_international_prefix(number)
+    return INTERNATIONAL_BILLING_RATES[prefix]['attributes']['alpha'] == 'NO'
+
+
 def validate_uk_phone_number(number, column=None):
 
     number = normalise_phone_number(number).lstrip(uk_prefix).lstrip('0')
