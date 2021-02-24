@@ -436,7 +436,7 @@ def get_billable_units_for_prefix(prefix):
 
 
 def use_numeric_sender(number):
-    prefix = get_international_prefix(number)
+    prefix = get_international_prefix(normalise_phone_number(number))
     return INTERNATIONAL_BILLING_RATES[prefix]['attributes']['alpha'] == 'NO'
 
 
