@@ -4,6 +4,7 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
+from notifications_utils.recipients import use_numeric_sender
 
 
 def test_international_billing_rates_exists():
@@ -30,3 +31,12 @@ def test_international_billing_rates_are_in_correct_format(country_prefix, value
 
 def test_country_codes():
     assert len(COUNTRY_PREFIXES) == 214
+
+
+@pytest.mark.parametrize("number, expected",
+                         [('48123654789', False),  # Poland alpha: Yes
+                          ('1-403-123-5687', True),  # Canada alpha: No
+                          ('40123548897', False),  # Romania alpha: REG
+                          ('+60123451345', True)])  # Malaysia alpha: NO
+def test_use_numeric_sender(number, expected):
+    assert use_numeric_sender(number) == expected
