@@ -221,7 +221,7 @@ def test_postcode(address, expected_postcode):
         C@ity of Town
         SW1A 1AA
         ''',
-        False,
+        True,
     ),
     (
         '''

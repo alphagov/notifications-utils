@@ -104,7 +104,7 @@ class PostalAddress():
     @property
     def has_invalid_characters(self):
         return any(
-            line.startswith(tuple(self.INVALID_CHARACTERS))
+            any([c in line for c in set(self.INVALID_CHARACTERS)])
             for line in self.normalised_lines
         )
 
