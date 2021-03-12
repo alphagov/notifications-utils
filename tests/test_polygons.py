@@ -185,6 +185,29 @@ def test_bleed(
     )
 
 
+@pytest.mark.parametrize('bleed_distance_in_m, expected_area_before, expected_area_after', (
+    (0, 2.467, 2.467),
+    (500, 2.467, 4.722),
+    (5000, 2.467, 51.53),
+))
+def test_custom_bleed(
+    bleed_distance_in_m,
+    expected_area_before,
+    expected_area_after,
+):
+    area_polygons = Polygons([ISLE_OF_DOGS])
+    assert close_enough(
+        area_polygons.estimated_area,
+        expected_area_before,
+    )
+    assert close_enough(
+        area_polygons.bleed_by(
+            bleed_distance_in_m / Polygons.approx_metres_to_degree
+        ).estimated_area,
+        expected_area_after,
+    )
+
+
 def test_remove_areas_too_small():
     hackney_marshes_and_wcb = Polygons([HACKNEY_MARSHES, WHITECHAPEL_BUILDING])
     hackney_marshes = Polygons([HACKNEY_MARSHES])

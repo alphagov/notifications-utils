@@ -164,13 +164,16 @@ class Polygons():
 
     @cached_property
     def bleed(self):
+        return self.bleed_by(self.approx_bleed_in_degrees)
+
+    def bleed_by(self, distance_in_degrees):
         '''
         Expands the area of each polygon to give an estimation of how
         far a broadcast would bleed into neighbouring areas.
         '''
         return Polygons(union_polygons([
             polygon.buffer(
-                self.approx_bleed_in_degrees,
+                distance_in_degrees,
                 resolution=4,
                 join_style=JOIN_STYLE.round,
             )
