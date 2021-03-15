@@ -180,7 +180,7 @@ def test_bleed(
         expected_area_before,
     )
     assert close_enough(
-        area_polygons.bleed.estimated_area,
+        area_polygons.bleed_by(Polygons.approx_bleed_in_degrees).estimated_area,
         expected_area_after,
     )
 

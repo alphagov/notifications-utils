@@ -82,7 +82,7 @@ class Polygons():
         '''
         return (
             # If two areas are close enough that the distance between
-            # them is less than the minimum bleed of a cell
+            # them is less than the typical bleed of a cell
             # broadcast then this joins them together. The aim is to
             # reduce the total number of polygons in areas with many
             # small shapes like Orkney or the Isles of Scilly.
@@ -161,10 +161,6 @@ class Polygons():
             polygon.simplify(self.simplification_tolerance_in_degrees)
             for polygon in self
         ])
-
-    @cached_property
-    def bleed(self):
-        return self.bleed_by(self.approx_bleed_in_degrees)
 
     def bleed_by(self, distance_in_degrees):
         '''
