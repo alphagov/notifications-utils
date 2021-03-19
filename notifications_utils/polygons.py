@@ -73,6 +73,23 @@ class Polygons():
             polygon.length for polygon in self
         )
 
+    @property
+    def bounds(self):
+        '''
+        The bounds, of all polygons. In other words, the coordinates
+        that would draw a box containing all the polygons.
+        '''
+        if not self.polygons:
+            raise ValueError(
+                f"Can't determine bounds of empty {self.__class__.__name__}"
+            )
+        all_min_x, all_min_y, all_max_x, all_max_y = zip(*(
+            polygon.bounds for polygon in self
+        ))
+        return (
+            min(all_min_x), min(all_min_y), max(all_max_x), max(all_max_y),
+        )
+
     @cached_property
     def buffer_outward_in_degrees(self):
         '''

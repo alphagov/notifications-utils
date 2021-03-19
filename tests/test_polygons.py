@@ -220,3 +220,29 @@ def test_remove_areas_too_small():
         hackney_marshes.estimated_area,
         hackney_marshes.perimeter_length,
     )
+
+
+def test_empty_bounds():
+    with pytest.raises(ValueError) as exception:
+        Polygons([]).bounds
+    assert str(exception.value) == "Can't determine bounds of empty Polygons"
+
+
+@pytest.mark.parametrize('polygons, expected_bounds', (
+    ([ISLE_OF_DOGS], (
+        -0.030041, 51.4849, -0.000944, 51.507,
+    )),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], (
+        -0.038281, 51.4849, -0.000944, 51.561,
+    )),
+    ([SCOTLAND], (
+        -9.030761, 54.2267, -0.263671, 61.227,
+    )),
+))
+def test_bounds(polygons, expected_bounds):
+    min_x, min_y, max_x, max_y = Polygons(polygons).bounds
+    expected_min_x, expected_min_y, expected_max_x, expected_max_y = expected_bounds
+    assert close_enough(min_x, expected_min_x)
+    assert close_enough(min_y, expected_min_y)
+    assert close_enough(max_x, expected_max_x)
+    assert close_enough(max_y, expected_max_y)
