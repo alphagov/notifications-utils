@@ -28,6 +28,14 @@ ISLE_OF_DOGS = [
     [-0.0040340423583984375, 51.505804230524056],
     [-0.03004074096679687, 51.50756719022885],
 ]
+LEA_VALLEY = [
+    # This is a box containing the River Lea, from Leamouth up to Tottenham
+    [-0.0116729736328125, 51.50147667659363],
+    [0.01682281494140625, 51.50810140697543],
+    [-0.04978179931640625, 51.60266574567797],
+    [-0.0775909423828125, 51.59648131678401],
+    [-0.0116729736328125, 51.50147667659363],
+]
 SCOTLAND = [
     # This is basically a box around Scotland but with some finer detail
     # along the English border
@@ -246,3 +254,25 @@ def test_bounds(polygons, expected_bounds):
     assert close_enough(min_y, expected_min_y)
     assert close_enough(max_x, expected_max_x)
     assert close_enough(max_y, expected_max_y)
+
+
+@pytest.mark.parametrize('parents, children, expected_intersection_percentage', (
+    # Hackney Marshes is a small part of the Lea Valley
+    ([LEA_VALLEY], [HACKNEY_MARSHES], 1.865),
+    # … and the Lea Valley wholey contains Hackney Marshes
+    ([HACKNEY_MARSHES], [LEA_VALLEY], 100),
+    # Isle of Dogs is a wholey separate area from Hackney Marshes
+    ([ISLE_OF_DOGS], [HACKNEY_MARSHES], 0),
+    # A small part of the Isle of Dogs overlaps with the Lea Valley…
+    ([LEA_VALLEY], [ISLE_OF_DOGS], 1.187),
+    # …but as a proportion of the area of the Isle of Dogs, the overlap
+    # is larger
+    ([ISLE_OF_DOGS], [LEA_VALLEY], 7.115),
+    # Ratio is always 0 if one or both polygons are empty
+    ([ISLE_OF_DOGS], [], 0),
+    ([], [ISLE_OF_DOGS], 0),
+    ([], [], 0),
+))
+def test_intersection_ratio(parents, children, expected_intersection_percentage):
+    percentage = Polygons(parents).ratio_of_intersection_with(Polygons(children)) * 100
+    assert close_enough(percentage, expected_intersection_percentage)

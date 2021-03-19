@@ -250,6 +250,23 @@ class Polygons():
             polygon.area for polygon in self
         ) * self.square_degrees_to_square_miles
 
+    def ratio_of_intersection_with(self, polygons):
+        '''
+        Given another Polygons object, this works how much the two
+        overlap, as a fraction of the area of this Polygons object.
+        '''
+        if self.estimated_area == 0:
+            return 0
+        return sum(
+            intersection.area
+            for intersection in self.intersection_with(polygons)
+        ) * self.square_degrees_to_square_miles / self.estimated_area
+
+    def intersection_with(self, polygons):
+        for comparison in polygons:
+            for polygon in self:
+                yield polygon.intersection(comparison)
+
 
 def flatten_polygons(polygons):
     if isinstance(polygons, GeometryCollection):
