@@ -21,4 +21,4 @@ clean:
 
 .PHONY: fix-imports
 fix-imports:
-	isort -rc ./notifications_utils ./tests
+	isort ./notifications_utils ./tests
