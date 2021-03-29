@@ -118,6 +118,7 @@ valid_email_addresses = (
     'info@german-financial-services.vermögensberatung',
     'info@german-financial-services.reallylongarbitrarytldthatiswaytoohugejustincase',
     'japanese-info@例え.テスト',
+    'email@double--hyphen.com'
 )
 invalid_email_addresses = (
     'email@123.123.123.123',
