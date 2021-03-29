@@ -150,6 +150,7 @@ invalid_email_addresses = (
     'domain-starts-with-a-dot@.domain.com',
     'brackets(in)local@domain.com',
     'email-too-long-{}@example.com'.format('a' * 320),
+    'incorrect-punycode@xn---something.com'
 )
 
 
