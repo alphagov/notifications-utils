@@ -254,6 +254,8 @@ class Polygons():
         '''
         Given another Polygons object, this works how much the two
         overlap, as a fraction of the area of this Polygons object.
+        It assumes that neither of the objects already contain 
+        overlapping polygons.
         '''
         if self.estimated_area == 0:
             return 0
