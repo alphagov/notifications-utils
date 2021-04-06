@@ -256,7 +256,7 @@ def test_bounds(polygons, expected_bounds):
     assert close_enough(max_y, expected_max_y)
 
 
-@pytest.mark.parametrize('parents, children, expected_intersection_percentage', (
+@pytest.mark.parametrize('polygons_1, polygons_2, expected_intersection_percentage', (
     # Hackney Marshes is a small part of the Lea Valley
     ([LEA_VALLEY], [HACKNEY_MARSHES], 1.865),
     # … and the Lea Valley wholey contains Hackney Marshes
@@ -273,6 +273,6 @@ def test_bounds(polygons, expected_bounds):
     ([], [ISLE_OF_DOGS], 0),
     ([], [], 0),
 ))
-def test_intersection_ratio(parents, children, expected_intersection_percentage):
-    percentage = Polygons(parents).ratio_of_intersection_with(Polygons(children)) * 100
+def test_intersection_ratio(polygons_1, polygons_2, expected_intersection_percentage):
+    percentage = Polygons(polygons_1).ratio_of_intersection_with(Polygons(polygons_2)) * 100
     assert close_enough(percentage, expected_intersection_percentage)
