@@ -73,6 +73,23 @@ class Polygons():
             polygon.length for polygon in self
         )
 
+    @property
+    def bounds(self):
+        '''
+        The bounds, of all polygons. In other words, the coordinates
+        that would draw a box containing all the polygons.
+        '''
+        if not self.polygons:
+            raise ValueError(
+                f"Can't determine bounds of empty {self.__class__.__name__}"
+            )
+        all_min_x, all_min_y, all_max_x, all_max_y = zip(*(
+            polygon.bounds for polygon in self
+        ))
+        return (
+            min(all_min_x), min(all_min_y), max(all_max_x), max(all_max_y),
+        )
+
     @cached_property
     def buffer_outward_in_degrees(self):
         '''
@@ -232,6 +249,25 @@ class Polygons():
         return sum(
             polygon.area for polygon in self
         ) * self.square_degrees_to_square_miles
+
+    def ratio_of_intersection_with(self, polygons):
+        '''
+        Given another Polygons object, this works how much the two
+        overlap, as a fraction of the area of this Polygons object.
+        It assumes that neither of the objects already contain 
+        overlapping polygons.
+        '''
+        if self.estimated_area == 0:
+            return 0
+        return sum(
+            intersection.area
+            for intersection in self.intersection_with(polygons)
+        ) * self.square_degrees_to_square_miles / self.estimated_area
+
+    def intersection_with(self, polygons):
+        for comparison in polygons:
+            for polygon in self:
+                yield polygon.intersection(comparison)
 
 
 def flatten_polygons(polygons):
