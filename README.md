@@ -1,4 +1,4 @@
-# GOV.UK Notify - notifications-utils
+# notifications-utils
 
 Shared Python code for GOV.UK Notify applications. Standardises how to do logging, rendering message templates, parsing spreadsheets, talking to external services and more.
 
