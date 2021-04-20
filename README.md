@@ -2,14 +2,18 @@
 
 Shared Python code for GOV.UK Notify applications. Standardises how to do logging, rendering message templates, parsing spreadsheets, talking to external services and more.
 
-## Installing
+## Setting up
 
-This is a Python 3 application.
+### Python version
 
-    brew install python3
+This repo is written in Python 3.
 
-    pip install -r requirements_for_test.txt
+## To test the library
 
-## Tests
+```
+# install dependencies, etc.
+make bootstrap
 
-The `./scripts/run_tests.sh` script will run all the tests.
+# run the tests
+make test
+```
