@@ -13,7 +13,3 @@ This is a Python 3 application.
 ## Tests
 
 The `./scripts/run_tests.sh` script will run all the tests.
-
-## Documentation
-
-Documentation for the template used to render emails is in the [docs](./docs/README.md) folder.
