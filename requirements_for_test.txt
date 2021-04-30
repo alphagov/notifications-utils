@@ -4,7 +4,7 @@ beautifulsoup4==4.9.3
 pytest==6.2.3
 pytest-mock==3.6.0
 pytest-xdist==2.2.1
-requests-mock==1.9.1
+requests-mock==1.9.2
 freezegun==1.1.0
 flake8==3.9.1
 flake8-bugbear==21.4.3
