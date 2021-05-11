@@ -351,6 +351,14 @@ def test_validates_against_whitelist_of_phone_numbers(phone_number):
     assert not allowed_to_send_to(phone_number, ['07700900460', '07700900461', 'test@example.com'])
 
 
+@pytest.mark.parametrize('recipient_number, allowlist_number', [
+    ['1-202-555-0104', '0012025550104'],
+    ['0012025550104', '1-202-555-0104'],
+])
+def test_validates_against_whitelist_of_international_phone_numbers(recipient_number, allowlist_number):
+    assert allowed_to_send_to(recipient_number, [allowlist_number])
+
+
 @pytest.mark.parametrize("email_address", valid_email_addresses)
 def test_validates_against_whitelist_of_email_addresses(email_address):
     assert not allowed_to_send_to(email_address, ['very_special_and_unique@example.com'])
@@ -381,7 +389,7 @@ def test_format_uk_and_international_phone_numbers(phone_number, expected_format
     ('foo', 'foo'),
     ('TeSt@ExAmPl3.com', 'test@exampl3.com'),
     ('+4407900 900 123', '447900900123'),
-    ('+1 800 555 5555', '+1 800 555 5555'),
+    ('+1 800 555 5555', '18005555555'),
 ])
 def test_format_recipient(recipient, expected_formatted):
     assert format_recipient(recipient) == expected_formatted
