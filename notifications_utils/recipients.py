@@ -554,7 +554,7 @@ def format_recipient(recipient):
     if not isinstance(recipient, str):
         return ''
     with suppress(InvalidPhoneError):
-        return validate_and_format_phone_number(recipient)
+        return validate_and_format_phone_number(recipient, international=True)
     with suppress(InvalidEmailError):
         return validate_and_format_email_address(recipient)
     return recipient
@@ -578,10 +578,8 @@ def format_phone_number_human_readable(phone_number):
     )
 
 
-def allowed_to_send_to(recipient, whitelist):
-    return format_recipient(recipient) in [
-        format_recipient(recipient) for recipient in whitelist
-    ]
+def allowed_to_send_to(recipient, allowlist):
+    return format_recipient(recipient) in {format_recipient(x) for x in allowlist}
 
 
 def insert_or_append_to_dict(dict_, key, value):
