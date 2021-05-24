@@ -247,6 +247,14 @@ def test_postcode(address, expected_postcode):
         ''',
         True,
     ),
+    (
+            '''
+            ~123 Example Street
+            City of Town
+            SW1 A 1 AA
+            ''',
+            True,
+    ),
 ])
 def test_has_invalid_characters(address, expected_result):
     assert PostalAddress(address).has_invalid_characters is expected_result
