@@ -28,7 +28,7 @@ class PostalAddress():
 
     MIN_LINES = 3
     MAX_LINES = 7
-    INVALID_CHARACTERS = r'[\/()@]<>",=~'
+    INVALID_CHARACTERS_AT_START_OF_ADDRESS_LINE = r'[\/()@]<>",=~'
 
     def __init__(self, raw_address, allow_international_letters=False):
 
@@ -104,7 +104,7 @@ class PostalAddress():
     @property
     def has_invalid_characters(self):
         return any(
-            line.startswith(tuple(self.INVALID_CHARACTERS))
+            line.startswith(tuple(self.INVALID_CHARACTERS_AT_START_OF_ADDRESS_LINE))
             for line in self.normalised_lines
         )
 
