@@ -287,3 +287,7 @@ def test_precision():
         # Same points, reversed polarity
         -0.03828, 51.55738
     ]
+    assert close_enough(
+        0.00001 * Polygons.approx_metres_to_degree,
+        1.113  # Our coordinates are accurate to about 1m
+    )
