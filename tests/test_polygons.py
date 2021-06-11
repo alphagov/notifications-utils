@@ -276,3 +276,14 @@ def test_bounds(polygons, expected_bounds):
 def test_intersection_ratio(polygons_1, polygons_2, expected_intersection_percentage):
     percentage = Polygons(polygons_1).ratio_of_intersection_with(Polygons(polygons_2)) * 100
     assert close_enough(percentage, expected_intersection_percentage)
+
+
+def test_precision():
+    assert Polygons([HACKNEY_MARSHES]).as_coordinate_pairs_lat_long[0][0] == [
+        # Note 5 decimal places
+        51.55738, -0.03828
+    ]
+    assert Polygons([HACKNEY_MARSHES]).as_coordinate_pairs_long_lat[0][0] == [
+        # Same points, reversed polarity
+        -0.03828, 51.55738
+    ]

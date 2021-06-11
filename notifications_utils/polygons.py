@@ -43,6 +43,8 @@ class Polygons():
     # been subtracted from the land properly
     minimum_area_size_square_metres = 6_500
 
+    output_precision_in_decimal_places = 5
+
     def __init__(self, polygons):
         if not polygons:
             self.polygons = []
@@ -217,7 +219,10 @@ class Polygons():
         order, for example leaflet.js.
         '''
         return [
-            [[x, y] for x, y in polygon.exterior.coords]
+            [[
+                round(x, self.output_precision_in_decimal_places),
+                round(y, self.output_precision_in_decimal_places),
+            ] for x, y in polygon.exterior.coords]
             for polygon in self
         ]
 
