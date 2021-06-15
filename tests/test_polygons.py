@@ -86,10 +86,10 @@ def test_perimeter_length(polygons, expected_perimeter_length_km):
 
 @pytest.mark.parametrize('polygons, expected_buffer_out_metres, expected_buffer_in_metres', (
     ([], 500, 500),
-    ([HACKNEY_MARSHES], 510, 509),
-    ([ISLE_OF_DOGS], 528, 525),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 539, 534),
-    ([SCOTLAND], 7956, 7127),
+    ([HACKNEY_MARSHES], 504, 503),
+    ([ISLE_OF_DOGS], 510, 507),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 514, 510),
+    ([SCOTLAND], 3184, 2356),
 ))
 def test_buffer_distances(
     polygons,
