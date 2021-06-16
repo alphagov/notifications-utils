@@ -1,6 +1,6 @@
 import re
 
-from flask import Markup
+from markupsafe import Markup
 from orderedset import OrderedSet
 
 from notifications_utils.columns import Columns

@@ -1,5 +1,5 @@
 import pytest
-from flask import Markup
+from markupsafe import Markup
 
 from notifications_utils.formatters import (
     escape_html,

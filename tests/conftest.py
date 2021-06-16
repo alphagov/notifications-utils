@@ -23,7 +23,7 @@ def sample_service():
     return FakeService()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def rmock():
     with requests_mock.mock() as rmock:
         yield rmock

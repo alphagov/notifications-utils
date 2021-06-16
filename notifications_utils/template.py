@@ -5,8 +5,8 @@ from functools import lru_cache
 from html import unescape
 from os import path
 
-from flask import Markup
 from jinja2 import Environment, FileSystemLoader
+from markupsafe import Markup
 
 from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
 from notifications_utils.columns import Columns

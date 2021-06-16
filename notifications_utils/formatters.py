@@ -7,7 +7,7 @@ from itertools import count
 import bleach
 import mistune
 import smartypants
-from flask import Markup
+from markupsafe import Markup
 from orderedset import OrderedSet
 
 from notifications_utils.sanitise_text import SanitiseSMS
