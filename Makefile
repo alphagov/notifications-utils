@@ -11,7 +11,10 @@ bootstrap: ## Build project
 
 .PHONY: test
 test: ## Run tests
-	./scripts/run_tests.sh
+	flake8 .
+	isort --check-only ./notifications_utils ./tests
+	pytest -n4
+	python setup.py sdist
 
 clean:
 	rm -rf cache venv
