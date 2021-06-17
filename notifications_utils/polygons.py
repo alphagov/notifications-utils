@@ -28,7 +28,7 @@ class Polygons():
     # 20m of buffer for a 5km square. This gives us control over how
     # much we fill in very concave features like channels, harbours and
     # zawns.
-    perimeter_to_buffer_ratio = 360
+    perimeter_to_buffer_ratio = 1000
 
     # Ratio of how much detail a shape of a given perimeter has once
     # simplified. Smaller number means less detail. For example `1000`
@@ -254,7 +254,7 @@ class Polygons():
         '''
         Given another Polygons object, this works how much the two
         overlap, as a fraction of the area of this Polygons object.
-        It assumes that neither of the objects already contain 
+        It assumes that neither of the objects already contain
         overlapping polygons.
         '''
         if self.estimated_area == 0:
