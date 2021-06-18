@@ -52,12 +52,14 @@ class ZendeskClient():
         user_name=None,
         user_email=None,
         tags=None,
+        requester_sees_message_content=True,
     ):
         data = {
             'ticket': {
                 'subject': subject,
                 'comment': {
-                    'body': message
+                    'body': message,
+                    'public': requester_sees_message_content,
                 },
                 'group_id': self.NOTIFY_GROUP_ID,
                 'organization_id': self.NOTIFY_ORG_ID,
