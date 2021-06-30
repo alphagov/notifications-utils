@@ -89,7 +89,8 @@ def test_create_ticket(
             'priority': expected_priority,
             'organization_id': zendesk_client.NOTIFY_ORG_ID,
             'comment': {
-                'body': 'message'
+                'body': 'message',
+                'public': True,
             },
             'subject': 'subject',
             'type': 'ticket_type',
@@ -126,6 +127,31 @@ def test_create_ticket_with_user_name_and_email(zendesk_client, rmock, name, zen
 
     data = rmock.last_request.json()
     assert data['ticket']['requester'] == {'name': zendesk_name, 'email': 'user@example.com'}
+
+
+def test_create_ticket_with_message_hidden_from_requester(
+    zendesk_client,
+    app,
+    mocker,
+    rmock,
+):
+    rmock.request(
+        'POST',
+        'https://govuk.zendesk.com/api/v2/tickets.json',
+        status_code=201,
+        json={'ticket': {
+            'id': 12345,
+            'subject': 'Something is wrong',
+        }}
+    )
+    zendesk_client.create_ticket(
+        'subject', 'message', 'ticket_type',
+        requester_sees_message_content=False,
+    )
+    assert rmock.last_request.json()['ticket']['comment'] == {
+        'body': 'message',
+        'public': False,
+    }
 
 
 def test_create_ticket_error(zendesk_client, app, rmock, mocker):
