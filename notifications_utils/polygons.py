@@ -43,7 +43,7 @@ class Polygons():
     # been subtracted from the land properly
     minimum_area_size_square_metres = 6_500
 
-    output_precision_in_decimal_places = 5
+    output_precision_in_decimal_places = 6
 
     def __init__(self, polygons):
         if not polygons:
@@ -168,7 +168,13 @@ class Polygons():
         flattened = list(itertools.chain(*[
             flatten_polygons(polygon) for polygon in debuffered
         ]))
-        return Polygons(flattened)
+        return Polygons([
+            polygon for polygon in flattened if (
+                # The smoothing process creates some artifacts which can
+                # be removed by ignoring polygons less than 1m² in area
+                polygon.area > (1 / self.approx_square_metres_to_square_degree)
+            )
+        ])
 
     @cached_property
     def simplify(self):
