@@ -1,4 +1,4 @@
-from math import isclose
+from math import isclose, pow
 
 import pytest
 
@@ -126,6 +126,41 @@ def test_smoothing_and_area(
     assert close_enough(original_area, expected_area_before)
     assert close_enough(smoothed_area, expected_area_after)
     assert smoothed_area >= original_area
+
+
+@pytest.mark.parametrize(
+    'edge_length_in_m, expected_area_in_sq_m, expected_number_of_polygons_after_smoothing', (
+        # Small polygons get erased by the smoothing process
+        (1, 1, 0),
+        (17, 289, 0),
+        # This is the smallest polygon that will be preserved
+        (18, 324, 1),
+        # Large polygons still result in a single polygon after smoothing
+        (100_000, 10_000_000_000, 1),
+    ),
+)
+def test_smoothing_doesnt_return_small_artifacts(
+    edge_length_in_m,
+    expected_area_in_sq_m,
+    expected_number_of_polygons_after_smoothing,
+):
+    edge_length = edge_length_in_m / Polygons.approx_metres_to_degree
+    x, y = HACKNEY_MARSHES[0]
+    square = Polygons([[
+        [x, y],                              # start at a given point in the UK
+        [x + edge_length, y],                # go right 1 unit
+        [x + edge_length, y - edge_length],  # go down 1 unit
+        [x, y - edge_length],                # go left 1 unit
+        [x, y],                              # go up 1 unit
+    ]])
+    assert close_enough(
+        square.estimated_area / Polygons.square_degrees_to_square_miles * (
+            Polygons.approx_square_metres_to_square_degree
+        ),
+        expected_area_in_sq_m,
+    )
+    assert len(square.smooth) == expected_number_of_polygons_after_smoothing
+
 
 
 @pytest.mark.parametrize('polygons, expected_count_before, expected_count_after', (
@@ -280,14 +315,18 @@ def test_intersection_ratio(polygons_1, polygons_2, expected_intersection_percen
 
 def test_precision():
     assert Polygons([HACKNEY_MARSHES]).as_coordinate_pairs_lat_long[0][0] == [
-        # Note 5 decimal places
-        51.55738, -0.03828
+        # Note up to 6 decimal places
+        51.557383, -0.03828
     ]
     assert Polygons([HACKNEY_MARSHES]).as_coordinate_pairs_long_lat[0][0] == [
         # Same points, reversed polarity
-        -0.03828, 51.55738
+        -0.03828, 51.557383
     ]
+
+    precision = pow(10, -Polygons.output_precision_in_decimal_places)
+
+    assert precision == 0.000001
     assert close_enough(
-        0.00001 * Polygons.approx_metres_to_degree,
-        1.113  # Our coordinates are accurate to about 1m
+        precision * Polygons.approx_metres_to_degree,
+        0.1113  # Our coordinates are accurate to about 0.1m
     )
