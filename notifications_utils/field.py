@@ -63,9 +63,9 @@ class Field:
     """
 
     placeholder_pattern = re.compile(
-        r'\({2}(?=[^(])'   # opening ((, also accounting for triple bracket opening (check test cases for examples)
-        r'.+?'     # body of placeholder - potentially standard or conditional.
-        r'\){2}'           # closing ))
+        r'\({2}'        # opening ((
+        r'([^()]+)'     # body of placeholder - potentially standard or conditional.
+        r'\){2}'        # closing ))
     )
     placeholder_tag = "<span class='placeholder'>(({}))</span>"
     conditional_placeholder_tag = "<span class='placeholder-conditional'>(({}??</span>{}))"
