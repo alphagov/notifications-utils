@@ -111,11 +111,6 @@ def test_returns_a_string_without_placeholders(content):
             {"warning": False},
             ""
         ),
-        (
-            "((warning??This is a conditional warning (with more info in brackets)))",
-            {"warning": True},
-            "This is a conditional warning (with more info in brackets)"
-        )
     ]
 )
 def test_replacement_of_placeholders(template_content, data, expected):
@@ -190,14 +185,6 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
         (
             "((warning?? This is a warning))",
             "<span class='placeholder-conditional'>((warning??</span> This is a warning))"
-        ),
-        (
-            "((warning?? This is a warning (with more info in brackets)))",
-            "<span class='placeholder-conditional'>((warning??</span> This is a warning (with more info in brackets)))"
-        ),
-        (
-            "((warning?? This is a warning (with more info in brackets) and some more))",
-            "<span class='placeholder-conditional'>((warning??</span> This is a warning (with more info in brackets) and some more))"  # noqa
         ),
     ]
 )
