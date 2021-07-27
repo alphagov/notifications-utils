@@ -280,6 +280,13 @@ class Polygons():
             for polygon in self:
                 yield polygon.intersection(comparison)
 
+    def intersects(self, polygons):
+        for comparison in polygons:
+            for polygon in self:
+                if polygon.intersects(comparison):
+                    return True
+        return False
+
 
 def flatten_polygons(polygons):
     if isinstance(polygons, GeometryCollection):

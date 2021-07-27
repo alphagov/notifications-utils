@@ -311,6 +311,7 @@ def test_bounds(polygons, expected_bounds):
 def test_intersection_ratio(polygons_1, polygons_2, expected_intersection_percentage):
     percentage = Polygons(polygons_1).ratio_of_intersection_with(Polygons(polygons_2)) * 100
     assert close_enough(percentage, expected_intersection_percentage)
+    assert Polygons(polygons_1).intersects(Polygons(polygons_2)) is bool(expected_intersection_percentage)
 
 
 def test_precision():
