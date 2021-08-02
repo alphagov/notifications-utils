@@ -18,15 +18,10 @@ utm29n_to_wgs84 = Transformer.from_crs('EPSG:32629', 'EPSG:4326', always_xy=True
 class Polygons():
 
     approx_metres_to_degree = 111_320
-    approx_square_metres_to_square_degree = approx_metres_to_degree ** 2
-    square_degrees_to_square_miles = (
-        approx_square_metres_to_square_degree / (1000 * 1000) * 0.386102
-    )
 
     # Estimated amount of bleed into neigbouring areas based on typical
     # range/separation of cell towers.
     approx_bleed_in_m = 1_500
-    approx_bleed_in_degrees = approx_bleed_in_m / approx_metres_to_degree
 
     # Controls how much buffer to add for a shape of a given perimeter.
     # Smaller number means more buffering and a smoother shape. For
