@@ -46,14 +46,17 @@ class Polygons():
     output_precision_in_decimal_places = 6
 
     def __init__(self, polygons):
-        if not polygons:
-            self.polygons = []
-        elif isinstance(polygons[0], list):
-            self.polygons = [
-                Polygon(polygon) for polygon in polygons
-            ]
-        else:
-            self.polygons = polygons
+
+        if not isinstance(polygons, (list, self.__class__)):
+            raise TypeError(
+                f'First argument to {self.__class__.__name__} must be a list '
+                f'(not {type(polygons).__name__})'
+            )
+
+        self.polygons = [
+            polygon if isinstance(polygon, Polygon) else Polygon(polygon)
+            for polygon in polygons
+        ]
 
     def __getitem__(self, index):
         return self.polygons[index]
