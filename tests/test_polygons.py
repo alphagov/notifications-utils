@@ -6,6 +6,8 @@ from shapely.geometry.polygon import Polygon
 
 from notifications_utils.polygons import Polygons
 
+APPROX_METRES_TO_DEGREE = 111_320
+
 HACKNEY_MARSHES = [
     [-0.038280487060546875, 51.55738264619775],
     [-0.03184318542480469, 51.553913882566754],
@@ -175,7 +177,7 @@ def test_smoothing_doesnt_return_small_artifacts(
     expected_area_in_sq_m,
     expected_number_of_polygons_after_smoothing,
 ):
-    edge_length = edge_length_in_m / Polygons.approx_metres_to_degree
+    edge_length = edge_length_in_m / APPROX_METRES_TO_DEGREE
     x, y = HACKNEY_MARSHES[0]
     square = Polygons([[
         [x, y],                              # start at a given point in the UK
@@ -365,6 +367,6 @@ def test_precision():
 
     assert precision == 0.000001
     assert close_enough(
-        precision * Polygons.approx_metres_to_degree,
+        precision * APPROX_METRES_TO_DEGREE,
         0.1113  # Our coordinates are accurate to about 0.1m
     )
