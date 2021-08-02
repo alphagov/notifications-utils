@@ -2,6 +2,7 @@ from math import isclose, pow
 
 import pytest
 
+from pyproj import transform
 from notifications_utils.polygons import Polygons
 from shapely.geometry.polygon import Polygon
 
@@ -79,7 +80,7 @@ def close_enough(a, b):
         'First argument to Polygons must be a list (not Polygon)'
     )),
     (['a'], ValueError, (
-        'A LinearRing must have at least 3 coordinate tuples'
+        'not enough values to unpack (expected 2, got 1)'
     )),
     ([1], TypeError, (
         '\'int\' object is not iterable'
@@ -97,15 +98,13 @@ def test_can_be_initialised_with_instance_of_self():
 
 @pytest.mark.parametrize('polygons, expected_perimeter_length_km', (
     ([], 0),
-    ([HACKNEY_MARSHES], 3.78),
-    ([ISLE_OF_DOGS], 10.15),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 13.92),
-    ([SCOTLAND], 2_684),
+    ([HACKNEY_MARSHES], 2.724),
+    ([ISLE_OF_DOGS], 7.99),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 10.71),
+    ([SCOTLAND], 1_986),
 ))
 def test_perimeter_length(polygons, expected_perimeter_length_km):
-    perimeter_length_km = (
-        Polygons(polygons).perimeter_length * Polygons.approx_metres_to_degree / 1000
-    )
+    perimeter_length_km = Polygons(polygons).perimeter_length / 1_000
     assert close_enough(
         perimeter_length_km,
         expected_perimeter_length_km,
@@ -114,18 +113,18 @@ def test_perimeter_length(polygons, expected_perimeter_length_km):
 
 @pytest.mark.parametrize('polygons, expected_buffer_out_metres, expected_buffer_in_metres', (
     ([], 500, 500),
-    ([HACKNEY_MARSHES], 504, 503),
-    ([ISLE_OF_DOGS], 510, 507),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 514, 510),
-    ([SCOTLAND], 3184, 2356),
+    ([HACKNEY_MARSHES], 503, 502),
+    ([ISLE_OF_DOGS], 508, 506),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 511, 507),
+    ([SCOTLAND], 2486, 1873),
 ))
 def test_buffer_distances(
     polygons,
     expected_buffer_out_metres,
     expected_buffer_in_metres,
 ):
-    outward_metres = Polygons(polygons).buffer_outward_in_degrees * Polygons.approx_metres_to_degree
-    inward_metres = Polygons(polygons).buffer_inward_in_degrees * Polygons.approx_metres_to_degree
+    outward_metres = Polygons(polygons).buffer_outward_in_m
+    inward_metres = Polygons(polygons).buffer_inward_in_m
     assert close_enough(
         outward_metres, expected_buffer_out_metres,
     )
@@ -138,33 +137,38 @@ def test_buffer_distances(
     # The smoothed area should always be slightly larger than the
     # original area
     ([], 0, 0),
-    ([HACKNEY_MARSHES], 0.2760, 0.2769),
-    ([ISLE_OF_DOGS], 2.467, 2.479),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 2.743, 2.766),
-    ([SCOTLAND], 140_020, 140_891),
+    ([HACKNEY_MARSHES], 0.1734, 0.1738),
+    ([ISLE_OF_DOGS], 1.551, 1.558),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.724, 1.738),
+    ([SCOTLAND], 76_565, 77_100),
 ))
 def test_smoothing_and_area(
     polygons,
     expected_area_before,
     expected_area_after,
 ):
+    SQUARE_MILES_TO_SQUARE_M = 1 / 3.86102e-7
+
     original_area = Polygons(polygons).estimated_area
     smoothed_area = Polygons(polygons).smooth.estimated_area
 
-    assert close_enough(original_area, expected_area_before)
-    assert close_enough(smoothed_area, expected_area_after)
+    expected_area_before_in_sq_m = expected_area_before * SQUARE_MILES_TO_SQUARE_M
+    expected_area_after_in_sq_m = expected_area_after * SQUARE_MILES_TO_SQUARE_M
+
+    assert close_enough(original_area, expected_area_before_in_sq_m)
+    assert close_enough(smoothed_area, expected_area_after_in_sq_m)
     assert smoothed_area >= original_area
 
 
 @pytest.mark.parametrize(
     'edge_length_in_m, expected_area_in_sq_m, expected_number_of_polygons_after_smoothing', (
         # Small polygons get erased by the smoothing process
-        (1, 1, 0),
-        (17, 289, 0),
+        (1, 0.628, 0),
+        (17, 181.5, 0),
         # This is the smallest polygon that will be preserved
-        (18, 324, 1),
+        (40, 1004, 1),  # Tune this
         # Large polygons still result in a single polygon after smoothing
-        (100_000, 10_000_000_000, 1),
+        (100_000, 6_349_128_887, 1),
     ),
 )
 def test_smoothing_doesnt_return_small_artifacts(
@@ -182,13 +186,10 @@ def test_smoothing_doesnt_return_small_artifacts(
         [x, y],                              # go up 1 unit
     ]])
     assert close_enough(
-        square.estimated_area / Polygons.square_degrees_to_square_miles * (
-            Polygons.approx_square_metres_to_square_degree
-        ),
+        square.estimated_area,
         expected_area_in_sq_m,
     )
     assert len(square.smooth) == expected_number_of_polygons_after_smoothing
-
 
 
 @pytest.mark.parametrize('polygons, expected_count_before, expected_count_after', (
@@ -233,48 +234,57 @@ def test_simplify(
     ([], 0, 0),
     # For small areas the bleed is large relative to the size of the
     # original area
-    ([HACKNEY_MARSHES], 0.276, 5.12),
-    ([ISLE_OF_DOGS], 2.467, 10.99),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 2.743, 16.11),
+    ([HACKNEY_MARSHES], 0.1734, 4.41),
+    ([ISLE_OF_DOGS], 1.551, 8.83),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.725, 13.25),
     # For large areas the bleed is small relative to the size of the
     # original area
-    ([SCOTLAND], 140_020, 141_600),
+    ([SCOTLAND], 76_623, 77_750),
 ))
 def test_bleed(
     polygons,
     expected_area_before,
     expected_area_after,
 ):
+
+    SQUARE_MILES_TO_SQUARE_M = 1 / 3.86102e-7
+
+    expected_area_after = SQUARE_MILES_TO_SQUARE_M * expected_area_after
+    expected_area_before = SQUARE_MILES_TO_SQUARE_M * expected_area_before
+
     area_polygons = Polygons(polygons)
     assert close_enough(
         area_polygons.estimated_area,
         expected_area_before,
     )
     assert close_enough(
-        area_polygons.bleed_by(Polygons.approx_bleed_in_degrees).estimated_area,
+        area_polygons.bleed_by(Polygons.approx_bleed_in_m).estimated_area,
         expected_area_after,
     )
 
 
 @pytest.mark.parametrize('bleed_distance_in_m, expected_area_before, expected_area_after', (
-    (0, 2.467, 2.467),
-    (500, 2.467, 4.722),
-    (5000, 2.467, 51.53),
+    (0, 1.551, 1.551),
+    (500, 1.551, 3.390),
+    (5000, 1.551, 46.48),
 ))
 def test_custom_bleed(
     bleed_distance_in_m,
     expected_area_before,
     expected_area_after,
 ):
+
+    SQUARE_MILES_TO_SQUARE_M = 1 / 3.86102e-7
+    expected_area_after = SQUARE_MILES_TO_SQUARE_M * expected_area_after
+    expected_area_before = SQUARE_MILES_TO_SQUARE_M * expected_area_before
+
     area_polygons = Polygons([ISLE_OF_DOGS])
     assert close_enough(
         area_polygons.estimated_area,
         expected_area_before,
     )
     assert close_enough(
-        area_polygons.bleed_by(
-            bleed_distance_in_m / Polygons.approx_metres_to_degree
-        ).estimated_area,
+        area_polygons.bleed_by(bleed_distance_in_m).estimated_area,
         expected_area_after,
     )
 
@@ -301,13 +311,13 @@ def test_empty_bounds():
 
 @pytest.mark.parametrize('polygons, expected_bounds', (
     ([ISLE_OF_DOGS], (
-        -0.030041, 51.4849, -0.000944, 51.507,
+        -0.034327, 51.4849, 0.002541, 51.507,
     )),
     ([HACKNEY_MARSHES, ISLE_OF_DOGS], (
-        -0.038281, 51.4849, -0.000944, 51.561,
+        -0.052144, 51.4849, 0.013096, 51.561,
     )),
     ([SCOTLAND], (
-        -9.030761, 54.2267, -0.263671, 61.227,
+        -9.030761, 54.2913, -0.263671, 61.227,
     )),
 ))
 def test_bounds(polygons, expected_bounds):
