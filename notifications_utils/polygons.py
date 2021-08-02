@@ -1,5 +1,6 @@
 import itertools
 
+from pyproj import Transformer
 from shapely.geometry import (
     JOIN_STYLE,
     GeometryCollection,
@@ -8,6 +9,9 @@ from shapely.geometry import (
 )
 from shapely.ops import unary_union
 from werkzeug.utils import cached_property
+
+wgs84_to_utm29n = Transformer.from_crs('EPSG:4326', 'EPSG:32629', always_xy=True)
+utm29n_to_wgs84 = Transformer.from_crs('EPSG:32629', 'EPSG:4326', always_xy=True)
 
 
 class Polygons():
@@ -20,7 +24,8 @@ class Polygons():
 
     # Estimated amount of bleed into neigbouring areas based on typical
     # range/separation of cell towers.
-    approx_bleed_in_degrees = 1_500 / approx_metres_to_degree
+    approx_bleed_in_m = 1_500
+    approx_bleed_in_degrees = approx_bleed_in_m / approx_metres_to_degree
 
     # Controls how much buffer to add for a shape of a given perimeter.
     # Smaller number means more buffering and a smoother shape. For
@@ -54,8 +59,25 @@ class Polygons():
             )
 
         self.polygons = [
-            polygon if isinstance(polygon, Polygon) else Polygon(polygon)
-            for polygon in polygons
+            self._polygon_from_wgs84_coords(polygon) for polygon in polygons
+        ]
+
+    @staticmethod
+    def _polygon_from_wgs84_coords(coords):
+        if isinstance(coords, Polygon):
+            return coords
+
+        return Polygon(
+            Polygons.transform_coords(
+                coords,
+                transformer=wgs84_to_utm29n,
+            )
+        )
+
+    @staticmethod
+    def transform_coords(coords, transformer):
+        return [
+            list(transformer.transform(x, y)) for x, y in coords
         ]
 
     def __getitem__(self, index):
@@ -91,14 +113,22 @@ class Polygons():
         all_min_x, all_min_y, all_max_x, all_max_y = zip(*(
             polygon.bounds for polygon in self
         ))
+
+        min_x_wgs84, min_y_wgs84 = utm29n_to_wgs84.transform(
+            min(all_min_x), min(all_min_y),
+        )
+        max_x_wgs84, max_y_wgs84 = utm29n_to_wgs84.transform(
+            max(all_max_x), max(all_max_y),
+        )
+
         return (
-            min(all_min_x), min(all_min_y), max(all_max_x), max(all_max_y),
+            min_x_wgs84, min_y_wgs84, max_x_wgs84, max_y_wgs84,
         )
 
     @cached_property
-    def buffer_outward_in_degrees(self):
+    def buffer_outward_in_m(self):
         '''
-        Calculates the distance (in degrees) by which to buffer outwards
+        Calculates the distance (in metres) by which to buffer outwards
         when smoothing a given set of polygons. Larger and more complex
         polygons get a larger buffer.
         '''
@@ -108,32 +138,32 @@ class Polygons():
             # broadcast then this joins them together. The aim is to
             # reduce the total number of polygons in areas with many
             # small shapes like Orkney or the Isles of Scilly.
-            self.approx_bleed_in_degrees / 3
+            self.approx_bleed_in_m / 3
         ) + (
             self.perimeter_length / self.perimeter_to_buffer_ratio
         )
 
     @cached_property
-    def buffer_inward_in_degrees(self):
+    def buffer_inward_in_m(self):
         '''
-        Calculates the distance (in degrees) by which to buffer inwards
+        Calculates the distance (in metres) by which to buffer inwards
         when smoothing a given set of polygons. Larger and more complex
         polygons get a larger buffer, to negate the larger outwards
         buffer.
         '''
-        return self.buffer_outward_in_degrees - (
+        return self.buffer_outward_in_m - (
             # We should leave the shape expanded by at least the
             # simplification tolerance in all places, so the
             # simplification never moves a point inside the original
             # shape. In practice half of the tolerance is enough to
             # acheive this.
-            self.simplification_tolerance_in_degrees / 2
+            self.simplification_tolerance_in_m / 2
         )
 
     @cached_property
-    def simplification_tolerance_in_degrees(self):
+    def simplification_tolerance_in_m(self):
         '''
-        Calculates a tolerance (in degrees) for how much a point can
+        Calculates a tolerance (in metres) for how much a point can
         deviate from a line joining its two neighbours. Larger and more
         complex polygons get a wider tolerance, in order to keep the
         point count down. See also
@@ -152,9 +182,9 @@ class Polygons():
         relevant.
         '''
         return self.bleed_by(
-            self.buffer_outward_in_degrees
+            self.buffer_outward_in_m
         ).bleed_by(
-            -1 * self.buffer_inward_in_degrees
+            -1 * self.buffer_inward_in_m
         ).remove_smaller_than(
             area_in_square_metres=1
         )
@@ -166,7 +196,7 @@ class Polygons():
         https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
         '''
         return Polygons([
-            polygon.simplify(self.simplification_tolerance_in_degrees)
+            polygon.simplify(self.simplification_tolerance_in_m)
             for polygon in self
         ])
 
@@ -196,12 +226,7 @@ class Polygons():
 
     def remove_smaller_than(self, area_in_square_metres):
         return Polygons([
-            polygon for polygon in self
-            if (
-                polygon.area
-            ) > (
-                area_in_square_metres / self.approx_square_metres_to_square_degree
-            )
+            polygon for polygon in self if polygon.area > area_in_square_metres
         ])
 
     @cached_property
@@ -214,7 +239,17 @@ class Polygons():
             [[
                 round(x, self.output_precision_in_decimal_places),
                 round(y, self.output_precision_in_decimal_places),
-            ] for x, y in polygon.exterior.coords]
+            ] for x, y in coords]
+            for coords in self.as_wgs84_coordinates
+        ]
+
+    @property
+    def as_wgs84_coordinates(self):
+        return [
+            self.transform_coords(
+                polygon.exterior.coords,
+                transformer=utm29n_to_wgs84,
+            )
             for polygon in self
         ]
 
@@ -243,9 +278,7 @@ class Polygons():
         approximate conversion of degrees to square miles for UK
         latitudes, rather than a projection.
         '''
-        return sum(
-            polygon.area for polygon in self
-        ) * self.square_degrees_to_square_miles
+        return sum(polygon.area for polygon in self)
 
     def ratio_of_intersection_with(self, polygons):
         '''
@@ -259,7 +292,7 @@ class Polygons():
         return sum(
             intersection.area
             for intersection in self.intersection_with(polygons)
-        ) * self.square_degrees_to_square_miles / self.estimated_area
+        ) / self.estimated_area
 
     def intersection_with(self, polygons):
         for comparison in polygons:
