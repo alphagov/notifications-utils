@@ -1,6 +1,7 @@
 from math import isclose, pow
 
 import pytest
+from shapely.geometry.polygon import Polygon
 
 from notifications_utils.polygons import Polygons
 
@@ -65,6 +66,32 @@ WHITECHAPEL_BUILDING = [
 
 def close_enough(a, b):
     return isclose(a, b, rel_tol=0.001)  # Within 0.1% difference
+
+
+@pytest.mark.parametrize('value, expected_exception, expected_exception_message', (
+    ('a', TypeError, (
+        'First argument to Polygons must be a list (not str)'
+    )),
+    (1, TypeError, (
+        'First argument to Polygons must be a list (not int)'
+    )),
+    (Polygon(), TypeError, (
+        'First argument to Polygons must be a list (not Polygon)'
+    )),
+    (Polygons([]), TypeError, (
+        'First argument to Polygons must be a list (not Polygons)'
+    )),
+    (['a'], ValueError, (
+        'A LinearRing must have at least 3 coordinate tuples'
+    )),
+    ([1], TypeError, (
+        '\'int\' object is not iterable'
+    )),
+))
+def test_bad_types(value, expected_exception, expected_exception_message):
+    with pytest.raises(expected_exception) as exception:
+        Polygons(value)
+    assert str(exception.value) == expected_exception_message
 
 
 @pytest.mark.parametrize('polygons, expected_perimeter_length_km', (
