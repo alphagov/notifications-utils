@@ -29,7 +29,7 @@ class Polygons():
     # 20m of buffer for a 5km square. This gives us control over how
     # much we fill in very concave features like channels, harbours and
     # zawns.
-    perimeter_to_buffer_ratio = 1000
+    perimeter_to_buffer_ratio = 660
 
     # Ratio of how much detail a shape of a given perimeter has once
     # simplified. Smaller number means less detail. For example `1000`
@@ -37,7 +37,7 @@ class Polygons():
     # line will never deviate more than 1m from the original.
     # Or for a 5km square, the line won’t deviate more than 20m. This
     # gives us approximate control over the total number of points.
-    perimeter_to_simplification_ratio = 1_620
+    perimeter_to_simplification_ratio = 1_080
 
     # The threshold for removing very small areas from the map. These
     # areas are likely glitches in  the data where the shoreline hasn’t
