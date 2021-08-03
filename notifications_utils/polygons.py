@@ -181,6 +181,8 @@ class Polygons():
             self.buffer_outward_in_m
         ).bleed_by(
             -1 * self.buffer_inward_in_m
+        ).remove_smaller_than(
+            area_in_square_metres=1
         )
 
     @cached_property
@@ -216,9 +218,12 @@ class Polygons():
         often by trying to automatically subtract the shoreline from the
         land.
         '''
+        return self.remove_smaller_than(self.minimum_area_size_square_metres)
+
+    def remove_smaller_than(self, area_in_square_metres):
         return Polygons([
             polygon for polygon in self
-            if polygon.area > self.minimum_area_size_square_metres
+            if polygon.area > area_in_square_metres
         ])
 
     @cached_property
