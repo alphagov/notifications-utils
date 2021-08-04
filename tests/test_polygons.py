@@ -84,7 +84,7 @@ def close_enough(a, b):
         'First argument to Polygons must be a list (not Polygons)'
     )),
     (['a'], ValueError, (
-        'not enough values to unpack (expected 2, got 1)'
+        'A LinearRing must have at least 3 coordinate tuples'
     )),
     ([1], TypeError, (
         '\'int\' object is not iterable'
@@ -98,9 +98,9 @@ def test_bad_types(value, expected_exception, expected_exception_message):
 
 @pytest.mark.parametrize('polygons, expected_perimeter_length_km', (
     ([], 0),
-    ([HACKNEY_MARSHES], 2.724),
-    ([ISLE_OF_DOGS], 7.99),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 10.71),
+    ([HACKNEY_MARSHES], 2.712),
+    ([ISLE_OF_DOGS], 7.95),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 10.66),
     ([SCOTLAND], 1_986),
 ))
 def test_perimeter_length(polygons, expected_perimeter_length_km):
@@ -137,9 +137,9 @@ def test_buffer_distances(
     # The smoothed area should always be slightly larger than the
     # original area
     ([], 0, 0),
-    ([HACKNEY_MARSHES], 0.1734, 0.1738),
-    ([ISLE_OF_DOGS], 1.551, 1.558),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.724, 1.738),
+    ([HACKNEY_MARSHES], 0.1721, 0.1723),
+    ([ISLE_OF_DOGS], 1.538, 1.545),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.711, 1.724),
     ([SCOTLAND], 76_565, 77_100),
 ))
 def test_smoothing_and_area(
@@ -163,12 +163,12 @@ def test_smoothing_and_area(
 @pytest.mark.parametrize(
     'edge_length_in_m, expected_area_in_sq_m, expected_number_of_polygons_after_smoothing', (
         # Small polygons get erased by the smoothing process
-        (1, 0.628, 0),
-        (17, 181.5, 0),
+        (1, 0.623, 0),
+        (17, 180.0, 0),
         # This is the smallest polygon that will be preserved
-        (40, 1004, 1),  # Tune this
+        (40, 996.5, 1),  # Tune this
         # Large polygons still result in a single polygon after smoothing
-        (100_000, 6_349_128_887, 1),
+        (100_000, 6_290_841_055, 1),
     ),
 )
 def test_smoothing_doesnt_return_small_artifacts(
@@ -234,12 +234,12 @@ def test_simplify(
     ([], 0, 0),
     # For small areas the bleed is large relative to the size of the
     # original area
-    ([HACKNEY_MARSHES], 0.1734, 4.41),
-    ([ISLE_OF_DOGS], 1.551, 8.83),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.725, 13.25),
+    ([HACKNEY_MARSHES], 0.1721, 4.40),
+    ([ISLE_OF_DOGS], 1.538, 8.80),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.711, 13.20),
     # For large areas the bleed is small relative to the size of the
     # original area
-    ([SCOTLAND], 76_623, 77_750),
+    ([SCOTLAND], 76_565, 77_750),
 ))
 def test_bleed(
     polygons,
@@ -264,9 +264,9 @@ def test_bleed(
 
 
 @pytest.mark.parametrize('bleed_distance_in_m, expected_area_before, expected_area_after', (
-    (0, 1.551, 1.551),
-    (500, 1.551, 3.390),
-    (5000, 1.551, 46.48),
+    (0, 1.539, 1.539),
+    (500, 1.539, 3.370),
+    (5000, 1.539, 46.42),
 ))
 def test_custom_bleed(
     bleed_distance_in_m,
@@ -311,10 +311,10 @@ def test_empty_bounds():
 
 @pytest.mark.parametrize('polygons, expected_bounds', (
     ([ISLE_OF_DOGS], (
-        -0.034327, 51.4849, 0.002541, 51.507,
+        -0.031520, 51.4849, 0.0003075, 51.507,
     )),
     ([HACKNEY_MARSHES, ISLE_OF_DOGS], (
-        -0.052144, 51.4849, 0.013096, 51.561,
+        -0.042970, 51.4849, 0.003862, 51.561,
     )),
     ([SCOTLAND], (
         -9.030761, 54.2913, -0.263671, 61.227,
