@@ -11,8 +11,25 @@ from shapely.ops import unary_union
 from werkzeug.utils import cached_property
 
 
-wgs84_to_utm29n = Transformer.from_crs('EPSG:4326', 'EPSG:32629', always_xy=True)
-utm29n_to_wgs84 = Transformer.from_crs('EPSG:32629', 'EPSG:4326', always_xy=True)
+from pyproj import CRS
+from pyproj.aoi import AreaOfInterest
+from pyproj.database import query_utm_crs_info
+
+
+transformers = {
+    utm_code: {
+        'from_wgs84': Transformer.from_crs('EPSG:4326', utm_code, always_xy=True),
+        'to_wgs84': Transformer.from_crs(utm_code, 'EPSG:4326', always_xy=True),
+    }
+    for utm_code in {
+        # The UK, west to east
+        'epsg:32629',  # Zone 29N: Between 12°W and 6°W, equator and 84°N
+        'epsg:32630',  # Zone 30N: Between 6°W and 0°W, equator and 84°N
+        'epsg:32631',  # Zone 31N: Between 0°E and 6°E, equator and 84°N
+        # Santa Claus village (Finland)
+        'epsg:32635',  # Zone 35N: Between 24°E and 30°E, equator and 84°N
+    }
+}
 
 
 class Polygons():
@@ -46,7 +63,7 @@ class Polygons():
 
     output_precision_in_decimal_places = 6
 
-    def __init__(self, polygons):
+    def __init__(self, polygons, utm_crs=None):
 
         if not isinstance(polygons, (list, self.__class__)):
             raise TypeError(
@@ -54,19 +71,49 @@ class Polygons():
                 f'(not {type(polygons).__name__})'
             )
 
+        self.utm_crs = utm_crs
+
+        if not self.utm_crs and isinstance(polygons, self.__class__):
+            self.utm_crs = polygons.utm_crs
+
+        if not self.utm_crs:
+            multi = MultiPolygon([Polygon(p) for p in polygons])
+            utm_crs_list = query_utm_crs_info(
+                datum_name="WGS 84",
+                area_of_interest=AreaOfInterest(
+                    *multi.bounds
+                ),
+            )
+            if not utm_crs_list:
+                raise ValueError(
+                    f'Could not find coordinates {multi.bounds} '
+                    f'anywhere on the surface of the earth (are '
+                    f'they in WGS84 format?)'
+                )
+            self.utm_crs = str(CRS.from_epsg(utm_crs_list[0].code))
+
+        if self.utm_crs not in transformers:
+            raise ValueError(
+                f'Could not find {self.utm_crs} in expected coordinate '
+                f'systems (are the coordinates in longitude/latitude '
+                f'order?)'
+            )
+
+        self.transform_from_wgs84 = transformers[self.utm_crs]['from_wgs84']
+        self.transform_to_wgs84 = transformers[self.utm_crs]['to_wgs84']
+
         self.polygons = [
             self._polygon_from_wgs84_coords(polygon) for polygon in polygons
         ]
 
-    @staticmethod
-    def _polygon_from_wgs84_coords(coords):
+    def _polygon_from_wgs84_coords(self, coords):
         if isinstance(coords, Polygon):
             return coords
 
         return Polygon(
             Polygons.transform_coords(
                 coords,
-                transformer=wgs84_to_utm29n,
+                transformer=self.transform_from_wgs84,
             )
         )
 
@@ -110,10 +157,10 @@ class Polygons():
             polygon.bounds for polygon in self
         ))
 
-        min_x_wgs84, min_y_wgs84 = utm29n_to_wgs84.transform(
+        min_x_wgs84, min_y_wgs84 = self.transform_to_wgs84.transform(
             min(all_min_x), min(all_min_y),
         )
-        max_x_wgs84, max_y_wgs84 = utm29n_to_wgs84.transform(
+        max_x_wgs84, max_y_wgs84 = self.transform_to_wgs84.transform(
             max(all_max_x), max(all_max_y),
         )
 
@@ -194,7 +241,7 @@ class Polygons():
         return Polygons([
             polygon.simplify(self.simplification_tolerance_in_m)
             for polygon in self
-        ])
+        ], utm_crs=self.utm_crs)
 
     def bleed_by(self, distance_in_degrees):
         '''
@@ -208,7 +255,7 @@ class Polygons():
                 join_style=JOIN_STYLE.round,
             )
             for polygon in self
-        ]))
+        ]), utm_crs=self.utm_crs)
 
     @cached_property
     def remove_too_small(self):
@@ -224,7 +271,7 @@ class Polygons():
         return Polygons([
             polygon for polygon in self
             if polygon.area > area_in_square_metres
-        ])
+        ], utm_crs=self.utm_crs)
 
     @cached_property
     def as_coordinate_pairs_long_lat(self):
@@ -245,7 +292,7 @@ class Polygons():
         return [
             self.transform_coords(
                 polygon.exterior.coords,
-                transformer=utm29n_to_wgs84,
+                transformer=self.transform_to_wgs84,
             )
             for polygon in self
         ]
