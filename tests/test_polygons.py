@@ -84,11 +84,14 @@ def close_enough(a, b):
     (Polygons([]), TypeError, (
         'First argument to Polygons must be a list (not Polygons)'
     )),
-    (['a'], ValueError, (
-        'A LinearRing must have at least 3 coordinate tuples'
+    (['a'], TypeError, (
+        'Can’t make Polygon from str `a`'
     )),
     ([1], TypeError, (
-        '\'int\' object is not iterable'
+        'Can’t make Polygon from int `1`'
+    )),
+    ([Polygon()], TypeError, (
+        'Can’t initiate with Polygon objects and no CRS'
     )),
 ))
 def test_bad_types(value, expected_exception, expected_exception_message):
