@@ -7,6 +7,7 @@ from shapely.geometry.polygon import Polygon
 from notifications_utils.polygons import Polygons
 
 APPROX_METRES_TO_DEGREE = 111_320
+SQUARE_M_TO_SQUARE_KM = 1e-6
 
 HACKNEY_MARSHES = [
     [-0.038280487060546875, 51.55738264619775],
@@ -137,30 +138,25 @@ def test_buffer_distances(
     )
 
 
-@pytest.mark.parametrize('polygons, expected_area_before, expected_area_after', (
+@pytest.mark.parametrize('polygons, expected_area_before_sq_km, expected_area_after_sq_km', (
     # The smoothed area should always be slightly larger than the
     # original area
     ([], 0, 0),
-    ([HACKNEY_MARSHES], 0.1721, 0.1723),
-    ([ISLE_OF_DOGS], 1.538, 1.545),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.711, 1.724),
-    ([SCOTLAND], 76_565, 77_100),
+    ([HACKNEY_MARSHES], 0.4453, 0.4460),
+    ([ISLE_OF_DOGS], 3.986, 4.003),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 4.431, 4.462),
+    ([SCOTLAND], 198_500, 199_700),
 ))
 def test_smoothing_and_area(
     polygons,
-    expected_area_before,
-    expected_area_after,
+    expected_area_before_sq_km,
+    expected_area_after_sq_km,
 ):
-    SQUARE_MILES_TO_SQUARE_M = 1 / 3.86102e-7
+    original_area = Polygons(polygons).estimated_area * SQUARE_M_TO_SQUARE_KM
+    smoothed_area = Polygons(polygons).smooth.estimated_area * SQUARE_M_TO_SQUARE_KM
 
-    original_area = Polygons(polygons).estimated_area
-    smoothed_area = Polygons(polygons).smooth.estimated_area
-
-    expected_area_before_in_sq_m = expected_area_before * SQUARE_MILES_TO_SQUARE_M
-    expected_area_after_in_sq_m = expected_area_after * SQUARE_MILES_TO_SQUARE_M
-
-    assert close_enough(original_area, expected_area_before_in_sq_m)
-    assert close_enough(smoothed_area, expected_area_after_in_sq_m)
+    assert close_enough(original_area, expected_area_before_sq_km)
+    assert close_enough(smoothed_area, expected_area_after_sq_km)
     assert smoothed_area >= original_area
 
 
@@ -234,62 +230,59 @@ def test_simplify(
     )
 
 
-@pytest.mark.parametrize('polygons, expected_area_before, expected_area_after', (
+@pytest.mark.parametrize('polygons, expected_area_before_sq_km, expected_area_after_sq_km', (
     ([], 0, 0),
     # For small areas the bleed is large relative to the size of the
     # original area
-    ([HACKNEY_MARSHES], 0.1721, 4.40),
-    ([ISLE_OF_DOGS], 1.538, 8.80),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 1.711, 13.20),
+    ([HACKNEY_MARSHES], 0.4454, 11.39),
+    ([ISLE_OF_DOGS], 3.986, 22.80),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 4.432, 34.20),
     # For large areas the bleed is small relative to the size of the
     # original area
-    ([SCOTLAND], 76_565, 77_750),
+    ([SCOTLAND], 198_500, 201_500),
 ))
 def test_bleed(
     polygons,
-    expected_area_before,
-    expected_area_after,
+    expected_area_before_sq_km,
+    expected_area_after_sq_km,
 ):
-
-    SQUARE_MILES_TO_SQUARE_M = 1 / 3.86102e-7
-
-    expected_area_after = SQUARE_MILES_TO_SQUARE_M * expected_area_after
-    expected_area_before = SQUARE_MILES_TO_SQUARE_M * expected_area_before
-
     area_polygons = Polygons(polygons)
+
+    area_before = area_polygons.estimated_area
+    area_after = area_polygons.bleed_by(Polygons.approx_bleed_in_m).estimated_area
+
     assert close_enough(
-        area_polygons.estimated_area,
-        expected_area_before,
+        area_before * SQUARE_M_TO_SQUARE_KM,
+        expected_area_before_sq_km,
     )
     assert close_enough(
-        area_polygons.bleed_by(Polygons.approx_bleed_in_m).estimated_area,
-        expected_area_after,
+        area_after * SQUARE_M_TO_SQUARE_KM,
+        expected_area_after_sq_km,
     )
 
 
-@pytest.mark.parametrize('bleed_distance_in_m, expected_area_before, expected_area_after', (
-    (0, 1.539, 1.539),
-    (500, 1.539, 3.370),
-    (5000, 1.539, 46.42),
+@pytest.mark.parametrize('bleed_distance_in_m, expected_area_before_sq_km, expected_area_after_sq_km', (
+    (0, 3.986, 3.986),
+    (500, 3.986, 8.73),
+    (5000, 3.986, 120.2),
 ))
 def test_custom_bleed(
     bleed_distance_in_m,
-    expected_area_before,
-    expected_area_after,
+    expected_area_before_sq_km,
+    expected_area_after_sq_km,
 ):
-
-    SQUARE_MILES_TO_SQUARE_M = 1 / 3.86102e-7
-    expected_area_after = SQUARE_MILES_TO_SQUARE_M * expected_area_after
-    expected_area_before = SQUARE_MILES_TO_SQUARE_M * expected_area_before
-
     area_polygons = Polygons([ISLE_OF_DOGS])
+
+    area_before = area_polygons.estimated_area
+    area_after = area_polygons.bleed_by(bleed_distance_in_m).estimated_area
+
     assert close_enough(
-        area_polygons.estimated_area,
-        expected_area_before,
+        area_before * SQUARE_M_TO_SQUARE_KM,
+        expected_area_before_sq_km,
     )
     assert close_enough(
-        area_polygons.bleed_by(bleed_distance_in_m).estimated_area,
-        expected_area_after,
+        area_after * SQUARE_M_TO_SQUARE_KM,
+        expected_area_after_sq_km,
     )
 
 

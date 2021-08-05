@@ -75,10 +75,6 @@ class Polygons():
                     f'systems (are the coordinates in longitude/latitude '
                     f'order?)'
                 )
-            if not all(
-                isinstance(polygon, Polygon) for polygon in self
-            ):
-                raise TypeError('Can’t initiate with coordinate lists and a CRS')
         else:
             for polygon in self:
                 if isinstance(polygon, Polygon):
@@ -101,27 +97,30 @@ class Polygons():
     @cached_property
     def utm_polygons(self):
 
-        if self.utm_crs:
+        if all(
+            isinstance(polygon, Polygon) for polygon in self
+        ):
             # These polygons already have UTM coordinates
             return self
 
         if not self.polygons:
             return Polygons([])
 
-        multi = MultiPolygon([Polygon(p) for p in self])
-        utm_crs_list = query_utm_crs_info(
-            datum_name="WGS 84",
-            area_of_interest=AreaOfInterest(
-                *multi.bounds
-            ),
-        )
-        if not utm_crs_list:
-            raise ValueError(
-                f'Could not find coordinates {multi.bounds} '
-                f'anywhere on the surface of the earth (are '
-                f'they in WGS84 format?)'
+        if not self.utm_crs:
+            shapely_polygons = MultiPolygon([Polygon(p) for p in self])
+            utm_crs_list = query_utm_crs_info(
+                datum_name="WGS 84",
+                area_of_interest=AreaOfInterest(
+                    *shapely_polygons.bounds
+                ),
             )
-        self.utm_crs = str(CRS.from_epsg(utm_crs_list[0].code))
+            if not utm_crs_list:
+                raise ValueError(
+                    f'Could not find coordinates {multi.bounds} '
+                    f'anywhere on the surface of the earth (are '
+                    f'they in WGS84 format?)'
+                )
+            self.utm_crs = str(CRS.from_epsg(utm_crs_list[0].code))
 
         return Polygons(
             [
