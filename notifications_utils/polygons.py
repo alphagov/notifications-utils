@@ -65,46 +65,72 @@ class Polygons():
                 f'(not {type(polygons).__name__})'
             )
 
+        self.polygons = polygons
         self.utm_crs = utm_crs
 
-        if not self.utm_crs and isinstance(polygons, self.__class__):
-            self.utm_crs = polygons.utm_crs
-
-        if polygons and not self.utm_crs:
-            multi = MultiPolygon([Polygon(p) for p in polygons])
-            utm_crs_list = query_utm_crs_info(
-                datum_name="WGS 84",
-                area_of_interest=AreaOfInterest(
-                    *multi.bounds
-                ),
-            )
-            if not utm_crs_list:
-                raise ValueError(
-                    f'Could not find coordinates {multi.bounds} '
-                    f'anywhere on the surface of the earth (are '
-                    f'they in WGS84 format?)'
-                )
-            self.utm_crs = str(CRS.from_epsg(utm_crs_list[0].code))
-
-        if polygons:
-            if self.utm_crs not in transformers:
+        if self.utm_crs:
+            if utm_crs not in transformers:
                 raise ValueError(
                     f'Could not find {self.utm_crs} in expected coordinate '
                     f'systems (are the coordinates in longitude/latitude '
                     f'order?)'
                 )
+            if not all(
+                isinstance(polygon, Polygon) for polygon in self
+            ):
+                raise TypeError('Can’t initiate with coordinate lists and a CRS')
+        else:
+            for polygon in self:
+                if isinstance(polygon, Polygon):
+                    raise TypeError(
+                        f'Can’t initiate with {Polygon.__name__} objects and no CRS'
+                    )
+                if not isinstance(polygon, list):
+                    raise TypeError(
+                        f'Can’t make {Polygon.__name__} from {type(polygon).__name__} `{polygon}`'
+                    )
 
-            self.transform_from_wgs84 = transformers[self.utm_crs]['from_wgs84']
-            self.transform_to_wgs84 = transformers[self.utm_crs]['to_wgs84']
+    @cached_property
+    def transform_from_wgs84(self):
+        return transformers[self.utm_crs]['from_wgs84']
 
-        self.polygons = [
-            self._polygon_from_wgs84_coords(polygon) for polygon in polygons
-        ]
+    @cached_property
+    def transform_to_wgs84(self):
+        return transformers[self.utm_crs]['to_wgs84']
+
+    @cached_property
+    def utm_polygons(self):
+
+        if self.utm_crs:
+            # These polygons already have UTM coordinates
+            return self
+
+        if not self.polygons:
+            return Polygons([])
+
+        multi = MultiPolygon([Polygon(p) for p in self])
+        utm_crs_list = query_utm_crs_info(
+            datum_name="WGS 84",
+            area_of_interest=AreaOfInterest(
+                *multi.bounds
+            ),
+        )
+        if not utm_crs_list:
+            raise ValueError(
+                f'Could not find coordinates {multi.bounds} '
+                f'anywhere on the surface of the earth (are '
+                f'they in WGS84 format?)'
+            )
+        self.utm_crs = str(CRS.from_epsg(utm_crs_list[0].code))
+
+        return Polygons(
+            [
+                self._polygon_from_wgs84_coords(polygon) for polygon in self
+            ],
+            utm_crs=self.utm_crs,
+        )
 
     def _polygon_from_wgs84_coords(self, coords):
-        if isinstance(coords, Polygon):
-            return coords
-
         return Polygon(
             self.transform_coords(
                 coords,
@@ -135,7 +161,7 @@ class Polygons():
           large one
         '''
         return sum(
-            polygon.length for polygon in self
+            polygon.length for polygon in self.utm_polygons
         )
 
     @property
@@ -149,7 +175,7 @@ class Polygons():
                 f"Can't determine bounds of empty {self.__class__.__name__}"
             )
         all_min_x, all_min_y, all_max_x, all_max_y = zip(*(
-            polygon.bounds for polygon in self
+            polygon.bounds for polygon in self.utm_polygons
         ))
 
         min_x_wgs84, min_y_wgs84 = self.transform_to_wgs84.transform(
@@ -235,21 +261,21 @@ class Polygons():
         '''
         return Polygons([
             polygon.simplify(self.simplification_tolerance_in_m)
-            for polygon in self
+            for polygon in self.utm_polygons
         ], utm_crs=self.utm_crs)
 
-    def bleed_by(self, distance_in_degrees):
+    def bleed_by(self, distance_in_m):
         '''
         Expands the area of each polygon to give an estimation of how
         far a broadcast would bleed into neighbouring areas.
         '''
         return Polygons(union_polygons([
             polygon.buffer(
-                distance_in_degrees,
+                distance_in_m,
                 resolution=4,
                 join_style=JOIN_STYLE.round,
             )
-            for polygon in self
+            for polygon in self.utm_polygons
         ]), utm_crs=self.utm_crs)
 
     @cached_property
@@ -264,7 +290,8 @@ class Polygons():
 
     def remove_smaller_than(self, area_in_square_metres):
         return Polygons([
-            polygon for polygon in self if polygon.area > area_in_square_metres
+            polygon for polygon in self.utm_polygons
+            if polygon.area > area_in_square_metres
         ], utm_crs=self.utm_crs)
 
     @cached_property
@@ -283,6 +310,8 @@ class Polygons():
 
     @property
     def as_wgs84_coordinates(self):
+        if not self.utm_crs:
+            return self.polygons
         return [
             self.transform_coords(
                 polygon.exterior.coords,
@@ -316,7 +345,7 @@ class Polygons():
         approximate conversion of degrees to square miles for UK
         latitudes, rather than a projection.
         '''
-        return sum(polygon.area for polygon in self)
+        return sum(polygon.area for polygon in self.utm_polygons)
 
     def ratio_of_intersection_with(self, polygons):
         '''
@@ -333,13 +362,13 @@ class Polygons():
         ) / self.estimated_area
 
     def intersection_with(self, polygons):
-        for comparison in polygons:
-            for polygon in self:
+        for comparison in polygons.utm_polygons:
+            for polygon in self.utm_polygons:
                 yield polygon.intersection(comparison)
 
     def intersects(self, polygons):
-        for comparison in polygons:
-            for polygon in self:
+        for comparison in polygons.utm_polygons:
+            for polygon in self.utm_polygons:
                 if polygon.intersects(comparison):
                     return True
         return False
