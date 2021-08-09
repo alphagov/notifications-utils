@@ -148,33 +148,13 @@ class Polygons():
         these areas we can preserve it in places where it’s more
         relevant.
         '''
-        buffered = [
-            polygon.buffer(
-                self.buffer_outward_in_degrees,
-                resolution=4,
-                join_style=JOIN_STYLE.round,
-            )
-            for polygon in self
-        ]
-        unioned = union_polygons(buffered)
-        debuffered = [
-            polygon.buffer(
-                -1 * self.buffer_inward_in_degrees,
-                resolution=1,
-                join_style=JOIN_STYLE.bevel,
-            )
-            for polygon in unioned
-        ]
-        flattened = list(itertools.chain(*[
-            flatten_polygons(polygon) for polygon in debuffered
-        ]))
-        return Polygons([
-            polygon for polygon in flattened if (
-                # The smoothing process creates some artifacts which can
-                # be removed by ignoring polygons less than 1m² in area
-                polygon.area > (1 / self.approx_square_metres_to_square_degree)
-            )
-        ])
+        return self.bleed_by(
+            self.buffer_outward_in_degrees
+        ).bleed_by(
+            -1 * self.buffer_inward_in_degrees
+        ).remove_smaller_than(
+            area_in_square_metres=1
+        )
 
     @cached_property
     def simplify(self):
@@ -209,12 +189,15 @@ class Polygons():
         often by trying to automatically subtract the shoreline from the
         land.
         '''
+        return self.remove_smaller_than(self.minimum_area_size_square_metres)
+
+    def remove_smaller_than(self, area_in_square_metres):
         return Polygons([
             polygon for polygon in self
             if (
-                polygon.area * self.approx_square_metres_to_square_degree
+                polygon.area
             ) > (
-                self.minimum_area_size_square_metres
+                area_in_square_metres / self.approx_square_metres_to_square_degree
             )
         ])
 
