@@ -117,11 +117,11 @@ def test_perimeter_length(polygons, expected_perimeter_length_km):
 
 
 @pytest.mark.parametrize('polygons, expected_buffer_out_metres, expected_buffer_in_metres', (
-    ([], 500, 500),
-    ([HACKNEY_MARSHES], 503, 502),
-    ([ISLE_OF_DOGS], 508, 506),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 511, 507),
-    ([SCOTLAND], 2486, 1873),
+    ([], 500, 485),
+    ([HACKNEY_MARSHES], 503, 487),
+    ([ISLE_OF_DOGS], 508, 490.5),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 511, 492),
+    ([SCOTLAND], 2486, 1858),
 ))
 def test_buffer_distances(
     polygons,
@@ -142,9 +142,9 @@ def test_buffer_distances(
     # The smoothed area should always be slightly larger than the
     # original area
     ([], 0, 0),
-    ([HACKNEY_MARSHES], 0.4453, 0.4460),
-    ([ISLE_OF_DOGS], 3.986, 4.003),
-    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 4.431, 4.462),
+    ([HACKNEY_MARSHES], 0.4453, 0.4865),
+    ([ISLE_OF_DOGS], 3.986, 4.123),
+    ([HACKNEY_MARSHES, ISLE_OF_DOGS], 4.431, 4.623),
     ([SCOTLAND], 198_500, 199_700),
 ))
 def test_smoothing_and_area(
@@ -163,8 +163,8 @@ def test_smoothing_and_area(
 @pytest.mark.parametrize(
     'edge_length_in_m, expected_area_in_sq_m, expected_number_of_polygons_after_smoothing', (
         # Small polygons get erased by the smoothing process
-        (1, 0.623, 0),
-        (17, 180.0, 0),
+        (1, 0.623, 1),
+        (17, 180.0, 1),
         # This is the smallest polygon that will be preserved
         (40, 996.5, 1),  # Tune this
         # Large polygons still result in a single polygon after smoothing
