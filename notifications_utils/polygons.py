@@ -222,6 +222,12 @@ class Polygons():
             # shape. In practice half of the tolerance is enough to
             # acheive this.
             self.simplification_tolerance_in_m / 2
+        ) - (
+            # This reduces the inward buffer by an additional fixed
+            # ammount. This helps ensure we bound very small polygons
+            # entirely, while not making a significant difference to
+            # large polygons.
+            15
         )
 
     @cached_property
