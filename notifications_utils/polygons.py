@@ -325,7 +325,7 @@ class Polygons():
 
     @property
     def as_wgs84_coordinates(self):
-        if not self.utm_crs:
+        if all(isinstance(polygon, list) for polygon in self):
             return self.polygons
         return [
             self.transform_coords(
