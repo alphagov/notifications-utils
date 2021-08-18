@@ -14,10 +14,20 @@ from werkzeug.utils import cached_property
 
 transformers = {
     utm_code: {
+        # WGS84 (World Geodetic System, 1984) is a standard which
+        # defines the size and shape of the earth. Coordinates in the
+        # data we get from ONS, and that we output as CAP XML are
+        # expressed relative to the constants in WGS84.
         'from_wgs84': Transformer.from_crs('EPSG:4326', utm_code, always_xy=True),
         'to_wgs84': Transformer.from_crs(utm_code, 'EPSG:4326', always_xy=True),
     }
     for utm_code in {
+        # These are the names of coordinate reference systems, which
+        # provide mathemtical functions for transforming WGS84
+        # coordinates to linear measures of distance across the earth’s
+        # surface. The functions are different in different areas of the
+        # earth because the earth is not a perfect sphere.
+        # —
         # The UK, west to east
         'epsg:32629',  # Zone 29N: Between 12°W and 6°W, equator and 84°N
         'epsg:32630',  # Zone 30N: Between 6°W and 0°W, equator and 84°N
