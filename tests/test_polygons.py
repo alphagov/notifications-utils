@@ -365,3 +365,19 @@ def test_precision():
         precision * APPROX_METRES_TO_DEGREE,
         0.1113  # Our coordinates are accurate to about 0.1m
     )
+
+
+def test_passes_through_coordinates_without_converting_to_crs():
+    without_crs = Polygons([HACKNEY_MARSHES])
+    with_crs = Polygons([HACKNEY_MARSHES], utm_crs='epsg:32630')
+
+    assert without_crs.as_coordinate_pairs_lat_long == with_crs.as_coordinate_pairs_lat_long
+
+    assert all(
+        isinstance(polygon, list) for polygon in without_crs
+    )
+    assert all(
+        isinstance(polygon, list) for polygon in with_crs
+    )
+
+    assert without_crs.utm_polygons.utm_crs == with_crs.utm_crs
