@@ -25,8 +25,10 @@ transformers = {
         # These are the names of coordinate reference systems, which
         # provide mathemtical functions for transforming WGS84
         # coordinates to linear measures of distance across the earth’s
-        # surface. The functions are different in different areas of the
-        # earth because the earth is not a perfect sphere.
+        # surface. All of these coordinate reference systems use a
+        # Universal Transverse Mercator (UTM) projection to flatten the
+        # globe onto a plane. The functions are different in different
+        # areas of the earth because the earth is not a perfect sphere.
         # —
         # The UK, west to east
         'epsg:32629',  # Zone 29N: Between 12°W and 6°W, equator and 84°N
@@ -117,6 +119,12 @@ class Polygons():
 
     @cached_property
     def utm_polygons(self):
+        """
+        Any geometric operations (for example smoothing or calculating
+        area) must use these polygons, which are projected onto a
+        Cartesian (flat) plane using a Universal Transverse Mercator
+        (UTM) projection and have coordinates defined in linear metres.
+        """
 
         if all(
             isinstance(polygon, Polygon) for polygon in self
