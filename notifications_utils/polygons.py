@@ -68,6 +68,17 @@ class Polygons():
     output_precision_in_decimal_places = 6
 
     def __init__(self, polygons, utm_crs=None):
+        """
+        This class accepts either:
+        - a list of lists of coordinate pairs defined in WGS84 degrees
+        - a list of lists of coordinate pairs defined in WGS84 degrees,
+          with the name of a coordinate reference system
+        - a list of shapely.geometry.Polygon objects defined in metres,
+          with the name of a coordinate reference system
+
+        See the comments around `transformers` for an explanation of
+        WGS84 and coordinate reference systems.
+        """
 
         if not isinstance(polygons, list):
             raise TypeError(
