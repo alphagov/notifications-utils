@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from notifications_utils.serialised_model import (
@@ -17,30 +19,50 @@ def test_cant_be_instatiated_with_abstract_properties():
     with pytest.raises(TypeError) as e:
         SerialisedModel()
 
-    assert str(e.value) == (
-        "Can't instantiate abstract class SerialisedModel with abstract methods ALLOWED_PROPERTIES"
-    )
+    if sys.version_info < (3, 9):
+        assert str(e.value) == (
+            "Can't instantiate abstract class SerialisedModel with abstract methods ALLOWED_PROPERTIES"
+        )
+    else:
+        assert (
+            "Can't instantiate abstract class SerialisedModel with abstract method ALLOWED_PROPERTIES"
+        )
 
     with pytest.raises(TypeError) as e:
         Custom()
 
-    assert str(e.value) == (
-        "Can't instantiate abstract class Custom with abstract methods ALLOWED_PROPERTIES"
-    )
+    if sys.version_info < (3, 9):
+        assert str(e.value) == (
+            "Can't instantiate abstract class Custom with abstract methods ALLOWED_PROPERTIES"
+        )
+    else:
+        assert str(e.value) == (
+            "Can't instantiate abstract class Custom with abstract method ALLOWED_PROPERTIES"
+        )
 
     with pytest.raises(TypeError) as e:
         SerialisedModelCollection()
 
-    assert str(e.value) == (
-        "Can't instantiate abstract class SerialisedModelCollection with abstract methods model"
-    )
+    if sys.version_info < (3, 9):
+        assert str(e.value) == (
+            "Can't instantiate abstract class SerialisedModelCollection with abstract methods model"
+        )
+    else:
+        assert str(e.value) == (
+            "Can't instantiate abstract class SerialisedModelCollection with abstract method model"
+        )
 
     with pytest.raises(TypeError) as e:
         CustomCollection()
 
-    assert str(e.value) == (
-        "Can't instantiate abstract class CustomCollection with abstract methods model"
-    )
+    if sys.version_info < (3, 9):
+        assert str(e.value) == (
+            "Can't instantiate abstract class CustomCollection with abstract methods model"
+        )
+    else:
+        assert str(e.value) == (
+            "Can't instantiate abstract class CustomCollection with abstract method model"
+        )
 
 
 def test_looks_up_from_dict():
