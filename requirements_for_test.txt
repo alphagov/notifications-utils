@@ -1,6 +1,6 @@
 -r requirements.txt
 
-beautifulsoup4==4.9.3
+beautifulsoup4==4.10.0
 pytest==6.2.4
 pytest-mock==3.6.1
 pytest-xdist==2.3.0
