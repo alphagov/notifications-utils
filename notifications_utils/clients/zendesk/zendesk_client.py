@@ -34,11 +34,6 @@ class ZendeskClient():
 
     def __init__(self):
         self.api_key = None
-        self.api_host = None
-
-        self.department_id = None
-        self.agent_team_id = None
-        self.default_person_email = None
 
     def init_app(self, app, *args, **kwargs):
         self.api_key = app.config.get('ZENDESK_API_KEY')
