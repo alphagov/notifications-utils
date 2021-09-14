@@ -71,27 +71,24 @@ class ZendeskClient():
                 'name': user_name or '(no name supplied)'
             }
 
+        self.send_ticket_data_to_zendesk(data)
+
+    def send_ticket_data_to_zendesk(self, data):
         response = requests.post(
             self.ZENDESK_TICKET_URL,
             json=data,
             auth=(
-                '{}/token'.format(self.NOTIFY_ZENDESK_EMAIL),
+                f'{self.NOTIFY_ZENDESK_EMAIL}/token',
                 self.api_key
             )
         )
 
         if response.status_code != 201:
             current_app.logger.error(
-                "Zendesk create ticket request failed with {} '{}'".format(
-                    response.status_code,
-                    response.json()
-                )
+                f"Zendesk create ticket request failed with {response.status_code} '{response.json()}'"
             )
-
             raise ZendeskError(response)
 
         ticket_id = response.json()['ticket']['id']
 
-        current_app.logger.info(
-            f"Zendesk create ticket {ticket_id} succeeded"
-        )
+        current_app.logger.info(f"Zendesk create ticket {ticket_id} succeeded")
