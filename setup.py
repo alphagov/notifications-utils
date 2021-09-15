@@ -20,7 +20,9 @@ setup(
     author='Government Digital Service',
     description='Shared python code for GOV.UK Notify.',
     long_description=__doc__,
-    packages=find_packages(),
+    packages=find_packages(
+        include=['notifications_utils*'],
+    ),
     include_package_data=True,
     install_requires=[
         'bleach==3.3.0',
