@@ -78,6 +78,10 @@ class ZendeskClient():
 
         self.send_ticket_data_to_zendesk(data)
 
+    def send_ticket_to_zendesk(self, ticket):
+        ticket_data = ticket.request_data
+        self.send_ticket_data_to_zendesk(ticket_data)
+
     def send_ticket_data_to_zendesk(self, data):
         response = requests.post(
             self.ZENDESK_TICKET_URL,

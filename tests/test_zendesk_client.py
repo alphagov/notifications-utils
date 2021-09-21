@@ -139,6 +139,38 @@ def test_create_ticket_with_message_hidden_from_requester(zendesk_client, mocker
     }
     )]
 
+def test_send_ticket_to_zendesk(mocker, zendesk_client):
+    mock_send_ticket_data = mocker.patch.object(zendesk_client, 'send_ticket_data_to_zendesk')
+
+    ticket = NotifySupportTicket('subject', 'message', 'incident')
+
+    zendesk_client.send_ticket_to_zendesk(ticket)
+
+    mock_send_ticket_data.assert_called_once_with(
+        {
+            'ticket': {
+                'subject': 'subject',
+                'comment': {
+                    'body': 'message',
+                    'public': True,
+                },
+                'group_id': NotifySupportTicket.NOTIFY_GROUP_ID,
+                'organization_id': NotifySupportTicket.NOTIFY_ORG_ID,
+                'ticket_form_id': NotifySupportTicket.NOTIFY_TICKET_FORM_ID,
+                'priority': NotifySupportTicket.PRIORITY_NORMAL,
+                'tags': ['govuk_notify_support'],
+                'type': 'incident',
+                'custom_fields': [
+                    {'id': '1900000744994', 'value': 'notify_ticket_type_non_technical'},
+                    {'id': '360022836500', 'value': []},
+                    {'id': '360022943959', 'value': None},
+                    {'id': '360022943979', 'value': None},
+                    {'id': '1900000745014', 'value': None},
+                ]
+            }
+        }
+    )
+
 
 def test_zendesk_client_send_ticket_data_to_zendesk(zendesk_client, app, mocker, rmock):
     rmock.request(
