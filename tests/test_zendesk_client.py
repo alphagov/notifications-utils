@@ -20,40 +20,7 @@ def zendesk_client(app):
     return client
 
 
-def test_send_ticket_to_zendesk(mocker, zendesk_client):
-    mock_send_ticket_data = mocker.patch.object(zendesk_client, 'send_ticket_data_to_zendesk')
-
-    ticket = NotifySupportTicket('subject', 'message', 'incident')
-
-    zendesk_client.send_ticket_to_zendesk(ticket)
-
-    mock_send_ticket_data.assert_called_once_with(
-        {
-            'ticket': {
-                'subject': 'subject',
-                'comment': {
-                    'body': 'message',
-                    'public': True,
-                },
-                'group_id': NotifySupportTicket.NOTIFY_GROUP_ID,
-                'organization_id': NotifySupportTicket.NOTIFY_ORG_ID,
-                'ticket_form_id': NotifySupportTicket.NOTIFY_TICKET_FORM_ID,
-                'priority': NotifySupportTicket.PRIORITY_NORMAL,
-                'tags': ['govuk_notify_support'],
-                'type': 'incident',
-                'custom_fields': [
-                    {'id': '1900000744994', 'value': 'notify_ticket_type_non_technical'},
-                    {'id': '360022836500', 'value': []},
-                    {'id': '360022943959', 'value': None},
-                    {'id': '360022943979', 'value': None},
-                    {'id': '1900000745014', 'value': None},
-                ]
-            }
-        }
-    )
-
-
-def test_zendesk_client_send_ticket_data_to_zendesk(zendesk_client, app, mocker, rmock):
+def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, mocker, rmock):
     rmock.request(
         'POST',
         ZendeskClient.ZENDESK_TICKET_URL,
@@ -64,22 +31,26 @@ def test_zendesk_client_send_ticket_data_to_zendesk(zendesk_client, app, mocker,
         }}
     )
     mock_logger = mocker.patch.object(app.logger, 'info')
-    zendesk_client.send_ticket_data_to_zendesk({'ticket_data': 'Ticket content'})
+
+    ticket = NotifySupportTicket('subject', 'message', 'incident')
+    zendesk_client.send_ticket_to_zendesk(ticket)
 
     assert rmock.last_request.headers['Authorization'][:6] == 'Basic '
     b64_auth = rmock.last_request.headers['Authorization'][6:]
     assert b64decode(b64_auth.encode()).decode() == 'zd-api-notify@digital.cabinet-office.gov.uk/token:testkey'
-    assert rmock.last_request.json() == {'ticket_data': 'Ticket content'}
+    assert rmock.last_request.json() == ticket.request_data
     mock_logger.assert_called_once_with('Zendesk create ticket 12345 succeeded')
 
 
-def test_zendesk_client_send_ticket_data_to_zendesk_error(zendesk_client, app, rmock, mocker):
+def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, mocker, rmock):
     rmock.request('POST', ZendeskClient.ZENDESK_TICKET_URL, status_code=401, json={'foo': 'bar'})
 
     mock_logger = mocker.patch.object(app.logger, 'error')
 
+    ticket = NotifySupportTicket('subject', 'message', 'incident')
+
     with pytest.raises(ZendeskError):
-        zendesk_client.send_ticket_data_to_zendesk({'ticket_data': 'Ticket content'})
+        zendesk_client.send_ticket_to_zendesk(ticket)
 
     mock_logger.assert_called_with("Zendesk create ticket request failed with 401 '{'foo': 'bar'}'")
 

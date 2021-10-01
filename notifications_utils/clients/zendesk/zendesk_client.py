@@ -20,13 +20,9 @@ class ZendeskClient():
         self.api_key = app.config.get('ZENDESK_API_KEY')
 
     def send_ticket_to_zendesk(self, ticket):
-        ticket_data = ticket.request_data
-        self.send_ticket_data_to_zendesk(ticket_data)
-
-    def send_ticket_data_to_zendesk(self, data):
         response = requests.post(
             self.ZENDESK_TICKET_URL,
-            json=data,
+            json=ticket.request_data,
             auth=(
                 f'{self.NOTIFY_ZENDESK_EMAIL}/token',
                 self.api_key
