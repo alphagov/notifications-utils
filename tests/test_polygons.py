@@ -162,7 +162,6 @@ def test_smoothing_doesnt_return_small_artifacts(
     assert len(square.smooth) == expected_number_of_polygons_after_smoothing
 
 
-
 @pytest.mark.parametrize('polygons, expected_count_before, expected_count_after', (
     ([], 0, 0),
     ([HACKNEY_MARSHES], 1, 1),

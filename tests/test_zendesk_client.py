@@ -117,8 +117,8 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
     notify_ticket_form = NotifySupportTicket('subject',
                                              'message',
                                              'question',
-                                              user_name=name,
-                                              user_email='user@example.com')
+                                             user_name=name,
+                                             user_email='user@example.com')
 
     assert notify_ticket_form.request_data['ticket']['requester']['email'] == 'user@example.com'
     assert notify_ticket_form.request_data['ticket']['requester']['name'] == zendesk_name
