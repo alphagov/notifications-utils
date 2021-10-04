@@ -8,25 +8,6 @@ class ZendeskError(Exception):
 
 
 class ZendeskClient():
-    PRIORITY_URGENT = 'urgent'
-    PRIORITY_HIGH = 'high'
-    PRIORITY_NORMAL = 'normal'
-    PRIORITY_LOW = 'low'
-
-    TYPE_PROBLEM = 'problem'
-    TYPE_INCIDENT = 'incident'
-    TYPE_QUESTION = 'question'
-    TYPE_TASK = 'task'
-
-    TAGS_P2 = 'govuk_notify_support'
-    TAGS_P1 = 'govuk_notify_emergency'
-
-    # Group: 3rd Line--Notify Support
-    NOTIFY_GROUP_ID = 360000036529
-
-    # Organization: GDS
-    NOTIFY_ORG_ID = 21891972
-
     # the account used to authenticate with. If no requester is provided, the ticket will come from this account.
     NOTIFY_ZENDESK_EMAIL = 'zd-api-notify@digital.cabinet-office.gov.uk'
 
@@ -38,54 +19,10 @@ class ZendeskClient():
     def init_app(self, app, *args, **kwargs):
         self.api_key = app.config.get('ZENDESK_API_KEY')
 
-    def create_ticket(
-        self,
-        subject,
-        message,
-        ticket_type,
-        p1=False,
-        user_name=None,
-        user_email=None,
-        tags=None,
-        requester_sees_message_content=True,
-    ):
-        """
-        This takes the data needed to create a ticket, formats it and sends it to Zendesk.
-        This can be removed once all the code is using the `NotifySupportTicket` class to format the data
-        and the `send_ticket_data_to_zendesk` method to make the actual request.
-        """
-        data = {
-            'ticket': {
-                'subject': subject,
-                'comment': {
-                    'body': message,
-                    'public': requester_sees_message_content,
-                },
-                'group_id': self.NOTIFY_GROUP_ID,
-                'organization_id': self.NOTIFY_ORG_ID,
-                'priority': self.PRIORITY_URGENT if p1 else self.PRIORITY_NORMAL,
-                'tags': [self.TAGS_P1 if p1 else self.TAGS_P2] + (tags or []),
-                'type': ticket_type
-            }
-        }
-
-        # if no requester provided, then the call came from within Notify 👻
-        if user_email:
-            data['ticket']['requester'] = {
-                'email': user_email,
-                'name': user_name or '(no name supplied)'
-            }
-
-        self.send_ticket_data_to_zendesk(data)
-
     def send_ticket_to_zendesk(self, ticket):
-        ticket_data = ticket.request_data
-        self.send_ticket_data_to_zendesk(ticket_data)
-
-    def send_ticket_data_to_zendesk(self, data):
         response = requests.post(
             self.ZENDESK_TICKET_URL,
-            json=data,
+            json=ticket.request_data,
             auth=(
                 f'{self.NOTIFY_ZENDESK_EMAIL}/token',
                 self.api_key

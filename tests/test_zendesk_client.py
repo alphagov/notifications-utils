@@ -1,5 +1,4 @@
 from base64 import b64decode
-from unittest.mock import call
 
 import pytest
 
@@ -21,158 +20,7 @@ def zendesk_client(app):
     return client
 
 
-@pytest.mark.parametrize('extra_args, expected_tag_list, expected_priority', (
-    (
-        {},
-        ['govuk_notify_support'],
-        'normal',
-    ),
-    (
-        {
-            'p1': False,
-        },
-        ['govuk_notify_support'],
-        'normal',
-    ),
-    (
-        {
-            'p1': True,
-        },
-        ['govuk_notify_emergency'],
-        'urgent',
-    ),
-    (
-        {
-            'tags': ['a', 'b', 'c'],
-        },
-        ['govuk_notify_support', 'a', 'b', 'c'],
-        'normal',
-    ),
-    (
-        {
-            'p1': True,
-            'tags': ['a', 'b', 'c'],
-        },
-        ['govuk_notify_emergency', 'a', 'b', 'c'],
-        'urgent',
-    ),
-))
-def test_create_ticket(
-    zendesk_client,
-    mocker,
-    extra_args,
-    expected_tag_list,
-    expected_priority,
-):
-    mock_send_ticket_data = mocker.patch.object(zendesk_client, 'send_ticket_data_to_zendesk')
-
-    zendesk_client.create_ticket('subject', 'message', 'problem', **extra_args)
-
-    mock_send_ticket_data.assert_called_once_with(
-        {
-            'ticket': {
-                'subject': 'subject',
-                'comment': {'body': 'message', 'public': True},
-                'group_id': 360000036529,
-                'organization_id': 21891972,
-                'priority': expected_priority,
-                'tags': expected_tag_list,
-                'type': 'problem'
-            }
-        }
-    )
-
-
-@pytest.mark.parametrize('name, zendesk_name', [
-    ('Name', 'Name'),
-    (None, '(no name supplied)')
-])
-def test_create_ticket_with_user_name_and_email(zendesk_client, mocker, name, zendesk_name):
-    mock_send_ticket_data = mocker.patch.object(zendesk_client, 'send_ticket_data_to_zendesk')
-
-    zendesk_client.create_ticket(
-        'subject',
-        'message',
-        ticket_type=zendesk_client.TYPE_PROBLEM,
-        user_name=name,
-        user_email='user@example.com'
-    )
-
-    mock_send_ticket_data.assert_called_once_with(
-        {
-            'ticket': {
-                'subject': 'subject',
-                'comment': {'body': 'message', 'public': True},
-                'group_id': 360000036529,
-                'organization_id': 21891972,
-                'priority': 'normal',
-                'tags': ['govuk_notify_support'],
-                'type': 'problem',
-                'requester': {
-                    'name': zendesk_name,
-                    'email': 'user@example.com',
-                }
-            }
-        }
-    )
-
-
-def test_create_ticket_with_message_hidden_from_requester(zendesk_client, mocker):
-    mock_send_ticket_data = mocker.patch.object(zendesk_client, 'send_ticket_data_to_zendesk')
-
-    zendesk_client.create_ticket(
-        'subject', 'message', 'question',
-        requester_sees_message_content=False,
-    )
-
-    assert mock_send_ticket_data.call_args_list == [call(
-        {
-        'ticket': {
-            'subject': 'subject',
-            'comment': {'body': 'message', 'public': False},
-            'group_id': 360000036529,
-            'organization_id': 21891972,
-            'priority': 'normal',
-            'tags': ['govuk_notify_support'],
-            'type': 'question'
-        }
-    }
-    )]
-
-def test_send_ticket_to_zendesk(mocker, zendesk_client):
-    mock_send_ticket_data = mocker.patch.object(zendesk_client, 'send_ticket_data_to_zendesk')
-
-    ticket = NotifySupportTicket('subject', 'message', 'incident')
-
-    zendesk_client.send_ticket_to_zendesk(ticket)
-
-    mock_send_ticket_data.assert_called_once_with(
-        {
-            'ticket': {
-                'subject': 'subject',
-                'comment': {
-                    'body': 'message',
-                    'public': True,
-                },
-                'group_id': NotifySupportTicket.NOTIFY_GROUP_ID,
-                'organization_id': NotifySupportTicket.NOTIFY_ORG_ID,
-                'ticket_form_id': NotifySupportTicket.NOTIFY_TICKET_FORM_ID,
-                'priority': NotifySupportTicket.PRIORITY_NORMAL,
-                'tags': ['govuk_notify_support'],
-                'type': 'incident',
-                'custom_fields': [
-                    {'id': '1900000744994', 'value': 'notify_ticket_type_non_technical'},
-                    {'id': '360022836500', 'value': []},
-                    {'id': '360022943959', 'value': None},
-                    {'id': '360022943979', 'value': None},
-                    {'id': '1900000745014', 'value': None},
-                ]
-            }
-        }
-    )
-
-
-def test_zendesk_client_send_ticket_data_to_zendesk(zendesk_client, app, mocker, rmock):
+def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, mocker, rmock):
     rmock.request(
         'POST',
         ZendeskClient.ZENDESK_TICKET_URL,
@@ -183,22 +31,26 @@ def test_zendesk_client_send_ticket_data_to_zendesk(zendesk_client, app, mocker,
         }}
     )
     mock_logger = mocker.patch.object(app.logger, 'info')
-    zendesk_client.send_ticket_data_to_zendesk({'ticket_data': 'Ticket content'})
+
+    ticket = NotifySupportTicket('subject', 'message', 'incident')
+    zendesk_client.send_ticket_to_zendesk(ticket)
 
     assert rmock.last_request.headers['Authorization'][:6] == 'Basic '
     b64_auth = rmock.last_request.headers['Authorization'][6:]
     assert b64decode(b64_auth.encode()).decode() == 'zd-api-notify@digital.cabinet-office.gov.uk/token:testkey'
-    assert rmock.last_request.json() == {'ticket_data': 'Ticket content'}
+    assert rmock.last_request.json() == ticket.request_data
     mock_logger.assert_called_once_with('Zendesk create ticket 12345 succeeded')
 
 
-def test_zendesk_client_send_ticket_data_to_zendesk_error(zendesk_client, app, rmock, mocker):
+def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, mocker, rmock):
     rmock.request('POST', ZendeskClient.ZENDESK_TICKET_URL, status_code=401, json={'foo': 'bar'})
 
     mock_logger = mocker.patch.object(app.logger, 'error')
 
+    ticket = NotifySupportTicket('subject', 'message', 'incident')
+
     with pytest.raises(ZendeskError):
-        zendesk_client.send_ticket_data_to_zendesk({'ticket_data': 'Ticket content'})
+        zendesk_client.send_ticket_to_zendesk(ticket)
 
     mock_logger.assert_called_with("Zendesk create ticket request failed with 401 '{'foo': 'bar'}'")
 
@@ -265,8 +117,8 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
     notify_ticket_form = NotifySupportTicket('subject',
                                              'message',
                                              'question',
-                                              user_name=name,
-                                              user_email='user@example.com')
+                                             user_name=name,
+                                             user_email='user@example.com')
 
     assert notify_ticket_form.request_data['ticket']['requester']['email'] == 'user@example.com'
     assert notify_ticket_form.request_data['ticket']['requester']['name'] == zendesk_name
