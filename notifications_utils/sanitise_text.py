@@ -13,7 +13,7 @@ class SanitiseText:
         '“': '"',  # LEFT DOUBLE QUOTATION MARK (U+201C)
         '”': '"',  # RIGHT DOUBLE QUOTATION MARK (U+201D)
         '\u200B': '',  # ZERO WIDTH SPACE (U+200B)
-        '\u00A0': '',  # NON BREAKING WHITE SPACE (U+200B)
+        '\u00A0': ' ',  # NON BREAKING WHITE SPACE (U+200B)
         '\t': ' ',  # TAB
     }
 
