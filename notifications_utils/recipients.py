@@ -14,7 +14,7 @@ from orderedset import OrderedSet
 
 from notifications_utils.columns import Cell, Columns, Row
 from notifications_utils.formatters import (
-    OBSCURE_WHITESPACE,
+    OBSCURE_WHITESPACE_TO_REMOVE,
     strip_and_remove_obscure_whitespace,
     strip_whitespace,
 )
@@ -363,7 +363,7 @@ class InvalidAddressError(InvalidEmailError):
 
 def normalise_phone_number(number):
 
-    for character in string.whitespace + OBSCURE_WHITESPACE + '()-+':
+    for character in string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + '()-+':
         number = number.replace(character, '')
 
     try:

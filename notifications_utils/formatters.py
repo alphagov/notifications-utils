@@ -16,7 +16,7 @@ from . import email_with_smart_quotes_regex
 
 LINK_STYLE = 'word-wrap: break-word; color: #1D70B8;'
 
-OBSCURE_WHITESPACE = (
+OBSCURE_WHITESPACE_TO_REMOVE = (
     '\u180E'  # Mongolian vowel separator
     '\u200B'  # zero width space
     '\u200C'  # zero width non-joiner
@@ -323,19 +323,19 @@ def remove_smart_quotes_from_email_addresses(value):
 
 def strip_whitespace(value, extra_characters=''):
     if value is not None and hasattr(value, 'strip'):
-        return value.strip(string.whitespace + OBSCURE_WHITESPACE + extra_characters)
+        return value.strip(string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + extra_characters)
     return value
 
 
 def strip_and_remove_obscure_whitespace(value):
-    for character in OBSCURE_WHITESPACE:
+    for character in OBSCURE_WHITESPACE_TO_REMOVE:
         value = value.replace(character, '')
 
     return value.strip(string.whitespace)
 
 
 def remove_whitespace(value):
-    for character in string.whitespace + OBSCURE_WHITESPACE:
+    for character in string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE:
         value = value.replace(character, '')
 
     return value
