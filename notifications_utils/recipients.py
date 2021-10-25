@@ -362,8 +362,8 @@ class InvalidAddressError(InvalidEmailError):
 
 
 def normalise_phone_number(number):
-
-    for character in string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + '()-+':
+    # something in here
+    for character in string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + OBSCURE_WHITESPACE_TO_REPLACE + '()-+':  # noqa
         number = number.replace(character, '')
 
     try:

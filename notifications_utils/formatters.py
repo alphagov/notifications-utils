@@ -22,8 +22,11 @@ OBSCURE_WHITESPACE_TO_REMOVE = (
     '\u200C'  # zero width non-joiner
     '\u200D'  # zero width joiner
     '\u2060'  # word joiner
-    '\u00A0'  # non breaking space
     '\uFEFF'  # zero width non-breaking space
+)
+
+OBSCURE_WHITESPACE_TO_REPLACE = (
+    '\u00A0'  # non breaking space
 )
 
 
@@ -271,6 +274,12 @@ def replace_hyphens_with_en_dashes(value):
     )
 
 
+def replace_obscure_whitespace_with_single_space(value):
+    for character in OBSCURE_WHITESPACE_TO_REPLACE:
+        value = value.replace(character, ' ')
+    return value
+
+
 def replace_hyphens_with_non_breaking_hyphens(value):
     return value.replace(
         '-',
@@ -289,10 +298,10 @@ def normalise_lines(value):
 
 
 def normalise_line(line):
-    return multiple_spaces_in_a_row.sub(
-        ' ',
-        strip_and_remove_obscure_whitespace(line),
-    )
+    line = replace_obscure_whitespace_with_single_space(line)
+    line = strip_and_remove_obscure_whitespace(line)
+    normalised_line = multiple_spaces_in_a_row.sub(' ', line)
+    return normalised_line
 
 
 def normalise_multiple_newlines(value):
@@ -322,8 +331,11 @@ def remove_smart_quotes_from_email_addresses(value):
 
 
 def strip_whitespace(value, extra_characters=''):
+    # Removes from the beginning and end of the string all whitespace characters and `extra_characters`
     if value is not None and hasattr(value, 'strip'):
-        return value.strip(string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + extra_characters)
+        return value.strip(
+            string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + OBSCURE_WHITESPACE_TO_REPLACE + extra_characters
+        )
     return value
 
 
@@ -335,7 +347,8 @@ def strip_and_remove_obscure_whitespace(value):
 
 
 def remove_whitespace(value):
-    for character in string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE:
+    # Removes ALL whitespace, not just the obscure characters we normaly remove
+    for character in string.whitespace + OBSCURE_WHITESPACE_TO_REMOVE + OBSCURE_WHITESPACE_TO_REPLACE:
         value = value.replace(character, '')
 
     return value
@@ -347,6 +360,7 @@ def strip_unsupported_characters(value):
 
 def normalise_whitespace(value):
     # leading and trailing whitespace removed, all inner whitespace becomes a single space
+    value = replace_obscure_whitespace_with_single_space(value)
     return ' '.join(strip_and_remove_obscure_whitespace(value).split())
 
 

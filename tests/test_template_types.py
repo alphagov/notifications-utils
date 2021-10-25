@@ -1178,6 +1178,8 @@ def test_character_count_for_non_sms_templates(
     ("  G      D       S  ", {}, None, 5, 5),  # Becomes `G D S`
     ("P1 \n\n\n\n\n\n P2", {}, None, 6, 6),  # Becomes `P1\n\nP2`
     ("a    ((placeholder))    b", {"placeholder": ""}, None, 4, 3),  # Counted as `a  b` then `a b`
+    ("non break\u00A0space", {}, None, 15, 15),  # Becomes `non break space`
+    ("non break\u00A0\u00A0\u00A0space", {}, None, 15, 15),  # Becomes `non break space`
 ])
 def test_character_count_for_sms_templates(
     content, values, prefix, expected_count_in_template, expected_count_in_notification, template_class
@@ -1210,6 +1212,8 @@ def test_character_count_for_sms_templates(
     ("  ", {}, 0, 0),
     ("  G      D       S  ", {}, 5, 5),  # Becomes `G D S`
     ("P1 \n\n\n\n\n\n P2", {}, 6, 6),  # Becomes `P1\n\nP2`
+    ("non break\u00A0space", {}, 15, 15),  # Becomes `non break space`
+    ("non break\u00A0\u00A0\u00A0space", {}, 15, 15),  # Becomes `non break space`
 ])
 def test_character_count_for_broadcast_templates(
     content, values, expected_count_in_template, expected_count_in_notification, template_class
