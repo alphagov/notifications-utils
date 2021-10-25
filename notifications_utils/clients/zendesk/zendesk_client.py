@@ -72,7 +72,8 @@ class NotifySupportTicket:
                  ticket_categories=None,
                  org_id=None,
                  org_type=None,
-                 service_id=None):
+                 service_id=None,
+                 email_ccs=None):
         self.subject = subject
         self.message = message
         self.ticket_type = ticket_type
@@ -85,6 +86,7 @@ class NotifySupportTicket:
         self.org_id = org_id
         self.org_type = org_type
         self.service_id = service_id
+        self.email_ccs = email_ccs
 
     @property
     def request_data(self):
@@ -104,6 +106,12 @@ class NotifySupportTicket:
                 'custom_fields': self._get_custom_fields()
             }
         }
+
+        if self.email_ccs:
+            data['ticket']['email_ccs'] = [
+                {'user_email': email, 'action': 'put'}
+                for email in self.email_ccs
+            ]
 
         # if no requester provided, then the call came from within Notify 👻
         if self.user_email:
