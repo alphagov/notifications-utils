@@ -13,9 +13,9 @@ from notifications_utils.formatters import (
     remove_whitespace_before_punctuation,
     replace_hyphens_with_en_dashes,
     sms_encode,
+    strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
     strip_unsupported_characters,
-    strip_whitespace,
     unlink_govuk_escaped,
 )
 from notifications_utils.template import (
@@ -1071,8 +1071,8 @@ def test_unicode_dash_lookup():
     """,
     ' \u180E\u200B \u200C bar \u200D \u2060\uFEFF ',
 ])
-def test_strip_whitespace(value):
-    assert strip_whitespace(value) == 'bar'
+def test_strip_all_whitespace(value):
+    assert strip_all_whitespace(value) == 'bar'
 
 
 @pytest.mark.parametrize('value', [
@@ -1105,5 +1105,15 @@ def test_strip_unsupported_characters():
     assert strip_unsupported_characters("line one\u2028line two") == ("line oneline two")
 
 
-def test_normalise_whitespace():
-    assert normalise_whitespace('\u200C Your tax   is\ndue\n\n') == 'Your tax is due'
+@pytest.mark.parametrize('value', [
+    '\u200C Your tax   is\ndue\n\n',
+    '  Your tax is due  ',
+    # Non breaking spaces replaced by single spaces
+    '\u00A0Your\u00A0tax\u00A0 is\u00A0\u00A0due\u00A0',
+    # zero width spaces are removed
+    '\u180EYour \u200Btax\u200C is \u200D\u2060due \uFEFF',
+    # tabs are replaced by single spaces
+    '\tYour tax\tis due  ',
+])
+def test_normalise_whitespace(value):
+    assert normalise_whitespace(value) == 'Your tax is due'

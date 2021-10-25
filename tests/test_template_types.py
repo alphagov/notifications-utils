@@ -705,6 +705,20 @@ def test_broadcast_message_normalises_newlines(content):
     )
 
 
+@pytest.mark.parametrize('template_class', (
+    SMSMessageTemplate,
+    SMSBodyPreviewTemplate,
+    BroadcastMessageTemplate,
+    # Note: SMSPreviewTemplate and BroadcastPreviewTemplate not tested here
+    # as both will render full HTML template, not just the body
+))
+def test_phone_templates_normalise_whitespace(template_class):
+    content = "  Hi\u00A0there\u00A0 what's\u200D up\t"
+    assert str(
+        template_class({'content': content, 'template_type': template_class.template_type})
+    ) == "Hi there what's up"
+
+
 @freeze_time("2012-12-12 12:12:12")
 @mock.patch('notifications_utils.template.LetterPreviewTemplate.jinja_template.render')
 @mock.patch('notifications_utils.template.unlink_govuk_escaped')

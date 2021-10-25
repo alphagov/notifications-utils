@@ -21,7 +21,7 @@ params, ids = zip(
     (('’', '\''), 'compatibility transform unicode char (RIGHT SINGLE QUOTATION MARK (U+2019)'),
     (('“', '"'), 'compatibility transform unicode char (LEFT DOUBLE QUOTATION MARK (U+201C)	'),
     (('”', '"'), 'compatibility transform unicode char (RIGHT DOUBLE QUOTATION MARK (U+201D)'),
-    (('\xa0', ''), 'nobreak transform unicode char (NO-BREAK SPACE (U+00A0))'),
+    (('\xa0', ' '), 'nobreak transform unicode char (NO-BREAK SPACE (U+00A0))'),
     # this unicode char is not decomposable
     (('😬', '?'), 'undecomposable unicode char (grimace emoji)'),
     (('↉', '?'), 'vulgar fraction (↉) that we do not try decomposing')
