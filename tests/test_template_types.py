@@ -493,7 +493,7 @@ def test_escaping_govuk_in_email_templates(template_content, expected):
 
 
 def test_stripping_of_unsupported_characters_in_email_templates():
-    template_content = "line one\u2028line two"
+    template_content = "line one\u2028line two"  # \u2028 is line seperator character
     expected = "line oneline two"
     assert expected in str(PlainTextEmailTemplate({
         'content': template_content, 'subject': '', 'template_type': 'email',
