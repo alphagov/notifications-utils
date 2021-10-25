@@ -284,15 +284,13 @@ def normalise_whitespace_and_newlines(value):
 
 def normalise_lines(value):
     return [
-        normalise_line(line) for line in value.splitlines()
+        normalise_whitespace(line) for line in value.splitlines()
     ]
 
 
-def normalise_line(line):
-    return multiple_spaces_in_a_row.sub(
-        ' ',
-        strip_and_remove_obscure_whitespace(line),
-    )
+def normalise_whitespace(value):
+    # leading and trailing whitespace removed, all inner whitespace becomes a single space
+    return ' '.join(strip_and_remove_obscure_whitespace(value).split())
 
 
 def normalise_multiple_newlines(value):
@@ -343,11 +341,6 @@ def remove_whitespace(value):
 
 def strip_unsupported_characters(value):
     return value.replace('\u2028', '')
-
-
-def normalise_whitespace(value):
-    # leading and trailing whitespace removed, all inner whitespace becomes a single space
-    return ' '.join(strip_and_remove_obscure_whitespace(value).split())
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
