@@ -72,7 +72,8 @@ class NotifySupportTicket:
                  ticket_categories=None,
                  org_id=None,
                  org_type=None,
-                 service_id=None):
+                 service_id=None,
+                 email_ccs=[]):
         self.subject = subject
         self.message = message
         self.ticket_type = ticket_type
@@ -85,12 +86,17 @@ class NotifySupportTicket:
         self.org_id = org_id
         self.org_type = org_type
         self.service_id = service_id
+        self.email_ccs = email_ccs
 
     @property
     def request_data(self):
         data = {
             'ticket': {
                 'subject': self.subject,
+                'email_ccs': [
+                    {'user_email': email, 'action': 'put'}
+                    for email in self.email_ccs
+                ],
                 'comment': {
                     'body': self.message,
                     'public': self.requester_sees_message_content,

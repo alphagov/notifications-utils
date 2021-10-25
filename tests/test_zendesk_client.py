@@ -86,6 +86,7 @@ def test_notify_support_ticket_request_data(p1_arg, expected_tags, expected_prio
                 'body': 'message',
                 'public': True,
             },
+            'email_ccs': [],
             'group_id': NotifySupportTicket.NOTIFY_GROUP_ID,
             'organization_id': NotifySupportTicket.NOTIFY_ORG_ID,
             'ticket_form_id': NotifySupportTicket.NOTIFY_TICKET_FORM_ID,
@@ -172,4 +173,17 @@ def test_notify_support_ticket_request_data_custom_fields(
         {'id': '360022943959', 'value': org_id},
         {'id': '360022943979', 'value': org_type},
         {'id': '1900000745014', 'value': service_id},
+    ]
+
+
+def test_notify_support_ticket_request_data_email_ccs():
+    notify_ticket_form = NotifySupportTicket(
+        'subject',
+        'message',
+        'question',
+        email_ccs=['someone@example.com']
+    )
+
+    assert notify_ticket_form.request_data['ticket']['email_ccs'] == [
+        {'user_email': 'someone@example.com', 'action': 'put'},
     ]
