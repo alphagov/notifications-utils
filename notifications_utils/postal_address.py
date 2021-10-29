@@ -4,7 +4,7 @@ from functools import lru_cache
 from notifications_utils.countries import UK, Country, CountryNotFoundError
 from notifications_utils.countries.data import Postage
 from notifications_utils.formatters import (
-    normalise_lines,
+    get_lines_with_normalised_whitespace,
     remove_whitespace,
     remove_whitespace_before_punctuation,
 )
@@ -37,7 +37,7 @@ class PostalAddress():
 
         self._lines = [
             remove_whitespace_before_punctuation(line.rstrip(' ,'))
-            for line in normalise_lines(self.raw_address)
+            for line in get_lines_with_normalised_whitespace(self.raw_address)
             if line.rstrip(' ,')
         ] or ['']
 

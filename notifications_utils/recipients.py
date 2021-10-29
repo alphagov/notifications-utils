@@ -1,6 +1,5 @@
 import csv
 import re
-import string
 import sys
 from collections import OrderedDict, namedtuple
 from contextlib import suppress
@@ -14,9 +13,9 @@ from orderedset import OrderedSet
 
 from notifications_utils.columns import Cell, Columns, Row
 from notifications_utils.formatters import (
-    OBSCURE_WHITESPACE,
+    ALL_WHITESPACE,
+    strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
-    strip_whitespace,
 )
 from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
@@ -60,7 +59,7 @@ class RecipientCSV():
         allow_international_sms=False,
         allow_international_letters=False,
     ):
-        self.file_data = strip_whitespace(file_data, extra_characters=',')
+        self.file_data = strip_all_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.whitelist = whitelist
@@ -363,7 +362,7 @@ class InvalidAddressError(InvalidEmailError):
 
 def normalise_phone_number(number):
 
-    for character in string.whitespace + OBSCURE_WHITESPACE + '()-+':
+    for character in ALL_WHITESPACE + '()-+':
         number = number.replace(character, '')
 
     try:

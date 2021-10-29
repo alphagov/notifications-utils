@@ -16,16 +16,20 @@ from . import email_with_smart_quotes_regex
 
 LINK_STYLE = 'word-wrap: break-word; color: #1D70B8;'
 
-OBSCURE_WHITESPACE = (
+OBSCURE_ZERO_WIDTH_WHITESPACE = (
     '\u180E'  # Mongolian vowel separator
     '\u200B'  # zero width space
     '\u200C'  # zero width non-joiner
     '\u200D'  # zero width joiner
     '\u2060'  # word joiner
-    '\u00A0'  # non breaking space
     '\uFEFF'  # zero width non-breaking space
 )
 
+OBSCURE_FULL_WIDTH_WHITESPACE = (
+    '\u00A0'  # non breaking space
+)
+
+ALL_WHITESPACE = string.whitespace + OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE
 
 mistune._block_quote_leading_pattern = re.compile(r'^ *\^ ?', flags=re.M)
 mistune.BlockGrammar.block_quote = re.compile(r'^( *\^[^\n]+(\n[^\n]+)*\n*)+')
@@ -279,20 +283,27 @@ def replace_hyphens_with_non_breaking_hyphens(value):
 
 
 def normalise_whitespace_and_newlines(value):
-    return '\n'.join(normalise_lines(value))
+    return '\n'.join(get_lines_with_normalised_whitespace(value))
 
 
-def normalise_lines(value):
+def get_lines_with_normalised_whitespace(value):
     return [
-        normalise_line(line) for line in value.splitlines()
+        normalise_whitespace(line) for line in value.splitlines()
     ]
 
 
-def normalise_line(line):
-    return multiple_spaces_in_a_row.sub(
-        ' ',
-        strip_and_remove_obscure_whitespace(line),
-    )
+def normalise_whitespace(value):
+    # leading and trailing whitespace removed
+    # inner whitespace with width becomes a single space
+    # inner whitespace with zero width is removed
+    # multiple space characters next to each other become just a single space character
+    for character in OBSCURE_FULL_WIDTH_WHITESPACE:
+        value = value.replace(character, ' ')
+
+    for character in OBSCURE_ZERO_WIDTH_WHITESPACE:
+        value = value.replace(character, '')
+
+    return ' '.join(value.split())
 
 
 def normalise_multiple_newlines(value):
@@ -321,21 +332,23 @@ def remove_smart_quotes_from_email_addresses(value):
     )
 
 
-def strip_whitespace(value, extra_characters=''):
+def strip_all_whitespace(value, extra_characters=''):
+    # Removes from the beginning and end of the string all whitespace characters and `extra_characters`
     if value is not None and hasattr(value, 'strip'):
-        return value.strip(string.whitespace + OBSCURE_WHITESPACE + extra_characters)
+        return value.strip(ALL_WHITESPACE + extra_characters)
     return value
 
 
 def strip_and_remove_obscure_whitespace(value):
-    for character in OBSCURE_WHITESPACE:
+    for character in OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE:
         value = value.replace(character, '')
 
     return value.strip(string.whitespace)
 
 
 def remove_whitespace(value):
-    for character in string.whitespace + OBSCURE_WHITESPACE:
+    # Removes ALL whitespace, not just the obscure characters we normaly remove
+    for character in ALL_WHITESPACE:
         value = value.replace(character, '')
 
     return value
@@ -343,11 +356,6 @@ def remove_whitespace(value):
 
 def strip_unsupported_characters(value):
     return value.replace('\u2028', '')
-
-
-def normalise_whitespace(value):
-    # leading and trailing whitespace removed, all inner whitespace becomes a single space
-    return ' '.join(strip_and_remove_obscure_whitespace(value).split())
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
