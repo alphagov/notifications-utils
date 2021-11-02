@@ -101,8 +101,6 @@ HTML_ENTITY_MAPPING = (
 # using `^`, so we slice that off and recompile
 url = re.compile(mistune.InlineGrammar.url.pattern[1:])
 
-multiple_spaces_in_a_row = re.compile(r'\s{2,}')
-
 more_than_two_newlines_in_a_row = re.compile(r'\n{3,}')
 
 
