@@ -1,4 +1,3 @@
-recursive-include notifications_utils *.geojson
 recursive-include notifications_utils *.jinja2
 recursive-include notifications_utils *.json
 recursive-include notifications_utils *.txt

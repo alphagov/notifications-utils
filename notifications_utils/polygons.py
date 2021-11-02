@@ -276,7 +276,7 @@ def flatten_polygons(polygons):
         return []
     if isinstance(polygons, MultiPolygon):
         return [
-            p for p in polygons
+            p for p in polygons.geoms
         ]
     else:
         return [polygons]
