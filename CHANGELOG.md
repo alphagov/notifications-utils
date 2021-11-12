@@ -1,6 +1,12 @@
 # CHANGELOG
 
 This is only used for recording changes for major version bumps.
+More minor changes may optionally be recorded here too.
+
+## 48.1.0
+
+* Add new NotifyCelery base class as a drop in replacement to
+DRY-up the "app/celery/celery.py" file we have in many apps.
 
 ## 48.0.0
 
