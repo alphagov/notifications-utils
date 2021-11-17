@@ -10,8 +10,6 @@ def make_task(app):
     class NotifyTask(Task):
         abstract = True
         start = None
-        # TEMPORARY: disable Celery argument checking
-        typing = False
 
         @property
         def queue_name(self):
@@ -74,9 +72,6 @@ def make_task(app):
             # ensure task has flask context to access config, logger, etc
             with self.app_context():
                 self.start = time.monotonic()
-                # TEMPORARY: remove old piggyback values from kwargs
-                kwargs.pop('request_id', None)
-
                 return super().__call__(*args, **kwargs)
 
     return NotifyTask
