@@ -1,5 +1,8 @@
 import itertools
 
+from pyproj import CRS, Transformer
+from pyproj.aoi import AreaOfInterest
+from pyproj.database import query_utm_crs_info
 from shapely.geometry import (
     JOIN_STYLE,
     GeometryCollection,
@@ -9,18 +12,37 @@ from shapely.geometry import (
 from shapely.ops import unary_union
 from werkzeug.utils import cached_property
 
+transformers = {
+    utm_code: {
+        # WGS84 (World Geodetic System, 1984) is a standard which
+        # defines the size and shape of the earth. Coordinates in the
+        # data we get from ONS, and that we output as CAP XML are
+        # expressed relative to the constants in WGS84.
+        'from_wgs84': Transformer.from_crs('EPSG:4326', utm_code, always_xy=True),
+        'to_wgs84': Transformer.from_crs(utm_code, 'EPSG:4326', always_xy=True),
+    }
+    for utm_code in {
+        # These are the names of coordinate reference systems, which
+        # provide mathemtical functions for transforming WGS84
+        # coordinates to linear measures of distance across the earth’s
+        # surface. The functions are different in different areas of the
+        # earth because the earth is not a perfect sphere.
+        # —
+        # The UK, west to east
+        'epsg:32629',  # Zone 29N: Between 12°W and 6°W, equator and 84°N
+        'epsg:32630',  # Zone 30N: Between 6°W and 0°W, equator and 84°N
+        'epsg:32631',  # Zone 31N: Between 0°E and 6°E, equator and 84°N
+        # Santa Claus village (Finland)
+        'epsg:32635',  # Zone 35N: Between 24°E and 30°E, equator and 84°N
+    }
+}
+
 
 class Polygons():
 
-    approx_metres_to_degree = 111_320
-    approx_square_metres_to_square_degree = approx_metres_to_degree ** 2
-    square_degrees_to_square_miles = (
-        approx_square_metres_to_square_degree / (1000 * 1000) * 0.386102
-    )
-
     # Estimated amount of bleed into neigbouring areas based on typical
     # range/separation of cell towers.
-    approx_bleed_in_degrees = 1_500 / approx_metres_to_degree
+    approx_bleed_in_m = 1_500
 
     # Controls how much buffer to add for a shape of a given perimeter.
     # Smaller number means more buffering and a smoother shape. For
@@ -45,15 +67,92 @@ class Polygons():
 
     output_precision_in_decimal_places = 6
 
-    def __init__(self, polygons):
-        if not polygons:
-            self.polygons = []
-        elif isinstance(polygons[0], list):
-            self.polygons = [
-                Polygon(polygon) for polygon in polygons
-            ]
+    def __init__(self, polygons, utm_crs=None):
+
+        if not isinstance(polygons, list):
+            raise TypeError(
+                f'First argument to {self.__class__.__name__} must be a list '
+                f'(not {type(polygons).__name__})'
+            )
+
+        self.polygons = polygons
+        self.utm_crs = utm_crs
+
+        if self.utm_crs:
+            if utm_crs not in transformers:
+                raise ValueError(
+                    f'Could not find {self.utm_crs} in expected coordinate '
+                    f'systems (are the coordinates in longitude/latitude '
+                    f'order?)'
+                )
         else:
-            self.polygons = polygons
+            for polygon in self:
+                if isinstance(polygon, Polygon):
+                    raise TypeError(
+                        f'Can’t initiate with {Polygon.__name__} objects and no CRS'
+                    )
+                if not isinstance(polygon, list):
+                    raise TypeError(
+                        f'Can’t make {Polygon.__name__} from {type(polygon).__name__} `{polygon}`'
+                    )
+
+    @cached_property
+    def transform_from_wgs84(self):
+        return transformers[self.utm_crs]['from_wgs84']
+
+    @cached_property
+    def transform_to_wgs84(self):
+        return transformers[self.utm_crs]['to_wgs84']
+
+    @cached_property
+    def utm_polygons(self):
+
+        if all(
+            isinstance(polygon, Polygon) for polygon in self
+        ):
+            # These polygons already have UTM coordinates
+            return self
+
+        if not self.polygons:
+            return Polygons([])
+
+        if not self.utm_crs:
+            shapely_polygons = MultiPolygon([Polygon(p) for p in self])
+            utm_crs_list = query_utm_crs_info(
+                datum_name="WGS 84",
+                area_of_interest=AreaOfInterest(
+                    *shapely_polygons.bounds
+                ),
+            )
+            if not utm_crs_list:
+                raise ValueError(
+                    f'Could not find coordinates '
+                    f'{shapely_polygons.bounds} anywhere on the '
+                    f'surface of the earth (are they in '
+                    f'in WGS84 format?)'
+                )
+            self.utm_crs = str(CRS.from_epsg(utm_crs_list[0].code))
+
+        return Polygons(
+            [
+                self._polygon_from_wgs84_coords(polygon) for polygon in self
+            ],
+            utm_crs=self.utm_crs,
+        )
+
+    def _polygon_from_wgs84_coords(self, coords):
+        return Polygon(
+            self.transform_coords(
+                coords,
+                transformer=self.transform_from_wgs84,
+            )
+        )
+
+    @staticmethod
+    def transform_coords(coords, transformer):
+        return [
+            list(transformer.transform(x, y)) for x, y in coords
+        ]
 
     def __getitem__(self, index):
         return self.polygons[index]
@@ -72,7 +171,7 @@ class Polygons():
           large one
         '''
         return sum(
-            polygon.length for polygon in self
+            polygon.length for polygon in self.utm_polygons
         )
 
     @property
@@ -86,16 +185,24 @@ class Polygons():
                 f"Can't determine bounds of empty {self.__class__.__name__}"
             )
         all_min_x, all_min_y, all_max_x, all_max_y = zip(*(
-            polygon.bounds for polygon in self
+            polygon.bounds for polygon in self.utm_polygons
         ))
+
+        min_x_wgs84, min_y_wgs84 = self.transform_to_wgs84.transform(
+            min(all_min_x), min(all_min_y),
+        )
+        max_x_wgs84, max_y_wgs84 = self.transform_to_wgs84.transform(
+            max(all_max_x), max(all_max_y),
+        )
+
         return (
-            min(all_min_x), min(all_min_y), max(all_max_x), max(all_max_y),
+            min_x_wgs84, min_y_wgs84, max_x_wgs84, max_y_wgs84,
         )
 
     @cached_property
-    def buffer_outward_in_degrees(self):
+    def buffer_outward_in_m(self):
         '''
-        Calculates the distance (in degrees) by which to buffer outwards
+        Calculates the distance (in metres) by which to buffer outwards
         when smoothing a given set of polygons. Larger and more complex
         polygons get a larger buffer.
         '''
@@ -105,32 +212,38 @@ class Polygons():
             # broadcast then this joins them together. The aim is to
             # reduce the total number of polygons in areas with many
             # small shapes like Orkney or the Isles of Scilly.
-            self.approx_bleed_in_degrees / 3
+            self.approx_bleed_in_m / 3
         ) + (
             self.perimeter_length / self.perimeter_to_buffer_ratio
         )
 
     @cached_property
-    def buffer_inward_in_degrees(self):
+    def buffer_inward_in_m(self):
         '''
-        Calculates the distance (in degrees) by which to buffer inwards
+        Calculates the distance (in metres) by which to buffer inwards
         when smoothing a given set of polygons. Larger and more complex
         polygons get a larger buffer, to negate the larger outwards
         buffer.
         '''
-        return self.buffer_outward_in_degrees - (
+        return self.buffer_outward_in_m - (
             # We should leave the shape expanded by at least the
             # simplification tolerance in all places, so the
             # simplification never moves a point inside the original
             # shape. In practice half of the tolerance is enough to
             # acheive this.
-            self.simplification_tolerance_in_degrees / 2
+            self.simplification_tolerance_in_m / 2
+        ) - (
+            # This reduces the inward buffer by an additional fixed
+            # ammount. This helps ensure we bound very small polygons
+            # entirely, while not making a significant difference to
+            # large polygons.
+            15
         )
 
     @cached_property
-    def simplification_tolerance_in_degrees(self):
+    def simplification_tolerance_in_m(self):
         '''
-        Calculates a tolerance (in degrees) for how much a point can
+        Calculates a tolerance (in metres) for how much a point can
         deviate from a line joining its two neighbours. Larger and more
         complex polygons get a wider tolerance, in order to keep the
         point count down. See also
@@ -149,9 +262,9 @@ class Polygons():
         relevant.
         '''
         return self.bleed_by(
-            self.buffer_outward_in_degrees
+            self.buffer_outward_in_m
         ).bleed_by(
-            -1 * self.buffer_inward_in_degrees
+            -1 * self.buffer_inward_in_m
         ).remove_smaller_than(
             area_in_square_metres=1
         )
@@ -163,23 +276,23 @@ class Polygons():
         https://shapely.readthedocs.io/en/stable/manual.html#object.simplify
         '''
         return Polygons([
-            polygon.simplify(self.simplification_tolerance_in_degrees)
-            for polygon in self
-        ])
+            polygon.simplify(self.simplification_tolerance_in_m)
+            for polygon in self.utm_polygons
+        ], utm_crs=self.utm_crs)
 
-    def bleed_by(self, distance_in_degrees):
+    def bleed_by(self, distance_in_m):
         '''
         Expands the area of each polygon to give an estimation of how
         far a broadcast would bleed into neighbouring areas.
         '''
         return Polygons(union_polygons([
             polygon.buffer(
-                distance_in_degrees,
+                distance_in_m,
                 resolution=4,
                 join_style=JOIN_STYLE.round,
             )
-            for polygon in self
-        ]))
+            for polygon in self.utm_polygons
+        ]), utm_crs=self.utm_crs)
 
     @cached_property
     def remove_too_small(self):
@@ -193,13 +306,9 @@ class Polygons():
 
     def remove_smaller_than(self, area_in_square_metres):
         return Polygons([
-            polygon for polygon in self
-            if (
-                polygon.area
-            ) > (
-                area_in_square_metres / self.approx_square_metres_to_square_degree
-            )
-        ])
+            polygon for polygon in self.utm_polygons
+            if polygon.area > area_in_square_metres
+        ], utm_crs=self.utm_crs)
 
     @cached_property
     def as_coordinate_pairs_long_lat(self):
@@ -211,7 +320,19 @@ class Polygons():
             [[
                 round(x, self.output_precision_in_decimal_places),
                 round(y, self.output_precision_in_decimal_places),
-            ] for x, y in polygon.exterior.coords]
+            ] for x, y in coords]
+            for coords in self.as_wgs84_coordinates
+        ]
+
+    @property
+    def as_wgs84_coordinates(self):
+        if all(isinstance(polygon, list) for polygon in self):
+            return self.polygons
+        return [
+            self.transform_coords(
+                polygon.exterior.coords,
+                transformer=self.transform_to_wgs84,
+            )
             for polygon in self
         ]
 
@@ -240,9 +361,7 @@ class Polygons():
         approximate conversion of degrees to square miles for UK
         latitudes, rather than a projection.
         '''
-        return sum(
-            polygon.area for polygon in self
-        ) * self.square_degrees_to_square_miles
+        return sum(polygon.area for polygon in self.utm_polygons)
 
     def ratio_of_intersection_with(self, polygons):
         '''
@@ -256,16 +375,16 @@ class Polygons():
         return sum(
             intersection.area
             for intersection in self.intersection_with(polygons)
-        ) * self.square_degrees_to_square_miles / self.estimated_area
+        ) / self.estimated_area
 
     def intersection_with(self, polygons):
-        for comparison in polygons:
-            for polygon in self:
+        for comparison in polygons.utm_polygons:
+            for polygon in self.utm_polygons:
                 yield polygon.intersection(comparison)
 
     def intersects(self, polygons):
-        for comparison in polygons:
-            for polygon in self:
+        for comparison in polygons.utm_polygons:
+            for polygon in self.utm_polygons:
                 if polygon.intersects(comparison):
                     return True
         return False
