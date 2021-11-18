@@ -3,6 +3,12 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 48.2.0
+
+* Enable Celery argument checking for apply_async.
+* Remove redundant "kwargs" handling code for Celery Request ID
+tracing.
+
 ## 48.1.0
 
 * Add new NotifyCelery base class as a drop in replacement to
