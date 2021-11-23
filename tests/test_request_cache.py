@@ -57,6 +57,40 @@ def test_sets_cache(
     )
 
 
+@pytest.mark.parametrize('cache_set_call, expected_redis_client_ttl', (
+    (0, 0),
+    (1, 1),
+    (1.111, 1),
+    ('2000', 2_000),
+))
+def test_sets_cache_with_custom_ttl(
+    mocker,
+    mocked_redis_client,
+    cache_set_call,
+    expected_redis_client_ttl,
+):
+    cache = RequestCache(mocked_redis_client)
+    mock_redis_set = mocker.patch.object(
+        mocked_redis_client, 'set',
+    )
+    mocker.patch.object(
+        mocked_redis_client, 'get',
+        return_value=None,
+    )
+
+    @cache.set('foo', ttl_in_seconds=cache_set_call)
+    def foo():
+        return 'bar'
+
+    foo()
+
+    mock_redis_set.assert_called_once_with(
+        'foo',
+        '"bar"',
+        ex=expected_redis_client_ttl,
+    )
+
+
 def test_raises_if_key_doesnt_match_arguments(mocked_redis_client):
 
     cache = RequestCache(mocked_redis_client)
