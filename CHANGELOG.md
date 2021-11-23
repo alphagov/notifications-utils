@@ -3,6 +3,22 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 50.0.0
+
+* Make icon in `broadcast_preview_template.jinja2` an inline SVG
+  (requires changes to the CSS of consumer code)
+
+## 49.1.0
+
+* Add `ttl_in_seconds` argument to `RequestCache.set` to let users specify
+a custom TTL
+
+## 49.0.0
+
+* `Polygons` must now be called with either `shapely.Polygon` objects and
+a valid Coordinate Reference System code for `utm_crs` or a list of
+lists of coordinates in degrees
+
 ## 48.2.0
 
 * Enable Celery argument checking for apply_async.
