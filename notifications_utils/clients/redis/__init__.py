@@ -15,7 +15,7 @@ def rate_limit_cache_key(service_id, api_key_type):
 
 class RequestCache():
 
-    TTL = int(timedelta(days=7).total_seconds())
+    DEFAULT_TTL = timedelta(days=7).total_seconds()
 
     def __init__(self, redis_client):
         self.redis_client = redis_client
@@ -44,7 +44,7 @@ class RequestCache():
             for argument_name in list(signature(client_method).parameters)
         })
 
-    def set(self, key_format):
+    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL):
 
         def _set(client_method):
 
@@ -58,7 +58,7 @@ class RequestCache():
                 self.redis_client.set(
                     redis_key,
                     json.dumps(api_response),
-                    ex=self.TTL,
+                    ex=int(ttl_in_seconds),
                 )
                 return api_response
 
