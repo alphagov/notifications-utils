@@ -1,3 +1,5 @@
+#################################################
+#
 # DO NOT MODIFY THE "attributes" IN THIS FILE
 #
 # This file was generated from an external source,
@@ -8,7 +10,36 @@
 # It's OK to modify the "billable_units", as these
 # get used for our actual billing calculations.
 #
-# if attributes.dlr is anything other than 'YES', it is assumed to not return full delivery receipts.
+#################################################
+#
+# Key for entries:
+#
+#   *in all cases, "null" means "don't know" or "n/a"
+#
+#   alpha:
+#     possible values: 'REG' | 'YES' | 'NO'
+#     description: whether alphanumeric sender names are supported, potentially by registration only ('REG')
+#   comment:
+#     possible values: <text>
+#     description: additional usage info e.g. "OPT-OUT option in the message is required"
+#   dlr:
+#     possible_values: '' | 'YES' | 'Carrier DLR' | 'NO'
+#     description: whether we get delivery receipts; 'Carrier DLR' also means 'NO'; unclear what '' means
+#   generic_sender:
+#     possible_values: '' | <alpha>
+#     description: supports unregistered senders by converted to <alpha> ('' means we don't know what <alpha> is)
+#   numeric:
+#     possible_values: 'NO' | 'YES' | 'LIMITED'
+#     description: whether numeric sender names are supported, or randomly generated ('LIMITED')
+#   sc:
+#     possible_values: 'NO' | 'YES' | 'LIMITED' | 'REG'
+#     description: whether short codes are supported, potentially by registration only ('REG'), potentially limited in availability ('LIMITED')
+#   sender_and_registration_info:
+#     possible_values: <text>
+#     description: specific operational info e.g. "All senders CONVERTED into random long numeric senders"
+#   text_restrictions:
+#     possible_values: <text>
+#     description: similar to "comment"
 
 '1':
   attributes:
