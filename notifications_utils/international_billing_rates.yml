@@ -1,3 +1,13 @@
+# DO NOT MODIFY THE "attributes" IN THIS FILE
+#
+# This file was generated from an external source,
+# so its content should be kept as-is to avoid any
+# ambiguity if we regenerate it in future. If you
+# find something is incorrect, add a comment.
+#
+# It's OK to modify the "billable_units", as these
+# get used for our actual billing calculations.
+#
 # if attributes.dlr is anything other than 'YES', it is assumed to not return full delivery receipts.
 
 '1':
@@ -1280,13 +1290,13 @@
   - Malawi
 '266':
   attributes:
-    alpha: null
+    alpha: null  # should be 'REG'
     comment: null
-    dlr: null
-    generic_sender: null
-    numeric: null
-    sc: null
-    sender_and_registration_info: null
+    dlr: null  # should be 'YES'
+    generic_sender: null  # should be "''"
+    numeric: null  # should be 'NO'
+    sc: null  # should be 'NO'
+    sender_and_registration_info: null  # should be "Sender names can only be 3-11 chars, no spaces"
     text_restrictions: null
   billable_units: 3
   names:
