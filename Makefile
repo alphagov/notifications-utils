@@ -22,3 +22,20 @@ clean:
 .PHONY: fix-imports
 fix-imports:
 	isort ./notifications_utils ./tests
+
+.PHONY: reset-version
+reset-version:
+	git fetch
+	git checkout origin/master -- notifications_utils/version.py
+
+.PHONY: version-major
+version-major: reset-version
+	./scripts/bump_version.py major
+
+.PHONY: version-minor
+version-minor: reset-version
+	./scripts/bump_version.py minor
+
+.PHONY: version-patch
+version-patch: reset-version
+	./scripts/bump_version.py patch
