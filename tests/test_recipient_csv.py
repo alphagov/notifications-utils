@@ -417,12 +417,16 @@ def test_processing_a_big_list():
     assert process.call_count == 100_000
 
 
-def test_overly_big_list():
+@pytest.mark.parametrize('number_of_rows', (
+    (RecipientCSV.max_rows + 1),
+    (RecipientCSV.max_rows * 10),
+))
+def test_overly_big_list(number_of_rows):
     big_csv = RecipientCSV(
-        "phonenumber,name\n" + ("07700900123,example\n" * (RecipientCSV.max_rows + 1)),
+        "phonenumber,name\n" + ("07700900123,example\n" * number_of_rows),
         template=_sample_template('sms', content='hello ((name))'),
     )
-    assert len(big_csv) == 100_001
+    assert len(big_csv) == number_of_rows
     assert big_csv.too_many_rows is True
     assert big_csv.has_errors is True
     assert list(big_csv.rows_with_missing_data) == []
