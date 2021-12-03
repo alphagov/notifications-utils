@@ -397,7 +397,7 @@ def test_big_list():
         template=_sample_template('email', 'hello ((name))'),
         max_errors_shown=100,
         max_initial_rows_shown=3,
-        whitelist=["a@b.com"]
+        guestlist=["a@b.com"]
     )
     assert len(list(big_csv.initial_rows)) == 3
     assert len(list(big_csv.initial_rows_with_errors)) == 100
@@ -778,7 +778,7 @@ def test_errors_when_too_many_rows():
 
 
 @pytest.mark.parametrize(
-    "file_contents,template_type,whitelist,count_of_rows_with_errors",
+    "file_contents,template_type,guestlist,count_of_rows_with_errors",
     [
         (
             """
@@ -806,21 +806,21 @@ def test_errors_when_too_many_rows():
         (
             """
                 email address
-                IN_WHITELIST@EXAMPLE.COM
-                not_in_whitelist@example.com
+                IN_GUESTLIST@EXAMPLE.COM
+                not_in_guestlist@example.com
             """,
             'email',
-            ['in_whitelist@example.com', '07700900460'],  # Email case differs to the one in the CSV
+            ['in_guestlist@example.com', '07700900460'],  # Email case differs to the one in the CSV
             1
         )
     ]
 )
-def test_recipient_whitelist(file_contents, template_type, whitelist, count_of_rows_with_errors):
+def test_recipient_guestlist(file_contents, template_type, guestlist, count_of_rows_with_errors):
 
     recipients = RecipientCSV(
         file_contents,
         template=_sample_template(template_type),
-        whitelist=whitelist
+        guestlist=guestlist
     )
 
     if count_of_rows_with_errors:
@@ -828,17 +828,17 @@ def test_recipient_whitelist(file_contents, template_type, whitelist, count_of_r
     else:
         assert recipients.allowed_to_send_to
 
-    # Make sure the whitelist isn’t emptied by reading it. If it’s an iterator then
+    # Make sure the guestlist isn’t emptied by reading it. If it’s an iterator then
     # there’s a risk that it gets emptied after being read once
-    recipients.whitelist = (str(fake_number) for fake_number in range(7700900888, 7700900898))
-    list(recipients.whitelist)
+    recipients.guestlist = (str(fake_number) for fake_number in range(7700900888, 7700900898))
+    list(recipients.guestlist)
     assert not recipients.allowed_to_send_to
     assert recipients.has_errors
 
-    # An empty whitelist is treated as no whitelist at all
-    recipients.whitelist = []
+    # An empty guestlist is treated as no guestlist at all
+    recipients.guestlist = []
     assert recipients.allowed_to_send_to
-    recipients.whitelist = itertools.chain()
+    recipients.guestlist = itertools.chain()
     assert recipients.allowed_to_send_to
 
 

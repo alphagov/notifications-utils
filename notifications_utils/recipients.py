@@ -54,7 +54,7 @@ class RecipientCSV():
         template,
         max_errors_shown=20,
         max_initial_rows_shown=10,
-        whitelist=None,
+        guestlist=None,
         remaining_messages=sys.maxsize,
         allow_international_sms=False,
         allow_international_letters=False,
@@ -62,7 +62,7 @@ class RecipientCSV():
         self.file_data = strip_all_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
-        self.whitelist = whitelist
+        self.guestlist = guestlist
         self.template = template
         self.allow_international_sms = allow_international_sms
         self.allow_international_letters = allow_international_letters
@@ -78,15 +78,15 @@ class RecipientCSV():
         return self.rows[requested_index]
 
     @property
-    def whitelist(self):
-        return self._whitelist
+    def guestlist(self):
+        return self._guestlist
 
-    @whitelist.setter
-    def whitelist(self, value):
+    @guestlist.setter
+    def guestlist(self, value):
         try:
-            self._whitelist = list(value)
+            self._guestlist = list(value)
         except TypeError:
-            self._whitelist = []
+            self._guestlist = []
 
     @property
     def template(self):
@@ -138,10 +138,10 @@ class RecipientCSV():
     def allowed_to_send_to(self):
         if self.template_type == 'letter':
             return True
-        if not self.whitelist:
+        if not self.guestlist:
             return True
         return all(
-            allowed_to_send_to(row.recipient, self.whitelist)
+            allowed_to_send_to(row.recipient, self.guestlist)
             for row in self.rows
         )
 

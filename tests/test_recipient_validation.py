@@ -346,7 +346,7 @@ def test_validate_email_address_raises_for_invalid(email_address):
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
-def test_validates_against_whitelist_of_phone_numbers(phone_number):
+def test_validates_against_guestlist_of_phone_numbers(phone_number):
     assert allowed_to_send_to(phone_number, ['07123456789', '07700900460', 'test@example.com'])
     assert not allowed_to_send_to(phone_number, ['07700900460', '07700900461', 'test@example.com'])
 
@@ -355,12 +355,12 @@ def test_validates_against_whitelist_of_phone_numbers(phone_number):
     ['1-202-555-0104', '0012025550104'],
     ['0012025550104', '1-202-555-0104'],
 ])
-def test_validates_against_whitelist_of_international_phone_numbers(recipient_number, allowlist_number):
+def test_validates_against_guestlist_of_international_phone_numbers(recipient_number, allowlist_number):
     assert allowed_to_send_to(recipient_number, [allowlist_number])
 
 
 @pytest.mark.parametrize("email_address", valid_email_addresses)
-def test_validates_against_whitelist_of_email_addresses(email_address):
+def test_validates_against_guestlist_of_email_addresses(email_address):
     assert not allowed_to_send_to(email_address, ['very_special_and_unique@example.com'])
 
 
