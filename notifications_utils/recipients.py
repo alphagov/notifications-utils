@@ -583,6 +583,11 @@ def allowed_to_send_to(recipient, allowlist):
 
 
 def insert_or_append_to_dict(dict_, key, value):
+    if not (key or value):
+        # We don’t care about completely empty values so it’s faster to
+        # ignore them rather than working out how to store them
+        return
+
     if dict_.get(key):
         if isinstance(dict_[key], list):
             dict_[key].append(value)
