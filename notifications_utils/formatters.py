@@ -338,6 +338,11 @@ def strip_all_whitespace(value, extra_characters=''):
 
 
 def strip_and_remove_obscure_whitespace(value):
+    if value == '':
+        # Return early to avoid making multiple, slow calls to
+        # str.replace on an empty string
+        return ''
+
     for character in OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE:
         value = value.replace(character, '')
 

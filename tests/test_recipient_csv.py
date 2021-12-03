@@ -448,6 +448,22 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     ) == 10
 
 
+def test_big_empty_list():
+    process = Mock()
+
+    lots_of_commas = ',' * 100_000
+
+    for _row in RecipientCSV(
+        f'phone_number{lots_of_commas}\n' + (
+            f'07900900900{lots_of_commas}\n' * 100
+        ),
+        template=_sample_template('sms'),
+    ).get_rows():
+        process()
+
+    assert process.call_count == 100
+
+
 def test_empty_column_names():
     recipient_csv = RecipientCSV(
         """
