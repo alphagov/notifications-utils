@@ -3,6 +3,13 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 51.0.0
+
+* Initial argument to `RecipientCSV` renamed from `whitelist` to
+  `guestlist`, in other words consuming code should call
+  `RecipientCSV(guestlist=['test@example.com'])`
+* `RecipientCSV.whitelist` property renamed to `RecipientCSV.guestlist`
+
 ## 50.0.0
 
 * Make icon in `broadcast_preview_template.jinja2` an inline SVG
