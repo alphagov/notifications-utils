@@ -29,13 +29,13 @@ reset-version:
 	git checkout origin/master -- notifications_utils/version.py
 
 .PHONY: version-major
-version-major: reset-version
+version-major: reset-version ## Update the major version number
 	./scripts/bump_version.py major
 
 .PHONY: version-minor
-version-minor: reset-version
+version-minor: reset-version ## Update the minor version number
 	./scripts/bump_version.py minor
 
 .PHONY: version-patch
-version-patch: reset-version
+version-patch: reset-version ## Update the patch version number
 	./scripts/bump_version.py patch
