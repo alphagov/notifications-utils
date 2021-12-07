@@ -448,6 +448,42 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     ) == 10
 
 
+def test_file_with_lots_of_empty_columns():
+    process = Mock()
+
+    lots_of_commas = ',' * 10_000
+
+    for row in RecipientCSV(
+        f'phone_number{lots_of_commas}\n' + (
+            f'07900900900{lots_of_commas}\n' * 100
+        ),
+        template=_sample_template('sms'),
+    ):
+        assert [
+            (key, cell.data) for key, cell in row.items()
+        ] == [
+            # Note that we haven’t stored any of the empty cells
+            ('phonenumber', '07900900900')
+        ]
+        process()
+
+    assert process.call_count == 100
+
+
+def test_empty_column_names():
+    recipient_csv = RecipientCSV(
+        """
+            phone_number,,,name
+            07900900123,foo,bar,baz
+        """,
+        template=_sample_template('sms'),
+    )
+
+    assert recipient_csv[0]['phone_number'].data == '07900900123'
+    assert recipient_csv[0][''].data == ['foo', 'bar']
+    assert recipient_csv[0]['name'].data == 'baz'
+
+
 @pytest.mark.parametrize(
     "file_contents,template,expected_recipients,expected_personalisation",
     [

@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 51.1.0
+
+* Make processing of spreadsheets with many empty columns more efficient
+
 ## 51.0.0
 
 * Initial argument to `RecipientCSV` renamed from `whitelist` to
