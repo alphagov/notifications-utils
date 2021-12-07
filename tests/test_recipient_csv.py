@@ -808,15 +808,20 @@ def test_international_recipients(file_contents, rows_with_bad_recipients):
 
 def test_errors_when_too_many_rows():
     recipients = RecipientCSV(
-        "email address\n" + ("a@b.com\n" * (RecipientCSV.max_rows + 1)),
+        "email address\n" + ("a@b.com\n" * 101),
         template=_sample_template('email'),
     )
-    assert RecipientCSV.max_rows == 100_000
+
+    # Confirm the normal max_row limit
+    assert recipients.max_rows == 100_000
+    # Override to make this test faster
+    recipients.max_rows = 100
+
     assert recipients.too_many_rows is True
     assert recipients.has_errors is True
-    assert recipients.rows[99_000]['email_address'].data == 'a@b.com'
+    assert recipients.rows[99]['email_address'].data == 'a@b.com'
     # We stop processing subsequent rows
-    assert recipients.rows[100_000] is None
+    assert recipients.rows[100] is None
 
 
 @pytest.mark.parametrize(
