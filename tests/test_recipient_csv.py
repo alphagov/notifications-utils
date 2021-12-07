@@ -405,18 +405,6 @@ def test_big_list():
     assert big_csv.has_errors
 
 
-def test_processing_a_big_list():
-    process = Mock()
-
-    for _row in RecipientCSV(
-        "phone_number\n" + ("07900900900\n" * RecipientCSV.max_rows),
-        template=_sample_template('sms'),
-    ).get_rows():
-        process()
-
-    assert process.call_count == 100_000
-
-
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     mock_strip_and_remove_obscure_whitespace = mocker.patch(
         'notifications_utils.recipients.strip_and_remove_obscure_whitespace'
