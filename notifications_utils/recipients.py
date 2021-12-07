@@ -170,6 +170,10 @@ class RecipientCSV():
 
         for index, row in enumerate(rows_as_lists_of_columns):
 
+            if index >= self.max_rows:
+                yield None
+                continue
+
             output_dict = OrderedDict()
 
             for column_name, column_value in zip(column_headers, row):
@@ -189,18 +193,15 @@ class RecipientCSV():
                 for key in column_headers[length_of_row:]:
                     insert_or_append_to_dict(output_dict, key, None)
 
-            if index < self.max_rows:
-                yield Row(
-                    output_dict,
-                    index=index,
-                    error_fn=self._get_error_for_field,
-                    recipient_column_headers=self.recipient_column_headers,
-                    placeholders=self.placeholders_as_column_keys,
-                    template=self.template,
-                    allow_international_letters=self.allow_international_letters,
-                )
-            else:
-                yield None
+            yield Row(
+                output_dict,
+                index=index,
+                error_fn=self._get_error_for_field,
+                recipient_column_headers=self.recipient_column_headers,
+                placeholders=self.placeholders_as_column_keys,
+                template=self.template,
+                allow_international_letters=self.allow_international_letters,
+            )
 
     @property
     def more_rows_than_can_send(self):

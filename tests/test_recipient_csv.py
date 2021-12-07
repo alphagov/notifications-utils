@@ -417,17 +417,35 @@ def test_processing_a_big_list():
     assert process.call_count == 100_000
 
 
-def test_overly_big_list():
+def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
+    mock_strip_and_remove_obscure_whitespace = mocker.patch(
+        'notifications_utils.recipients.strip_and_remove_obscure_whitespace'
+    )
+    mock_insert_or_append_to_dict = mocker.patch(
+        'notifications_utils.recipients.insert_or_append_to_dict'
+    )
+
     big_csv = RecipientCSV(
-        "phonenumber,name\n" + ("07700900123,example\n" * (RecipientCSV.max_rows + 1)),
+        "phonenumber,name\n" + ("07700900123,example\n" * 123),
         template=_sample_template('sms', content='hello ((name))'),
     )
-    assert len(big_csv) == 100_001
-    assert big_csv.too_many_rows is True
-    assert big_csv.has_errors is True
-    assert list(big_csv.rows_with_missing_data) == []
-    assert list(big_csv.rows_with_bad_recipients) == []
-    assert list(big_csv.rows_with_message_too_long) == []
+    big_csv.max_rows = 10
+
+    # Our CSV has lots of rows…
+    assert big_csv.too_many_rows
+    assert len(big_csv) == 123
+
+    # …but we’ve only called the expensive whitespace function on each
+    # of the 2 cells in the first 10 rows
+    assert len(
+        mock_strip_and_remove_obscure_whitespace.call_args_list
+    ) == 20
+
+    # …and we’ve only called the function which builds the internal data
+    # structure once for each of the first 10 rows
+    assert len(
+        mock_insert_or_append_to_dict.call_args_list
+    ) == 10
 
 
 @pytest.mark.parametrize(
