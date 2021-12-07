@@ -391,20 +391,6 @@ def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(
         is_message_too_long.called
 
 
-def test_big_list():
-    big_csv = RecipientCSV(
-        "email address,name\n" + ("a@b.com\n" * RecipientCSV.max_rows),
-        template=_sample_template('email', 'hello ((name))'),
-        max_errors_shown=100,
-        max_initial_rows_shown=3,
-        guestlist=["a@b.com"]
-    )
-    assert len(list(big_csv.initial_rows)) == 3
-    assert len(list(big_csv.initial_rows_with_errors)) == 100
-    assert len(list(big_csv.rows)) == RecipientCSV.max_rows
-    assert big_csv.has_errors
-
-
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     mock_strip_and_remove_obscure_whitespace = mocker.patch(
         'notifications_utils.recipients.strip_and_remove_obscure_whitespace'
