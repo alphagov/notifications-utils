@@ -12,12 +12,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('version_part', choices=version_parts)
 version_part = parser.parse_args().version_part
 
-new_major, new_minor, new_patch = (
-    int(current) + (part == version_part)
-    for part, current in zip(
-        version_parts, __version__.split('.')
-    )
-)
+current_major, current_minor, current_patch = map(int, __version__.split('.'))
+
+new_major, new_minor, new_patch = {
+    'major': (current_major + 1, 0, 0),
+    'minor': (current_major, current_minor + 1, 0),
+    'patch': (current_major, current_minor, current_patch + 1),
+}[version_part]
 
 package_contents = subprocess.run(
     ('tar', 'cf', '-', 'notifications_utils'),
