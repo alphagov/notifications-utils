@@ -12,6 +12,7 @@ from notifications_utils import SMS_CHAR_COUNT_LIMIT
 from notifications_utils.countries import Country
 from notifications_utils.recipients import (
     Cell,
+    CSVTooBigError,
     RecipientCSV,
     Row,
     first_column_headings,
@@ -391,32 +392,6 @@ def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(
         is_message_too_long.called
 
 
-def test_big_list():
-    big_csv = RecipientCSV(
-        "email address,name\n" + ("a@b.com\n" * RecipientCSV.max_rows),
-        template=_sample_template('email', 'hello ((name))'),
-        max_errors_shown=100,
-        max_initial_rows_shown=3,
-        guestlist=["a@b.com"]
-    )
-    assert len(list(big_csv.initial_rows)) == 3
-    assert len(list(big_csv.initial_rows_with_errors)) == 100
-    assert len(list(big_csv.rows)) == RecipientCSV.max_rows
-    assert big_csv.has_errors
-
-
-def test_processing_a_big_list():
-    process = Mock()
-
-    for _row in RecipientCSV(
-        "phone_number\n" + ("07900900900\n" * RecipientCSV.max_rows),
-        template=_sample_template('sms'),
-    ).get_rows():
-        process()
-
-    assert process.call_count == 100_000
-
-
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     mock_strip_and_remove_obscure_whitespace = mocker.patch(
         'notifications_utils.recipients.strip_and_remove_obscure_whitespace'
@@ -446,6 +421,21 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     assert len(
         mock_insert_or_append_to_dict.call_args_list
     ) == 10
+
+
+def test_rows_processing_timeout():
+    recipients = RecipientCSV(
+        # Keep the number of rows small to avoid DoSing other tests
+        'phone_number,07900900900\n' * 1000,
+        template=_sample_template('sms'),
+        # Use "0" to avoid flakey behaviour based on the no. of rows
+        processing_timeout=0,
+    )
+
+    with pytest.raises(CSVTooBigError) as excinfo:
+        recipients.rows
+
+    assert str(excinfo.value) == 'CSV is too big to process'
 
 
 def test_file_with_lots_of_empty_columns():
@@ -820,15 +810,20 @@ def test_international_recipients(file_contents, rows_with_bad_recipients):
 
 def test_errors_when_too_many_rows():
     recipients = RecipientCSV(
-        "email address\n" + ("a@b.com\n" * (RecipientCSV.max_rows + 1)),
+        "email address\n" + ("a@b.com\n" * 101),
         template=_sample_template('email'),
     )
-    assert RecipientCSV.max_rows == 100_000
+
+    # Confirm the normal max_row limit
+    assert recipients.max_rows == 100_000
+    # Override to make this test faster
+    recipients.max_rows = 100
+
     assert recipients.too_many_rows is True
     assert recipients.has_errors is True
-    assert recipients.rows[99_000]['email_address'].data == 'a@b.com'
+    assert recipients.rows[99]['email_address'].data == 'a@b.com'
     # We stop processing subsequent rows
-    assert recipients.rows[100_000] is None
+    assert recipients.rows[100] is None
 
 
 @pytest.mark.parametrize(

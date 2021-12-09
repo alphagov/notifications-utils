@@ -3,6 +3,14 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 51.2.0
+
+* Timeout processing CSVs to avoid timing out downstream requests
+
+This only affects the Admin app, which should ideally rescue the exception,
+but just letting it propagate is also acceptable as it's similar to the
+current behaviour where we timeout in CloudFront.
+
 ## 51.1.0
 
 * Make processing of spreadsheets with many empty columns more efficient

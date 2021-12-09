@@ -6,6 +6,7 @@ from contextlib import suppress
 from functools import lru_cache, partial
 from io import StringIO
 from itertools import islice
+from threading import Thread
 
 import phonenumbers
 from flask import current_app
@@ -58,6 +59,7 @@ class RecipientCSV():
         remaining_messages=sys.maxsize,
         allow_international_sms=False,
         allow_international_letters=False,
+        processing_timeout=20,
     ):
         self.file_data = strip_all_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
@@ -68,6 +70,7 @@ class RecipientCSV():
         self.allow_international_letters = allow_international_letters
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
+        self.processing_timeout = processing_timeout
 
     def __len__(self):
         if not hasattr(self, '_len'):
@@ -147,8 +150,22 @@ class RecipientCSV():
 
     @property
     def rows(self):
-        if self.rows_as_list is None:
+        return self.try_get_rows()
+
+    def try_get_rows(self):
+        if self.rows_as_list is not None:
+            return self.rows_as_list
+
+        def cache_rows():
             self.rows_as_list = list(self.get_rows())
+
+        thread = Thread(target=cache_rows, daemon=True)
+        thread.start()
+        thread.join(timeout=self.processing_timeout)
+
+        if thread.is_alive():
+            raise CSVTooBigError()
+
         return self.rows_as_list
 
     @property
@@ -169,7 +186,6 @@ class RecipientCSV():
         next(rows_as_lists_of_columns, None)  # skip the header row
 
         for index, row in enumerate(rows_as_lists_of_columns):
-
             if index >= self.max_rows:
                 yield None
                 continue
@@ -359,6 +375,11 @@ class InvalidPhoneError(InvalidEmailError):
 
 class InvalidAddressError(InvalidEmailError):
     pass
+
+
+class CSVTooBigError(Exception):
+    def __init__(self, message=None):
+        super().__init__(message or 'CSV is too big to process')
 
 
 def normalise_phone_number(number):
