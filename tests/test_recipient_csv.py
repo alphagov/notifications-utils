@@ -12,7 +12,6 @@ from notifications_utils import SMS_CHAR_COUNT_LIMIT
 from notifications_utils.countries import Country
 from notifications_utils.recipients import (
     Cell,
-    CSVTooBigError,
     RecipientCSV,
     Row,
     first_column_headings,
@@ -421,21 +420,6 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     assert len(
         mock_insert_or_append_to_dict.call_args_list
     ) == 10
-
-
-def test_rows_processing_timeout():
-    recipients = RecipientCSV(
-        # Keep the number of rows small to avoid DoSing other tests
-        'phone_number,07900900900\n' * 1000,
-        template=_sample_template('sms'),
-        # Use "0" to avoid flakey behaviour based on the no. of rows
-        processing_timeout=0,
-    )
-
-    with pytest.raises(CSVTooBigError) as excinfo:
-        recipients.rows
-
-    assert str(excinfo.value) == 'CSV is too big to process'
 
 
 def test_file_with_lots_of_empty_columns():
