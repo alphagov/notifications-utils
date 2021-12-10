@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 51.2.1
+
+* Revert 51.2.0.
+
 ## 51.2.0
 
 * Timeout processing CSVs to avoid timing out downstream requests
