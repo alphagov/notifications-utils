@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import subprocess
 from pathlib import Path
+
 from notifications_utils.version import __version__
 
 version_parts = ('major', 'minor', 'patch')

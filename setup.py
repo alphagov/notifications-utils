@@ -1,10 +1,10 @@
 """
 Python API client for GOV.UK Notify
 """
-import re
 import ast
-from setuptools import (setup, find_packages)
+import re
 
+from setuptools import find_packages, setup
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
