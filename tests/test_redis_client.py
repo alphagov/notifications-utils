@@ -52,13 +52,11 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, mocker):
     redis_client.redis_store.set = Mock(side_effect=Exception())
     redis_client.redis_store.incr = Mock(side_effect=Exception())
     redis_client.redis_store.pipeline = Mock(side_effect=Exception())
-    redis_client.redis_store.expire = Mock(side_effect=Exception())
     redis_client.redis_store.delete = Mock(side_effect=Exception())
     assert redis_client.get('get_key') is None
     assert redis_client.set('set_key', 'set_value') is None
     assert redis_client.incr('incr_key') is None
     assert redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
-    assert redis_client.expire('expire_key', 100) is None
     assert redis_client.delete('delete_key') is None
     assert redis_client.delete('a', 'b', 'c') is None
     assert mock_logger.mock_calls == [
@@ -66,7 +64,6 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, mocker):
         call.exception('Redis error performing set on set_key'),
         call.exception('Redis error performing incr on incr_key'),
         call.exception('Redis error performing rate-limit-pipeline on rate_limit_key'),
-        call.exception('Redis error performing expire on expire_key'),
         call.exception('Redis error performing delete on delete_key'),
         call.exception('Redis error performing delete on a, b, c'),
     ]
@@ -80,7 +77,6 @@ def test_should_raise_exception_if_raise_set_to_true(app):
     redis_client.redis_store.set = Mock(side_effect=Exception('set failed'))
     redis_client.redis_store.incr = Mock(side_effect=Exception('inc failed'))
     redis_client.redis_store.pipeline = Mock(side_effect=Exception('pipeline failed'))
-    redis_client.redis_store.expire = Mock(side_effect=Exception('expire failed'))
     redis_client.redis_store.delete = Mock(side_effect=Exception('delete failed'))
     with pytest.raises(Exception) as e:
         redis_client.get('test', raise_exception=True)
@@ -94,9 +90,6 @@ def test_should_raise_exception_if_raise_set_to_true(app):
     with pytest.raises(Exception) as e:
         redis_client.exceeded_rate_limit('test', 100, 200, raise_exception=True)
     assert str(e.value) == 'pipeline failed'
-    with pytest.raises(Exception) as e:
-        redis_client.expire('test', 0, raise_exception=True)
-    assert str(e.value) == 'expire failed'
     with pytest.raises(Exception) as e:
         redis_client.delete('test', raise_exception=True)
     assert str(e.value) == 'delete failed'
@@ -139,44 +132,6 @@ def test_should_build_daily_limit_cache_key(sample_service):
     assert rate_limit_cache_key(sample_service.id, 'TEST') == '{}-TEST'.format(sample_service.id)
 
 
-def test_decrement_hash_value_should_decrement_value_by_one_for_key(mocked_redis_client):
-    key = '12345'
-    value = "template-1111"
-
-    mocked_redis_client.decrement_hash_value(key, value, -1)
-    mocked_redis_client.redis_store.hincrby.assert_called_with(key, value, -1)
-
-
-def test_incr_hash_value_should_increment_value_by_one_for_key(mocked_redis_client):
-    key = '12345'
-    value = "template-1111"
-
-    mocked_redis_client.increment_hash_value(key, value)
-    mocked_redis_client.redis_store.hincrby.assert_called_with(key, value, 1)
-
-
-def test_get_all_from_hash_returns_hash_for_key(mocked_redis_client):
-    key = '12345'
-    assert mocked_redis_client.get_all_from_hash(key) == {b'template-1111': b'8', b'template-2222': b'8'}
-    mocked_redis_client.redis_store.hgetall.assert_called_with(key)
-
-
-def test_set_hash_and_expire(mocked_redis_client):
-    key = 'hash-key'
-    values = {'key': 10}
-    mocked_redis_client.set_hash_and_expire(key, values, 1)
-    mocked_redis_client.redis_store.hmset.assert_called_with(key, values)
-    mocked_redis_client.redis_store.expire.assert_called_with(key, 1)
-
-
-def test_set_hash_and_expire_converts_values_to_valid_types(mocked_redis_client):
-    key = 'hash-key'
-    values = {uuid.UUID(int=0): 10}
-    mocked_redis_client.set_hash_and_expire(key, values, 1)
-    mocked_redis_client.redis_store.hmset.assert_called_with(key, {'00000000-0000-0000-0000-000000000000': 10})
-    mocked_redis_client.redis_store.expire.assert_called_with(key, 1)
-
-
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.exceeded_rate_limit("key", 100, 100)
@@ -211,12 +166,6 @@ def test_should_not_call_rate_limit_if_not_enabled(mocked_redis_client, mocked_r
 
     assert not mocked_redis_client.exceeded_rate_limit('key', 100, 100)
     assert not mocked_redis_client.redis_store.pipeline.called
-
-
-def test_expire(mocked_redis_client):
-    key = 'hash-key'
-    mocked_redis_client.expire(key, 1)
-    mocked_redis_client.redis_store.expire.assert_called_with(key, 1)
 
 
 def test_delete(mocked_redis_client):

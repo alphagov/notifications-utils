@@ -154,44 +154,6 @@ class RedisClient:
 
         return None
 
-    def decrement_hash_value(self, key, value, raise_exception=False):
-        return self.increment_hash_value(key, value, raise_exception, incr_by=-1)
-
-    def increment_hash_value(self, key, value, raise_exception=False, incr_by=1):
-        key = prepare_value(key)
-        value = prepare_value(value)
-        if self.active:
-            try:
-                return self.redis_store.hincrby(key, value, incr_by)
-            except Exception as e:
-                self.__handle_exception(e, raise_exception, 'increment_hash_value', key)
-
-    def get_all_from_hash(self, key, raise_exception=False):
-        key = prepare_value(key)
-        if self.active:
-            try:
-                return self.redis_store.hgetall(key)
-            except Exception as e:
-                self.__handle_exception(e, raise_exception, 'get_all_from_hash', key)
-
-    def set_hash_and_expire(self, key, values, expire_in_seconds, raise_exception=False):
-        key = prepare_value(key)
-        values = {prepare_value(k): prepare_value(v) for k, v in values.items()}
-        if self.active:
-            try:
-                self.redis_store.hmset(key, values)
-                return self.redis_store.expire(key, expire_in_seconds)
-            except Exception as e:
-                self.__handle_exception(e, raise_exception, 'set_hash_and_expire', key)
-
-    def expire(self, key, expire_in_seconds, raise_exception=False):
-        key = prepare_value(key)
-        if self.active:
-            try:
-                self.redis_store.expire(key, expire_in_seconds)
-            except Exception as e:
-                self.__handle_exception(e, raise_exception, 'expire', key)
-
     def delete(self, *keys, raise_exception=False):
         keys = [prepare_value(k) for k in keys]
         if self.active:
