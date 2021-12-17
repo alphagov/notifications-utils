@@ -6,8 +6,17 @@
     display: none;
   }
 
+  /*
+    Only applies to the first page of a document
+    https://developer.mozilla.org/en-US/docs/Web/CSS/:first
+  */
   @page :first {
+    /*
+      This is known as a "page margin box".
+      https://www.w3.org/TR/css-page-3/#margin-boxes
+    */
     @top-left-corner {
+        border: 3px solid green;
         content: 'NOTIFY';
         color: white;
         font-family: 'arial';
