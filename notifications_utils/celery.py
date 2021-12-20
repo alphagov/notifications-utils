@@ -52,7 +52,7 @@ def make_task(app):
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
             with self.app_context():
-                app.logger.error(
+                app.logger.exception(
                     "Celery task {task_name} (queue: {queue_name}) failed".format(
                         task_name=self.name,
                         queue_name=self.queue_name,
@@ -65,8 +65,6 @@ def make_task(app):
                         queue_name=self.queue_name
                     )
                 )
-
-                super().on_failure(exc, task_id, args, kwargs, einfo)
 
         def __call__(self, *args, **kwargs):
             # ensure task has flask context to access config, logger, etc

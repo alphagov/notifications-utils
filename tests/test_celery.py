@@ -92,7 +92,10 @@ def test_failure_should_log_and_call_statsd(
     )
 
     statsd_mock.assert_called_once_with(f'celery.test-queue.{async_task.name}.failure')
-    logger_mock.assert_called_once_with(f'Celery task {async_task.name} (queue: test-queue) failed')
+
+    logger_mock.assert_called_once_with(
+        f'Celery task {async_task.name} (queue: test-queue) failed', exc_info=True
+    )
 
 
 def test_failure_queue_when_applied_synchronously(
@@ -108,7 +111,10 @@ def test_failure_queue_when_applied_synchronously(
     )
 
     statsd_mock.assert_called_once_with(f'celery.none.{celery_task.name}.failure')
-    logger_mock.assert_called_once_with(f'Celery task {celery_task.name} (queue: none) failed')
+
+    logger_mock.assert_called_once_with(
+        f'Celery task {celery_task.name} (queue: none) failed', exc_info=True
+    )
 
 
 def test_call_exports_request_id_from_headers(mocker, request_id_task):

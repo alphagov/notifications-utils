@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = '51.2.1'  # 15d2163e4f04672521d384b17b1fecb2
+__version__ = '51.3.0'  # 3c8c051e0cabc33d9a2ee9f55811cb61
