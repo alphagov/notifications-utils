@@ -88,7 +88,7 @@ def test_failure_should_log_and_call_statsd(
     statsd_mock = celery_app.statsd_client.incr
 
     async_task.on_failure(
-        exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None
+        exc=Exception(), task_id=1234, args=[], kwargs={}, einfo=None
     )
 
     statsd_mock.assert_called_once_with(f'celery.test-queue.{async_task.name}.failure')
@@ -104,7 +104,7 @@ def test_failure_queue_when_applied_synchronously(
     statsd_mock = celery_app.statsd_client.incr
 
     celery_task.on_failure(
-        exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None
+        exc=Exception(), task_id=1234, args=[], kwargs={}, einfo=None
     )
 
     statsd_mock.assert_called_once_with(f'celery.none.{celery_task.name}.failure')
