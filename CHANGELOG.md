@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 51.3.1
+
+* Bump govuk-bank-holidays to cache holidays for next year.
+
 ## 51.3.0
 
 * Log exception and stacktrace when Celery tasks fail.

@@ -40,7 +40,7 @@ setup(
         'smartypants==2.0.1',
         'pypdf2>=1.26.0',
         'itsdangerous>=1.1.0',
-        'govuk-bank-holidays>=0.8',
+        'govuk-bank-holidays>=0.10',
         'geojson>=2.5.0',
         'Shapely>=1.7.1',
 
