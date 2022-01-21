@@ -9,7 +9,7 @@ from notifications_utils.formatters import (
     strip_html,
     unescaped_formatted_list,
 )
-from notifications_utils.insensitive_dict import Columns
+from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
@@ -110,7 +110,7 @@ class Field:
 
     @values.setter
     def values(self, value):
-        self._values = Columns(value) if value else {}
+        self._values = InsensitiveDict(value) if value else {}
 
     def format_match(self, match):
         placeholder = Placeholder.from_match(match)

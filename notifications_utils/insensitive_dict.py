@@ -4,14 +4,14 @@ from functools import lru_cache
 from orderedset import OrderedSet
 
 
-class Columns(OrderedDict):
+class InsensitiveDict(OrderedDict):
 
     """
-    `Columns` behaves like an ordered dictionary, except it normalises
+    `InsensitiveDict` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.
 
     In other words,
-    Columns({'FIRST_NAME': 'example'}) == Columns({'first name': 'example'})
+    InsensitiveDict({'FIRST_NAME': 'example'}) == InsensitiveDict({'first name': 'example'})
     >>> True
     """
 
@@ -62,10 +62,10 @@ class Columns(OrderedDict):
     def make_key(original_key):
         if original_key is None:
             return None
-        return original_key.translate(Columns.KEY_TRANSLATION_TABLE).lower()
+        return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
 
 
-class Row(Columns):
+class Row(InsensitiveDict):
 
     message_too_long = False
     message_empty = False
@@ -154,14 +154,14 @@ class Row(Columns):
 
     @property
     def personalisation(self):
-        return Columns({
+        return InsensitiveDict({
             key: cell.data for key, cell in self.items()
             if key in self.placeholders
         })
 
     @property
     def recipient_and_personalisation(self):
-        return Columns({
+        return InsensitiveDict({
             key: cell.data for key, cell in self.items()
         })
 
@@ -179,7 +179,7 @@ class Cell():
     ):
         self.data = value
         self.error = error_fn(key, value) if error_fn else None
-        self.ignore = Columns.make_key(key) not in (placeholders or [])
+        self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
 
     def __eq__(self, other):
         if not other.__class__ == self.__class__:

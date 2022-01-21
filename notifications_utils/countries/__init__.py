@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from notifications_utils.insensitive_dict import Columns
+from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.sanitise_text import SanitiseASCII
 
 from .data import (
@@ -15,7 +15,7 @@ from .data import (
 )
 
 
-class CountryMapping(Columns):
+class CountryMapping(InsensitiveDict):
 
     @staticmethod
     @lru_cache(maxsize=2048, typed=False)

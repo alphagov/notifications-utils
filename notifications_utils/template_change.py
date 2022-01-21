@@ -1,13 +1,13 @@
 from orderedset import OrderedSet
 
-from notifications_utils.insensitive_dict import Columns
+from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class TemplateChange():
 
     def __init__(self, old_template, new_template):
-        self.old_placeholders = Columns.from_keys(old_template.placeholders)
-        self.new_placeholders = Columns.from_keys(new_template.placeholders)
+        self.old_placeholders = InsensitiveDict.from_keys(old_template.placeholders)
+        self.new_placeholders = InsensitiveDict.from_keys(new_template.placeholders)
 
     @property
     def has_different_placeholders(self):

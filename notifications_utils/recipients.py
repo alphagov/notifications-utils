@@ -16,7 +16,7 @@ from notifications_utils.formatters import (
     strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
 )
-from notifications_utils.insensitive_dict import Cell, Columns, Row
+from notifications_utils.insensitive_dict import Cell, InsensitiveDict, Row
 from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
@@ -41,7 +41,7 @@ first_column_headings = {
     ],
 }
 
-address_columns = Columns.from_keys(first_column_headings['letter'])
+address_columns = InsensitiveDict.from_keys(first_column_headings['letter'])
 
 
 class RecipientCSV():
@@ -115,11 +115,11 @@ class RecipientCSV():
         except TypeError:
             self._placeholders = self.recipient_column_headers
         self.placeholders_as_column_keys = [
-            Columns.make_key(placeholder)
+            InsensitiveDict.make_key(placeholder)
             for placeholder in self._placeholders
         ]
         self.recipient_column_headers_as_column_keys = [
-            Columns.make_key(placeholder)
+            InsensitiveDict.make_key(placeholder)
             for placeholder in self.recipient_column_headers
         ]
 
@@ -180,7 +180,7 @@ class RecipientCSV():
 
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
-                if Columns.make_key(column_name) in self.recipient_column_headers_as_column_keys:
+                if InsensitiveDict.make_key(column_name) in self.recipient_column_headers_as_column_keys:
                     output_dict[column_name] = column_value or None
                 else:
                     insert_or_append_to_dict(output_dict, column_name, column_value or None)
@@ -260,14 +260,14 @@ class RecipientCSV():
 
     @property
     def column_headers_as_column_keys(self):
-        return Columns.from_keys(self.column_headers).keys()
+        return InsensitiveDict.from_keys(self.column_headers).keys()
 
     @property
     def missing_column_headers(self):
         return set(
             key for key in self.placeholders
             if (
-                Columns.make_key(key) not in self.column_headers_as_column_keys and
+                InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys and
                 not self.is_address_column(key)
             )
         )
@@ -276,15 +276,15 @@ class RecipientCSV():
     def duplicate_recipient_column_headers(self):
 
         raw_recipient_column_headers = [
-            Columns.make_key(column_header)
+            InsensitiveDict.make_key(column_header)
             for column_header in self._raw_column_headers
-            if Columns.make_key(column_header) in self.recipient_column_headers_as_column_keys
+            if InsensitiveDict.make_key(column_header) in self.recipient_column_headers_as_column_keys
         ]
 
         return OrderedSet((
             column_header
             for column_header in self._raw_column_headers
-            if raw_recipient_column_headers.count(Columns.make_key(column_header)) > 1
+            if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
         ))
 
     def is_address_column(self, key):
@@ -301,8 +301,8 @@ class RecipientCSV():
 
         if self.template_type == 'letter':
             sets_to_check = [
-                Columns.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
-                Columns.from_keys(address_lines_1_to_7_keys).keys(),
+                InsensitiveDict.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
+                InsensitiveDict.from_keys(address_lines_1_to_7_keys).keys(),
             ]
         else:
             sets_to_check = [
@@ -325,7 +325,7 @@ class RecipientCSV():
         if self.is_address_column(key):
             return
 
-        if Columns.make_key(key) in self.recipient_column_headers_as_column_keys:
+        if InsensitiveDict.make_key(key) in self.recipient_column_headers_as_column_keys:
             if value in [None, ''] or isinstance(value, list):
                 if self.duplicate_recipient_column_headers:
                     return None
@@ -340,7 +340,7 @@ class RecipientCSV():
             except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
 
-        if Columns.make_key(key) not in self.placeholders_as_column_keys:
+        if InsensitiveDict.make_key(key) not in self.placeholders_as_column_keys:
             return
 
         if value in [None, '']:

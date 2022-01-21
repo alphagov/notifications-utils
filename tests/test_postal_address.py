@@ -2,7 +2,7 @@ import pytest
 
 from notifications_utils.countries import Country
 from notifications_utils.countries.data import Postage
-from notifications_utils.insensitive_dict import Columns
+from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.postal_address import (
     PostalAddress,
     format_postcode_for_printing,
@@ -424,7 +424,7 @@ def test_postage(address, expected_postage):
         'address_line_7': 'SW1A1AA',
         'postcode': 'ignored if address line 7 provided',
     },
-    Columns({
+    InsensitiveDict({
         'address line 1': '123 Example Street',
         'ADDRESS_LINE_2': 'City of Town',
         'Address-Line-7': 'Sw1a  1aa',
