@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from notifications_utils.columns import Columns
+from notifications_utils.insensitive_dict import Columns
 from notifications_utils.sanitise_text import SanitiseASCII
 
 from .data import (

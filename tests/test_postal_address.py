@@ -1,8 +1,8 @@
 import pytest
 
-from notifications_utils.columns import Columns
 from notifications_utils.countries import Country
 from notifications_utils.countries.data import Postage
+from notifications_utils.insensitive_dict import Columns
 from notifications_utils.postal_address import (
     PostalAddress,
     format_postcode_for_printing,

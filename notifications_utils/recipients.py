@@ -11,12 +11,12 @@ import phonenumbers
 from flask import current_app
 from orderedset import OrderedSet
 
-from notifications_utils.columns import Cell, Columns, Row
 from notifications_utils.formatters import (
     ALL_WHITESPACE,
     strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
 )
+from notifications_utils.insensitive_dict import Cell, Columns, Row
 from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,

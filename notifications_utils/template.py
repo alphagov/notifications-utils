@@ -9,7 +9,6 @@ from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
 from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
-from notifications_utils.columns import Columns
 from notifications_utils.countries.data import Postage
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
@@ -37,6 +36,7 @@ from notifications_utils.formatters import (
     strip_unsupported_characters,
     unlink_govuk_escaped,
 )
+from notifications_utils.insensitive_dict import Columns
 from notifications_utils.postal_address import (
     PostalAddress,
     address_lines_1_to_7_keys,

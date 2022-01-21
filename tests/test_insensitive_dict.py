@@ -2,7 +2,7 @@ from functools import partial
 
 import pytest
 
-from notifications_utils.columns import Cell, Columns, Row
+from notifications_utils.insensitive_dict import Cell, Columns, Row
 
 
 def test_columns_as_dict_with_keys():

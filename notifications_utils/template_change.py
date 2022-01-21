@@ -1,6 +1,6 @@
 from orderedset import OrderedSet
 
-from notifications_utils.columns import Columns
+from notifications_utils.insensitive_dict import Columns
 
 
 class TemplateChange():
