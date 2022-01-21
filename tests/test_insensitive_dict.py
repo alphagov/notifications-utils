@@ -2,7 +2,8 @@ from functools import partial
 
 import pytest
 
-from notifications_utils.insensitive_dict import Cell, InsensitiveDict, Row
+from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.recipients import Cell, Row
 
 
 def test_columns_as_dict_with_keys():
