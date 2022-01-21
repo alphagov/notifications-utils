@@ -3,6 +3,15 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 52.0.0
+
+* Deprecate the following unused `redis_client` functions:
+  - `redis_client.increment_hash_value`
+  - `redis_client.decrement_hash_value`
+  - `redis_client.get_all_from_hash`
+  - `redis_client.set_hash_and_expire`
+  - `redis_client.expire`
+
 ## 51.3.1
 
 * Bump govuk-bank-holidays to cache holidays for next year.
