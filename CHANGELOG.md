@@ -3,6 +3,15 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 53.0.0
+
+* `notifications_utils.columns.Columns` has moved to
+  `notifications_utils.insensitive_dict.InsensitiveDict`
+* `notifications_utils.columns.Rows` has moved to
+  `notifications_utils.recipients.Rows`
+* `notifications_utils.columns.Cell` has moved to
+  `notifications_utils.recipients.Cell`
+
 ## 52.0.0
 
 * Deprecate the following unused `redis_client` functions:

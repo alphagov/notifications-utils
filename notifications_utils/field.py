@@ -3,13 +3,13 @@ import re
 from markupsafe import Markup
 from orderedset import OrderedSet
 
-from notifications_utils.columns import Columns
 from notifications_utils.formatters import (
     escape_html,
     strip_and_remove_obscure_whitespace,
     strip_html,
     unescaped_formatted_list,
 )
+from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
@@ -110,7 +110,7 @@ class Field:
 
     @values.setter
     def values(self, value):
-        self._values = Columns(value) if value else {}
+        self._values = InsensitiveDict(value) if value else {}
 
     def format_match(self, match):
         placeholder = Placeholder.from_match(match)

@@ -9,7 +9,6 @@ from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
 from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
-from notifications_utils.columns import Columns
 from notifications_utils.countries.data import Postage
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
@@ -37,6 +36,7 @@ from notifications_utils.formatters import (
     strip_unsupported_characters,
     unlink_govuk_escaped,
 )
+from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.postal_address import (
     PostalAddress,
     address_lines_1_to_7_keys,
@@ -107,11 +107,11 @@ class Template(ABC):
         if not value:
             self._values = {}
         else:
-            placeholders = Columns.from_keys(self.placeholders)
-            self._values = Columns(value).as_dict_with_keys(
+            placeholders = InsensitiveDict.from_keys(self.placeholders)
+            self._values = InsensitiveDict(value).as_dict_with_keys(
                 self.placeholders | set(
                     key for key in value.keys()
-                    if Columns.make_key(key) not in placeholders.keys()
+                    if InsensitiveDict.make_key(key) not in placeholders.keys()
                 )
             )
 
@@ -715,7 +715,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def postal_address(self):
-        return PostalAddress.from_personalisation(Columns(self.values))
+        return PostalAddress.from_personalisation(InsensitiveDict(self.values))
 
     @property
     def _address_block(self):

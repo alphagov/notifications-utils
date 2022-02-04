@@ -11,12 +11,12 @@ import phonenumbers
 from flask import current_app
 from orderedset import OrderedSet
 
-from notifications_utils.columns import Cell, Columns, Row
 from notifications_utils.formatters import (
     ALL_WHITESPACE,
     strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
 )
+from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
@@ -41,7 +41,7 @@ first_column_headings = {
     ],
 }
 
-address_columns = Columns.from_keys(first_column_headings['letter'])
+address_columns = InsensitiveDict.from_keys(first_column_headings['letter'])
 
 
 class RecipientCSV():
@@ -115,11 +115,11 @@ class RecipientCSV():
         except TypeError:
             self._placeholders = self.recipient_column_headers
         self.placeholders_as_column_keys = [
-            Columns.make_key(placeholder)
+            InsensitiveDict.make_key(placeholder)
             for placeholder in self._placeholders
         ]
         self.recipient_column_headers_as_column_keys = [
-            Columns.make_key(placeholder)
+            InsensitiveDict.make_key(placeholder)
             for placeholder in self.recipient_column_headers
         ]
 
@@ -180,7 +180,7 @@ class RecipientCSV():
 
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
-                if Columns.make_key(column_name) in self.recipient_column_headers_as_column_keys:
+                if InsensitiveDict.make_key(column_name) in self.recipient_column_headers_as_column_keys:
                     output_dict[column_name] = column_value or None
                 else:
                     insert_or_append_to_dict(output_dict, column_name, column_value or None)
@@ -260,14 +260,14 @@ class RecipientCSV():
 
     @property
     def column_headers_as_column_keys(self):
-        return Columns.from_keys(self.column_headers).keys()
+        return InsensitiveDict.from_keys(self.column_headers).keys()
 
     @property
     def missing_column_headers(self):
         return set(
             key for key in self.placeholders
             if (
-                Columns.make_key(key) not in self.column_headers_as_column_keys and
+                InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys and
                 not self.is_address_column(key)
             )
         )
@@ -276,15 +276,15 @@ class RecipientCSV():
     def duplicate_recipient_column_headers(self):
 
         raw_recipient_column_headers = [
-            Columns.make_key(column_header)
+            InsensitiveDict.make_key(column_header)
             for column_header in self._raw_column_headers
-            if Columns.make_key(column_header) in self.recipient_column_headers_as_column_keys
+            if InsensitiveDict.make_key(column_header) in self.recipient_column_headers_as_column_keys
         ]
 
         return OrderedSet((
             column_header
             for column_header in self._raw_column_headers
-            if raw_recipient_column_headers.count(Columns.make_key(column_header)) > 1
+            if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
         ))
 
     def is_address_column(self, key):
@@ -301,8 +301,8 @@ class RecipientCSV():
 
         if self.template_type == 'letter':
             sets_to_check = [
-                Columns.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
-                Columns.from_keys(address_lines_1_to_7_keys).keys(),
+                InsensitiveDict.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
+                InsensitiveDict.from_keys(address_lines_1_to_7_keys).keys(),
             ]
         else:
             sets_to_check = [
@@ -325,7 +325,7 @@ class RecipientCSV():
         if self.is_address_column(key):
             return
 
-        if Columns.make_key(key) in self.recipient_column_headers_as_column_keys:
+        if InsensitiveDict.make_key(key) in self.recipient_column_headers_as_column_keys:
             if value in [None, ''] or isinstance(value, list):
                 if self.duplicate_recipient_column_headers:
                     return None
@@ -340,11 +340,141 @@ class RecipientCSV():
             except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
 
-        if Columns.make_key(key) not in self.placeholders_as_column_keys:
+        if InsensitiveDict.make_key(key) not in self.placeholders_as_column_keys:
             return
 
         if value in [None, '']:
             return Cell.missing_field_error
+
+
+class Row(InsensitiveDict):
+
+    message_too_long = False
+    message_empty = False
+
+    def __init__(
+        self,
+        row_dict,
+        *,
+        index,
+        error_fn,
+        recipient_column_headers,
+        placeholders,
+        template,
+        allow_international_letters,
+    ):
+
+        self.index = index
+        self.recipient_column_headers = recipient_column_headers
+        self.placeholders = placeholders
+        self.allow_international_letters = allow_international_letters
+
+        if template:
+            template.values = row_dict
+            self.template_type = template.template_type
+            # we do not validate email size for CSVs to avoid performance issues
+            if self.template_type == "email":
+                self.message_too_long = False
+            else:
+                self.message_too_long = template.is_message_too_long()
+            self.message_empty = template.is_message_empty()
+
+        super().__init__(OrderedDict(
+            (key, Cell(key, value, error_fn, self.placeholders))
+            for key, value in row_dict.items()
+        ))
+
+    def __getitem__(self, key):
+        return super().__getitem__(key) if key in self else Cell()
+
+    def get(self, key, default=None):
+        if key not in self and default is not None:
+            return default
+        return self[key]
+
+    @property
+    def has_error(self):
+        return self.has_error_spanning_multiple_cells or any(
+            cell.error for cell in self.values()
+        )
+
+    @property
+    def has_bad_recipient(self):
+        if self.template_type == 'letter':
+            return self.has_bad_postal_address
+        return self.get(self.recipient_column_headers[0]).recipient_error
+
+    @property
+    def has_bad_postal_address(self):
+        return self.template_type == 'letter' and not self.as_postal_address.valid
+
+    @property
+    def has_error_spanning_multiple_cells(self):
+        return self.message_too_long or self.message_empty or self.has_bad_postal_address
+
+    @property
+    def has_missing_data(self):
+        return any(
+            cell.error == Cell.missing_field_error
+            for cell in self.values()
+        )
+
+    @property
+    def recipient(self):
+        columns = [
+            self.get(column).data for column in self.recipient_column_headers
+        ]
+        return columns[0] if len(columns) == 1 else columns
+
+    @property
+    def as_postal_address(self):
+        from notifications_utils.postal_address import PostalAddress
+        return PostalAddress.from_personalisation(
+            self.recipient_and_personalisation,
+            allow_international_letters=self.allow_international_letters,
+        )
+
+    @property
+    def personalisation(self):
+        return InsensitiveDict({
+            key: cell.data for key, cell in self.items()
+            if key in self.placeholders
+        })
+
+    @property
+    def recipient_and_personalisation(self):
+        return InsensitiveDict({
+            key: cell.data for key, cell in self.items()
+        })
+
+
+class Cell():
+
+    missing_field_error = 'Missing'
+
+    def __init__(
+        self,
+        key=None,
+        value=None,
+        error_fn=None,
+        placeholders=None
+    ):
+        self.data = value
+        self.error = error_fn(key, value) if error_fn else None
+        self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
+
+    def __eq__(self, other):
+        if not other.__class__ == self.__class__:
+            return False
+        return all((
+            self.data == other.data,
+            self.error == other.error,
+            self.ignore == other.ignore,
+        ))
+
+    @property
+    def recipient_error(self):
+        return self.error not in {None, self.missing_field_error}
 
 
 class InvalidEmailError(Exception):

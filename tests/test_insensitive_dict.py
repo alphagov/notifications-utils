@@ -2,11 +2,12 @@ from functools import partial
 
 import pytest
 
-from notifications_utils.columns import Cell, Columns, Row
+from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.recipients import Cell, Row
 
 
 def test_columns_as_dict_with_keys():
-    assert Columns({
+    assert InsensitiveDict({
         'Date of Birth': '01/01/2001',
         'TOWN': 'London'
     }).as_dict_with_keys({'date_of_birth', 'town'}) == {
@@ -16,7 +17,7 @@ def test_columns_as_dict_with_keys():
 
 
 def test_columns_as_dict():
-    assert dict(Columns({
+    assert dict(InsensitiveDict({
         'date of birth': '01/01/2001',
         'TOWN': 'London'
     })) == {
@@ -37,9 +38,9 @@ def test_missing_data():
         allow_international_letters=False,
     )
     with pytest.raises(KeyError):
-        Columns({})['foo']
-    assert Columns({}).get('foo') is None
-    assert Columns({}).get('foo', 'bar') == 'bar'
+        InsensitiveDict({})['foo']
+    assert InsensitiveDict({}).get('foo') is None
+    assert InsensitiveDict({}).get('foo', 'bar') == 'bar'
     assert partial_row()['foo'] == Cell()
     assert partial_row().get('foo') == Cell()
     assert partial_row().get('foo', 'bar') == 'bar'
@@ -56,7 +57,7 @@ def test_missing_data():
     ('bar', False),
 ])
 def test_lookup(key, should_be_present, in_dictionary):
-    assert (key in Columns(in_dictionary)) == should_be_present
+    assert (key in InsensitiveDict(in_dictionary)) == should_be_present
 
 
 @pytest.mark.parametrize('key_in', [
@@ -69,6 +70,6 @@ def test_lookup(key, should_be_present, in_dictionary):
     'F O O',
 ])
 def test_set_item(key_in, lookup_key):
-    columns = Columns({})
+    columns = InsensitiveDict({})
     columns[key_in] = 'bar'
     assert columns[lookup_key] == 'bar'
