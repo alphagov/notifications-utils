@@ -2,7 +2,7 @@
 
 celery==4.4.0 # pyup: ignore
 beautifulsoup4==4.10.0
-pytest==6.2.5
+pytest==7.0.0
 pytest-mock==3.7.0
 pytest-xdist==2.5.0
 requests-mock==1.9.3
