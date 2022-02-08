@@ -3,7 +3,7 @@ import re
 import sys
 from collections import OrderedDict, namedtuple
 from contextlib import suppress
-from functools import lru_cache, partial
+from functools import lru_cache
 from io import StringIO
 from itertools import islice
 
@@ -332,11 +332,10 @@ class RecipientCSV():
                 else:
                     return Cell.missing_field_error
             try:
-                validate_recipient(
-                    value,
-                    self.template_type,
-                    allow_international_sms=self.allow_international_sms
-                )
+                if self.template_type == 'email':
+                    validate_email_address(value)
+                if self.template_type == 'sms':
+                    validate_phone_number(value, international=self.allow_international_sms)
             except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
 
@@ -670,13 +669,6 @@ def format_email_address(email_address):
 
 def validate_and_format_email_address(email_address):
     return format_email_address(validate_email_address(email_address))
-
-
-def validate_recipient(recipient, template_type, allow_international_sms=False):
-    return {
-        'email': validate_email_address,
-        'sms': partial(validate_phone_number, international=allow_international_sms),
-    }[template_type](recipient)
 
 
 @lru_cache(maxsize=32, typed=False)
