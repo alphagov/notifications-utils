@@ -570,7 +570,7 @@ def use_numeric_sender(number):
     return INTERNATIONAL_BILLING_RATES[prefix]['attributes']['alpha'] == 'NO'
 
 
-def validate_uk_phone_number(number, column=None):
+def validate_uk_phone_number(number):
 
     number = normalise_phone_number(number).lstrip(uk_prefix).lstrip('0')
 
@@ -586,7 +586,7 @@ def validate_uk_phone_number(number, column=None):
     return '{}{}'.format(uk_prefix, number)
 
 
-def validate_phone_number(number, column=None, international=False):
+def validate_phone_number(number, international=False):
 
     if (not international) or is_uk_phone_number(number):
         return validate_uk_phone_number(number)
@@ -608,20 +608,20 @@ def validate_phone_number(number, column=None, international=False):
 validate_and_format_phone_number = validate_phone_number
 
 
-def try_validate_and_format_phone_number(number, column=None, international=None, log_msg=None):
+def try_validate_and_format_phone_number(number, international=None, log_msg=None):
     """
     For use in places where you shouldn't error if the phone number is invalid - for example if firetext pass us
     something in
     """
     try:
-        return validate_and_format_phone_number(number, column, international)
+        return validate_and_format_phone_number(number, international)
     except InvalidPhoneError as exc:
         if log_msg:
             current_app.logger.warning('{}: {}'.format(log_msg, exc))
         return number
 
 
-def validate_email_address(email_address, column=None):  # noqa (C901 too complex)
+def validate_email_address(email_address):  # noqa (C901 too complex)
     # almost exactly the same as by https://github.com/wtforms/wtforms/blob/master/wtforms/validators.py,
     # with minor tweaks for SES compatibility - to avoid complications we are a lot stricter with the local part
     # than neccessary - we don't allow any double quotes or semicolons to prevent SES Technical Failures
