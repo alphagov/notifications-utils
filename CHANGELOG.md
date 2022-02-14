@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 54.1.0
+
+* Add should_validate flag to `notifications_utils.recipients.RecipientCSV`. Defaults to `True`.
+
 ## 54.0.0
 
 * remove the `column` argument from recipients.validate_phone_number`,
