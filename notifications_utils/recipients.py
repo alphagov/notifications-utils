@@ -1,3 +1,4 @@
+import copy
 import csv
 import re
 import sys
@@ -6,6 +7,7 @@ from contextlib import suppress
 from functools import lru_cache, partial
 from io import StringIO
 from itertools import islice
+from werkzeug.utils import cached_property
 
 import phonenumbers
 from flask import current_app
@@ -369,15 +371,9 @@ class Row(InsensitiveDict):
         self.placeholders = placeholders
         self.allow_international_letters = allow_international_letters
 
-        if template:
-            template.values = row_dict
-            self.template_type = template.template_type
-            # we do not validate email size for CSVs to avoid performance issues
-            if self.template_type == "email":
-                self.message_too_long = False
-            else:
-                self.message_too_long = template.is_message_too_long()
-            self.message_empty = template.is_message_empty()
+        self.template = copy.copy(template)
+        self.template.values = row_dict
+        self.template_type = self.template.template_type
 
         super().__init__(OrderedDict(
             (key, Cell(key, value, error_fn, self.placeholders))
@@ -418,6 +414,17 @@ class Row(InsensitiveDict):
             cell.error == Cell.missing_field_error
             for cell in self.values()
         )
+
+    @cached_property
+    def message_too_long(self):
+        if self.template_type == "email":
+            # we do not validate email size for CSVs to avoid performance issues
+            return False
+        return self.template.is_message_too_long()
+
+    @cached_property
+    def message_empty(self):
+        return self.template.is_message_empty()
 
     @property
     def recipient(self):
@@ -460,7 +467,9 @@ class Cell():
         placeholders=None
     ):
         self.data = value
-        self.error = error_fn(key, value) if error_fn else None
+        self.key = key
+        self.value = value
+        self.error_fn = error_fn
         self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
 
     def __eq__(self, other):
@@ -471,6 +480,11 @@ class Cell():
             self.error == other.error,
             self.ignore == other.ignore,
         ))
+
+    @cached_property
+    def error(self):
+        if self.error_fn:
+            return self.error_fn(self.key, self.value)
 
     @property
     def recipient_error(self):
