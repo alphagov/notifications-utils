@@ -1302,3 +1302,24 @@ def test_email_validation_speed():
     )
     for row in recipients:
         assert not row.has_error
+
+
+@pytest.mark.parametrize('should_validate', [True, False])
+def test_recipient_csv_checks_should_validate_flag(should_validate):
+    template = _sample_template('sms')
+    template.is_message_empty = Mock(return_value=False)
+
+    recipients = RecipientCSV(
+        """phone number,name
+        07700900460, test1
+        +447700 900 460,test2""",
+        template=template,
+        should_validate=should_validate
+    )
+
+    recipients._get_error_for_field = Mock(return_value=None)
+
+    list(recipients.get_rows())
+
+    assert template.is_message_empty.called is should_validate
+    assert recipients._get_error_for_field.called is should_validate

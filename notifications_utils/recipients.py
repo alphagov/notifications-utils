@@ -58,6 +58,7 @@ class RecipientCSV():
         remaining_messages=sys.maxsize,
         allow_international_sms=False,
         allow_international_letters=False,
+        should_validate=True,
     ):
         self.file_data = strip_all_whitespace(file_data, extra_characters=',')
         self.max_errors_shown = max_errors_shown
@@ -68,6 +69,7 @@ class RecipientCSV():
         self.allow_international_letters = allow_international_letters
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
+        self.should_validate = should_validate
 
     def __len__(self):
         if not hasattr(self, '_len'):
@@ -201,6 +203,7 @@ class RecipientCSV():
                 placeholders=self.placeholders_as_column_keys,
                 template=self.template,
                 allow_international_letters=self.allow_international_letters,
+                validate_row=self.should_validate
             )
 
     @property
@@ -361,7 +364,15 @@ class Row(InsensitiveDict):
         placeholders,
         template,
         allow_international_letters,
+        validate_row=True,
     ):
+        # If we don't need to validate, then:
+        # by not setting template we avoid the template level validation (used to check message length)
+        # by not setting error_fn, we avoid the Cell.__init__ validation (used to check phone nums are valid,
+        # placeholders are present, etc)
+        if not validate_row:
+            template = None
+            error_fn = None
 
         self.index = index
         self.recipient_column_headers = recipient_column_headers
