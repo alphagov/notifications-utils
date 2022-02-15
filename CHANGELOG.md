@@ -3,6 +3,18 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 54.0.0
+
+* remove the `column` argument from recipients.validate_phone_number`,
+  `recipients.validate_uk_phone_number`,
+  `recipients.try_validate_and_format_phone_number` and
+  `recipients.validate_email_address` (no consuming code uses this
+  argument)
+* remove `recipients.validate_recipient` (consuming code already uses
+  `recipients.validate_phone_number`,
+  `recipients.validate_email_address` or
+  `postal_address.PostalAddress(…).valid` instead)
+
 ## 53.0.0
 
 * `notifications_utils.columns.Columns` has moved to
