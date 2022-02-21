@@ -141,17 +141,17 @@ def test_should_call_get_if_enabled(mocked_redis_client):
     mocked_redis_client.redis_store.get.assert_called_with('key')
 
 
-def test_should_build_cache_key_service_and_action(sample_service):
+def test_daily_limit_cache_key(sample_service):
     with freeze_time("2016-01-01 12:00:00.000000"):
         assert daily_limit_cache_key(sample_service.id) == '{}-2016-01-01-count'.format(sample_service.id)
 
 
-def test_should_build_daily_limit_cache_key(sample_service):
+def test_rate_limit_cache_key(sample_service):
     assert rate_limit_cache_key(sample_service.id, 'TEST') == '{}-TEST'.format(sample_service.id)
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.exceeded_rate_limit("key", 100, 100)
     assert mocked_redis_client.redis_store.pipeline.called
     mocked_redis_pipeline.zadd.assert_called_with("key", {978350400.0: 978350400.0})
@@ -162,24 +162,24 @@ def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_should_fail_request_if_over_limit(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_fail_request_if_over_limit(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_pipeline.execute.return_value = [True, True, 100, True]
     assert mocked_redis_client.exceeded_rate_limit("key", 99, 100)
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_should_allow_request_if_not_over_limit(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_allow_request_if_not_over_limit(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_pipeline.execute.return_value = [True, True, 100, True]
     assert not mocked_redis_client.exceeded_rate_limit("key", 101, 100)
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_rate_limit_not_exceeded(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_not_exceeded(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_pipeline.execute.return_value = [True, True, 80, True]
     assert not mocked_redis_client.exceeded_rate_limit("key", 90, 100)
 
 
-def test_should_not_call_rate_limit_if_not_enabled(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_not_call_if_not_enabled(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.active = False
 
     assert not mocked_redis_client.exceeded_rate_limit('key', 100, 100)
@@ -192,7 +192,7 @@ def test_delete(mocked_redis_client):
     mocked_redis_client.redis_store.delete.assert_called_with(key)
 
 
-def test_multi_delete(mocked_redis_client):
+def test_delete_multi(mocked_redis_client):
     mocked_redis_client.delete('a', 'b', 'c')
     mocked_redis_client.redis_store.delete.assert_called_with('a', 'b', 'c')
 
@@ -210,7 +210,7 @@ def test_prepare_value(input, output):
     assert prepare_value(input) == output
 
 
-def test_delete_cache_keys(mocked_redis_client, delete_mock):
+def test_delete_cache_keys_by_pattern(mocked_redis_client, delete_mock):
     ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
     assert ret == 4
     delete_mock.assert_called_once_with(args=['foo'])
