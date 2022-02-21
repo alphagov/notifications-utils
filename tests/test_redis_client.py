@@ -23,21 +23,23 @@ def mocked_redis_pipeline():
 @pytest.fixture(scope='function')
 def mocked_redis_client(app, mocked_redis_pipeline, mocker):
     app.config['REDIS_ENABLED'] = True
-    return build_redis_client(app, mocked_redis_pipeline, mocker)
 
-
-def build_redis_client(app, mocked_redis_pipeline, mocker):
     redis_client = RedisClient()
     redis_client.init_app(app)
+
     mocker.patch.object(redis_client.redis_store, 'get', return_value=100)
     mocker.patch.object(redis_client.redis_store, 'set')
     mocker.patch.object(redis_client.redis_store, 'hincrby')
-    mocker.patch.object(redis_client.redis_store, 'hgetall',
-                        return_value={b'template-1111': b'8', b'template-2222': b'8'})
     mocker.patch.object(redis_client.redis_store, 'hmset')
     mocker.patch.object(redis_client.redis_store, 'expire')
     mocker.patch.object(redis_client.redis_store, 'delete')
     mocker.patch.object(redis_client.redis_store, 'pipeline', return_value=mocked_redis_pipeline)
+
+    mocker.patch.object(
+        redis_client.redis_store,
+        'hgetall',
+        return_value={b'template-1111': b'8', b'template-2222': b'8'}
+    )
 
     return redis_client
 
