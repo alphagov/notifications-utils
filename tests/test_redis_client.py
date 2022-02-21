@@ -53,26 +53,30 @@ def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     return redis_client
 
 
+@pytest.fixture
+def failing_redis_client(mocked_redis_client):
+    mocked_redis_client.redis_store.get.side_effect = Exception('get failed')
+    mocked_redis_client.redis_store.set.side_effect = Exception('set failed')
+    mocked_redis_client.redis_store.incr.side_effect = Exception('incr failed')
+    mocked_redis_client.redis_store.pipeline.side_effect = Exception('pipeline failed')
+    mocked_redis_client.redis_store.delete.side_effect = Exception('delete failed')
+    return mocked_redis_client
+
+
 def test_should_not_raise_exception_if_raise_set_to_false(
     app,
     caplog,
-    mocked_redis_client,
+    failing_redis_client,
     mocker
 ):
     mock_logger = mocker.patch('flask.Flask.logger')
 
-    mocked_redis_client.redis_store.get.side_effect = Exception()
-    mocked_redis_client.redis_store.set.side_effect = Exception()
-    mocked_redis_client.redis_store.incr.side_effect = Exception()
-    mocked_redis_client.redis_store.pipeline.side_effect = Exception()
-    mocked_redis_client.redis_store.delete.side_effect = Exception()
-
-    assert mocked_redis_client.get('get_key') is None
-    assert mocked_redis_client.set('set_key', 'set_value') is None
-    assert mocked_redis_client.incr('incr_key') is None
-    assert mocked_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
-    assert mocked_redis_client.delete('delete_key') is None
-    assert mocked_redis_client.delete('a', 'b', 'c') is None
+    assert failing_redis_client.get('get_key') is None
+    assert failing_redis_client.set('set_key', 'set_value') is None
+    assert failing_redis_client.incr('incr_key') is None
+    assert failing_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
+    assert failing_redis_client.delete('delete_key') is None
+    assert failing_redis_client.delete('a', 'b', 'c') is None
 
     assert mock_logger.mock_calls == [
         call.exception('Redis error performing get on get_key'),
@@ -86,32 +90,26 @@ def test_should_not_raise_exception_if_raise_set_to_false(
 
 def test_should_raise_exception_if_raise_set_to_true(
     app,
-    mocked_redis_client,
+    failing_redis_client,
 ):
-    mocked_redis_client.redis_store.get.side_effect = Exception('get failed')
-    mocked_redis_client.redis_store.set.side_effect = Exception('set failed')
-    mocked_redis_client.redis_store.incr.side_effect = Exception('incr failed')
-    mocked_redis_client.redis_store.pipeline.side_effect = Exception('pipeline failed')
-    mocked_redis_client.redis_store.delete.side_effect = Exception('delete failed')
-
     with pytest.raises(Exception) as e:
-        mocked_redis_client.get('test', raise_exception=True)
+        failing_redis_client.get('test', raise_exception=True)
     assert str(e.value) == 'get failed'
 
     with pytest.raises(Exception) as e:
-        mocked_redis_client.set('test', 'test', raise_exception=True)
+        failing_redis_client.set('test', 'test', raise_exception=True)
     assert str(e.value) == 'set failed'
 
     with pytest.raises(Exception) as e:
-        mocked_redis_client.incr('test', raise_exception=True)
+        failing_redis_client.incr('test', raise_exception=True)
     assert str(e.value) == 'incr failed'
 
     with pytest.raises(Exception) as e:
-        mocked_redis_client.exceeded_rate_limit('test', 100, 200, raise_exception=True)
+        failing_redis_client.exceeded_rate_limit('test', 100, 200, raise_exception=True)
     assert str(e.value) == 'pipeline failed'
 
     with pytest.raises(Exception) as e:
-        mocked_redis_client.delete('test', raise_exception=True)
+        failing_redis_client.delete('test', raise_exception=True)
     assert str(e.value) == 'delete failed'
 
 
