@@ -78,7 +78,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(
     assert failing_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
     assert failing_redis_client.delete('delete_key') is None
     assert failing_redis_client.delete('a', 'b', 'c') is None
-    assert failing_redis_client.delete_cache_keys_by_pattern('pattern') == 0
+    assert failing_redis_client.delete_by_pattern('pattern') == 0
 
     assert mock_logger.mock_calls == [
         call.exception('Redis error performing get on get_key'),
@@ -116,7 +116,7 @@ def test_should_raise_exception_if_raise_set_to_true(
     assert str(e.value) == 'delete failed'
 
     with pytest.raises(Exception) as e:
-        failing_redis_client.delete_cache_keys_by_pattern('pattern', raise_exception=True)
+        failing_redis_client.delete_by_pattern('pattern', raise_exception=True)
     assert str(e.value) == 'delete by pattern failed'
 
 
@@ -128,7 +128,7 @@ def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     assert mocked_redis_client.incr('incr_key') is None
     assert mocked_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
     assert mocked_redis_client.delete('delete_key') is None
-    assert mocked_redis_client.delete_cache_keys_by_pattern('pattern') == 0
+    assert mocked_redis_client.delete_by_pattern('pattern') == 0
 
     mocked_redis_client.redis_store.get.assert_not_called()
     mocked_redis_client.redis_store.set.assert_not_called()
@@ -217,7 +217,7 @@ def test_prepare_value(input, output):
     assert prepare_value(input) == output
 
 
-def test_delete_cache_keys_by_pattern(mocked_redis_client, delete_mock):
-    ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
+def test_delete_by_pattern(mocked_redis_client, delete_mock):
+    ret = mocked_redis_client.delete_by_pattern('foo')
     assert ret == 4
     delete_mock.assert_called_once_with(args=['foo'])
