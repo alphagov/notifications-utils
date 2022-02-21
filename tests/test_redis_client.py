@@ -20,8 +20,13 @@ def mocked_redis_pipeline():
     return Mock()
 
 
+@pytest.fixture
+def delete_mock():
+    return Mock(return_value=4)
+
+
 @pytest.fixture(scope='function')
-def mocked_redis_client(app, mocked_redis_pipeline, mocker):
+def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config['REDIS_ENABLED'] = True
 
     redis_client = RedisClient()
@@ -34,6 +39,12 @@ def mocked_redis_client(app, mocked_redis_pipeline, mocker):
     mocker.patch.object(redis_client.redis_store, 'expire')
     mocker.patch.object(redis_client.redis_store, 'delete')
     mocker.patch.object(redis_client.redis_store, 'pipeline', return_value=mocked_redis_pipeline)
+
+    mocker.patch.object(
+        redis_client,
+        'scripts',
+        {'delete-keys-by-pattern': delete_mock}
+    )
 
     mocker.patch.object(
         redis_client.redis_store,
@@ -194,21 +205,14 @@ def test_prepare_value(input, output):
     assert prepare_value(input) == output
 
 
-def test_delete_cache_keys(mocked_redis_client):
-    delete_mock = Mock(return_value=4)
-    mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
-
+def test_delete_cache_keys(mocked_redis_client, delete_mock):
     ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
-
     assert ret == 4
     delete_mock.assert_called_once_with(args=['foo'])
 
 
-def test_delete_cache_keys_returns_zero_when_redis_disabled(mocked_redis_client):
+def test_delete_cache_keys_returns_zero_when_redis_disabled(mocked_redis_client, delete_mock):
     mocked_redis_client.active = False
-    delete_mock = Mock()
-    mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
-
     ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
 
     assert delete_mock.called is False
