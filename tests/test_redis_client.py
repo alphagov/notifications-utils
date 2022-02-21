@@ -113,27 +113,27 @@ def test_should_raise_exception_if_raise_set_to_true(
     assert str(e.value) == 'delete failed'
 
 
-def test_should_not_call_set_if_not_enabled(mocked_redis_client):
+def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     mocked_redis_client.active = False
-    assert not mocked_redis_client.set('key', 'value')
+
+    assert mocked_redis_client.get('get_key') is None
+    assert mocked_redis_client.set('set_key', 'set_value') is None
+    assert mocked_redis_client.incr('incr_key') is None
+    assert mocked_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
+    assert mocked_redis_client.delete('delete_key') is None
+    assert mocked_redis_client.delete_cache_keys_by_pattern('pattern') == 0
+
+    mocked_redis_client.redis_store.get.assert_not_called()
     mocked_redis_client.redis_store.set.assert_not_called()
+    mocked_redis_client.redis_store.incr.assert_not_called()
+    mocked_redis_client.redis_store.delete.assert_not_called()
+    mocked_redis_client.redis_store.pipeline.assert_not_called()
+    delete_mock.assert_not_called()
 
 
 def test_should_call_set_if_enabled(mocked_redis_client):
     mocked_redis_client.set('key', 'value')
     mocked_redis_client.redis_store.set.assert_called_with('key', 'value', None, None, False, False)
-
-
-def test_should_not_call_get_if_not_enabled(mocked_redis_client):
-    mocked_redis_client.active = False
-    mocked_redis_client.get('key')
-    mocked_redis_client.redis_store.get.assert_not_called()
-
-
-def test_should_not_call_redis_if_not_enabled_for_rate_limit_check(mocked_redis_client):
-    mocked_redis_client.active = False
-    mocked_redis_client.exceeded_rate_limit('key', 100, 200)
-    mocked_redis_client.redis_store.pipeline.assert_not_called()
 
 
 def test_should_call_get_if_enabled(mocked_redis_client):
@@ -214,11 +214,3 @@ def test_delete_cache_keys(mocked_redis_client, delete_mock):
     ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
     assert ret == 4
     delete_mock.assert_called_once_with(args=['foo'])
-
-
-def test_delete_cache_keys_returns_zero_when_redis_disabled(mocked_redis_client, delete_mock):
-    mocked_redis_client.active = False
-    ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
-
-    assert delete_mock.called is False
-    assert ret == 0
