@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.0.0
+
+* Shortened "delete_cache_keys_by_pattern" to "delete_by_pattern".
+* "delete_by_pattern" has a new "raise_exception" parameter (default False).
+
 ## 54.1.0
 
 * Add should_validate flag to `notifications_utils.recipients.RecipientCSV`. Defaults to `True`.

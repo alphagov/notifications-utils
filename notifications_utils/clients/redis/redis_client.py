@@ -62,7 +62,7 @@ class RedisClient:
             """
         )
 
-    def delete_cache_keys_by_pattern(self, pattern):
+    def delete_by_pattern(self, pattern, raise_exception=False):
         r"""
         Deletes all keys matching a given pattern, and returns how many keys were deleted.
         Pattern is defined as in the KEYS command: https://redis.io/commands/keys
@@ -76,7 +76,11 @@ class RedisClient:
         Use \ to escape special characters if you want to match them verbatim
         """
         if self.active:
-            return self.scripts['delete-keys-by-pattern'](args=[pattern])
+            try:
+                return self.scripts['delete-keys-by-pattern'](args=[pattern])
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, 'delete-by-pattern', pattern)
+
         return 0
 
     def exceeded_rate_limit(self, cache_key, limit, interval, raise_exception=False):

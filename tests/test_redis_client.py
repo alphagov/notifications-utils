@@ -20,45 +20,66 @@ def mocked_redis_pipeline():
     return Mock()
 
 
+@pytest.fixture
+def delete_mock():
+    return Mock(return_value=4)
+
+
 @pytest.fixture(scope='function')
-def mocked_redis_client(app, mocked_redis_pipeline, mocker):
+def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config['REDIS_ENABLED'] = True
-    return build_redis_client(app, mocked_redis_pipeline, mocker)
 
-
-def build_redis_client(app, mocked_redis_pipeline, mocker):
     redis_client = RedisClient()
     redis_client.init_app(app)
+
     mocker.patch.object(redis_client.redis_store, 'get', return_value=100)
     mocker.patch.object(redis_client.redis_store, 'set')
-    mocker.patch.object(redis_client.redis_store, 'hincrby')
-    mocker.patch.object(redis_client.redis_store, 'hgetall',
-                        return_value={b'template-1111': b'8', b'template-2222': b'8'})
-    mocker.patch.object(redis_client.redis_store, 'hmset')
-    mocker.patch.object(redis_client.redis_store, 'expire')
+    mocker.patch.object(redis_client.redis_store, 'incr')
     mocker.patch.object(redis_client.redis_store, 'delete')
     mocker.patch.object(redis_client.redis_store, 'pipeline', return_value=mocked_redis_pipeline)
+
+    mocker.patch.object(
+        redis_client,
+        'scripts',
+        {'delete-keys-by-pattern': delete_mock}
+    )
+
+    mocker.patch.object(
+        redis_client.redis_store,
+        'hgetall',
+        return_value={b'template-1111': b'8', b'template-2222': b'8'}
+    )
 
     return redis_client
 
 
-def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, mocker):
+@pytest.fixture
+def failing_redis_client(mocked_redis_client, delete_mock):
+    mocked_redis_client.redis_store.get.side_effect = Exception('get failed')
+    mocked_redis_client.redis_store.set.side_effect = Exception('set failed')
+    mocked_redis_client.redis_store.incr.side_effect = Exception('incr failed')
+    mocked_redis_client.redis_store.pipeline.side_effect = Exception('pipeline failed')
+    mocked_redis_client.redis_store.delete.side_effect = Exception('delete failed')
+    delete_mock.side_effect = Exception('delete by pattern failed')
+    return mocked_redis_client
+
+
+def test_should_not_raise_exception_if_raise_set_to_false(
+    app,
+    caplog,
+    failing_redis_client,
+    mocker
+):
     mock_logger = mocker.patch('flask.Flask.logger')
 
-    app.config['REDIS_ENABLED'] = True
-    redis_client = RedisClient()
-    redis_client.init_app(app)
-    redis_client.redis_store.get = Mock(side_effect=Exception())
-    redis_client.redis_store.set = Mock(side_effect=Exception())
-    redis_client.redis_store.incr = Mock(side_effect=Exception())
-    redis_client.redis_store.pipeline = Mock(side_effect=Exception())
-    redis_client.redis_store.delete = Mock(side_effect=Exception())
-    assert redis_client.get('get_key') is None
-    assert redis_client.set('set_key', 'set_value') is None
-    assert redis_client.incr('incr_key') is None
-    assert redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
-    assert redis_client.delete('delete_key') is None
-    assert redis_client.delete('a', 'b', 'c') is None
+    assert failing_redis_client.get('get_key') is None
+    assert failing_redis_client.set('set_key', 'set_value') is None
+    assert failing_redis_client.incr('incr_key') is None
+    assert failing_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
+    assert failing_redis_client.delete('delete_key') is None
+    assert failing_redis_client.delete('a', 'b', 'c') is None
+    assert failing_redis_client.delete_by_pattern('pattern') == 0
+
     assert mock_logger.mock_calls == [
         call.exception('Redis error performing get on get_key'),
         call.exception('Redis error performing set on set_key'),
@@ -66,39 +87,55 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, mocker):
         call.exception('Redis error performing rate-limit-pipeline on rate_limit_key'),
         call.exception('Redis error performing delete on delete_key'),
         call.exception('Redis error performing delete on a, b, c'),
+        call.exception('Redis error performing delete-by-pattern on pattern'),
     ]
 
 
-def test_should_raise_exception_if_raise_set_to_true(app):
-    app.config['REDIS_ENABLED'] = True
-    redis_client = RedisClient()
-    redis_client.init_app(app)
-    redis_client.redis_store.get = Mock(side_effect=Exception('get failed'))
-    redis_client.redis_store.set = Mock(side_effect=Exception('set failed'))
-    redis_client.redis_store.incr = Mock(side_effect=Exception('inc failed'))
-    redis_client.redis_store.pipeline = Mock(side_effect=Exception('pipeline failed'))
-    redis_client.redis_store.delete = Mock(side_effect=Exception('delete failed'))
+def test_should_raise_exception_if_raise_set_to_true(
+    app,
+    failing_redis_client,
+):
     with pytest.raises(Exception) as e:
-        redis_client.get('test', raise_exception=True)
+        failing_redis_client.get('test', raise_exception=True)
     assert str(e.value) == 'get failed'
+
     with pytest.raises(Exception) as e:
-        redis_client.set('test', 'test', raise_exception=True)
+        failing_redis_client.set('test', 'test', raise_exception=True)
     assert str(e.value) == 'set failed'
+
     with pytest.raises(Exception) as e:
-        redis_client.incr('test', raise_exception=True)
-    assert str(e.value) == 'inc failed'
+        failing_redis_client.incr('test', raise_exception=True)
+    assert str(e.value) == 'incr failed'
+
     with pytest.raises(Exception) as e:
-        redis_client.exceeded_rate_limit('test', 100, 200, raise_exception=True)
+        failing_redis_client.exceeded_rate_limit('test', 100, 200, raise_exception=True)
     assert str(e.value) == 'pipeline failed'
+
     with pytest.raises(Exception) as e:
-        redis_client.delete('test', raise_exception=True)
+        failing_redis_client.delete('test', raise_exception=True)
     assert str(e.value) == 'delete failed'
 
+    with pytest.raises(Exception) as e:
+        failing_redis_client.delete_by_pattern('pattern', raise_exception=True)
+    assert str(e.value) == 'delete by pattern failed'
 
-def test_should_not_call_set_if_not_enabled(mocked_redis_client):
+
+def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     mocked_redis_client.active = False
-    assert not mocked_redis_client.set('key', 'value')
+
+    assert mocked_redis_client.get('get_key') is None
+    assert mocked_redis_client.set('set_key', 'set_value') is None
+    assert mocked_redis_client.incr('incr_key') is None
+    assert mocked_redis_client.exceeded_rate_limit('rate_limit_key', 100, 100) is False
+    assert mocked_redis_client.delete('delete_key') is None
+    assert mocked_redis_client.delete_by_pattern('pattern') == 0
+
+    mocked_redis_client.redis_store.get.assert_not_called()
     mocked_redis_client.redis_store.set.assert_not_called()
+    mocked_redis_client.redis_store.incr.assert_not_called()
+    mocked_redis_client.redis_store.delete.assert_not_called()
+    mocked_redis_client.redis_store.pipeline.assert_not_called()
+    delete_mock.assert_not_called()
 
 
 def test_should_call_set_if_enabled(mocked_redis_client):
@@ -106,34 +143,22 @@ def test_should_call_set_if_enabled(mocked_redis_client):
     mocked_redis_client.redis_store.set.assert_called_with('key', 'value', None, None, False, False)
 
 
-def test_should_not_call_get_if_not_enabled(mocked_redis_client):
-    mocked_redis_client.active = False
-    mocked_redis_client.get('key')
-    mocked_redis_client.redis_store.get.assert_not_called()
-
-
-def test_should_not_call_redis_if_not_enabled_for_rate_limit_check(mocked_redis_client):
-    mocked_redis_client.active = False
-    mocked_redis_client.exceeded_rate_limit('key', 100, 200)
-    mocked_redis_client.redis_store.pipeline.assert_not_called()
-
-
 def test_should_call_get_if_enabled(mocked_redis_client):
     assert mocked_redis_client.get('key') == 100
     mocked_redis_client.redis_store.get.assert_called_with('key')
 
 
-def test_should_build_cache_key_service_and_action(sample_service):
+def test_daily_limit_cache_key(sample_service):
     with freeze_time("2016-01-01 12:00:00.000000"):
         assert daily_limit_cache_key(sample_service.id) == '{}-2016-01-01-count'.format(sample_service.id)
 
 
-def test_should_build_daily_limit_cache_key(sample_service):
+def test_rate_limit_cache_key(sample_service):
     assert rate_limit_cache_key(sample_service.id, 'TEST') == '{}-TEST'.format(sample_service.id)
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.exceeded_rate_limit("key", 100, 100)
     assert mocked_redis_client.redis_store.pipeline.called
     mocked_redis_pipeline.zadd.assert_called_with("key", {978350400.0: 978350400.0})
@@ -144,24 +169,24 @@ def test_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_should_fail_request_if_over_limit(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_fail_request_if_over_limit(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_pipeline.execute.return_value = [True, True, 100, True]
     assert mocked_redis_client.exceeded_rate_limit("key", 99, 100)
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_should_allow_request_if_not_over_limit(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_allow_request_if_not_over_limit(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_pipeline.execute.return_value = [True, True, 100, True]
     assert not mocked_redis_client.exceeded_rate_limit("key", 101, 100)
 
 
 @freeze_time("2001-01-01 12:00:00.000000")
-def test_rate_limit_not_exceeded(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_not_exceeded(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_pipeline.execute.return_value = [True, True, 80, True]
     assert not mocked_redis_client.exceeded_rate_limit("key", 90, 100)
 
 
-def test_should_not_call_rate_limit_if_not_enabled(mocked_redis_client, mocked_redis_pipeline):
+def test_exceeded_rate_limit_should_not_call_if_not_enabled(mocked_redis_client, mocked_redis_pipeline):
     mocked_redis_client.active = False
 
     assert not mocked_redis_client.exceeded_rate_limit('key', 100, 100)
@@ -174,7 +199,7 @@ def test_delete(mocked_redis_client):
     mocked_redis_client.redis_store.delete.assert_called_with(key)
 
 
-def test_multi_delete(mocked_redis_client):
+def test_delete_multi(mocked_redis_client):
     mocked_redis_client.delete('a', 'b', 'c')
     mocked_redis_client.redis_store.delete.assert_called_with('a', 'b', 'c')
 
@@ -192,22 +217,7 @@ def test_prepare_value(input, output):
     assert prepare_value(input) == output
 
 
-def test_delete_cache_keys(mocked_redis_client):
-    delete_mock = Mock(return_value=4)
-    mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
-
-    ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
-
+def test_delete_by_pattern(mocked_redis_client, delete_mock):
+    ret = mocked_redis_client.delete_by_pattern('foo')
     assert ret == 4
     delete_mock.assert_called_once_with(args=['foo'])
-
-
-def test_delete_cache_keys_returns_zero_when_redis_disabled(mocked_redis_client):
-    mocked_redis_client.active = False
-    delete_mock = Mock()
-    mocked_redis_client.scripts = {'delete-keys-by-pattern': delete_mock}
-
-    ret = mocked_redis_client.delete_cache_keys_by_pattern('foo')
-
-    assert delete_mock.called is False
-    assert ret == 0
