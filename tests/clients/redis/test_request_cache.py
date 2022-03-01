@@ -159,3 +159,38 @@ def test_delete_even_if_call_raises(mocker, mocked_redis_client):
         foo()
 
     mock_redis_delete.assert_called_once_with('bar')
+
+
+def test_delete_by_pattern(mocker, mocked_redis_client):
+
+    cache = RequestCache(mocked_redis_client)
+
+    mock_redis_delete = mocker.patch.object(
+        mocked_redis_client, 'delete_by_pattern',
+    )
+
+    @cache.delete_by_pattern('{a}-{b}-{c}-???')
+    def foo(a, b, c):
+        return 'bar'
+
+    assert foo(1, 2, 3) == 'bar'
+
+    mock_redis_delete.assert_called_once_with('1-2-3-???')
+
+
+def test_delete_by_pattern_even_if_call_raises(mocker, mocked_redis_client):
+
+    cache = RequestCache(mocked_redis_client)
+
+    mock_redis_delete = mocker.patch.object(
+        mocked_redis_client, 'delete_by_pattern',
+    )
+
+    @cache.delete_by_pattern('bar-???')
+    def foo():
+        raise RuntimeError
+
+    with pytest.raises(RuntimeError):
+        foo()
+
+    mock_redis_delete.assert_called_once_with('bar-???')

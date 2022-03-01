@@ -73,3 +73,20 @@ class RequestCache():
             return new_client_method
 
         return _delete
+
+    def delete_by_pattern(self, key_format):
+
+        def _delete(client_method):
+
+            @wraps(client_method)
+            def new_client_method(*args, **kwargs):
+                try:
+                    api_response = client_method(*args, **kwargs)
+                finally:
+                    redis_key = self._make_key(key_format, client_method, args, kwargs)
+                    self.redis_client.delete_by_pattern(redis_key)
+                return api_response
+
+            return new_client_method
+
+        return _delete
