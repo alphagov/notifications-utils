@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.1.0
+
+* Added "delete_by_pattern" wrapper to RequestCache decorator group.
+
 ## 55.0.0
 
 * Shortened "delete_cache_keys_by_pattern" to "delete_by_pattern".
