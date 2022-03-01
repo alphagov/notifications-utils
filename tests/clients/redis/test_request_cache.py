@@ -12,6 +12,11 @@ def mocked_redis_client(app):
     return redis_client
 
 
+@pytest.fixture
+def cache(mocked_redis_client):
+    return RequestCache(mocked_redis_client)
+
+
 @pytest.mark.parametrize('args, kwargs, expected_cache_key', (
     (
         [1, 2, 3], {}, '1-2-3-None-None-None'
@@ -29,11 +34,11 @@ def mocked_redis_client(app):
 def test_set(
     mocker,
     mocked_redis_client,
+    cache,
     args,
     kwargs,
     expected_cache_key,
 ):
-    cache = RequestCache(mocked_redis_client)
     mock_redis_set = mocker.patch.object(
         mocked_redis_client, 'set',
     )
@@ -66,10 +71,10 @@ def test_set(
 def test_set_with_custom_ttl(
     mocker,
     mocked_redis_client,
+    cache,
     cache_set_call,
     expected_redis_client_ttl,
 ):
-    cache = RequestCache(mocked_redis_client)
     mock_redis_set = mocker.patch.object(
         mocked_redis_client, 'set',
     )
@@ -91,10 +96,7 @@ def test_set_with_custom_ttl(
     )
 
 
-def test_raises_if_key_doesnt_match_arguments(mocked_redis_client):
-
-    cache = RequestCache(mocked_redis_client)
-
+def test_raises_if_key_doesnt_match_arguments(cache):
     @cache.set('{baz}')
     def foo(bar):
         pass
@@ -106,10 +108,7 @@ def test_raises_if_key_doesnt_match_arguments(mocked_redis_client):
         foo()
 
 
-def test_get(mocker, mocked_redis_client):
-
-    cache = RequestCache(mocked_redis_client)
-
+def test_get(mocker, mocked_redis_client, cache):
     mock_redis_get = mocker.patch.object(
         mocked_redis_client, 'get',
         return_value=b'"bar"',
@@ -126,10 +125,7 @@ def test_get(mocker, mocked_redis_client):
     mock_redis_get.assert_called_once_with('1-2-3')
 
 
-def test_delete(mocker, mocked_redis_client):
-
-    cache = RequestCache(mocked_redis_client)
-
+def test_delete(mocker, mocked_redis_client, cache):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client, 'delete',
     )
@@ -143,10 +139,7 @@ def test_delete(mocker, mocked_redis_client):
     mock_redis_delete.assert_called_once_with('1-2-3')
 
 
-def test_delete_even_if_call_raises(mocker, mocked_redis_client):
-
-    cache = RequestCache(mocked_redis_client)
-
+def test_delete_even_if_call_raises(mocker, mocked_redis_client, cache):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client, 'delete',
     )
@@ -161,10 +154,7 @@ def test_delete_even_if_call_raises(mocker, mocked_redis_client):
     mock_redis_delete.assert_called_once_with('bar')
 
 
-def test_delete_by_pattern(mocker, mocked_redis_client):
-
-    cache = RequestCache(mocked_redis_client)
-
+def test_delete_by_pattern(mocker, mocked_redis_client, cache):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client, 'delete_by_pattern',
     )
@@ -178,10 +168,7 @@ def test_delete_by_pattern(mocker, mocked_redis_client):
     mock_redis_delete.assert_called_once_with('1-2-3-???')
 
 
-def test_delete_by_pattern_even_if_call_raises(mocker, mocked_redis_client):
-
-    cache = RequestCache(mocked_redis_client)
-
+def test_delete_by_pattern_even_if_call_raises(mocker, mocked_redis_client, cache):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client, 'delete_by_pattern',
     )
