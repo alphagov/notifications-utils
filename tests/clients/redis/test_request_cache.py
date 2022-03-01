@@ -26,7 +26,7 @@ def mocked_redis_client(app):
         [1, 2, 3, 4], {'y': 5}, '1-2-3-4-5-None'
     ),
 ))
-def test_sets_cache(
+def test_set(
     mocker,
     mocked_redis_client,
     args,
@@ -63,7 +63,7 @@ def test_sets_cache(
     (1.111, 1),
     ('2000', 2_000),
 ))
-def test_sets_cache_with_custom_ttl(
+def test_set_with_custom_ttl(
     mocker,
     mocked_redis_client,
     cache_set_call,
@@ -106,7 +106,7 @@ def test_raises_if_key_doesnt_match_arguments(mocked_redis_client):
         foo()
 
 
-def test_gets_from_cache(mocker, mocked_redis_client):
+def test_get(mocker, mocked_redis_client):
 
     cache = RequestCache(mocked_redis_client)
 
@@ -126,7 +126,7 @@ def test_gets_from_cache(mocker, mocked_redis_client):
     mock_redis_get.assert_called_once_with('1-2-3')
 
 
-def test_deletes_from_cache(mocker, mocked_redis_client):
+def test_delete(mocker, mocked_redis_client):
 
     cache = RequestCache(mocked_redis_client)
 
@@ -143,7 +143,7 @@ def test_deletes_from_cache(mocker, mocked_redis_client):
     mock_redis_delete.assert_called_once_with('1-2-3')
 
 
-def test_deletes_from_cache_even_if_call_raises(mocker, mocked_redis_client):
+def test_delete_even_if_call_raises(mocker, mocked_redis_client):
 
     cache = RequestCache(mocked_redis_client)
 
