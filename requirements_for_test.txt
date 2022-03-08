@@ -1,6 +1,6 @@
 -r requirements.txt
 
-celery==4.4.0 # pyup: ignore
+celery==5.2.2
 beautifulsoup4==4.10.0
 pytest==7.0.0
 pytest-mock==3.7.0
