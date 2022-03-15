@@ -42,7 +42,7 @@ setup(
         'itsdangerous>=1.1.0',
         'govuk-bank-holidays>=0.10',
         'geojson>=2.5.0',
-        'Shapely>=1.7.1',
+        'Shapely>=1.8.0',
 
         # required by both api and admin
         'awscli',

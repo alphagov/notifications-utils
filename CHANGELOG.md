@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.1.1
+
+* Bump shapely to 1.8.0 to support Mac M1 installation of geos.
+
 ## 55.1.0
 
 * Added "delete_by_pattern" wrapper to RequestCache decorator group.
