@@ -116,6 +116,50 @@ DRY-up the "app/celery/celery.py" file we have in many apps.
 * Remove `multiple_spaces_in_a_row` variable (appears unused in other apps)
 * Remove `normalise_line` function (appears unused in other apps)
 
+## 47.0.0
+
+* Breaking: remove `create_ticket` method from ZendeskClient
+
+# 46.1.0
+
+* Extract ticket formatting from ZendeskClient into NotifySupportTicket
+
+# 46.0.0
+
+* Revert 45.0.0 (pyproj dependency won't install on PaaS)
+
+# 45.0.0
+
+* Use cartesian coordinate system for polygon geometry
+
+# 44.5.1
+
+* Split out separate too_late_to_cancel_letter function to allow reuse
+
+# 44.5.0
+
+* Add `intersects` method to Polygons
+
+# 44.4.1
+
+* Detect optional placeholders with brackets in their text
+
+# 44.4.0
+
+* Allow Zendesk tickets to be create with internal notes
+
+# 44.3.1
+
+* Round coordinates to 5 decimal places
+
+# 44.3.0
+
+* Add methods to get the bounds and overlap of polygons
+
+# 44.2.1
+
+* Normalise international numbers when formatting
+
 ## Prior versions
 
 Changelog not recorded - please see pull requests on github.
