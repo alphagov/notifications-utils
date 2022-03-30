@@ -73,3 +73,14 @@ def test_set_item(key_in, lookup_key):
     columns = InsensitiveDict({})
     columns[key_in] = 'bar'
     assert columns[lookup_key] == 'bar'
+
+
+def test_maintains_insertion_order():
+    d = InsensitiveDict({
+        'B': None,
+        'A': None,
+        'C': None,
+    })
+    assert d.keys() == ['b', 'a', 'c']
+    d['BB'] = None
+    assert d.keys() == ['b', 'a', 'c', 'bb']
