@@ -1,6 +1,6 @@
 -r requirements.txt
 
-celery==5.2.3
+celery==5.2.5
 beautifulsoup4==4.10.0
 pytest==7.1.0
 pytest-mock==3.7.0
