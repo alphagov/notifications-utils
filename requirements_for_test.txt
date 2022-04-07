@@ -1,4 +1,4 @@
--r requirements.txt
+-e .
 
 celery==5.2.3
 beautifulsoup4==4.10.0
