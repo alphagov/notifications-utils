@@ -43,5 +43,6 @@ setup(
         'govuk-bank-holidays>=0.10',
         'geojson>=2.5.0',
         'Shapely>=1.8.0',
+        'boto3>=1.21.36',
     ]
 )
