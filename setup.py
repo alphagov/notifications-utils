@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'bleach>=4.1.0',
         'cachetools>=4.1.1',
-        'mistune==0.8.4',
+        'mistune>=0.8.4',
         'requests>=2.25.0',
         'python-json-logger>=2.0.1',
         'Flask>=1.1.1',
@@ -37,15 +37,11 @@ setup(
         'phonenumbers>=8.12.13',
         'pyproj>=3.2.1',
         'pytz>=2020.4',
-        'smartypants==2.0.1',
+        'smartypants>=2.0.1',
         'pypdf2>=1.26.0',
         'itsdangerous>=1.1.0',
         'govuk-bank-holidays>=0.10',
         'geojson>=2.5.0',
         'Shapely>=1.8.0',
-
-        # required by both api and admin
-        'awscli',
-        'boto3',
     ]
 )
