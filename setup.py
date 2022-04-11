@@ -25,7 +25,7 @@ setup(
     install_requires=[
         'bleach>=4.1.0',
         'cachetools>=4.1.1',
-        'mistune==0.8.4',  # next version is v2, which is totally different
+        'mistune<2.0.0',  # v2 is totally incompatible with unclear benefit
         'requests>=2.25.0',
         'python-json-logger>=2.0.1',
         'Flask>=1.1.1',
