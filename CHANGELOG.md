@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.1.4
+
+* Downgrade min version of boto3 due to incompatibility with awscli-cwlogs dependency.
+
 ## 55.1.3
 
 * Unpin most dependencies and remove redundant ones (no action required).
