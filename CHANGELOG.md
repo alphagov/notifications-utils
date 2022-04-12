@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.1.3
+
+* Unpin most dependencies and remove redundant ones (no action required).
+
 ## 55.1.1
 
 * Bump shapely to 1.8.0 to support Mac M1 installation of geos.
