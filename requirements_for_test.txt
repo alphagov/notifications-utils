@@ -2,7 +2,7 @@
 
 celery==5.2.6
 beautifulsoup4==4.11.1
-pytest==7.1.1
+pytest==7.1.2
 pytest-mock==3.7.0
 pytest-xdist==2.5.0
 requests-mock==1.9.3
