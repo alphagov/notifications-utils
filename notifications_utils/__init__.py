@@ -17,3 +17,8 @@ email_with_smart_quotes_regex = re.compile(
     r'(^|\s)\S+@\S+(\s|$)',
     flags=re.MULTILINE,
 )
+
+# The magic sequence is a ‘unique’ series of characters which we temporarily insert
+# and then later remove when performing tricky formatting operations
+MAGIC_SEQUENCE = "🇬🇧🐦✉️"
+magic_sequence_regex = re.compile(MAGIC_SEQUENCE)

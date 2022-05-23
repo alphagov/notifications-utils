@@ -8,11 +8,14 @@ from os import path
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
-from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
+from notifications_utils import (
+    LETTER_MAX_PAGE_COUNT,
+    MAGIC_SEQUENCE,
+    SMS_CHAR_COUNT_LIMIT,
+)
 from notifications_utils.countries.data import Postage
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
-    MAGIC_SEQUENCE,
     add_prefix,
     add_trailing_newline,
     autolink_sms,
