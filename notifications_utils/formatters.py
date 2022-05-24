@@ -7,7 +7,7 @@ import mistune
 import smartypants
 from markupsafe import Markup
 
-from notifications_utils.markdown import create_sanitised_html_for_url
+from notifications_utils.markdown import create_sanitised_html_for_url, LINK_STYLE
 from notifications_utils.sanitise_text import SanitiseSMS
 
 from . import email_with_smart_quotes_regex
@@ -50,6 +50,9 @@ HTML_ENTITY_MAPPING = (
 # The Mistune URL regex only matches URLs at the start of a string,
 # using `^`, so we slice that off and recompile
 url = re.compile(mistune.InlineGrammar.url.pattern[1:])
+url_with_optional_protocol = re.compile(
+    r'(?i)(https?:\/\/)?([\w\-])+\.{1}([a-z]{2,63})([\/\w-]*)*\/?\??([^#\n\r\<]*)?#?([^\n\r\<]*)'
+)
 
 more_than_two_newlines_in_a_row = re.compile(r'\n{3,}')
 
@@ -73,10 +76,23 @@ def add_prefix(body, prefix=None):
 
 
 def autolink_sms(body):
-    return url.sub(
-        lambda match: create_sanitised_html_for_url(match.group(1)),
-        body,
-    )
+    return autolink_url(body, style=LINK_STYLE)
+
+
+def autolink_url(value, *, protocol_optional=False, classes='', style=''):
+    if protocol_optional:
+        regex, match_group = url_with_optional_protocol, 0
+    else:
+        regex, match_group = url, 1
+
+    return Markup(regex.sub(
+        lambda match: create_sanitised_html_for_url(
+            match.group(match_group),
+            classes=classes,
+            style=style,
+        ),
+        value,
+    ))
 
 
 def prepend_subject(body, subject):

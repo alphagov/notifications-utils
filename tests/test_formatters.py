@@ -2,6 +2,7 @@ import pytest
 from markupsafe import Markup
 
 from notifications_utils.formatters import (
+    autolink_url,
     escape_html,
     formatted_list,
     make_quotes_smart,
@@ -365,3 +366,48 @@ def test_strip_unsupported_characters():
 ])
 def test_normalise_whitespace(value):
     assert normalise_whitespace(value) == 'Your tax is due'
+
+
+@pytest.mark.parametrize("content, extra_kwargs, expected_html", (
+    (
+        "http://example.com",
+        {},
+        '<a href="http://example.com">http://example.com</a>',
+    ),
+    (
+        "http://example.com",
+        {
+            'style': 'text-decoration: blink',
+        },
+        '<a style="text-decoration: blink" href="http://example.com">http://example.com</a>',
+    ),
+    (
+        "http://example.com",
+        {
+            'classes': 'govuk-link',
+        },
+        '<a class="govuk-link" href="http://example.com">http://example.com</a>',
+    ),
+    (
+        "http://example.com",
+        {
+            'classes': 'govuk-link',
+            'style': 'text-decoration: blink',
+        },
+        '<a class="govuk-link" style="text-decoration: blink" href="http://example.com">http://example.com</a>',
+    ),
+    (
+        "example.com",
+        {},
+        'example.com',
+    ),
+    (
+        "example.com",
+        {
+            'protocol_optional': True,
+        },
+        '<a href="http://example.com">example.com</a>',
+    ),
+))
+def test_autolink_url(content, extra_kwargs, expected_html):
+    assert autolink_url(content, **extra_kwargs) == expected_html
