@@ -52,7 +52,7 @@ mistune.InlineLexer.inline_html_rules = list(
 )
 
 
-def create_sanitised_html_for_url(link):
+def create_sanitised_html_for_url(link, *, classes='', style=''):
     """
     takes a link and returns an a tag to that link.  does the quote/unquote dance to ensure that " quotes are escaped
     correctly to prevent xss
@@ -60,13 +60,22 @@ def create_sanitised_html_for_url(link):
     input: `http://foo.com/"bar"?x=1#2`
     output: `<a style=... href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>`
     """
-    return '<a style="{}" href="{}">{}</a>'.format(
-        LINK_STYLE,
+    link_text = link
+
+    if not link.lower().startswith('http'):
+        link = f'http://{link}'
+
+    class_attribute = f'class="{classes}" ' if classes else ''
+    style_attribute = f'style="{style}" ' if style else ''
+
+    return '<a {}{}href="{}">{}</a>'.format(
+        class_attribute,
+        style_attribute,
         urllib.parse.quote(
             urllib.parse.unquote(link),
             safe=':/?#=&;'
         ),
-        link
+        link_text,
     )
 
 
@@ -217,7 +226,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def autolink(self, link, is_email=False):
         if is_email:
             return link
-        return create_sanitised_html_for_url(link)
+        return create_sanitised_html_for_url(link, style=LINK_STYLE)
 
 
 class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
