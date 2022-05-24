@@ -405,8 +405,8 @@ def test_markdown_in_templates(
     'template_class, template_type, extra_attributes', [
         (HTMLEmailTemplate, 'email', 'style="word-wrap: break-word; color: #1D70B8;"'),
         (EmailPreviewTemplate, 'email', 'style="word-wrap: break-word; color: #1D70B8;"'),
-        (SMSPreviewTemplate, 'sms', 'style="word-wrap: break-word;"'),
-        (BroadcastPreviewTemplate, 'broadcast', 'style="word-wrap: break-word;"'),
+        (SMSPreviewTemplate, 'sms', 'class="govuk-link govuk-link--no-visited-state"'),
+        (BroadcastPreviewTemplate, 'broadcast', 'class="govuk-link govuk-link--no-visited-state"'),
         pytest.param(SMSBodyPreviewTemplate, 'sms', 'style="word-wrap: break-word;', marks=pytest.mark.xfail),
     ]
 )

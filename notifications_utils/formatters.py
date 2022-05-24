@@ -81,7 +81,7 @@ def add_prefix(body, prefix=None):
     return body
 
 
-def autolink_urls(value, *, protocol_optional=False, classes='', style=''):
+def autolink_urls(value, *, protocol_optional=False, classes=''):
     if protocol_optional:
         regex, match_group = url_with_optional_protocol, 0
     else:
@@ -91,7 +91,6 @@ def autolink_urls(value, *, protocol_optional=False, classes='', style=''):
         lambda match: create_sanitised_html_for_url(
             match.group(match_group),
             classes=classes,
-            style=style,
         ),
         value,
     ))
