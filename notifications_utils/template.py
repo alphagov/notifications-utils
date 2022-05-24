@@ -369,6 +369,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
                 nl2br
             ).then(
                 autolink_url,
+                classes="govuk-link govuk-link--no-visited-state",
                 style='word-wrap: break-word;',
             )
         }))
