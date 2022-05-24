@@ -1,6 +1,6 @@
 import pytest
 
-from notifications_utils.formatters import (
+from notifications_utils.markdown import (
     notify_email_markdown,
     notify_letter_preview_markdown,
     notify_plain_text_email_markdown,

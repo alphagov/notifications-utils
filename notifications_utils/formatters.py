@@ -7,13 +7,7 @@ import mistune
 import smartypants
 from markupsafe import Markup
 
-from notifications_utils.markdown import (
-    NotifyEmailMarkdownRenderer,
-    NotifyEmailPreheaderMarkdownRenderer,
-    NotifyLetterMarkdownPreviewRenderer,
-    NotifyPlainTextEmailMarkdownRenderer,
-    create_sanitised_html_for_url,
-)
+from notifications_utils.markdown import create_sanitised_html_for_url
 from notifications_utils.sanitise_text import SanitiseSMS
 
 from . import email_with_smart_quotes_regex
@@ -297,23 +291,3 @@ def remove_whitespace(value):
 
 def strip_unsupported_characters(value):
     return value.replace('\u2028', '')
-
-
-notify_email_markdown = mistune.Markdown(
-    renderer=NotifyEmailMarkdownRenderer(),
-    hard_wrap=True,
-    use_xhtml=False,
-)
-notify_plain_text_email_markdown = mistune.Markdown(
-    renderer=NotifyPlainTextEmailMarkdownRenderer(),
-    hard_wrap=True,
-)
-notify_email_preheader_markdown = mistune.Markdown(
-    renderer=NotifyEmailPreheaderMarkdownRenderer(),
-    hard_wrap=True,
-)
-notify_letter_preview_markdown = mistune.Markdown(
-    renderer=NotifyLetterMarkdownPreviewRenderer(),
-    hard_wrap=True,
-    use_xhtml=False,
-)

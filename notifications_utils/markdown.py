@@ -301,3 +301,23 @@ class NotifyEmailPreheaderMarkdownRenderer(NotifyPlainTextEmailMarkdownRenderer)
             content,
             ' ({})'.format(title) if title else '',
         ))
+
+
+notify_email_markdown = mistune.Markdown(
+    renderer=NotifyEmailMarkdownRenderer(),
+    hard_wrap=True,
+    use_xhtml=False,
+)
+notify_plain_text_email_markdown = mistune.Markdown(
+    renderer=NotifyPlainTextEmailMarkdownRenderer(),
+    hard_wrap=True,
+)
+notify_email_preheader_markdown = mistune.Markdown(
+    renderer=NotifyEmailPreheaderMarkdownRenderer(),
+    hard_wrap=True,
+)
+notify_letter_preview_markdown = mistune.Markdown(
+    renderer=NotifyLetterMarkdownPreviewRenderer(),
+    hard_wrap=True,
+    use_xhtml=False,
+)

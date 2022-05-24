@@ -26,10 +26,6 @@ from notifications_utils.formatters import (
     normalise_multiple_newlines,
     normalise_whitespace,
     normalise_whitespace_and_newlines,
-    notify_email_markdown,
-    notify_email_preheader_markdown,
-    notify_letter_preview_markdown,
-    notify_plain_text_email_markdown,
     remove_smart_quotes_from_email_addresses,
     remove_whitespace_before_punctuation,
     replace_hyphens_with_en_dashes,
@@ -40,6 +36,12 @@ from notifications_utils.formatters import (
     unlink_govuk_escaped,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.markdown import (
+    notify_email_markdown,
+    notify_email_preheader_markdown,
+    notify_letter_preview_markdown,
+    notify_plain_text_email_markdown,
+)
 from notifications_utils.postal_address import (
     PostalAddress,
     address_lines_1_to_7_keys,
