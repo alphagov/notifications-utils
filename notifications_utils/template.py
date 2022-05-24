@@ -37,7 +37,6 @@ from notifications_utils.formatters import (
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.markdown import (
-    LINK_STYLE,
     notify_email_markdown,
     notify_email_preheader_markdown,
     notify_letter_preview_markdown,
@@ -369,7 +368,8 @@ class SMSPreviewTemplate(BaseSMSTemplate):
             ).then(
                 nl2br
             ).then(
-                autolink_urls, style=LINK_STYLE
+                autolink_urls,
+                style='word-wrap: break-word;',
             )
         }))
 
