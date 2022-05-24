@@ -402,12 +402,12 @@ def test_markdown_in_templates(
 
 
 @pytest.mark.parametrize(
-    'template_class, template_type', [
-        (HTMLEmailTemplate, 'email'),
-        (EmailPreviewTemplate, 'email'),
-        (SMSPreviewTemplate, 'sms'),
-        (BroadcastPreviewTemplate, 'broadcast'),
-        pytest.param(SMSBodyPreviewTemplate, 'sms', marks=pytest.mark.xfail),
+    'template_class, template_type, extra_attributes', [
+        (HTMLEmailTemplate, 'email', 'style="word-wrap: break-word; color: #1D70B8;"'),
+        (EmailPreviewTemplate, 'email', 'style="word-wrap: break-word; color: #1D70B8;"'),
+        (SMSPreviewTemplate, 'sms', 'style="word-wrap: break-word;"'),
+        (BroadcastPreviewTemplate, 'broadcast', 'style="word-wrap: break-word;"'),
+        pytest.param(SMSBodyPreviewTemplate, 'sms', 'style="word-wrap: break-word;', marks=pytest.mark.xfail),
     ]
 )
 @pytest.mark.parametrize(
@@ -431,9 +431,9 @@ def test_markdown_in_templates(
         pytest.param("mailto:test@example.com", "mailto:test@example.com", marks=pytest.mark.xfail),
     ]
 )
-def test_makes_links_out_of_URLs(template_class, template_type, url, url_with_entities_replaced):
-    assert '<a style="word-wrap: break-word; color: #1D70B8;" href="{}">{}</a>'.format(
-        url_with_entities_replaced, url_with_entities_replaced
+def test_makes_links_out_of_URLs(extra_attributes, template_class, template_type, url, url_with_entities_replaced):
+    assert '<a {} href="{}">{}</a>'.format(
+        extra_attributes, url_with_entities_replaced, url_with_entities_replaced
     ) in str(template_class({'content': url, 'subject': '', 'template_type': template_type}))
 
 
