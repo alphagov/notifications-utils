@@ -3,6 +3,12 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.1.7
+
+* Move some functions and variable from the `notifications_utils.formatters` module to
+  the `notifications_utils.markdown` and `notifications_utils` modules. None of our
+  apps are directly importing the functions and variables which have moved.
+
 ## 55.1.4
 
 * Downgrade min version of boto3 due to incompatibility with awscli-cwlogs dependency.
