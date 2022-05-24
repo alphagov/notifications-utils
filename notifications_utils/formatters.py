@@ -7,10 +7,7 @@ import mistune
 import smartypants
 from markupsafe import Markup
 
-from notifications_utils.markdown import (
-    LINK_STYLE,
-    create_sanitised_html_for_url,
-)
+from notifications_utils.markdown import create_sanitised_html_for_url
 from notifications_utils.sanitise_text import SanitiseSMS
 
 from . import email_with_smart_quotes_regex
@@ -82,10 +79,6 @@ def add_prefix(body, prefix=None):
     if prefix:
         return "{}: {}".format(prefix.strip(), body)
     return body
-
-
-def autolink_sms(body):
-    return autolink_urls(body, style=LINK_STYLE)
 
 
 def autolink_urls(value, *, protocol_optional=False, classes='', style=''):
