@@ -18,7 +18,7 @@ from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     add_prefix,
     add_trailing_newline,
-    autolink_sms,
+    autolink_url,
     escape_html,
     formatted_list,
     make_quotes_smart,
@@ -37,6 +37,7 @@ from notifications_utils.formatters import (
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.markdown import (
+    LINK_STYLE,
     notify_email_markdown,
     notify_email_preheader_markdown,
     notify_letter_preview_markdown,
@@ -368,7 +369,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
             ).then(
                 nl2br
             ).then(
-                autolink_sms
+                autolink_url, style=LINK_STYLE
             )
         }))
 

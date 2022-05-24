@@ -75,10 +75,6 @@ def add_prefix(body, prefix=None):
     return body
 
 
-def autolink_sms(body):
-    return autolink_url(body, style=LINK_STYLE)
-
-
 def autolink_url(value, *, protocol_optional=False, classes='', style=''):
     if protocol_optional:
         regex, match_group = url_with_optional_protocol, 0
