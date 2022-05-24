@@ -437,6 +437,35 @@ def test_makes_links_out_of_URLs(extra_attributes, template_class, template_type
     ) in str(template_class({'content': url, 'subject': '', 'template_type': template_type}))
 
 
+@pytest.mark.parametrize('template_class, template_type', (
+    (SMSPreviewTemplate, 'sms'),
+    (BroadcastPreviewTemplate, 'broadcast'),
+))
+@pytest.mark.parametrize("url, url_with_entities_replaced", (
+    ("example.com", "example.com"),
+    ("www.gov.uk/", "www.gov.uk/"),
+    ("service.gov.uk", "service.gov.uk"),
+    ("gov.uk/coronavirus", "gov.uk/coronavirus"),
+    (
+        "service.gov.uk/blah.ext?q=a%20b%20c&order=desc#fragment",
+        "service.gov.uk/blah.ext?q=a%20b%20c&amp;order=desc#fragment",
+    ),
+))
+def test_makes_links_out_of_URLs_without_protocol_in_sms_and_broadcast(
+    template_class,
+    template_type,
+    url,
+    url_with_entities_replaced,
+):
+    assert (
+        f'<a '
+        f'class="govuk-link govuk-link--no-visited-state" '
+        f'href="http://{url_with_entities_replaced}">'
+        f'{url_with_entities_replaced}'
+        f'</a>'
+    ) in str(template_class({'content': url, 'subject': '', 'template_type': template_type}))
+
+
 @pytest.mark.parametrize('content, html_snippet', (
     (
         (

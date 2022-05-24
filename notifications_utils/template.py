@@ -370,6 +370,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
             ).then(
                 autolink_urls,
                 classes="govuk-link govuk-link--no-visited-state",
+                protocol_optional=True,
             )
         }))
 
