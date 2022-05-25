@@ -3,7 +3,6 @@ import string
 from html import _replace_charref, escape
 
 import bleach
-import mistune
 import smartypants
 from markupsafe import Markup
 
@@ -47,10 +46,7 @@ HTML_ENTITY_MAPPING = (
     ('&rpar;', "▶️🐦🥴"),
 )
 
-# The Mistune URL regex only matches URLs at the start of a string,
-# using `^`, so we slice that off and recompile
-url = re.compile(mistune.InlineGrammar.url.pattern[1:])
-url_with_optional_protocol = re.compile(
+url = re.compile(
     r'(?i)'  # case insensitive
     r'(https?:\/\/)?'  # optional http:// or https://
     r'([\w\-])+\.{1}'  # one or more (sub)domains
@@ -81,15 +77,10 @@ def add_prefix(body, prefix=None):
     return body
 
 
-def autolink_urls(value, *, protocol_optional=False, classes=''):
-    if protocol_optional:
-        regex, match_group = url_with_optional_protocol, 0
-    else:
-        regex, match_group = url, 1
-
-    return Markup(regex.sub(
+def autolink_urls(value, *, classes=''):
+    return Markup(url.sub(
         lambda match: create_sanitised_html_for_url(
-            match.group(match_group),
+            match.group(0),
             classes=classes,
         ),
         value,

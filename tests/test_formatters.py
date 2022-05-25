@@ -384,13 +384,6 @@ def test_normalise_whitespace(value):
     (
         "example.com",
         {},
-        'example.com',
-    ),
-    (
-        "example.com",
-        {
-            'protocol_optional': True,
-        },
         '<a href="http://example.com">example.com</a>',
     ),
 ))
