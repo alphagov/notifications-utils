@@ -3,6 +3,13 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 55.2.0
+
+* Links in previews of text messages and emergency alerts now have the correct CSS
+  classes added automatically
+* URLs in previews of text messages and emergency alerts will now become links even
+  if they don’t have `http://` or `https://` at the start
+
 ## 55.1.7
 
 * Move some functions and variable from the `notifications_utils.formatters` module to
