@@ -1,7 +1,7 @@
 import csv
 import re
 import sys
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
@@ -176,7 +176,7 @@ class RecipientCSV():
                 yield None
                 continue
 
-            output_dict = OrderedDict()
+            output_dict = {}
 
             for column_name, column_value in zip(column_headers, row):
 
@@ -389,10 +389,10 @@ class Row(InsensitiveDict):
                 self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
 
-        super().__init__(OrderedDict(
-            (key, Cell(key, value, error_fn, self.placeholders))
+        super().__init__({
+            key: Cell(key, value, error_fn, self.placeholders)
             for key, value in row_dict.items()
-        ))
+        })
 
     def __getitem__(self, key):
         return super().__getitem__(key) if key in self else Cell()

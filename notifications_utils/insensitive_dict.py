@@ -1,10 +1,9 @@
-from collections import OrderedDict
 from functools import lru_cache
 
 from orderedset import OrderedSet
 
 
-class InsensitiveDict(OrderedDict):
+class InsensitiveDict(dict):
 
     """
     `InsensitiveDict` behaves like an ordered dictionary, except it normalises
@@ -32,7 +31,7 @@ class InsensitiveDict(OrderedDict):
         - it stores the original, unnormalised key as the value of the
           item so it can be retrieved later
         """
-        return cls(OrderedDict([(key, key) for key in keys]))
+        return cls({key: key for key in keys})
 
     def keys(self):
         return OrderedSet(super().keys())

@@ -8,11 +8,14 @@ from os import path
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
-from notifications_utils import LETTER_MAX_PAGE_COUNT, SMS_CHAR_COUNT_LIMIT
+from notifications_utils import (
+    LETTER_MAX_PAGE_COUNT,
+    MAGIC_SEQUENCE,
+    SMS_CHAR_COUNT_LIMIT,
+)
 from notifications_utils.countries.data import Postage
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
-    MAGIC_SEQUENCE,
     add_prefix,
     add_trailing_newline,
     autolink_sms,
@@ -23,10 +26,6 @@ from notifications_utils.formatters import (
     normalise_multiple_newlines,
     normalise_whitespace,
     normalise_whitespace_and_newlines,
-    notify_email_markdown,
-    notify_email_preheader_markdown,
-    notify_letter_preview_markdown,
-    notify_plain_text_email_markdown,
     remove_smart_quotes_from_email_addresses,
     remove_whitespace_before_punctuation,
     replace_hyphens_with_en_dashes,
@@ -37,6 +36,12 @@ from notifications_utils.formatters import (
     unlink_govuk_escaped,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.markdown import (
+    notify_email_markdown,
+    notify_email_preheader_markdown,
+    notify_letter_preview_markdown,
+    notify_plain_text_email_markdown,
+)
 from notifications_utils.postal_address import (
     PostalAddress,
     address_lines_1_to_7_keys,
