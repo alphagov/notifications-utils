@@ -1,12 +1,12 @@
 import re
 import string
+import urllib
 from html import _replace_charref, escape
 
 import bleach
 import smartypants
 from markupsafe import Markup
 
-from notifications_utils.markdown import create_sanitised_html_for_url
 from notifications_utils.sanitise_text import SanitiseSMS
 
 from . import email_with_smart_quotes_regex
@@ -85,6 +85,33 @@ def autolink_urls(value, *, classes=''):
         ),
         value,
     ))
+
+
+def create_sanitised_html_for_url(link, *, classes='', style=''):
+    """
+    takes a link and returns an a tag to that link.  does the quote/unquote dance to ensure that " quotes are escaped
+    correctly to prevent xss
+
+    input: `http://foo.com/"bar"?x=1#2`
+    output: `<a style=... href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>`
+    """
+    link_text = link
+
+    if not link.lower().startswith('http'):
+        link = f'http://{link}'
+
+    class_attribute = f'class="{classes}" ' if classes else ''
+    style_attribute = f'style="{style}" ' if style else ''
+
+    return '<a {}{}href="{}">{}</a>'.format(
+        class_attribute,
+        style_attribute,
+        urllib.parse.quote(
+            urllib.parse.unquote(link),
+            safe=':/?#=&;'
+        ),
+        link_text,
+    )
 
 
 def prepend_subject(body, subject):

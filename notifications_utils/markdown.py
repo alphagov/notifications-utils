@@ -1,11 +1,11 @@
 import re
-import urllib
 from itertools import count
 
 import mistune
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
+from notifications_utils.formatters import create_sanitised_html_for_url
 
 LINK_STYLE = 'word-wrap: break-word; color: #1D70B8;'
 
@@ -50,33 +50,6 @@ mistune.InlineLexer.inline_html_rules = list(
         'code',
     ))
 )
-
-
-def create_sanitised_html_for_url(link, *, classes='', style=''):
-    """
-    takes a link and returns an a tag to that link.  does the quote/unquote dance to ensure that " quotes are escaped
-    correctly to prevent xss
-
-    input: `http://foo.com/"bar"?x=1#2`
-    output: `<a style=... href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>`
-    """
-    link_text = link
-
-    if not link.lower().startswith('http'):
-        link = f'http://{link}'
-
-    class_attribute = f'class="{classes}" ' if classes else ''
-    style_attribute = f'style="{style}" ' if style else ''
-
-    return '<a {}{}href="{}">{}</a>'.format(
-        class_attribute,
-        style_attribute,
-        urllib.parse.quote(
-            urllib.parse.unquote(link),
-            safe=':/?#=&;'
-        ),
-        link_text,
-    )
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
