@@ -18,7 +18,7 @@ from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     add_prefix,
     add_trailing_newline,
-    autolink_sms,
+    autolink_urls,
     escape_html,
     formatted_list,
     make_quotes_smart,
@@ -368,7 +368,8 @@ class SMSPreviewTemplate(BaseSMSTemplate):
             ).then(
                 nl2br
             ).then(
-                autolink_sms
+                autolink_urls,
+                classes="govuk-link govuk-link--no-visited-state",
             )
         }))
 

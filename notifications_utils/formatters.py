@@ -1,13 +1,12 @@
 import re
 import string
+import urllib
 from html import _replace_charref, escape
 
 import bleach
-import mistune
 import smartypants
 from markupsafe import Markup
 
-from notifications_utils.markdown import create_sanitised_html_for_url
 from notifications_utils.sanitise_text import SanitiseSMS
 
 from . import email_with_smart_quotes_regex
@@ -47,9 +46,13 @@ HTML_ENTITY_MAPPING = (
     ('&rpar;', "▶️🐦🥴"),
 )
 
-# The Mistune URL regex only matches URLs at the start of a string,
-# using `^`, so we slice that off and recompile
-url = re.compile(mistune.InlineGrammar.url.pattern[1:])
+url = re.compile(
+    r'(?i)'  # case insensitive
+    r'(https?:\/\/)?'  # optional http:// or https://
+    r'([\w\-]+\.{1})+'  # one or more (sub)domains
+    r'([a-z]{2,63})'  # top-level domain
+    r'([/\?#][^<\s]*)?'  # start of path, query or fragment
+)
 
 more_than_two_newlines_in_a_row = re.compile(r'\n{3,}')
 
@@ -72,10 +75,73 @@ def add_prefix(body, prefix=None):
     return body
 
 
-def autolink_sms(body):
-    return url.sub(
-        lambda match: create_sanitised_html_for_url(match.group(1)),
-        body,
+def make_link_from_url(linked_part, *, classes=''):
+    """
+    Takes something which looks like a URL, works out which trailing characters shouldn’t
+    be considered part of the link and returns an HTML <a> tag
+
+    input: `http://example.com/foo_(bar)).`
+    output: `<a href="http://example.com/foo_(bar)">http://example.com/foo_(bar)</a>).`
+    """
+    CORRESPONDING_OPENING_CHARACTER_MAP = {
+        ')': '(',
+        ']': '[',
+        '.': None,
+        ',': None,
+        ':': None,
+    }
+
+    trailing_characters = ''
+
+    while (last_character := linked_part[-1]) in CORRESPONDING_OPENING_CHARACTER_MAP.keys():
+        corresponding_opening_character = CORRESPONDING_OPENING_CHARACTER_MAP[last_character]
+
+        if corresponding_opening_character:
+            count_opening_characters = linked_part.count(corresponding_opening_character)
+            count_closing_characters = linked_part.count(last_character)
+            if count_opening_characters >= count_closing_characters:
+                break
+
+        trailing_characters = linked_part[-1] + trailing_characters
+        linked_part = linked_part[:-1]
+
+    return f'{create_sanitised_html_for_url(linked_part, classes=classes)}{trailing_characters}'
+
+
+def autolink_urls(value, *, classes=''):
+    return Markup(url.sub(
+        lambda match: make_link_from_url(
+            match.group(0),
+            classes=classes,
+        ),
+        value,
+    ))
+
+
+def create_sanitised_html_for_url(link, *, classes='', style=''):
+    """
+    takes a link and returns an a tag to that link.  does the quote/unquote dance to ensure that " quotes are escaped
+    correctly to prevent xss
+
+    input: `http://foo.com/"bar"?x=1#2`
+    output: `<a style=... href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>`
+    """
+    link_text = link
+
+    if not link.lower().startswith('http'):
+        link = f'http://{link}'
+
+    class_attribute = f'class="{classes}" ' if classes else ''
+    style_attribute = f'style="{style}" ' if style else ''
+
+    return '<a {}{}href="{}">{}</a>'.format(
+        class_attribute,
+        style_attribute,
+        urllib.parse.quote(
+            urllib.parse.unquote(link),
+            safe=':/?#=&;'
+        ),
+        link_text,
     )
 
 

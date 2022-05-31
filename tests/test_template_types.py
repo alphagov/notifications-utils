@@ -402,12 +402,12 @@ def test_markdown_in_templates(
 
 
 @pytest.mark.parametrize(
-    'template_class, template_type', [
-        (HTMLEmailTemplate, 'email'),
-        (EmailPreviewTemplate, 'email'),
-        (SMSPreviewTemplate, 'sms'),
-        (BroadcastPreviewTemplate, 'broadcast'),
-        pytest.param(SMSBodyPreviewTemplate, 'sms', marks=pytest.mark.xfail),
+    'template_class, template_type, extra_attributes', [
+        (HTMLEmailTemplate, 'email', 'style="word-wrap: break-word; color: #1D70B8;"'),
+        (EmailPreviewTemplate, 'email', 'style="word-wrap: break-word; color: #1D70B8;"'),
+        (SMSPreviewTemplate, 'sms', 'class="govuk-link govuk-link--no-visited-state"'),
+        (BroadcastPreviewTemplate, 'broadcast', 'class="govuk-link govuk-link--no-visited-state"'),
+        pytest.param(SMSBodyPreviewTemplate, 'sms', 'style="word-wrap: break-word;', marks=pytest.mark.xfail),
     ]
 )
 @pytest.mark.parametrize(
@@ -431,9 +431,38 @@ def test_markdown_in_templates(
         pytest.param("mailto:test@example.com", "mailto:test@example.com", marks=pytest.mark.xfail),
     ]
 )
-def test_makes_links_out_of_URLs(template_class, template_type, url, url_with_entities_replaced):
-    assert '<a style="word-wrap: break-word; color: #1D70B8;" href="{}">{}</a>'.format(
-        url_with_entities_replaced, url_with_entities_replaced
+def test_makes_links_out_of_URLs(extra_attributes, template_class, template_type, url, url_with_entities_replaced):
+    assert '<a {} href="{}">{}</a>'.format(
+        extra_attributes, url_with_entities_replaced, url_with_entities_replaced
+    ) in str(template_class({'content': url, 'subject': '', 'template_type': template_type}))
+
+
+@pytest.mark.parametrize('template_class, template_type', (
+    (SMSPreviewTemplate, 'sms'),
+    (BroadcastPreviewTemplate, 'broadcast'),
+))
+@pytest.mark.parametrize("url, url_with_entities_replaced", (
+    ("example.com", "example.com"),
+    ("www.gov.uk/", "www.gov.uk/"),
+    ("service.gov.uk", "service.gov.uk"),
+    ("gov.uk/coronavirus", "gov.uk/coronavirus"),
+    (
+        "service.gov.uk/blah.ext?q=a%20b%20c&order=desc#fragment",
+        "service.gov.uk/blah.ext?q=a%20b%20c&amp;order=desc#fragment",
+    ),
+))
+def test_makes_links_out_of_URLs_without_protocol_in_sms_and_broadcast(
+    template_class,
+    template_type,
+    url,
+    url_with_entities_replaced,
+):
+    assert (
+        f'<a '
+        f'class="govuk-link govuk-link--no-visited-state" '
+        f'href="http://{url_with_entities_replaced}">'
+        f'{url_with_entities_replaced}'
+        f'</a>'
     ) in str(template_class({'content': url, 'subject': '', 'template_type': template_type}))
 
 
