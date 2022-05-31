@@ -27,12 +27,12 @@ from notifications_utils.template import (
 @pytest.mark.parametrize(
     "url, expected_html", [
         (
-            """https://example.com"onclick="alert('hi')""",
-            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com%22onclick=%22alert%28%27hi%27%29">https://example.com"onclick="alert('hi')</a>""",  # noqa
+            """https://example.com/"onclick="alert('hi')""",
+            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com/%22onclick=%22alert%28%27hi%27%29">https://example.com/"onclick="alert('hi')</a>""",  # noqa
         ),
         (
-            """https://example.com"style='text-decoration:blink'""",
-            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com%22style=%27text-decoration:blink%27">https://example.com"style='text-decoration:blink'</a>""",  # noqa
+            """https://example.com/"style='text-decoration:blink'""",
+            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com/%22style=%27text-decoration:blink%27">https://example.com/"style='text-decoration:blink'</a>""",  # noqa
         ),
     ]
 )
@@ -368,27 +368,118 @@ def test_normalise_whitespace(value):
     assert normalise_whitespace(value) == 'Your tax is due'
 
 
-@pytest.mark.parametrize("content, extra_kwargs, expected_html", (
+@pytest.mark.parametrize("content, expected_html", (
     (
-        "http://example.com",
+        'http://example.com',
+        '<a href="http://example.com">http://example.com</a>',
+    ),
+    (
+        'https://example.com',
+        '<a href="https://example.com">https://example.com</a>',
+    ),
+    (
+        "example.com",
+        '<a href="http://example.com">example.com</a>',
+    ),
+    (
+        "www.foo.bar.example.com",
+        '<a href="http://www.foo.bar.example.com">www.foo.bar.example.com</a>',
+    ),
+    (
+        "example.com/",
+        '<a href="http://example.com/">example.com/</a>',
+    ),
+    (
+        "www.foo.bar.example.com/",
+        '<a href="http://www.foo.bar.example.com/">www.foo.bar.example.com/</a>',
+    ),
+    (
+        "example.com/foo",
+        '<a href="http://example.com/foo">example.com/foo</a>',
+    ),
+    (
+        "example.com?foo",
+        '<a href="http://example.com?foo">example.com?foo</a>',
+    ),
+    (
+        "example.com#foo",
+        '<a href="http://example.com#foo">example.com#foo</a>',
+    ),
+    (
+        'Go to gov.uk/example.',
+        'Go to <a href="http://gov.uk/example">gov.uk/example</a>.',
+    ),
+    (
+        'Go to gov.uk/example:',
+        'Go to <a href="http://gov.uk/example">gov.uk/example</a>:',
+    ),
+    (
+        'Go to gov.uk/example;',
+        'Go to <a href="http://gov.uk/example;">gov.uk/example;</a>',
+    ),
+    (
+        '(gov.uk/example)',
+        '(<a href="http://gov.uk/example">gov.uk/example</a>)',
+    ),
+    (
+        '(gov.uk/example)...',
+        '(<a href="http://gov.uk/example">gov.uk/example</a>)...',
+    ),
+    (
+        '(gov.uk/example.)',
+        '(<a href="http://gov.uk/example">gov.uk/example</a>.)',
+    ),
+    (
+        '(see example.com/foo_(bar))',
+        '(see <a href="http://example.com/foo_%28bar%29">example.com/foo_(bar)</a>)',
+    ),
+    (
+        'example.com/foo(((((((bar',
+        '<a href="http://example.com/foo%28%28%28%28%28%28%28bar">example.com/foo(((((((bar</a>',
+    ),
+    (
+        'government website (gov.uk). Other websites…',
+        'government website (<a href="http://gov.uk">gov.uk</a>). Other websites…',
+    ),
+    (
+        '[gov.uk/example]',
+        '[<a href="http://gov.uk/example">gov.uk/example</a>]',
+    ),
+    (
+        'gov.uk/foo, gov.uk/bar',
+        '<a href="http://gov.uk/foo">gov.uk/foo</a>, <a href="http://gov.uk/bar">gov.uk/bar</a>',
+    ),
+    (
+        '<p>gov.uk/foo</p>',
+        '<p><a href="http://gov.uk/foo">gov.uk/foo</a></p>',
+    ),
+    (
+        'gov.uk?foo&amp;',
+        '<a href="http://gov.uk?foo&amp;">gov.uk?foo&amp;</a>',
+    ),
+    (
+        'http://foo.com/"bar"?x=1#2',
+        '<a href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>',
+    )
+))
+def test_autolink_urls_matches_correctly(content, expected_html):
+    assert autolink_urls(content) == expected_html
+
+
+@pytest.mark.parametrize("extra_kwargs, expected_html", (
+    (
         {},
         '<a href="http://example.com">http://example.com</a>',
     ),
     (
-        "http://example.com",
         {
             'classes': 'govuk-link',
         },
         '<a class="govuk-link" href="http://example.com">http://example.com</a>',
     ),
-    (
-        "example.com",
-        {},
-        '<a href="http://example.com">example.com</a>',
-    ),
 ))
-def test_autolink_urls(content, extra_kwargs, expected_html):
-    assert autolink_urls(content, **extra_kwargs) == expected_html
+def test_autolink_urls_applies_correct_attributes(extra_kwargs, expected_html):
+    assert autolink_urls('http://example.com', **extra_kwargs) == expected_html
 
 
 @pytest.mark.parametrize('content', (

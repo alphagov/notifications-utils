@@ -49,11 +49,9 @@ HTML_ENTITY_MAPPING = (
 url = re.compile(
     r'(?i)'  # case insensitive
     r'(https?:\/\/)?'  # optional http:// or https://
-    r'([\w\-])+\.{1}'  # one or more (sub)domains
+    r'([\w\-]+\.{1})+'  # one or more (sub)domains
     r'([a-z]{2,63})'  # top-level domain
-    r'([\/\w-]*)*\/?'  # path with optional trailing slash
-    r'\??([^#\n\r\<]*)?'  # optional query string
-    r'#?([^\n\r\<]*)'  # optional #fragment
+    r'([/\?#][^<\s]*)?'  # start of path, query or fragment
 )
 
 more_than_two_newlines_in_a_row = re.compile(r'\n{3,}')
@@ -77,9 +75,42 @@ def add_prefix(body, prefix=None):
     return body
 
 
+def make_link_from_url(linked_part, *, classes=''):
+    """
+    Takes something which looks like a URL, works out which trailing characters shouldn’t
+    be considered part of the link and returns an HTML <a> tag
+
+    input: `http://example.com/foo_(bar)).`
+    output: `<a href="http://example.com/foo_(bar)">http://example.com/foo_(bar)</a>).`
+    """
+    CORRESPONDING_OPENING_CHARACTER_MAP = {
+        ')': '(',
+        ']': '[',
+        '.': None,
+        ',': None,
+        ':': None,
+    }
+
+    trailing_characters = ''
+
+    while (last_character := linked_part[-1]) in CORRESPONDING_OPENING_CHARACTER_MAP.keys():
+        corresponding_opening_character = CORRESPONDING_OPENING_CHARACTER_MAP[last_character]
+
+        if corresponding_opening_character:
+            count_opening_characters = linked_part.count(corresponding_opening_character)
+            count_closing_characters = linked_part.count(last_character)
+            if count_opening_characters >= count_closing_characters:
+                break
+
+        trailing_characters = linked_part[-1] + trailing_characters
+        linked_part = linked_part[:-1]
+
+    return f'{create_sanitised_html_for_url(linked_part, classes=classes)}{trailing_characters}'
+
+
 def autolink_urls(value, *, classes=''):
     return Markup(url.sub(
-        lambda match: create_sanitised_html_for_url(
+        lambda match: make_link_from_url(
             match.group(0),
             classes=classes,
         ),
