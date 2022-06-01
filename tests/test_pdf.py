@@ -3,7 +3,7 @@ from io import BytesIO
 
 import PyPDF2
 import pytest
-from PyPDF2.utils import PdfReadError
+from PyPDF2.errors import PdfReadError
 
 from notifications_utils.pdf import (
     extract_page_from_pdf,
@@ -47,23 +47,23 @@ def test_extract_page_from_pdf_one_page_pdf():
     file_data = base64.b64decode(one_page_pdf)
     pdf_page = extract_page_from_pdf(BytesIO(file_data), 0)
 
-    pdf_original = PyPDF2.PdfFileReader(BytesIO(file_data))
+    pdf_original = PyPDF2.PdfReader(BytesIO(file_data))
 
-    pdf_new = PyPDF2.PdfFileReader(BytesIO(pdf_page))
+    pdf_new = PyPDF2.PdfReader(BytesIO(pdf_page))
 
-    assert pdf_original.getPage(0).extractText() == pdf_new.getPage(0).extractText()
+    assert pdf_original.pages[0].extract_text() == pdf_new.pages[0].extract_text()
 
 
 def test_extract_page_from_pdf_multi_page_pdf():
     file_data = base64.b64decode(multi_page_pdf)
     pdf_page = extract_page_from_pdf(BytesIO(file_data), 4)
 
-    pdf_original = PyPDF2.PdfFileReader(BytesIO(file_data))
+    pdf_original = PyPDF2.PdfReader(BytesIO(file_data))
 
-    pdf_new = PyPDF2.PdfFileReader(BytesIO(pdf_page))
+    pdf_new = PyPDF2.PdfReader(BytesIO(pdf_page))
 
-    assert pdf_original.getPage(4).extractText() == pdf_new.getPage(0).extractText()
-    assert pdf_original.getPage(3).extractText() != pdf_new.getPage(0).extractText()
+    assert pdf_original.pages[4].extract_text() == pdf_new.pages[0].extract_text()
+    assert pdf_original.pages[3].extract_text() != pdf_new.pages[0].extract_text()
 
 
 def test_extract_page_from_pdf_request_page_out_of_bounds():
