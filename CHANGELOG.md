@@ -3,6 +3,13 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 56.0.0
+
+* Breaking: upgrade PyPDF2 to version 2.0.0. You will need to:
+
+  - Change error class imports from `pypdf2.utils` to `pypdf2.errors`.
+  - Run the tests and make changes based on the deprecation warnings.
+
 ## 55.2.0
 
 * Links in previews of text messages and emergency alerts now have the correct CSS
