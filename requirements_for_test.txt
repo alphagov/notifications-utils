@@ -3,7 +3,7 @@
 celery==5.2.7
 beautifulsoup4==4.11.1
 pytest==7.1.2
-pytest-mock==3.7.0
+pytest-mock==3.8.1
 pytest-xdist==2.5.0
 requests-mock==1.9.3
 freezegun==1.2.1
