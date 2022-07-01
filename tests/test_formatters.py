@@ -460,7 +460,11 @@ def test_normalise_whitespace(value):
     (
         'http://foo.com/"bar"?x=1#2',
         '<a href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>',
-    )
+    ),
+    (
+        'firstname.lastname@example.com',
+        'firstname.lastname@example.com',
+    ),
 ))
 def test_autolink_urls_matches_correctly(content, expected_html):
     assert autolink_urls(content) == expected_html

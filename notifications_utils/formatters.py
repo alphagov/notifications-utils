@@ -48,9 +48,11 @@ HTML_ENTITY_MAPPING = (
 
 url = re.compile(
     r'(?i)'  # case insensitive
+    r'\b(?<!\@)'  # match must not start with @ (like @example.com)
     r'(https?:\/\/)?'  # optional http:// or https://
     r'([\w\-]+\.{1})+'  # one or more (sub)domains
     r'([a-z]{2,63})'  # top-level domain
+    r'(?!\@)\b'  # match must not end with @ (like firstname.lastname@)
     r'([/\?#][^<\s]*)?'  # start of path, query or fragment
 )
 
