@@ -458,12 +458,20 @@ def test_normalise_whitespace(value):
         '<a href="http://gov.uk?foo&amp;">gov.uk?foo&amp;</a>',
     ),
     (
+        'a .service.gov.uk domain',
+        'a .service.gov.uk domain',
+    ),
+    (
         'http://foo.com/"bar"?x=1#2',
         '<a href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>',
     ),
     (
         'firstname.lastname@example.com',
         'firstname.lastname@example.com',
+    ),
+    (
+        'with-subdomain@test.example.com',
+        'with-subdomain@test.example.com',
     ),
 ))
 def test_autolink_urls_matches_correctly(content, expected_html):
