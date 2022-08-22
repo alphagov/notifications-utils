@@ -1002,7 +1002,7 @@ def test_letter_image_template_renders_visually_hidden_address():
         )),
         features='html.parser',
     )
-    assert str(template.select_one('.visually-hidden ul')) == (
+    assert str(template.select_one('.govuk-visually-hidden ul')) == (
         '<ul>'
         '<li>line 1</li>'
         '<li>line 2</li>'
