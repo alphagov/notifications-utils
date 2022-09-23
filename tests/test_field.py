@@ -116,6 +116,26 @@ def test_returns_a_string_without_placeholders(content):
             {"warning": False},
             ""
         ),
+        (
+            "Please report to the ((>location)) office at ((&time)) on ((<day)).",
+            {">location": "London", "&time": "09:00", "<day": "Monday"},
+            "Please report to the London office at 09:00 on Monday."
+        ),
+        (
+            "Please report to the ((&gt;location)) office at ((&amp;time)) on ((&lt;day)).",
+            {"&gt;location": "Manchester", "&amp;time": "08:00", "&lt;day": "Thursday"},
+            "Please report to the Manchester office at 08:00 on Thursday."
+        ),
+        (
+            "Dear ((\name)), your passport is now ready for collection from ((/collection_point)).",
+            {"\name": "Jane Doe", "/collection_point": "Point A"},
+            "Dear Jane Doe, your passport is now ready for collection from Point A."
+        ),
+        (
+            "Dear ((/\name)), your passport is now ready for collection from ((//collection_point)).",
+            {"/\name": "John Doe", "//collection_point": "Point B"},
+            "Dear John Doe, your passport is now ready for collection from Point B."
+        ),
     ]
 )
 def test_replacement_of_placeholders(template_content, data, expected):

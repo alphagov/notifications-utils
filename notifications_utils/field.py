@@ -108,7 +108,7 @@ class Field:
 
     @values.setter
     def values(self, value):
-        self._values = InsensitiveDict(value) if value else {}
+        self._values = InsensitiveDict({self.sanitizer(k): value[k] for k in value}) if value else {}
 
     def format_match(self, match):
         return self.format_placeholder(Placeholder.from_match(match))
