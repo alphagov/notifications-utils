@@ -1779,6 +1779,21 @@ def test_templates_extract_placeholders(
     assert template_instance.placeholders == OrderedSet(expected_placeholders)
 
 
+def test_html_template_can_inject_personalisation_with_special_characters():
+    template_content = "This is something text with (( this&that )) HTML special character personalisation <>."
+    personalisation = {"this&that": "some very lovely &"}
+
+    result = str(
+        HTMLEmailTemplate(
+            {'content': template_content, 'subject': '', 'template_type': 'email'},
+            personalisation
+        )
+    )
+    assert (
+        "This is something text with some very lovely &amp; HTML special character personalisation &lt;&gt;." in result
+    )
+
+
 @pytest.mark.parametrize('extra_args', [
     {
         'from_name': 'Example service'
