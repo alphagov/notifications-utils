@@ -19,6 +19,7 @@ class SanitiseText:
         '\u2060': '',  # word joiner
         '\uFEFF': '',  # zero width non-breaking space
         '\u00A0': ' ',  # NON BREAKING WHITE SPACE (U+200B)
+        '\u202F': ' ',  # narrow no break space
         '\t': ' ',  # TAB
     }
 
