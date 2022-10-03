@@ -6,7 +6,6 @@ from orderedset import OrderedSet
 from notifications_utils.formatters import (
     escape_html,
     strip_and_remove_obscure_whitespace,
-    strip_html,
     unescaped_formatted_list,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
@@ -77,7 +76,7 @@ class Field:
         content,
         values=None,
         with_brackets=True,
-        html='strip',
+        html='escape',
         markdown_lists=False,
         redact_missing_personalisation=False,
     ):
@@ -87,7 +86,6 @@ class Field:
         if not with_brackets:
             self.placeholder_tag = self.placeholder_tag_no_brackets
         self.sanitizer = {
-            'strip': strip_html,
             'escape': escape_html,
             'passthrough': str,
         }[html]

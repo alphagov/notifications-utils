@@ -44,7 +44,7 @@ def test_returns_a_string_without_placeholders(content):
         (
             "the quick ((colour)) fox",
             {"colour": "<script>alert('foo')</script>"},
-            "the quick alert('foo') fox"
+            "the quick &lt;script&gt;alert('foo')&lt;/script&gt; fox"
         ),
         (
             'before ((placeholder)) after',
@@ -297,8 +297,8 @@ def test_what_will_trigger_conditional_placeholder(value):
     ),
     (
         {'placeholder': ['<script>', 'alert("foo")', '</script>']},
-        'list: , alert("foo") and ',
-        'list: \n\n* \n* alert("foo")\n* ',
+        'list: &lt;script&gt;, alert("foo") and &lt;/script&gt;',
+        'list: \n\n* &lt;script&gt;\n* alert("foo")\n* &lt;/script&gt;',
     ),
     (
         {'placeholder': [1, {'two': 2}, 'three', None]},
