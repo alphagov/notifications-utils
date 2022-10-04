@@ -22,6 +22,7 @@ OBSCURE_ZERO_WIDTH_WHITESPACE = (
 
 OBSCURE_FULL_WIDTH_WHITESPACE = (
     '\u00A0'  # non breaking space
+    '\u202F'  # narrow no break space
 )
 
 ALL_WHITESPACE = string.whitespace + OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE
