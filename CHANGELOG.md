@@ -3,6 +3,9 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 57.1.0
+
+* Do not log to file when `NOTIFY_RUNTIME_PLATFORM` is set to `ecs`
 
 ## 57.0.0
 
