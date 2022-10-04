@@ -2,6 +2,8 @@ import json
 import logging as builtin_logging
 import logging.handlers as builtin_logging_handlers
 
+import pytest
+
 from notifications_utils import logging
 
 
@@ -24,13 +26,19 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
     assert not (tmpdir / 'foo').exists()
 
 
-def test_get_handlers_sets_up_logging_appropriately_without_debug(tmpdir):
+@pytest.mark.parametrize('platform', [
+    "local",
+    "paas",
+    "something-else",
+])
+def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ecs(tmpdir, platform):
     class App:
         config = {
             # make a tempfile called foo
             'NOTIFY_LOG_PATH': str(tmpdir / 'foo'),
             'NOTIFY_APP_NAME': 'bar',
-            'NOTIFY_LOG_LEVEL': 'ERROR'
+            'NOTIFY_LOG_LEVEL': 'ERROR',
+            'NOTIFY_RUNTIME_PLATFORM': platform,
         }
         debug = False
 
@@ -48,6 +56,28 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug(tmpdir):
     dir_contents = tmpdir.listdir()
     assert len(dir_contents) == 1
     assert dir_contents[0].basename == 'foo.json'
+
+
+def test_get_handlers_sets_up_logging_appropriately_without_debug_on_ecs(tmpdir):
+    class App:
+        config = {
+            # make a tempfile called foo
+            'NOTIFY_LOG_PATH': str(tmpdir / 'foo'),
+            'NOTIFY_APP_NAME': 'bar',
+            'NOTIFY_LOG_LEVEL': 'ERROR',
+            'NOTIFY_RUNTIME_PLATFORM': "ecs",
+        }
+        debug = False
+
+    app = App()
+
+    handlers = logging.get_handlers(app)
+
+    assert len(handlers) == 1
+    assert type(handlers[0]) == builtin_logging.StreamHandler
+    assert type(handlers[0].formatter) == logging.JSONFormatter
+
+    assert not (tmpdir / 'foo.json').exists()
 
 
 def test_base_json_formatter_contains_service_id(tmpdir):
