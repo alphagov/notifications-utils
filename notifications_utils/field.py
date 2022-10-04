@@ -80,15 +80,15 @@ class Field:
         markdown_lists=False,
         redact_missing_personalisation=False,
     ):
+        self.sanitizer = {
+            'escape': escape_html,
+            'passthrough': str,
+        }[html]
         self.content = content
         self.values = values
         self.markdown_lists = markdown_lists
         if not with_brackets:
             self.placeholder_tag = self.placeholder_tag_no_brackets
-        self.sanitizer = {
-            'escape': escape_html,
-            'passthrough': str,
-        }[html]
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __str__(self):
