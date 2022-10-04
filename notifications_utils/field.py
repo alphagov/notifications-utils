@@ -128,16 +128,15 @@ class Field:
 
     def replace_match(self, match):
         placeholder = Placeholder.from_match(match)
-        replacement = self.values.get(placeholder.name)
+        replacement = self.get_replacement(placeholder)
 
-        if placeholder.is_conditional() and replacement is not None:
+        if replacement is None:
+            return self.format_match(match)
+
+        if placeholder.is_conditional():
             return placeholder.get_conditional_body(replacement)
 
-        replaced_value = self.get_replacement(placeholder)
-        if replaced_value is not None:
-            return self.get_replacement(placeholder)
-
-        return self.format_match(match)
+        return replacement
 
     def get_replacement(self, placeholder):
         replacement = self.values.get(placeholder.name)
