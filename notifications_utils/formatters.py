@@ -3,7 +3,6 @@ import string
 import urllib
 from html import _replace_charref, escape
 
-import bleach
 import smartypants
 from markupsafe import Markup
 
@@ -154,10 +153,6 @@ def prepend_subject(body, subject):
 
 def sms_encode(content):
     return SanitiseSMS.encode(content)
-
-
-def strip_html(value):
-    return bleach.clean(value, tags=[], strip=True)
 
 
 """
