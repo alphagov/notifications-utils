@@ -3,6 +3,17 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+
+## 57.0.0
+
+* Breaking changes to `field.Field`:
+
+  - The `html` argument must now be `escape` or `passthrough`. `strip` is no longer
+    valid
+  - The default value of the `html` argument is now `escape` not `strip`
+
+* Removal of `formatters.strip_html`:
+
 ## 56.0.0
 
 * Breaking: upgrade PyPDF2 to version 2.0.0. You will need to:
