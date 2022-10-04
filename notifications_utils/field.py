@@ -111,8 +111,9 @@ class Field:
         self._values = InsensitiveDict(value) if value else {}
 
     def format_match(self, match):
-        placeholder = Placeholder.from_match(match)
+        return self.format_placeholder(Placeholder.from_match(match))
 
+    def format_placeholder(self, placeholder):
         if self.redact_missing_personalisation:
             return self.placeholder_tag_redacted
 
@@ -131,7 +132,7 @@ class Field:
         replacement = self.get_replacement(placeholder)
 
         if replacement is None:
-            return self.format_match(match)
+            return self.format_placeholder(placeholder)
 
         if placeholder.is_conditional():
             return placeholder.get_conditional_body(replacement)
