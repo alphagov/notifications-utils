@@ -80,15 +80,15 @@ class Field:
         markdown_lists=False,
         redact_missing_personalisation=False,
     ):
+        self.sanitizer = {
+            'escape': escape_html,
+            'passthrough': str,
+        }[html]
         self.content = content
         self.values = values
         self.markdown_lists = markdown_lists
         if not with_brackets:
             self.placeholder_tag = self.placeholder_tag_no_brackets
-        self.sanitizer = {
-            'escape': escape_html,
-            'passthrough': str,
-        }[html]
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __str__(self):
@@ -108,11 +108,12 @@ class Field:
 
     @values.setter
     def values(self, value):
-        self._values = InsensitiveDict(value) if value else {}
+        self._values = InsensitiveDict({self.sanitizer(k): value[k] for k in value}) if value else {}
 
     def format_match(self, match):
-        placeholder = Placeholder.from_match(match)
+        return self.format_placeholder(Placeholder.from_match(match))
 
+    def format_placeholder(self, placeholder):
         if self.redact_missing_personalisation:
             return self.placeholder_tag_redacted
 
@@ -128,16 +129,15 @@ class Field:
 
     def replace_match(self, match):
         placeholder = Placeholder.from_match(match)
-        replacement = self.values.get(placeholder.name)
+        replacement = self.get_replacement(placeholder)
 
-        if placeholder.is_conditional() and replacement is not None:
+        if replacement is None:
+            return self.format_placeholder(placeholder)
+
+        if placeholder.is_conditional():
             return placeholder.get_conditional_body(replacement)
 
-        replaced_value = self.get_replacement(placeholder)
-        if replaced_value is not None:
-            return self.get_replacement(placeholder)
-
-        return self.format_match(match)
+        return replacement
 
     def get_replacement(self, placeholder):
         replacement = self.values.get(placeholder.name)
