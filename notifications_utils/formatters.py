@@ -122,11 +122,15 @@ def autolink_urls(value, *, classes=''):
 
 def create_sanitised_html_for_url(link, *, classes='', style=''):
     """
-    takes a link and returns an a tag to that link.  does the quote/unquote dance to ensure that " quotes are escaped
-    correctly to prevent xss
+    takes a link and returns an <a> tag to that link. We escape the link that goes into the `href` attribute to
+    prevent XSS attacks (eg through double-quotes). Notably we don't escape _all_ escape-able values,
+    as some URLs may be sent to us with already urlencoded values (eg %20) - we don't want to end up double-escaping
+    these as they should reach the target server un-mangled.
 
-    input: `http://foo.com/"bar"?x=1#2`
-    output: `<a style=... href="http://foo.com/%22bar%22?x=1#2">http://foo.com/"bar"?x=1#2</a>`
+    input: `http://foo.com/"bar"?x=1&redirect=%2Fsuccess%3Fone#2`
+    output: `<a style=... href="http://foo.com/%22bar%22?x=1&redirect=%2Fsuccess%3Fone#2">
+               http://foo.com/"bar"?x=1&redirect=%2Fsuccess%3Fone#2
+             </a>`
     """
     link_text = link
 
@@ -136,13 +140,12 @@ def create_sanitised_html_for_url(link, *, classes='', style=''):
     class_attribute = f'class="{classes}" ' if classes else ''
     style_attribute = f'style="{style}" ' if style else ''
 
+    safe_link = urllib.parse.quote(link, safe=':/?#=&;%')
+
     return '<a {}{}href="{}">{}</a>'.format(
         class_attribute,
         style_attribute,
-        urllib.parse.quote(
-            urllib.parse.unquote(link),
-            safe=':/?#=&;'
-        ),
+        safe_link,
         link_text,
     )
 
