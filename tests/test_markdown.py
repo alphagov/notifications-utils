@@ -95,6 +95,11 @@ def test_handles_placeholders_in_urls():
             """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>‘)""",  # noqa
         ),
         (
+            """https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue""",
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue">https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue</a>""",  # noqa
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue">https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue</a>""",  # noqa
+        ),
+        (
             """https://example.com"style='text-decoration:blink'""",
             """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>'""",  # noqa
             """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>’""",  # noqa
