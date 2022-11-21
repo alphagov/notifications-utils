@@ -14,9 +14,7 @@ class InsensitiveDict(dict):
     >>> True
     """
 
-    KEY_TRANSLATION_TABLE = {
-        ord(c): None for c in ' _-'
-    }
+    KEY_TRANSLATION_TABLE = {ord(c): None for c in " _-"}
 
     def __init__(self, row_dict):
         for key, value in row_dict.items():
@@ -52,9 +50,7 @@ class InsensitiveDict(dict):
         return self.__class__(super().copy())
 
     def as_dict_with_keys(self, keys):
-        return {
-            key: self.get(key) for key in keys
-        }
+        return {key: self.get(key) for key in keys}
 
     @staticmethod
     @lru_cache(maxsize=32, typed=False)

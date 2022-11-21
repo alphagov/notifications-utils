@@ -9,11 +9,7 @@ from notifications_utils import logging
 
 def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
     class App:
-        config = {
-            'NOTIFY_LOG_PATH': str(tmpdir / 'foo'),
-            'NOTIFY_APP_NAME': 'bar',
-            'NOTIFY_LOG_LEVEL': 'ERROR'
-        }
+        config = {"NOTIFY_LOG_PATH": str(tmpdir / "foo"), "NOTIFY_APP_NAME": "bar", "NOTIFY_LOG_LEVEL": "ERROR"}
         debug = True
 
     app = App()
@@ -23,22 +19,25 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
     assert type(handlers[0].formatter) == logging.CustomLogFormatter
-    assert not (tmpdir / 'foo').exists()
+    assert not (tmpdir / "foo").exists()
 
 
-@pytest.mark.parametrize('platform', [
-    "local",
-    "paas",
-    "something-else",
-])
+@pytest.mark.parametrize(
+    "platform",
+    [
+        "local",
+        "paas",
+        "something-else",
+    ],
+)
 def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ecs(tmpdir, platform):
     class App:
         config = {
             # make a tempfile called foo
-            'NOTIFY_LOG_PATH': str(tmpdir / 'foo'),
-            'NOTIFY_APP_NAME': 'bar',
-            'NOTIFY_LOG_LEVEL': 'ERROR',
-            'NOTIFY_RUNTIME_PLATFORM': platform,
+            "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
+            "NOTIFY_APP_NAME": "bar",
+            "NOTIFY_LOG_LEVEL": "ERROR",
+            "NOTIFY_RUNTIME_PLATFORM": platform,
         }
         debug = False
 
@@ -55,17 +54,17 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ec
 
     dir_contents = tmpdir.listdir()
     assert len(dir_contents) == 1
-    assert dir_contents[0].basename == 'foo.json'
+    assert dir_contents[0].basename == "foo.json"
 
 
 def test_get_handlers_sets_up_logging_appropriately_without_debug_on_ecs(tmpdir):
     class App:
         config = {
             # make a tempfile called foo
-            'NOTIFY_LOG_PATH': str(tmpdir / 'foo'),
-            'NOTIFY_APP_NAME': 'bar',
-            'NOTIFY_LOG_LEVEL': 'ERROR',
-            'NOTIFY_RUNTIME_PLATFORM': "ecs",
+            "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
+            "NOTIFY_APP_NAME": "bar",
+            "NOTIFY_LOG_LEVEL": "ERROR",
+            "NOTIFY_RUNTIME_PLATFORM": "ecs",
         }
         debug = False
 
@@ -77,14 +76,14 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug_on_ecs(tmpdir)
     assert type(handlers[0]) == builtin_logging.StreamHandler
     assert type(handlers[0].formatter) == logging.JSONFormatter
 
-    assert not (tmpdir / 'foo.json').exists()
+    assert not (tmpdir / "foo.json").exists()
 
 
 def test_base_json_formatter_contains_service_id(tmpdir):
-    record = builtin_logging.LogRecord(name="log thing", level="info",
-                                       pathname="path", lineno=123, msg='message to log',
-                                       exc_info=None, args=None)
+    record = builtin_logging.LogRecord(
+        name="log thing", level="info", pathname="path", lineno=123, msg="message to log", exc_info=None, args=None
+    )
 
     service_id_filter = logging.ServiceIdFilter()
-    assert json.loads(logging.BaseJSONFormatter().format(record))['message'] == 'message to log'
+    assert json.loads(logging.BaseJSONFormatter().format(record))["message"] == "message to log"
     assert service_id_filter.filter(record).service_id == "no-service-id"

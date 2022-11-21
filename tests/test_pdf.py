@@ -36,9 +36,7 @@ def test_pdf_page_count_src_pdf_not_a_pdf():
         pdf_page_count(BytesIO(file_data))
 
 
-@pytest.mark.parametrize("page_count, expected_result", [
-    (None, False), (10, False), (11, True)
-])
+@pytest.mark.parametrize("page_count, expected_result", [(None, False), (10, False), (11, True)])
 def test_is_letter_too_long(page_count, expected_result):
     assert is_letter_too_long(page_count) == expected_result
 
@@ -71,4 +69,4 @@ def test_extract_page_from_pdf_request_page_out_of_bounds():
         file_data = base64.b64decode(one_page_pdf)
         extract_page_from_pdf(BytesIO(file_data), 4)
 
-    assert 'Page number requested: 4 of 1 does not exist in document' in str(e.value)
+    assert "Page number requested: 4 of 1 does not exist in document" in str(e.value)

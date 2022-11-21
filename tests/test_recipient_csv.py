@@ -23,17 +23,13 @@ from notifications_utils.template import (
 )
 
 
-def _sample_template(template_type, content='foo'):
+def _sample_template(template_type, content="foo"):
     return {
-        'email': EmailPreviewTemplate(
-            {'content': content, 'subject': 'bar', 'template_type': 'email'}
-        ),
-        'sms': SMSMessageTemplate(
-            {'content': content, 'template_type': 'sms'}
-        ),
-        'letter': LetterImageTemplate(
-            {'content': content, 'subject': 'bar', 'template_type': 'letter'},
-            image_url='https://example.com',
+        "email": EmailPreviewTemplate({"content": content, "subject": "bar", "template_type": "email"}),
+        "sms": SMSMessageTemplate({"content": content, "template_type": "sms"}),
+        "letter": LetterImageTemplate(
+            {"content": content, "subject": "bar", "template_type": "letter"},
+            image_url="https://example.com",
             page_count=1,
         ),
     }.get(template_type)
@@ -43,29 +39,29 @@ def _index_rows(rows):
     return set(row.index for row in rows)
 
 
-@pytest.mark.parametrize('template_type, expected', (
-    ('email', ['email address']),
-    ('sms', ['phone number']),
-    ('letter', [
-        'address line 1',
-        'address line 2',
-        'address line 3',
-        'address line 4',
-        'address line 5',
-        'address line 6',
-        'postcode',
-        'address line 7',
-    ]),
-))
+@pytest.mark.parametrize(
+    "template_type, expected",
+    (
+        ("email", ["email address"]),
+        ("sms", ["phone number"]),
+        (
+            "letter",
+            [
+                "address line 1",
+                "address line 2",
+                "address line 3",
+                "address line 4",
+                "address line 5",
+                "address line 6",
+                "postcode",
+                "address line 7",
+            ],
+        ),
+    ),
+)
 def test_recipient_column_headers(template_type, expected):
     recipients = RecipientCSV("", template=_sample_template(template_type))
-    assert (
-        recipients.recipient_column_headers
-    ) == (
-        first_column_headings[template_type]
-    ) == (
-        expected
-    )
+    assert (recipients.recipient_column_headers) == (first_column_headings[template_type]) == (expected)
 
 
 @pytest.mark.parametrize(
@@ -88,10 +84,7 @@ def test_recipient_column_headers(template_type, expected):
                 +44 456,test2
             """,
             "sms",
-            [
-                [('phone number', '+44 123'), ('name', 'test1')],
-                [('phone number', '+44 456'), ('name', 'test2')]
-            ]
+            [[("phone number", "+44 123"), ("name", "test1")], [("phone number", "+44 456"), ("name", "test2")]],
         ),
         (
             """
@@ -100,10 +93,7 @@ def test_recipient_column_headers(template_type, expected):
                 +44 456
             """,
             "sms",
-            [
-                [('phone number', '+44 123'), ('name', None)],
-                [('phone number', '+44 456'), ('name', None)]
-            ]
+            [[("phone number", "+44 123"), ("name", None)], [("phone number", "+44 456"), ("name", None)]],
         ),
         (
             """
@@ -113,9 +103,9 @@ def test_recipient_column_headers(template_type, expected):
             """,
             "email",
             [
-                [('email address', 'test@example.com'), ('name', 'test1')],
-                [('email address', 'test2@example.com'), ('name', 'test2')]
-            ]
+                [("email address", "test@example.com"), ("name", "test1")],
+                [("email address", "test2@example.com"), ("name", "test2")],
+            ],
         ),
         (
             """
@@ -125,9 +115,9 @@ def test_recipient_column_headers(template_type, expected):
             """,
             "email",
             [
-                [('email address', 'test@example.com'), (None, ['test1', 'red'])],
-                [('email address', 'test2@example.com'), (None, ['test2', 'blue'])]
-            ]
+                [("email address", "test@example.com"), (None, ["test1", "red"])],
+                [("email address", "test2@example.com"), (None, ["test2", "blue"])],
+            ],
         ),
         (
             """
@@ -138,10 +128,10 @@ def test_recipient_column_headers(template_type, expected):
             """,
             "email",
             [
-                [('email address', 'test@example.com'), ('name', 'test1')],
-                [('email address', 'test2@example.com'), ('name', 'test2')],
-                [('email address', 'test3@example.com'), ('name', 'test3')]
-            ]
+                [("email address", "test@example.com"), ("name", "test1")],
+                [("email address", "test2@example.com"), ("name", "test2")],
+                [("email address", "test3@example.com"), ("name", "test3")],
+            ],
         ),
         (
             """
@@ -151,9 +141,9 @@ def test_recipient_column_headers(template_type, expected):
             """,
             "email",
             [
-                [('email address', 'test@example.com'), ('date', 'Nov 28, 2016'), ('name', 'test1')],
-                [('email address', 'test2@example.com'), ('date', 'Nov 29, 2016'), ('name', 'test2')]
-            ]
+                [("email address", "test@example.com"), ("date", "Nov 28, 2016"), ("name", "test1")],
+                [("email address", "test2@example.com"), ("date", "Nov 29, 2016"), ("name", "test2")],
+            ],
         ),
         (
             """
@@ -162,10 +152,7 @@ def test_recipient_column_headers(template_type, expected):
                 Bob
             """,
             "letter",
-            [
-                [('address_line_1', 'Alice')],
-                [('address_line_1', 'Bob')]
-            ]
+            [[("address_line_1", "Alice")], [("address_line_1", "Bob")]],
         ),
         (
             """
@@ -173,16 +160,18 @@ def test_recipient_column_headers(template_type, expected):
                 A. Name,,,,XM4 5HQ,example,example
             """,
             "letter",
-            [[
-                ('addressline1', 'A. Name'),
-                ('addressline2', None),
-                # optional address rows 3 and 4 not in file
-                ('addressline5', None),
-                ('addressline5', None),
-                ('postcode', 'XM4 5HQ'),
-                ('name', 'example'),
-                ('thing', 'example'),
-            ]]
+            [
+                [
+                    ("addressline1", "A. Name"),
+                    ("addressline2", None),
+                    # optional address rows 3 and 4 not in file
+                    ("addressline5", None),
+                    ("addressline5", None),
+                    ("postcode", "XM4 5HQ"),
+                    ("name", "example"),
+                    ("thing", "example"),
+                ]
+            ],
         ),
         (
             """
@@ -193,21 +182,12 @@ def test_recipient_column_headers(template_type, expected):
             """,
             "sms",
             [
-                [
-                    ('phone number', '07900900001'),
-                    ('list', ['cat', 'rat', 'gnat'])
-                ],
-                [
-                    ('phone number', '07900900002'),
-                    ('list', ['dog', 'hog', 'frog'])
-                ],
-                [
-                    ('phone number', '07900900003'),
-                    ('list', ['elephant', None, None])
-                ],
-            ]
-        )
-    ]
+                [("phone number", "07900900001"), ("list", ["cat", "rat", "gnat"])],
+                [("phone number", "07900900002"), ("list", ["dog", "hog", "frog"])],
+                [("phone number", "07900900003"), ("list", ["elephant", None, None])],
+            ],
+        ),
+    ],
 )
 def test_get_rows(file_contents, template_type, expected):
     rows = list(RecipientCSV(file_contents, template=_sample_template(template_type)).rows)
@@ -220,10 +200,10 @@ def test_get_rows(file_contents, template_type, expected):
 
 
 def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
-    has_error_mock = mocker.patch.object(Row, 'has_error')
-    has_bad_recipient_mock = mocker.patch.object(Row, 'has_bad_recipient')
-    has_missing_data_mock = mocker.patch.object(Row, 'has_missing_data')
-    cell_recipient_error_mock = mocker.patch.object(Cell, 'recipient_error')
+    has_error_mock = mocker.patch.object(Row, "has_error")
+    has_bad_recipient_mock = mocker.patch.object(Row, "has_bad_recipient")
+    has_missing_data_mock = mocker.patch.object(Row, "has_missing_data")
+    cell_recipient_error_mock = mocker.patch.object(Cell, "recipient_error")
 
     recipients = RecipientCSV(
         """
@@ -234,13 +214,13 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
 
 
         """,
-        template=_sample_template('email', 'hello ((name))'),
-        max_errors_shown=3
+        template=_sample_template("email", "hello ((name))"),
+        max_errors_shown=3,
     )
 
     rows = recipients.get_rows()
     for _ in range(3):
-        assert next(rows).recipient == 'a@b.com'
+        assert next(rows).recipient == "a@b.com"
 
     assert has_error_mock.called is False
     assert has_bad_recipient_mock.called is False
@@ -249,7 +229,7 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
 
 
 def test_get_rows_only_iterates_over_file_once(mocker):
-    row_mock = mocker.patch('notifications_utils.recipients.Row')
+    row_mock = mocker.patch("notifications_utils.recipients.Row")
 
     recipients = RecipientCSV(
         """
@@ -260,7 +240,7 @@ def test_get_rows_only_iterates_over_file_once(mocker):
 
 
         """,
-        template=_sample_template('email', 'hello ((name))'),
+        template=_sample_template("email", "hello ((name))"),
     )
 
     rows = recipients.get_rows()
@@ -281,17 +261,11 @@ def test_get_rows_only_iterates_over_file_once(mocker):
                 +447700 900 460,test2
                 ,
             """,
-            'sms',
+            "sms",
             [
-                {
-                    'index': 0,
-                    'message_too_long': False
-                },
-                {
-                    'index': 1,
-                    'message_too_long': False
-                },
-            ]
+                {"index": 0, "message_too_long": False},
+                {"index": 1, "message_too_long": False},
+            ],
         ),
         (
             """
@@ -299,30 +273,22 @@ def test_get_rows_only_iterates_over_file_once(mocker):
                 test@example.com,test1,blue
                 test2@example.com, test2,red
             """,
-            'email',
+            "email",
             [
-                {
-                    'index': 0,
-                    'message_too_long': False
-                },
-                {
-                    'index': 1,
-                    'message_too_long': False
-                },
-            ]
-        )
-    ]
+                {"index": 0, "message_too_long": False},
+                {"index": 1, "message_too_long": False},
+            ],
+        ),
+    ],
 )
 def test_get_annotated_rows(file_contents, template_type, expected):
     recipients = RecipientCSV(
-        file_contents,
-        template=_sample_template(template_type, 'hello ((name))'),
-        max_initial_rows_shown=1
+        file_contents, template=_sample_template(template_type, "hello ((name))"), max_initial_rows_shown=1
     )
     for index, expected_row in enumerate(expected):
         annotated_row = list(recipients.rows)[index]
-        assert annotated_row.index == expected_row['index']
-        assert annotated_row.message_too_long == expected_row['message_too_long']
+        assert annotated_row.index == expected_row["index"]
+        assert annotated_row.message_too_long == expected_row["message_too_long"]
     assert len(list(recipients.rows)) == 2
     assert len(list(recipients.initial_rows)) == 1
     assert not recipients.has_errors
@@ -341,24 +307,27 @@ def test_get_rows_with_errors():
 
 
         """,
-        template=_sample_template('email', 'hello ((name))'),
-        max_errors_shown=3
+        template=_sample_template("email", "hello ((name))"),
+        max_errors_shown=3,
     )
     assert len(list(recipients.rows_with_errors)) == 6
     assert len(list(recipients.initial_rows_with_errors)) == 3
     assert recipients.has_errors
 
 
-@pytest.mark.parametrize('template_type, row_count, header, filler, row_with_error', [
-    ('email', 500, "email address\n", "test@example.com\n", "test at example dot com"),
-    ('sms', 500, "phone number\n", "07900900123\n", "12345"),
-])
+@pytest.mark.parametrize(
+    "template_type, row_count, header, filler, row_with_error",
+    [
+        ("email", 500, "email address\n", "test@example.com\n", "test at example dot com"),
+        ("sms", 500, "phone number\n", "07900900123\n", "12345"),
+    ],
+)
 def test_big_list_validates_right_through(template_type, row_count, header, filler, row_with_error):
     big_csv = RecipientCSV(
         header + (filler * (row_count - 1) + row_with_error),
         template=_sample_template(template_type),
         max_errors_shown=100,
-        max_initial_rows_shown=3
+        max_initial_rows_shown=3,
     )
     assert len(list(big_csv.rows)) == row_count
     assert _index_rows(big_csv.rows_with_bad_recipients) == {row_count - 1}  # 0 indexed
@@ -367,25 +336,23 @@ def test_big_list_validates_right_through(template_type, row_count, header, fill
     assert big_csv.has_errors
 
 
-@pytest.mark.parametrize('template_type, row_count, header, filler', [
-    ('email', 50, "email address\n", "test@example.com\n"),
-    ('sms', 50, "phone number\n", "07900900123\n"),
-])
-def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(
-    mocker, template_type, row_count, header, filler
-):
+@pytest.mark.parametrize(
+    "template_type, row_count, header, filler",
+    [
+        ("email", 50, "email address\n", "test@example.com\n"),
+        ("sms", 50, "phone number\n", "07900900123\n"),
+    ],
+)
+def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(mocker, template_type, row_count, header, filler):
     # we do not validate email size for CSVs to avoid performance issues
     RecipientCSV(
         header + filler * row_count,
         template=_sample_template(template_type),
         max_errors_shown=100,
-        max_initial_rows_shown=3
+        max_initial_rows_shown=3,
     )
-    is_message_too_long = mocker.patch(
-        'notifications_utils.template.Template.is_message_too_long',
-        side_effect=False
-    )
-    if template_type == 'email':
+    is_message_too_long = mocker.patch("notifications_utils.template.Template.is_message_too_long", side_effect=False)
+    if template_type == "email":
         is_message_too_long.assert_not_called
     else:
         is_message_too_long.called
@@ -393,15 +360,13 @@ def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(
 
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     mock_strip_and_remove_obscure_whitespace = mocker.patch(
-        'notifications_utils.recipients.strip_and_remove_obscure_whitespace'
+        "notifications_utils.recipients.strip_and_remove_obscure_whitespace"
     )
-    mock_insert_or_append_to_dict = mocker.patch(
-        'notifications_utils.recipients.insert_or_append_to_dict'
-    )
+    mock_insert_or_append_to_dict = mocker.patch("notifications_utils.recipients.insert_or_append_to_dict")
 
     big_csv = RecipientCSV(
         "phonenumber,name\n" + ("07700900123,example\n" * 123),
-        template=_sample_template('sms', content='hello ((name))'),
+        template=_sample_template("sms", content="hello ((name))"),
     )
     big_csv.max_rows = 10
 
@@ -411,33 +376,25 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
 
     # …but we’ve only called the expensive whitespace function on each
     # of the 2 cells in the first 10 rows
-    assert len(
-        mock_strip_and_remove_obscure_whitespace.call_args_list
-    ) == 20
+    assert len(mock_strip_and_remove_obscure_whitespace.call_args_list) == 20
 
     # …and we’ve only called the function which builds the internal data
     # structure once for each of the first 10 rows
-    assert len(
-        mock_insert_or_append_to_dict.call_args_list
-    ) == 10
+    assert len(mock_insert_or_append_to_dict.call_args_list) == 10
 
 
 def test_file_with_lots_of_empty_columns():
     process = Mock()
 
-    lots_of_commas = ',' * 10_000
+    lots_of_commas = "," * 10_000
 
     for row in RecipientCSV(
-        f'phone_number{lots_of_commas}\n' + (
-            f'07900900900{lots_of_commas}\n' * 100
-        ),
-        template=_sample_template('sms'),
+        f"phone_number{lots_of_commas}\n" + (f"07900900900{lots_of_commas}\n" * 100),
+        template=_sample_template("sms"),
     ):
-        assert [
-            (key, cell.data) for key, cell in row.items()
-        ] == [
+        assert [(key, cell.data) for key, cell in row.items()] == [
             # Note that we haven’t stored any of the empty cells
-            ('phonenumber', '07900900900')
+            ("phonenumber", "07900900900")
         ]
         process()
 
@@ -450,12 +407,12 @@ def test_empty_column_names():
             phone_number,,,name
             07900900123,foo,bar,baz
         """,
-        template=_sample_template('sms'),
+        template=_sample_template("sms"),
     )
 
-    assert recipient_csv[0]['phone_number'].data == '07900900123'
-    assert recipient_csv[0][''].data == ['foo', 'bar']
-    assert recipient_csv[0]['name'].data == 'baz'
+    assert recipient_csv[0]["phone_number"].data == "07900900123"
+    assert recipient_csv[0][""].data == ["foo", "bar"]
+    assert recipient_csv[0]["name"].data == "baz"
 
 
 @pytest.mark.parametrize(
@@ -469,9 +426,9 @@ def test_empty_column_names():
                 ,,
                 , ,
             """,
-            _sample_template('sms', 'hello ((name))'),
-            ['+44 123', '+44456'],
-            [{'name': 'test1'}, {'name': None}]
+            _sample_template("sms", "hello ((name))"),
+            ["+44 123", "+44456"],
+            [{"name": "test1"}, {"name": None}],
         ),
         (
             """
@@ -479,12 +436,9 @@ def test_empty_column_names():
                 test@example.com,test1,red
                 testatexampledotcom,test2,blue
             """,
-            _sample_template('email', '((colour))'),
-            ['test@example.com', 'testatexampledotcom'],
-            [
-                {'colour': 'red'},
-                {'colour': 'blue'}
-            ]
+            _sample_template("email", "((colour))"),
+            ["test@example.com", "testatexampledotcom"],
+            [{"colour": "red"}, {"colour": "blue"}],
         ),
         (
             """
@@ -492,11 +446,11 @@ def test_empty_column_names():
                 test@example.com,test1,red
                 testatexampledotcom,test2,blue
             """,
-            _sample_template('email'),
-            ['test@example.com', 'testatexampledotcom'],
-            []
-        )
-    ]
+            _sample_template("email"),
+            ["test@example.com", "testatexampledotcom"],
+            [],
+        ),
+    ],
 )
 def test_get_recipient(file_contents, template, expected_recipients, expected_personalisation):
 
@@ -517,30 +471,20 @@ def test_get_recipient(file_contents, template, expected_recipients, expected_pe
                 test@example.com,test1,red
                 testatexampledotcom,test2,blue
             """,
-            _sample_template('email', '((test))'),
+            _sample_template("email", "((test))"),
+            [(0, "test@example.com"), (1, "testatexampledotcom")],
             [
-                (0, 'test@example.com'),
-                (1, 'testatexampledotcom')
-            ],
-            [
-                {'emailaddress': 'test@example.com', 'test': 'test1'},
-                {'emailaddress': 'testatexampledotcom', 'test': 'test2'},
+                {"emailaddress": "test@example.com", "test": "test1"},
+                {"emailaddress": "testatexampledotcom", "test": "test2"},
             ],
         )
-    ]
+    ],
 )
-def test_get_recipient_respects_order(file_contents,
-                                      template,
-                                      expected_recipients,
-                                      expected_personalisation):
+def test_get_recipient_respects_order(file_contents, template, expected_recipients, expected_personalisation):
     recipients = RecipientCSV(file_contents, template=template)
 
     for row, email in expected_recipients:
-        assert (
-            recipients[row].index,
-            recipients[row].recipient,
-            recipients[row].personalisation,
-        ) == (
+        assert (recipients[row].index, recipients[row].recipient, recipients[row].personalisation,) == (
             row,
             email,
             expected_personalisation[row],
@@ -550,9 +494,7 @@ def test_get_recipient_respects_order(file_contents,
 @pytest.mark.parametrize(
     "file_contents,template_type,expected,expected_missing",
     [
-        (
-            "", 'sms', [], set(['phone number', 'name'])
-        ),
+        ("", "sms", [], set(["phone number", "name"])),
         (
             """
                 phone number,name
@@ -560,119 +502,107 @@ def test_get_recipient_respects_order(file_contents,
                 07700900460,test1
                 07700900460,test1
             """,
-            'sms',
-            ['phone number', 'name'],
-            set()
+            "sms",
+            ["phone number", "name"],
+            set(),
         ),
         (
             """
                 email address,name,colour
             """,
-            'email',
-            ['email address', 'name', 'colour'],
-            set()
+            "email",
+            ["email address", "name", "colour"],
+            set(),
         ),
         (
             """
                 address_line_1, address_line_2, postcode, name
             """,
-            'letter',
-            ['address_line_1', 'address_line_2', 'postcode', 'name'],
-            set()
+            "letter",
+            ["address_line_1", "address_line_2", "postcode", "name"],
+            set(),
         ),
         (
             """
                 email address,colour
             """,
-            'email',
-            ['email address', 'colour'],
-            set(['name'])
+            "email",
+            ["email address", "colour"],
+            set(["name"]),
         ),
         (
             """
                 address_line_1, address_line_2, name
             """,
-            'letter',
-            ['address_line_1', 'address_line_2', 'name'],
-            set()
+            "letter",
+            ["address_line_1", "address_line_2", "name"],
+            set(),
         ),
         (
             """
                 phone number,list,list,name,list
             """,
-            'sms',
-            ['phone number', 'list', 'name'],
-            set()
+            "sms",
+            ["phone number", "list", "name"],
+            set(),
         ),
-    ]
+    ],
 )
 def test_column_headers(file_contents, template_type, expected, expected_missing):
-    recipients = RecipientCSV(file_contents, template=_sample_template(template_type, '((name))'))
+    recipients = RecipientCSV(file_contents, template=_sample_template(template_type, "((name))"))
     assert recipients.column_headers == expected
     assert recipients.missing_column_headers == expected_missing
     assert recipients.has_errors == bool(expected_missing)
 
 
 @pytest.mark.parametrize(
-    'content',
+    "content",
     [
-        'hello',
-        'hello ((name))',
-    ]
+        "hello",
+        "hello ((name))",
+    ],
 )
 @pytest.mark.parametrize(
-    'file_contents,template_type',
+    "file_contents,template_type",
     [
-        pytest.param('', 'sms', marks=pytest.mark.xfail),
-        pytest.param('name', 'sms', marks=pytest.mark.xfail),
-        pytest.param('email address', 'sms', marks=pytest.mark.xfail),
+        pytest.param("", "sms", marks=pytest.mark.xfail),
+        pytest.param("name", "sms", marks=pytest.mark.xfail),
+        pytest.param("email address", "sms", marks=pytest.mark.xfail),
         pytest.param(
-            'address_line_1',
-            'letter',
+            "address_line_1",
+            "letter",
             marks=pytest.mark.xfail,
         ),
         pytest.param(
-            'address_line_1, address_line_2',
-            'letter',
+            "address_line_1, address_line_2",
+            "letter",
             marks=pytest.mark.xfail,
         ),
         pytest.param(
-            'address_line_6, postcode',
-            'letter',
+            "address_line_6, postcode",
+            "letter",
             marks=pytest.mark.xfail,
         ),
         pytest.param(
-            'address_line_1, postcode, address_line_7',
-            'letter',
+            "address_line_1, postcode, address_line_7",
+            "letter",
             marks=pytest.mark.xfail,
         ),
-        ('phone number', 'sms'),
-        ('phone number,name', 'sms'),
-        ('email address', 'email'),
-        ('email address,name', 'email'),
-        ('PHONENUMBER', 'sms'),
-        ('email_address', 'email'),
+        ("phone number", "sms"),
+        ("phone number,name", "sms"),
+        ("email address", "email"),
+        ("email address,name", "email"),
+        ("PHONENUMBER", "sms"),
+        ("email_address", "email"),
+        ("address_line_1, address_line_2, postcode", "letter"),
+        ("address_line_1, address_line_2, address_line_7", "letter"),
+        ("address_line_1, address_line_2, address_line_3", "letter"),
+        ("address_line_4, address_line_5, address_line_6", "letter"),
         (
-            'address_line_1, address_line_2, postcode',
-            'letter'
+            "address_line_1, address_line_2, address_line_3, address_line_4, address_line_5, address_line_6, postcode",
+            "letter",
         ),
-        (
-            'address_line_1, address_line_2, address_line_7',
-            'letter'
-        ),
-        (
-            'address_line_1, address_line_2, address_line_3',
-            'letter'
-        ),
-        (
-            'address_line_4, address_line_5, address_line_6',
-            'letter'
-        ),
-        (
-            'address_line_1, address_line_2, address_line_3, address_line_4, address_line_5, address_line_6, postcode',
-            'letter'
-        ),
-    ]
+    ],
 )
 def test_recipient_column(content, file_contents, template_type):
     assert RecipientCSV(file_contents, template=_sample_template(template_type, content)).has_recipient_columns
@@ -692,22 +622,25 @@ def test_recipient_column(content, file_contents, template_type):
                 +1644000000,test1,test1
                 ,test1,test1
             """,
-            'sms',
-            {2, 5}, {1, 4, 6}
+            "sms",
+            {2, 5},
+            {1, 4, 6},
         ),
         (
             """
                 phone number,name
                 07700900460,test1,test2
             """,
-            'sms',
-            set(), set()
+            "sms",
+            set(),
+            set(),
         ),
         (
             """
             """,
-            'sms',
-            set(), set()
+            "sms",
+            set(),
+            set(),
         ),
         (
             # missing postcode
@@ -716,8 +649,9 @@ def test_recipient_column(content, file_contents, template_type):
                 name,          building,      street,        town,          county,        SE1 7LS,today
                 name,          building,      street,        town,          county,        ,        today
             """,
-            'letter',
-            {1}, set()
+            "letter",
+            {1},
+            set(),
         ),
         (
             # not enough address fields
@@ -725,8 +659,9 @@ def test_recipient_column(content, file_contents, template_type):
                 address_line_1, postcode, date
                 name,           SE1 7LS, today
             """,
-            'letter',
-            {0}, set()
+            "letter",
+            {0},
+            set(),
         ),
         (
             # optional address fields not filled in
@@ -735,8 +670,9 @@ def test_recipient_column(content, file_contents, template_type):
                 name          ,123 fake st.  ,              ,              ,              ,SE1 7LS,today
                 name          ,              ,              ,              ,              ,SE1 7LS,today
             """,
-            'letter',
-            {1}, set()
+            "letter",
+            {1},
+            set(),
         ),
         (
             # Can use any address columns
@@ -744,49 +680,56 @@ def test_recipient_column(content, file_contents, template_type):
                 address_line_3, address_line_4, address_line_7, date
                 name          , 123 fake st.,   SE1 7LS,        today
             """,
-            'letter',
-            set(), set()
+            "letter",
+            set(),
+            set(),
         ),
-    ]
+    ],
 )
-@pytest.mark.parametrize('partial_instance', [
-    partial(RecipientCSV),
-    partial(RecipientCSV, allow_international_sms=False),
-])
+@pytest.mark.parametrize(
+    "partial_instance",
+    [
+        partial(RecipientCSV),
+        partial(RecipientCSV, allow_international_sms=False),
+    ],
+)
 def test_bad_or_missing_data(
     file_contents, template_type, rows_with_bad_recipients, rows_with_missing_data, partial_instance
 ):
-    recipients = partial_instance(file_contents, template=_sample_template(template_type, '((date))'))
+    recipients = partial_instance(file_contents, template=_sample_template(template_type, "((date))"))
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
     assert _index_rows(recipients.rows_with_missing_data) == rows_with_missing_data
     if rows_with_bad_recipients or rows_with_missing_data:
         assert recipients.has_errors is True
 
 
-@pytest.mark.parametrize("file_contents,rows_with_bad_recipients", [
-    (
-        """
+@pytest.mark.parametrize(
+    "file_contents,rows_with_bad_recipients",
+    [
+        (
+            """
             phone number
             800000000000
             1234
             +447900123
         """,
-        {0, 1, 2},
-    ),
-    (
-        """
+            {0, 1, 2},
+        ),
+        (
+            """
             phone number, country
             1-202-555-0104, USA
             +12025550104, USA
             23051234567, Mauritius
         """,
-        set(),
-    ),
-])
+            set(),
+        ),
+    ],
+)
 def test_international_recipients(file_contents, rows_with_bad_recipients):
     recipients = RecipientCSV(
         file_contents,
-        template=_sample_template('sms'),
+        template=_sample_template("sms"),
         allow_international_sms=True,
     )
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
@@ -795,7 +738,7 @@ def test_international_recipients(file_contents, rows_with_bad_recipients):
 def test_errors_when_too_many_rows():
     recipients = RecipientCSV(
         "email address\n" + ("a@b.com\n" * 101),
-        template=_sample_template('email'),
+        template=_sample_template("email"),
     )
 
     # Confirm the normal max_row limit
@@ -805,7 +748,7 @@ def test_errors_when_too_many_rows():
 
     assert recipients.too_many_rows is True
     assert recipients.has_errors is True
-    assert recipients.rows[99]['email_address'].data == 'a@b.com'
+    assert recipients.rows[99]["email_address"].data == "a@b.com"
     # We stop processing subsequent rows
     assert recipients.rows[100] is None
 
@@ -821,9 +764,9 @@ def test_errors_when_too_many_rows():
                 07700900462
                 07700900463
             """,
-            'sms',
-            ['+447700900460'],  # Same as first phone number but in different format
-            3
+            "sms",
+            ["+447700900460"],  # Same as first phone number but in different format
+            3,
         ),
         (
             """
@@ -832,9 +775,9 @@ def test_errors_when_too_many_rows():
                 447700900461
                 07700900462
             """,
-            'sms',
-            ['07700900460', '07700900461', '07700900462', '07700900463', 'test@example.com'],
-            0
+            "sms",
+            ["07700900460", "07700900461", "07700900462", "07700900463", "test@example.com"],
+            0,
         ),
         (
             """
@@ -842,19 +785,15 @@ def test_errors_when_too_many_rows():
                 IN_GUESTLIST@EXAMPLE.COM
                 not_in_guestlist@example.com
             """,
-            'email',
-            ['in_guestlist@example.com', '07700900460'],  # Email case differs to the one in the CSV
-            1
-        )
-    ]
+            "email",
+            ["in_guestlist@example.com", "07700900460"],  # Email case differs to the one in the CSV
+            1,
+        ),
+    ],
 )
 def test_recipient_guestlist(file_contents, template_type, guestlist, count_of_rows_with_errors):
 
-    recipients = RecipientCSV(
-        file_contents,
-        template=_sample_template(template_type),
-        guestlist=guestlist
-    )
+    recipients = RecipientCSV(file_contents, template=_sample_template(template_type), guestlist=guestlist)
 
     if count_of_rows_with_errors:
         assert not recipients.allowed_to_send_to
@@ -877,7 +816,7 @@ def test_recipient_guestlist(file_contents, template_type, guestlist, count_of_r
 
 def test_detects_rows_which_result_in_overly_long_messages():
     template = SMSMessageTemplate(
-        {'content': '((placeholder))', 'template_type': 'sms'},
+        {"content": "((placeholder))", "template_type": "sms"},
         sender=None,
         prefix=None,
     )
@@ -889,11 +828,11 @@ def test_detects_rows_which_result_in_overly_long_messages():
             07700900462,{exactly}
             07700900463,{one_over}
         """.format(
-            one_under='a' * (SMS_CHAR_COUNT_LIMIT - 1),
-            exactly='a' * SMS_CHAR_COUNT_LIMIT,
-            one_over='a' * (SMS_CHAR_COUNT_LIMIT + 1),
+            one_under="a" * (SMS_CHAR_COUNT_LIMIT - 1),
+            exactly="a" * SMS_CHAR_COUNT_LIMIT,
+            one_over="a" * (SMS_CHAR_COUNT_LIMIT + 1),
         ),
-        template=template
+        template=template,
     )
     assert _index_rows(recipients.rows_with_errors) == {3}
     assert _index_rows(recipients.rows_with_message_too_long) == {3}
@@ -906,7 +845,7 @@ def test_detects_rows_which_result_in_overly_long_messages():
 
 def test_detects_rows_which_result_in_empty_messages():
     template = SMSMessageTemplate(
-        {'content': '((show??content))', 'template_type': 'sms'},
+        {"content": "((show??content))", "template_type": "sms"},
         sender=None,
         prefix=None,
     )
@@ -917,7 +856,7 @@ def test_detects_rows_which_result_in_empty_messages():
             07700900462,no
             07700900463,yes
         """,
-        template=template
+        template=template,
     )
     assert _index_rows(recipients.rows_with_errors) == {1}
     assert _index_rows(recipients.rows_with_empty_message) == {1}
@@ -929,31 +868,17 @@ def test_detects_rows_which_result_in_empty_messages():
 
 @pytest.mark.parametrize(
     "key, expected",
-    sum([
-        [(key, expected) for key in group] for expected, group in [
-            ('07700900460', (
-                'phone number',
-                '   PHONENUMBER',
-                'phone_number',
-                'phone-number',
-                'phoneNumber'
-            )),
-            ('Jo', (
-                'FIRSTNAME',
-                'first name',
-                'first_name ',
-                'first-name',
-                'firstName'
-            )),
-            ('Bloggs', (
-                'Last    Name',
-                'LASTNAME',
-                '    last_name',
-                'last-name',
-                'lastName   '
-            ))
-        ]
-    ], [])
+    sum(
+        [
+            [(key, expected) for key in group]
+            for expected, group in [
+                ("07700900460", ("phone number", "   PHONENUMBER", "phone_number", "phone-number", "phoneNumber")),
+                ("Jo", ("FIRSTNAME", "first name", "first_name ", "first-name", "firstName")),
+                ("Bloggs", ("Last    Name", "LASTNAME", "    last_name", "last-name", "lastName   ")),
+            ]
+        ],
+        [],
+    ),
 )
 def test_ignores_spaces_and_case_in_placeholders(key, expected):
     recipients = RecipientCSV(
@@ -961,69 +886,67 @@ def test_ignores_spaces_and_case_in_placeholders(key, expected):
             phone number,FIRSTNAME, Last Name
             07700900460, Jo, Bloggs
         """,
-        template=_sample_template('sms', content='((phone_number)) ((First Name)) ((lastname))')
+        template=_sample_template("sms", content="((phone_number)) ((First Name)) ((lastname))"),
     )
     first_row = recipients[0]
     assert first_row.get(key).data == expected
     assert first_row[key].data == expected
-    assert first_row.recipient == '07700900460'
+    assert first_row.recipient == "07700900460"
     assert len(first_row.items()) == 3
     assert not recipients.has_errors
 
     assert recipients.missing_column_headers == set()
-    recipients.placeholders = {'one', 'TWO', 'Thirty_Three'}
-    assert recipients.missing_column_headers == {'one', 'TWO', 'Thirty_Three'}
+    recipients.placeholders = {"one", "TWO", "Thirty_Three"}
+    assert recipients.missing_column_headers == {"one", "TWO", "Thirty_Three"}
     assert recipients.has_errors
 
 
-@pytest.mark.parametrize('character, name', (
-
-    (' ', 'SPACE'),
-
-    # these ones don’t have unicode names
-    ('\n', None),  # newline
-    ('\r', None),  # carriage return
-    ('\t', None),  # tab
-
-    ('\u180E', 'MONGOLIAN VOWEL SEPARATOR'),
-    ('\u200B', 'ZERO WIDTH SPACE'),
-    ('\u200C', 'ZERO WIDTH NON-JOINER'),
-    ('\u200D', 'ZERO WIDTH JOINER'),
-    ('\u2060', 'WORD JOINER'),
-    ('\uFEFF', 'ZERO WIDTH NO-BREAK SPACE'),
-
-    # all the things
-    (' \n\r\t\u000A\u000D\u180E\u200B\u200C\u200D\u2060\uFEFF', None)
-
-))
+@pytest.mark.parametrize(
+    "character, name",
+    (
+        (" ", "SPACE"),
+        # these ones don’t have unicode names
+        ("\n", None),  # newline
+        ("\r", None),  # carriage return
+        ("\t", None),  # tab
+        ("\u180E", "MONGOLIAN VOWEL SEPARATOR"),
+        ("\u200B", "ZERO WIDTH SPACE"),
+        ("\u200C", "ZERO WIDTH NON-JOINER"),
+        ("\u200D", "ZERO WIDTH JOINER"),
+        ("\u2060", "WORD JOINER"),
+        ("\uFEFF", "ZERO WIDTH NO-BREAK SPACE"),
+        # all the things
+        (" \n\r\t\u000A\u000D\u180E\u200B\u200C\u200D\u2060\uFEFF", None),
+    ),
+)
 def test_ignores_leading_whitespace_in_file(character, name):
 
     if name is not None:
         assert unicodedata.name(character) == name
 
     recipients = RecipientCSV(
-        '{}emailaddress\ntest@example.com'.format(character),
-        template=_sample_template('email'),
+        "{}emailaddress\ntest@example.com".format(character),
+        template=_sample_template("email"),
     )
     first_row = recipients[0]
 
-    assert recipients.column_headers == ['emailaddress']
-    assert recipients.recipient_column_headers == ['email address']
+    assert recipients.column_headers == ["emailaddress"]
+    assert recipients.recipient_column_headers == ["email address"]
     assert recipients.missing_column_headers == set()
-    assert recipients.placeholders == ['email address']
+    assert recipients.placeholders == ["email address"]
 
-    assert first_row.get('email address').data == 'test@example.com'
-    assert first_row['email address'].data == 'test@example.com'
-    assert first_row.recipient == 'test@example.com'
+    assert first_row.get("email address").data == "test@example.com"
+    assert first_row["email address"].data == "test@example.com"
+    assert first_row.recipient == "test@example.com"
 
     assert not recipients.has_errors
 
 
 def test_error_if_too_many_recipients():
     recipients = RecipientCSV(
-        'phone number,\n07700900460,\n07700900460,\n07700900460,',
-        template=_sample_template('sms'),
-        remaining_messages=2
+        "phone number,\n07700900460,\n07700900460,\n07700900460,",
+        template=_sample_template("sms"),
+        remaining_messages=2,
     )
     assert recipients.has_errors
     assert recipients.more_rows_than_can_send
@@ -1031,50 +954,45 @@ def test_error_if_too_many_recipients():
 
 def test_dont_error_if_too_many_recipients_not_specified():
     recipients = RecipientCSV(
-        'phone number,\n07700900460,\n07700900460,\n07700900460,',
-        template=_sample_template('sms'),
+        "phone number,\n07700900460,\n07700900460,\n07700900460,",
+        template=_sample_template("sms"),
     )
     assert not recipients.has_errors
     assert not recipients.more_rows_than_can_send
 
 
-@pytest.mark.parametrize('index, expected_row', [
-    (
-        0,
-        {
-            'phone number': '07700 90000 1',
-            'colour': 'red',
-        },
-    ),
-    (
-        1,
-        {
-            'phone_number': '07700 90000 2',
-            'COLOUR': 'green',
-        },
-    ),
-    (
-        2,
-        {
-            'p h o n e  n u m b e r': '07700 90000 3',
-            '   colour   ': 'blue'
-        },
-    ),
-    pytest.param(
-        3,
-        {
-            'phone number': 'foo'
-        },
-        marks=pytest.mark.xfail(raises=IndexError),
-    ),
-    (
-        -1,
-        {
-            'p h o n e  n u m b e r': '07700 90000 3',
-            '   colour   ': 'blue'
-        },
-    ),
-])
+@pytest.mark.parametrize(
+    "index, expected_row",
+    [
+        (
+            0,
+            {
+                "phone number": "07700 90000 1",
+                "colour": "red",
+            },
+        ),
+        (
+            1,
+            {
+                "phone_number": "07700 90000 2",
+                "COLOUR": "green",
+            },
+        ),
+        (
+            2,
+            {"p h o n e  n u m b e r": "07700 90000 3", "   colour   ": "blue"},
+        ),
+        pytest.param(
+            3,
+            {"phone number": "foo"},
+            marks=pytest.mark.xfail(raises=IndexError),
+        ),
+        (
+            -1,
+            {"p h o n e  n u m b e r": "07700 90000 3", "   colour   ": "blue"},
+        ),
+    ],
+)
 def test_recipients_can_be_accessed_by_index(index, expected_row):
     recipients = RecipientCSV(
         """
@@ -1083,54 +1001,50 @@ def test_recipients_can_be_accessed_by_index(index, expected_row):
             07700 90000 2, green
             07700 90000 3, blue
         """,
-        template=_sample_template('sms'),
+        template=_sample_template("sms"),
     )
     for key, value in expected_row.items():
         assert recipients[index][key].data == value
 
 
-@pytest.mark.parametrize('international_sms', (True, False))
+@pytest.mark.parametrize("international_sms", (True, False))
 def test_multiple_sms_recipient_columns(international_sms):
     recipients = RecipientCSV(
         """
             phone number, phone number, phone_number, foo
             07900 900111, 07900 900222, 07900 900333, bar
         """,
-        template=_sample_template('sms'),
+        template=_sample_template("sms"),
         allow_international_sms=international_sms,
     )
-    assert recipients.column_headers == ['phone number', 'phone_number', 'foo']
-    assert recipients.column_headers_as_column_keys == dict(phonenumber='', foo='').keys()
-    assert recipients.rows[0].get('phone number').data == (
-        '07900 900333'
-    )
-    assert recipients.rows[0].get('phone_number').data == (
-        '07900 900333'
-    )
-    assert recipients.rows[0].get('phone number').error is None
-    assert recipients.duplicate_recipient_column_headers == OrderedSet([
-        'phone number', 'phone_number'
-    ])
+    assert recipients.column_headers == ["phone number", "phone_number", "foo"]
+    assert recipients.column_headers_as_column_keys == dict(phonenumber="", foo="").keys()
+    assert recipients.rows[0].get("phone number").data == ("07900 900333")
+    assert recipients.rows[0].get("phone_number").data == ("07900 900333")
+    assert recipients.rows[0].get("phone number").error is None
+    assert recipients.duplicate_recipient_column_headers == OrderedSet(["phone number", "phone_number"])
     assert recipients.has_errors
 
 
-@pytest.mark.parametrize('column_name', (
-    "phone_number", "phonenumber", "phone number", "phone-number", 'p h o n e  n u m b e r'
-))
+@pytest.mark.parametrize(
+    "column_name", ("phone_number", "phonenumber", "phone number", "phone-number", "p h o n e  n u m b e r")
+)
 def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     recipients = RecipientCSV(
         """
             names, phone number, {}
             "Joanna and Steve", 07900 900111
-        """.format(column_name),
-        template=_sample_template('sms'),
+        """.format(
+            column_name
+        ),
+        template=_sample_template("sms"),
         allow_international_sms=True,
     )
-    expected_column_headers = ['names', 'phone number']
+    expected_column_headers = ["names", "phone number"]
     if column_name != "phone number":
         expected_column_headers.append(column_name)
     assert recipients.column_headers == expected_column_headers
-    assert recipients.column_headers_as_column_keys == dict(phonenumber='', names='').keys()
+    assert recipients.column_headers_as_column_keys == dict(phonenumber="", names="").keys()
     # A piece of weirdness uncovered: since rows are created before spaces in column names are normalised, when
     # there are duplicate recipient columns and there is data for only one of the columns, if the columns have the same
     # spacing, phone number data will be a list of this one phone number and None, while if the spacing style differs
@@ -1138,10 +1052,10 @@ def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     # then our code finds the phone number well regardless of the spacing, so this should not affect our users.
     phone_number_data = None
     if column_name == "phone number":
-        phone_number_data = ['07900 900111', None]
-    assert recipients.rows[0]['phonenumber'].data == phone_number_data
-    assert recipients.rows[0].get('phone number').error is None
-    expected_duplicated_columns = ['phone number']
+        phone_number_data = ["07900 900111", None]
+    assert recipients.rows[0]["phonenumber"].data == phone_number_data
+    assert recipients.rows[0].get("phone number").error is None
+    expected_duplicated_columns = ["phone number"]
     if column_name != "phone number":
         expected_duplicated_columns.append(column_name)
     assert recipients.duplicate_recipient_column_headers == OrderedSet(expected_duplicated_columns)
@@ -1154,16 +1068,12 @@ def test_multiple_email_recipient_columns():
             EMAILADDRESS, email_address, foo
             one@two.com,  two@three.com, bar
         """,
-        template=_sample_template('email'),
+        template=_sample_template("email"),
     )
-    assert recipients.rows[0].get('email address').data == (
-        'two@three.com'
-    )
-    assert recipients.rows[0].get('email address').error is None
+    assert recipients.rows[0].get("email address").data == ("two@three.com")
+    assert recipients.rows[0].get("email address").error is None
     assert recipients.has_errors
-    assert recipients.duplicate_recipient_column_headers == OrderedSet([
-        'EMAILADDRESS', 'email_address'
-    ])
+    assert recipients.duplicate_recipient_column_headers == OrderedSet(["EMAILADDRESS", "email_address"])
     assert recipients.has_errors
 
 
@@ -1173,16 +1083,14 @@ def test_multiple_letter_recipient_columns():
             address line 1, Address Line 2, address line 1, address_line_2
             1,2,3,4
         """,
-        template=_sample_template('letter'),
+        template=_sample_template("letter"),
     )
-    assert recipients.rows[0].get('addressline1').data == (
-        '3'
-    )
-    assert recipients.rows[0].get('addressline1').error is None
+    assert recipients.rows[0].get("addressline1").data == ("3")
+    assert recipients.rows[0].get("addressline1").error is None
     assert recipients.has_errors
-    assert recipients.duplicate_recipient_column_headers == OrderedSet([
-        'address line 1', 'Address Line 2', 'address line 1', 'address_line_2'
-    ])
+    assert recipients.duplicate_recipient_column_headers == OrderedSet(
+        ["address line 1", "Address Line 2", "address line 1", "address_line_2"]
+    )
     assert recipients.has_errors
 
 
@@ -1196,8 +1104,8 @@ def test_displayed_rows_when_some_rows_have_errors():
             a@b.com,
             a@b.com,
         """,
-        template=_sample_template('email', '((name))'),
-        max_errors_shown=3
+        template=_sample_template("email", "((name))"),
+        max_errors_shown=3,
     )
 
     assert len(list(recipients.displayed_rows)) == 3
@@ -1212,8 +1120,8 @@ def test_displayed_rows_when_there_are_no_rows_with_errors():
             a@b.com, My Name
             a@b.com, My Name
         """,
-        template=_sample_template('email', '((name))'),
-        max_errors_shown=3
+        template=_sample_template("email", "((name))"),
+        max_errors_shown=3,
     )
 
     assert len(list(recipients.displayed_rows)) == 4
@@ -1225,55 +1133,56 @@ def test_multi_line_placeholders_work():
             email address, data
             a@b.com, "a\nb\n\nc"
         """,
-        template=_sample_template('email', '((data))'),
+        template=_sample_template("email", "((data))"),
     )
 
-    assert recipients.rows[0].personalisation['data'] == 'a\nb\n\nc'
+    assert recipients.rows[0].personalisation["data"] == "a\nb\n\nc"
 
 
-@pytest.mark.parametrize('extra_args, expected_errors, expected_bad_rows', (
-    ({}, True, {0}),
-    ({'allow_international_letters': False}, True, {0}),
-    ({'allow_international_letters': True}, False, set()),
-))
-def test_accepts_international_addresses_when_allowed(
-    extra_args, expected_errors, expected_bad_rows
-):
+@pytest.mark.parametrize(
+    "extra_args, expected_errors, expected_bad_rows",
+    (
+        ({}, True, {0}),
+        ({"allow_international_letters": False}, True, {0}),
+        ({"allow_international_letters": True}, False, set()),
+    ),
+)
+def test_accepts_international_addresses_when_allowed(extra_args, expected_errors, expected_bad_rows):
     recipients = RecipientCSV(
         """
             address line 1, address line 2, address line 3
             First Lastname, 123 Example St, Fiji
             First Lastname, 123 Example St, SW1A 1AA
         """,
-        template=_sample_template('letter'),
-        **extra_args
+        template=_sample_template("letter"),
+        **extra_args,
     )
     assert recipients.has_errors is expected_errors
     assert _index_rows(recipients.rows_with_bad_recipients) == expected_bad_rows
     # Prove that the error isn’t because the given country is unknown
-    assert recipients[0].as_postal_address.country == Country('Fiji')
+    assert recipients[0].as_postal_address.country == Country("Fiji")
 
 
 def test_address_validation_speed():
     # We should be able to validate 1000 lines of address data in about
     # a second – if it starts to get slow, something is inefficient
     number_of_lines = 1000
-    uk_addresses_with_valid_postcodes = '\n'.join((
-        '{n} Example Street, London, {a}{b} {c}{d}{e}'.format(
-            n=randrange(1000),
-            a=choice(['n', 'e', 'sw', 'se', 'w']),
-            b=choice(range(1, 10)),
-            c=choice(range(1, 10)),
-            d=choice('ABDefgHJLNPqrstUWxyZ'),
-            e=choice('ABDefgHJLNPqrstUWxyZ'),
+    uk_addresses_with_valid_postcodes = "\n".join(
+        (
+            "{n} Example Street, London, {a}{b} {c}{d}{e}".format(
+                n=randrange(1000),
+                a=choice(["n", "e", "sw", "se", "w"]),
+                b=choice(range(1, 10)),
+                c=choice(range(1, 10)),
+                d=choice("ABDefgHJLNPqrstUWxyZ"),
+                e=choice("ABDefgHJLNPqrstUWxyZ"),
+            )
+            for i in range(number_of_lines)
         )
-        for i in range(number_of_lines)
-    ))
+    )
     recipients = RecipientCSV(
-        'address line 1, address line 2, address line 3\n' + (
-            uk_addresses_with_valid_postcodes
-        ),
-        template=_sample_template('letter'),
+        "address line 1, address line 2, address line 3\n" + (uk_addresses_with_valid_postcodes),
+        template=_sample_template("letter"),
         allow_international_letters=False,
     )
     for row in recipients:
@@ -1281,32 +1190,34 @@ def test_address_validation_speed():
 
 
 def test_email_validation_speed():
-    email_addresses = '\n'.join((
-        '{a}{b}@example-{n}.com,Example,Thursday'.format(
-            n=randrange(1000),
-            a=choice(string.ascii_letters),
-            b=choice(string.ascii_letters),
+    email_addresses = "\n".join(
+        (
+            "{a}{b}@example-{n}.com,Example,Thursday".format(
+                n=randrange(1000),
+                a=choice(string.ascii_letters),
+                b=choice(string.ascii_letters),
+            )
+            for i in range(1000)
         )
-        for i in range(1000)
-    ))
+    )
     recipients = RecipientCSV(
-        'email address,name,day\n' + email_addresses,
+        "email address,name,day\n" + email_addresses,
         template=_sample_template(
-            'email',
-            content=f'''
+            "email",
+            content=f"""
                 hello ((name)) today is ((day))
                 here’s the letter ‘a’ 1000 times:
                 {'a' * 1000}
-            '''
+            """,
         ),
     )
     for row in recipients:
         assert not row.has_error
 
 
-@pytest.mark.parametrize('should_validate', [True, False])
+@pytest.mark.parametrize("should_validate", [True, False])
 def test_recipient_csv_checks_should_validate_flag(should_validate):
-    template = _sample_template('sms')
+    template = _sample_template("sms")
     template.is_message_empty = Mock(return_value=False)
 
     recipients = RecipientCSV(
@@ -1314,7 +1225,7 @@ def test_recipient_csv_checks_should_validate_flag(should_validate):
         07700900460, test1
         +447700 900 460,test2""",
         template=template,
-        should_validate=should_validate
+        should_validate=should_validate,
     )
 
     recipients._get_error_for_field = Mock(return_value=None)

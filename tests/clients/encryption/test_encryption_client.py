@@ -7,8 +7,8 @@ from notifications_utils.clients.encryption.encryption_client import Encryption
 def encryption_client(app):
     client = Encryption()
 
-    app.config['SECRET_KEY'] = 'test-notify-secret-key'
-    app.config['DANGEROUS_SALT'] = 'test-notify-salt'
+    app.config["SECRET_KEY"] = "test-notify-secret-key"
+    app.config["DANGEROUS_SALT"] = "test-notify-salt"
 
     client.init_app(app)
 

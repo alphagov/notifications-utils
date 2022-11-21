@@ -10,10 +10,10 @@ class AntivirusError(Exception):
     @classmethod
     def from_exception(cls, e):
         try:
-            message = e.response.json()['error']
+            message = e.response.json()["error"]
             status_code = e.response.status_code
         except (TypeError, ValueError, AttributeError, KeyError):
-            message = 'connection error'
+            message = "connection error"
             status_code = 503
 
         return cls(message, status_code)
@@ -25,31 +25,27 @@ class AntivirusClient:
         self.auth_token = auth_token
 
     def init_app(self, app):
-        self.api_host = app.config['ANTIVIRUS_API_HOST']
-        self.auth_token = app.config['ANTIVIRUS_API_KEY']
+        self.api_host = app.config["ANTIVIRUS_API_HOST"]
+        self.auth_token = app.config["ANTIVIRUS_API_KEY"]
 
     def scan(self, document_stream):
         try:
             response = requests.post(
                 "{}/scan".format(self.api_host),
                 headers={
-                    'Authorization': "Bearer {}".format(self.auth_token),
+                    "Authorization": "Bearer {}".format(self.auth_token),
                 },
-                files={
-                    'document': document_stream
-                }
+                files={"document": document_stream},
             )
 
             response.raise_for_status()
 
         except requests.RequestException as e:
             error = AntivirusError.from_exception(e)
-            current_app.logger.warning(
-                'Notify Antivirus API request failed with error: {}'.format(error.message)
-            )
+            current_app.logger.warning("Notify Antivirus API request failed with error: {}".format(error.message))
 
             raise error
         finally:
             document_stream.seek(0)
 
-        return response.json()['ok']
+        return response.json()["ok"]

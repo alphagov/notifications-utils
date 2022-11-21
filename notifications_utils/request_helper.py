@@ -4,8 +4,8 @@ from flask.wrappers import Request
 
 class NotifyRequest(Request):
     """
-        A custom Request class, implementing extraction of zipkin headers used to trace request through cloudfoundry
-        as described here: https://docs.cloudfoundry.org/concepts/http-routing.html#zipkin-headers
+    A custom Request class, implementing extraction of zipkin headers used to trace request through cloudfoundry
+    as described here: https://docs.cloudfoundry.org/concepts/http-routing.html#zipkin-headers
     """
 
     @property
@@ -15,32 +15,32 @@ class NotifyRequest(Request):
     @property
     def trace_id(self):
         """
-            The "trace id" (in zipkin terms) assigned to this request, if present (None otherwise)
+        The "trace id" (in zipkin terms) assigned to this request, if present (None otherwise)
         """
         if not hasattr(self, "_trace_id"):
-            self._trace_id = self._get_header_value(current_app.config['NOTIFY_TRACE_ID_HEADER'])
+            self._trace_id = self._get_header_value(current_app.config["NOTIFY_TRACE_ID_HEADER"])
         return self._trace_id
 
     @property
     def span_id(self):
         """
-            The "span id" (in zipkin terms) set in this request's header, if present (None otherwise)
+        The "span id" (in zipkin terms) set in this request's header, if present (None otherwise)
         """
         if not hasattr(self, "_span_id"):
             # note how we don't generate an id of our own. not being supplied a span id implies that we are running in
             # an environment with no span-id-aware request router, and thus would have no intermediary to prevent the
             # propagation of our span id all the way through all our onwards requests much like trace id. and the point
             # of span id is to assign identifiers to each individual request.
-            self._span_id = self._get_header_value(current_app.config['NOTIFY_SPAN_ID_HEADER'])
+            self._span_id = self._get_header_value(current_app.config["NOTIFY_SPAN_ID_HEADER"])
         return self._span_id
 
     @property
     def parent_span_id(self):
         """
-            The "parent span id" (in zipkin terms) set in this request's header, if present (None otherwise)
+        The "parent span id" (in zipkin terms) set in this request's header, if present (None otherwise)
         """
         if not hasattr(self, "_parent_span_id"):
-            self._parent_span_id = self._get_header_value(current_app.config['NOTIFY_PARENT_SPAN_ID_HEADER'])
+            self._parent_span_id = self._get_header_value(current_app.config["NOTIFY_PARENT_SPAN_ID_HEADER"])
         return self._parent_span_id
 
     def _get_header_value(self, header_name):
@@ -82,20 +82,20 @@ def init_app(app):
     app.request_class = NotifyRequest
     app.wsgi_app = ResponseHeaderMiddleware(
         app.wsgi_app,
-        app.config['NOTIFY_TRACE_ID_HEADER'],
-        app.config['NOTIFY_SPAN_ID_HEADER'],
+        app.config["NOTIFY_TRACE_ID_HEADER"],
+        app.config["NOTIFY_SPAN_ID_HEADER"],
     )
 
 
 def check_proxy_header_before_request():
     keys = [
-        current_app.config.get('ROUTE_SECRET_KEY_1'),
-        current_app.config.get('ROUTE_SECRET_KEY_2'),
+        current_app.config.get("ROUTE_SECRET_KEY_1"),
+        current_app.config.get("ROUTE_SECRET_KEY_2"),
     ]
     result, msg = _check_proxy_header_secret(request, keys)
 
     if not result:
-        if current_app.config.get('CHECK_PROXY_HEADER', False):
+        if current_app.config.get("CHECK_PROXY_HEADER", False):
             current_app.logger.warning(msg)
             abort(403)
 
@@ -104,7 +104,7 @@ def check_proxy_header_before_request():
     return None
 
 
-def _check_proxy_header_secret(request, secrets, header='X-Custom-Forwarder'):
+def _check_proxy_header_secret(request, secrets, header="X-Custom-Forwarder"):
     if header not in request.headers:
         return False, "Header missing"
 

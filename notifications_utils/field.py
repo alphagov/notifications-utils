@@ -14,37 +14,37 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 class Placeholder:
     def __init__(self, body):
         # body shouldn’t include leading/trailing brackets, like (( and ))
-        self.body = body.lstrip('(').rstrip(')')
+        self.body = body.lstrip("(").rstrip(")")
 
     @classmethod
     def from_match(cls, match):
         return cls(match.group(0))
 
     def is_conditional(self):
-        return '??' in self.body
+        return "??" in self.body
 
     @property
     def name(self):
         # for non conditionals, name equals body
-        return self.body.split('??')[0]
+        return self.body.split("??")[0]
 
     @property
     def conditional_text(self):
         if self.is_conditional():
             # ((a?? b??c)) returns " b??c"
-            return '??'.join(self.body.split('??')[1:])
+            return "??".join(self.body.split("??")[1:])
         else:
-            raise ValueError('{} not conditional'.format(self))
+            raise ValueError("{} not conditional".format(self))
 
     def get_conditional_body(self, show_conditional):
         # note: unsanitised/converted
         if self.is_conditional():
-            return self.conditional_text if str2bool(show_conditional) else ''
+            return self.conditional_text if str2bool(show_conditional) else ""
         else:
-            raise ValueError('{} not conditional'.format(self))
+            raise ValueError("{} not conditional".format(self))
 
     def __repr__(self):
-        return 'Placeholder({})'.format(self.body)
+        return "Placeholder({})".format(self.body)
 
 
 class Field:
@@ -62,9 +62,9 @@ class Field:
     """
 
     placeholder_pattern = re.compile(
-        r'\({2}'        # opening ((
-        r'([^()]+)'     # body of placeholder - potentially standard or conditional.
-        r'\){2}'        # closing ))
+        r"\({2}"  # opening ((
+        r"([^()]+)"  # body of placeholder - potentially standard or conditional.
+        r"\){2}"  # closing ))
     )
     placeholder_tag = "<span class='placeholder'>(({}))</span>"
     conditional_placeholder_tag = "<span class='placeholder-conditional'>(({}??</span>{}))"
@@ -76,13 +76,13 @@ class Field:
         content,
         values=None,
         with_brackets=True,
-        html='escape',
+        html="escape",
         markdown_lists=False,
         redact_missing_personalisation=False,
     ):
         self.sanitizer = {
-            'escape': escape_html,
-            'passthrough': str,
+            "escape": escape_html,
+            "passthrough": str,
         }[html]
         self.content = content
         self.values = values
@@ -97,7 +97,7 @@ class Field:
         return self.formatted
 
     def __repr__(self):
-        return "{}(\"{}\", {})".format(self.__class__.__name__, self.content, self.values)  # TODO: more real
+        return '{}("{}", {})'.format(self.__class__.__name__, self.content, self.values)  # TODO: more real
 
     def splitlines(self):
         return str(self).splitlines()
@@ -118,14 +118,9 @@ class Field:
             return self.placeholder_tag_redacted
 
         if placeholder.is_conditional():
-            return self.conditional_placeholder_tag.format(
-                placeholder.name,
-                placeholder.conditional_text
-            )
+            return self.conditional_placeholder_tag.format(placeholder.name, placeholder.conditional_text)
 
-        return self.placeholder_tag.format(
-            placeholder.name
-        )
+        return self.placeholder_tag.format(placeholder.name)
 
     def replace_match(self, match):
         placeholder = Placeholder.from_match(match)
@@ -145,29 +140,22 @@ class Field:
             return None
 
         if isinstance(replacement, list):
-            vals = (
-                strip_and_remove_obscure_whitespace(str(val))
-                for val in replacement if val is not None
-            )
+            vals = (strip_and_remove_obscure_whitespace(str(val)) for val in replacement if val is not None)
             vals = list(filter(None, vals))
             if not vals:
-                return ''
+                return ""
             return self.sanitizer(self.get_replacement_as_list(vals))
 
         return self.sanitizer(str(replacement))
 
     def get_replacement_as_list(self, replacement):
         if self.markdown_lists:
-            return '\n\n' + '\n'.join(
-                '* {}'.format(item) for item in replacement
-            )
-        return unescaped_formatted_list(replacement, before_each='', after_each='')
+            return "\n\n" + "\n".join("* {}".format(item) for item in replacement)
+        return unescaped_formatted_list(replacement, before_each="", after_each="")
 
     @property
     def _raw_formatted(self):
-        return re.sub(
-            self.placeholder_pattern, self.format_match, self.sanitizer(self.content)
-        )
+        return re.sub(self.placeholder_pattern, self.format_match, self.sanitizer(self.content))
 
     @property
     def formatted(self):
@@ -175,19 +163,13 @@ class Field:
 
     @property
     def placeholders(self):
-        if not getattr(self, 'content', ''):
+        if not getattr(self, "content", ""):
             return set()
-        return OrderedSet(
-            Placeholder(body).name for body in re.findall(
-                self.placeholder_pattern, self.content
-            )
-        )
+        return OrderedSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
 
     @property
     def replaced(self):
-        return re.sub(
-            self.placeholder_pattern, self.replace_match, self.sanitizer(self.content)
-        )
+        return re.sub(self.placeholder_pattern, self.replace_match, self.sanitizer(self.content))
 
 
 class PlainTextField(Field):
@@ -195,6 +177,7 @@ class PlainTextField(Field):
     Use this where no HTML should be rendered in the outputted content,
     even when no values have been passed in
     """
+
     placeholder_tag = "(({}))"
     conditional_placeholder_tag = "(({}??{}))"
     placeholder_tag_no_brackets = "{}"
