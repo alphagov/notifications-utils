@@ -420,7 +420,8 @@ def test_table(markdown_function):
             """https://example.com"onclick="alert('hi')""",
             (
                 '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                '<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22onclick=%22alert%28%27hi">'
+                '<a style="word-wrap: break-word; color: #1D70B8;" '
+                'href="https://example.com%22onclick=%22alert%28%27hi">'
                 'https://example.com"onclick="alert(\'hi'
                 "</a>')"
                 "</p>"
@@ -443,7 +444,11 @@ def test_autolink(markdown_function, link, expected):
         [notify_letter_preview_markdown, "<p>variable called `thing`</p>"],
         [
             notify_email_markdown,
-            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">variable called `thing`</p>',
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                + "variable called `thing`"
+                + "</p>"
+            ),
         ],
         [
             notify_plain_text_email_markdown,
@@ -461,7 +466,11 @@ def test_codespan(markdown_function, expected):
         [notify_letter_preview_markdown, "<p>something **important**</p>"],
         [
             notify_email_markdown,
-            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">something **important**</p>',
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                + "something **important**"
+                + "</p>"
+            ),
         ],
         [
             notify_plain_text_email_markdown,
@@ -480,7 +489,11 @@ def test_double_emphasis(markdown_function, expected):
         [
             notify_email_markdown,
             "something *important*",
-            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">something *important*</p>',
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                + "something *important*"
+                + "</p>"
+            ),
         ],
         [
             notify_plain_text_email_markdown,

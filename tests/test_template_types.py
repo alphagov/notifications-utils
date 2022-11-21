@@ -2736,7 +2736,8 @@ def test_image_not_present_if_no_logo(template_class):
             (
                 '<div class="broadcast-message-wrapper">\n'
                 '  <h2 class="broadcast-message-heading">\n'
-                '    <svg class="broadcast-message-heading__icon" xmlns="http://www.w3.org/2000/svg" width="22" height="18.23" '
+                '    <svg class="broadcast-message-heading__icon" '
+                'xmlns="http://www.w3.org/2000/svg" width="22" height="18.23" '
                 'viewBox="0 0 17.5 14.5" aria-hidden="true">\n'
                 '      <path fill-rule="evenodd"\n'
                 '            fill="currentcolor"\n'
