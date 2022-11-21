@@ -36,7 +36,7 @@ output = f"""
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = '{new_major}.{new_minor}.{new_patch}'  # {package_contents_hash}
+__version__ = "{new_major}.{new_minor}.{new_patch}"  # {package_contents_hash}
 """.lstrip()
 
 with Path("notifications_utils/version.py").open("w") as version_file:
