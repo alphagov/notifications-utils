@@ -556,7 +556,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         brand_text=None,
         brand_colour=None,
         brand_banner=False,
-        brand_name=None,
+        brand_alt_text=None,
     ):
         super().__init__(template, values)
         self.govuk_banner = govuk_banner
@@ -565,7 +565,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         self.brand_text = brand_text
         self.brand_colour = brand_colour
         self.brand_banner = brand_banner
-        self.brand_name = brand_name
+        self.brand_alt_text = brand_alt_text
 
     @property
     def preheader(self):
@@ -599,7 +599,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
                 "brand_text": self.brand_text,
                 "brand_colour": self.brand_colour,
                 "brand_banner": self.brand_banner,
-                "brand_name": self.brand_name,
+                "brand_alt_text": self.brand_alt_text,
             }
         )
 
