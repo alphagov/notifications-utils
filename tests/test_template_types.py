@@ -183,7 +183,7 @@ def test_alt_text_with_brand_text_and_govuk_banner_shown():
             brand_logo="http://example.com/image.png",
             brand_text="Example",
             brand_banner=True,
-            brand_name="Notify Logo",
+            brand_alt_text="Notify Logo",
         )
     )
     assert 'alt=""' in email
@@ -198,7 +198,7 @@ def test_alt_text_with_no_brand_text_and_govuk_banner_shown():
             brand_logo="http://example.com/image.png",
             brand_text=None,
             brand_banner=True,
-            brand_name="Notify Logo",
+            brand_alt_text="Notify Logo",
         )
     )
     assert 'alt=""' in email
@@ -222,7 +222,7 @@ def test_alt_text_with_no_govuk_banner(brand_banner, brand_text, expected_alt_te
             brand_logo="http://example.com/image.png",
             brand_text=brand_text,
             brand_banner=brand_banner,
-            brand_name="Notify Logo",
+            brand_alt_text="Notify Logo",
         )
     )
 

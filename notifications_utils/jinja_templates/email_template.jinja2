@@ -141,7 +141,7 @@
                     border="0"
                     style="display: block; border: 0;"
                     height="{% if brand_text -%} 27 {%- else -%} 54 {%- endif %}"
-                    alt="{% if brand_text %}{% else -%}{{ brand_name }}{%- endif %}"
+                    alt="{% if brand_text %}{% else -%}{{ brand_alt_text }}{%- endif %}"
                   />
                 </td>
               {% endif %}
@@ -199,7 +199,7 @@
                         <tr>
                           <td style="padding: 0 5px 0{% if brand_colour %} 7px; border-left: solid 2px {{ brand_colour }}{% else %} 0{% endif %}">
                             <img src="{{ brand_logo }}" style="display: block; border: 0" height="{% if brand_text -%} 27 {%- else -%} 54 {%- endif %}"
-                                 alt="{% if brand_text %}{% else -%}{{ brand_name }}{%- endif %}" />
+                                 alt="{% if brand_text %}{% else -%}{{ brand_alt_text }}{%- endif %}" />
                           </td>
                           <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
                             {% if brand_text %}

@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 58.0.0
+
+* replace `brand_name` with `brand_alt_text` in HTMLEmailTemplate to more accurately reflect its purpose
+
 ## 57.1.0
 
 * Do not log to file when `NOTIFY_RUNTIME_PLATFORM` is set to `ecs`
