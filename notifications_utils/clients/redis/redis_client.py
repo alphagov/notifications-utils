@@ -33,7 +33,7 @@ def prepare_value(val):
     elif isinstance(val, (uuid.UUID,)):
         return str(val)
     else:
-        raise ValueError("cannot cast {} to a string".format(type(val)))
+        raise ValueError(f"cannot cast {type(val)} to a string")
 
 
 class RedisClient:
@@ -169,6 +169,6 @@ class RedisClient:
                 self.__handle_exception(e, raise_exception, "delete", ", ".join(keys))
 
     def __handle_exception(self, e, raise_exception, operation, key_name):
-        current_app.logger.exception("Redis error performing {} on {}".format(operation, key_name))
+        current_app.logger.exception(f"Redis error performing {operation} on {key_name}")
         if raise_exception:
             raise e

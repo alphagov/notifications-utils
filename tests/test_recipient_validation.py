@@ -163,7 +163,7 @@ invalid_email_addresses = (
     "local-with-”-quotes@domain.com",
     "domain-starts-with-a-dot@.domain.com",
     "brackets(in)local@domain.com",
-    "email-too-long-{}@example.com".format("a" * 320),
+    f"email-too-long-{'a' * 320}@example.com",
     "incorrect-punycode@xn---something.com",
 )
 

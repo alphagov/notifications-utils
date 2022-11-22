@@ -118,6 +118,6 @@ def _check_proxy_header_secret(request, secrets, header="X-Custom-Forwarder"):
 
     for i, secret in enumerate(secrets):
         if header_secret == secret:
-            return True, "Key used: {}".format(i + 1)  # add 1 to make it human-compatible
+            return True, f"Key used: {i + 1}"  # add 1 to make it human-compatible
 
     return False, "Header didn't match any keys"

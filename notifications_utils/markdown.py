@@ -74,14 +74,15 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def paragraph(self, text):
         if text.strip():
-            return "<p>{}</p>".format(text)
+            return f"<p>{text}</p>"
         return ""
 
     def table(self, header, body):
         return ""
 
     def autolink(self, link, is_email=False):
-        return "<strong>{}</strong>".format(link.replace("http://", "").replace("https://", ""))
+        link = link.replace("http://", "").replace("https://", "")
+        return f"<strong>{link}</strong>"
 
     def image(self, src, title, alt_text):
         return ""
@@ -93,10 +94,10 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return self.linebreak()
 
     def list_item(self, text):
-        return "<li>{}</li>\n".format(text.strip())
+        return f"<li>{text.strip()}</li>\n"
 
     def link(self, link, title, content):
-        return "{}: {}".format(content, self.autolink(link))
+        return f"{content}: {self.autolink(link)}"
 
     def footnote_ref(self, key, index):
         return ""
@@ -114,9 +115,9 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
             return (
                 '<h2 style="Margin: 0 0 20px 0; padding: 0; '
                 'font-size: 27px; line-height: 35px; font-weight: bold; color: #0B0C0C;">'
-                "{}"
+                f"{text}"
                 "</h2>"
-            ).format(text)
+            )
         return self.paragraph(text)
 
     def hrule(self):
@@ -132,39 +133,37 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
                 "<tr>"
                 '<td style="font-family: Helvetica, Arial, sans-serif;">'
                 '<ol style="Margin: 0 0 0 20px; padding: 0; list-style-type: decimal;">'
-                "{}"
+                f"{body}"
                 "</ol>"
                 "</td>"
                 "</tr>"
                 "</table>"
-            ).format(body)
+            )
             if ordered
             else (
                 '<table role="presentation" style="padding: 0 0 20px 0;">'
                 "<tr>"
                 '<td style="font-family: Helvetica, Arial, sans-serif;">'
                 '<ul style="Margin: 0 0 0 20px; padding: 0; list-style-type: disc;">'
-                "{}"
+                f"{body}"
                 "</ul>"
                 "</td>"
                 "</tr>"
                 "</table>"
-            ).format(body)
+            )
         )
 
     def list_item(self, text):
         return (
             '<li style="Margin: 5px 0 5px; padding: 0 0 0 5px; font-size: 19px;'
             'line-height: 25px; color: #0B0C0C;">'
-            "{}"
+            f"{text.strip()}"
             "</li>"
-        ).format(text.strip())
+        )
 
     def paragraph(self, text):
         if text.strip():
-            return ('<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{}</p>').format(
-                text
-            )
+            return f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{text}</p>'
         return ""
 
     def block_quote(self, text):
@@ -173,17 +172,14 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
             'style="Margin: 0 0 20px 0; border-left: 10px solid #B1B4B6;'
             'padding: 15px 0 0.1px 15px; font-size: 19px; line-height: 25px;"'
             ">"
-            "{}"
+            f"{text}"
             "</blockquote>"
-        ).format(text)
+        )
 
     def link(self, link, title, content):
-        return ('<a style="{}"{}{}>{}</a>').format(
-            LINK_STYLE,
-            ' href="{}"'.format(link),
-            ' title="{}"'.format(title) if title else "",
-            content,
-        )
+        if title:
+            return f'<a style="{LINK_STYLE}" href="{link}" title="{title}">{content}</a>'
+        return f'<a style="{LINK_STYLE}" href="{link}">{content}</a>'
 
     def autolink(self, link, is_email=False):
         if is_email:
@@ -216,7 +212,7 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
     def list(self, body, ordered=True):
         def _get_list_marker():
             decimal = count(1)
-            return lambda _: "{}.".format(next(decimal)) if ordered else "•"
+            return lambda _: f"{next(decimal)}." if ordered else "•"
 
         return "".join(
             (
@@ -256,7 +252,7 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
         return "".join(
             (
                 content,
-                " ({})".format(title) if title else "",
+                f" ({title})" if title else "",
                 ": ",
                 link,
             )
@@ -277,7 +273,7 @@ class NotifyEmailPreheaderMarkdownRenderer(NotifyPlainTextEmailMarkdownRenderer)
         return "".join(
             (
                 content,
-                " ({})".format(title) if title else "",
+                f" ({title})" if title else "",
             )
         )
 

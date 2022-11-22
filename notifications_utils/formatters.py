@@ -63,7 +63,7 @@ def nl2br(value):
 
 def add_prefix(body, prefix=None):
     if prefix:
-        return "{}: {}".format(prefix.strip(), body)
+        return f"{prefix.strip()}: {body}"
     return body
 
 
@@ -134,16 +134,11 @@ def create_sanitised_html_for_url(link, *, classes="", style=""):
 
     safe_link = urllib.parse.quote(link, safe=":/?#=&;%")
 
-    return '<a {}{}href="{}">{}</a>'.format(
-        class_attribute,
-        style_attribute,
-        safe_link,
-        link_text,
-    )
+    return f'<a {class_attribute}{style_attribute}href="{safe_link}">{link_text}</a>'
 
 
 def prepend_subject(body, subject):
-    return "# {}\n\n{}".format(subject, body)
+    return f"# {subject}\n\n{body}"
 
 
 def sms_encode(content):
@@ -194,13 +189,13 @@ def unescaped_formatted_list(
         prefix_plural += " "
 
     if len(items) == 1:
-        return "{prefix}{before_each}{items[0]}{after_each}".format(**locals())
+        return f"{prefix}{before_each}{items[0]}{after_each}"
     elif items:
-        formatted_items = ["{}{}{}".format(before_each, item, after_each) for item in items]
+        formatted_items = [f"{before_each}{item}{after_each}" for item in items]
 
         first_items = separator.join(formatted_items[:-1])
         last_item = formatted_items[-1]
-        return ("{prefix_plural}{first_items} {conjunction} {last_item}").format(**locals())
+        return f"{prefix_plural}{first_items} {conjunction} {last_item}"
 
 
 def formatted_list(
@@ -267,7 +262,7 @@ def strip_leading_whitespace(value):
 
 
 def add_trailing_newline(value):
-    return "{}\n".format(value)
+    return f"{value}\n"
 
 
 def remove_smart_quotes_from_email_addresses(value):

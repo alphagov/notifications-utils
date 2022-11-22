@@ -25,7 +25,7 @@ class RequestCache:
         with suppress(KeyError):
             return signature(client_method).parameters[argument_name].default
 
-        raise TypeError("{}() takes no argument called '{}'".format(client_method.__name__, argument_name))
+        raise TypeError("{client_method.__name__}() takes no argument called '{argument_name}'")
 
     @staticmethod
     def _make_key(key_format, client_method, args, kwargs):

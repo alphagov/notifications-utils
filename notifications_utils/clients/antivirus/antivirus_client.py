@@ -31,9 +31,9 @@ class AntivirusClient:
     def scan(self, document_stream):
         try:
             response = requests.post(
-                "{}/scan".format(self.api_host),
+                f"{self.api_host}/scan",
                 headers={
-                    "Authorization": "Bearer {}".format(self.auth_token),
+                    "Authorization": f"Bearer {self.auth_token}",
                 },
                 files={"document": document_stream},
             )
@@ -42,7 +42,7 @@ class AntivirusClient:
 
         except requests.RequestException as e:
             error = AntivirusError.from_exception(e)
-            current_app.logger.warning("Notify Antivirus API request failed with error: {}".format(error.message))
+            current_app.logger.warning(f"Notify Antivirus API request failed with error: {error.message}")
 
             raise error
         finally:

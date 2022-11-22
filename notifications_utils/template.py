@@ -80,7 +80,7 @@ class Template(ABC):
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __repr__(self):
-        return '{}("{}", {})'.format(self.__class__.__name__, self.content, self.values)
+        return f'{self.__class__.__name__}("{self.content}", {self.values})'
 
     @abstractmethod
     def __str__(self):
