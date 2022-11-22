@@ -152,12 +152,14 @@ def normalise_postcode(postcode):
 
 
 def is_a_real_uk_postcode(postcode):
-    standard = r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"
-    bfpo = r"(BFPO?(C\/O)?[0-9]{1,4})"
-    girobank = r"(GIR0AA)"
-    pattern = r"{}|{}|{}".format(standard, bfpo, girobank)
-
-    return bool(re.fullmatch(pattern, normalise_postcode(postcode)))
+    pattern = re.compile(
+        r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"  # Standard
+        r"|"
+        r"(BFPO?(C\/O)?[0-9]{1,4})"  # BFPO
+        r"|"
+        r"(GIR0AA)"  # Girobank
+    )
+    return bool(pattern.fullmatch(normalise_postcode(postcode)))
 
 
 def format_postcode_for_printing(postcode):
