@@ -11,20 +11,20 @@ from notifications_utils.formatters import (
 
 address_lines_1_to_6_keys = [
     # The API only accepts snake_case placeholders
-    'address_line_1',
-    'address_line_2',
-    'address_line_3',
-    'address_line_4',
-    'address_line_5',
-    'address_line_6',
+    "address_line_1",
+    "address_line_2",
+    "address_line_3",
+    "address_line_4",
+    "address_line_5",
+    "address_line_6",
 ]
-address_lines_1_to_6_and_postcode_keys = address_lines_1_to_6_keys + ['postcode']
-address_line_7_key = 'address_line_7'
+address_lines_1_to_6_and_postcode_keys = address_lines_1_to_6_keys + ["postcode"]
+address_line_7_key = "address_line_7"
 address_lines_1_to_7_keys = address_lines_1_to_6_keys + [address_line_7_key]
 country_UK = Country(UK)
 
 
-class PostalAddress():
+class PostalAddress:
 
     MIN_LINES = 3
     MAX_LINES = 7
@@ -36,10 +36,10 @@ class PostalAddress():
         self.allow_international_letters = allow_international_letters
 
         self._lines = [
-            remove_whitespace_before_punctuation(line.rstrip(' ,'))
+            remove_whitespace_before_punctuation(line.rstrip(" ,"))
             for line in get_lines_with_normalised_whitespace(self.raw_address)
-            if line.rstrip(' ,')
-        ] or ['']
+            if line.rstrip(" ,")
+        ] or [""]
 
         try:
             self.country = Country(self._lines[-1])
@@ -52,7 +52,7 @@ class PostalAddress():
         return bool(self.normalised)
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({repr(self.raw_address)})'
+        return f"{self.__class__.__name__}({repr(self.raw_address)})"
 
     @classmethod
     def from_personalisation(cls, personalisation_dict, allow_international_letters=False):
@@ -60,24 +60,27 @@ class PostalAddress():
             keys = address_lines_1_to_6_keys + [address_line_7_key]
         else:
             keys = address_lines_1_to_6_and_postcode_keys
-        return cls('\n'.join(
-            str(personalisation_dict.get(key) or '') for key in keys
-        ), allow_international_letters=allow_international_letters)
+        return cls(
+            "\n".join(str(personalisation_dict.get(key) or "") for key in keys),
+            allow_international_letters=allow_international_letters,
+        )
 
     @property
     def as_personalisation(self):
-        lines = dict.fromkeys(address_lines_1_to_6_keys, '')
-        lines.update({
-            f'address_line_{index}': value
-            for index, value in enumerate(self.normalised_lines[:-1], start=1)
-            if index < 7
-        })
-        lines['postcode'] = lines['address_line_7'] = self.normalised_lines[-1]
+        lines = dict.fromkeys(address_lines_1_to_6_keys, "")
+        lines.update(
+            {
+                f"address_line_{index}": value
+                for index, value in enumerate(self.normalised_lines[:-1], start=1)
+                if index < 7
+            }
+        )
+        lines["postcode"] = lines["address_line_7"] = self.normalised_lines[-1]
         return lines
 
     @property
     def as_single_line(self):
-        return ', '.join(self.normalised_lines)
+        return ", ".join(self.normalised_lines)
 
     @property
     def line_count(self):
@@ -97,15 +100,12 @@ class PostalAddress():
 
     @property
     def has_valid_last_line(self):
-        return (
-            self.allow_international_letters and self.international
-        ) or self.has_valid_postcode
+        return (self.allow_international_letters and self.international) or self.has_valid_postcode
 
     @property
     def has_invalid_characters(self):
         return any(
-            line.startswith(tuple(self.INVALID_CHARACTERS_AT_START_OF_ADDRESS_LINE))
-            for line in self.normalised_lines
+            line.startswith(tuple(self.INVALID_CHARACTERS_AT_START_OF_ADDRESS_LINE)) for line in self.normalised_lines
         )
 
     @property
@@ -114,7 +114,7 @@ class PostalAddress():
 
     @property
     def normalised(self):
-        return '\n'.join(self.normalised_lines)
+        return "\n".join(self.normalised_lines)
 
     @property
     def normalised_lines(self):
@@ -162,8 +162,8 @@ def is_a_real_uk_postcode(postcode):
 
 def format_postcode_for_printing(postcode):
     """
-        This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
-        :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
+    This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
+    :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
     """
     postcode = normalise_postcode(postcode)
     if "BFPOC/O" in postcode:

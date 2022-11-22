@@ -42,20 +42,19 @@ from notifications_utils.markdown import (
     notify_letter_preview_markdown,
     notify_plain_text_email_markdown,
 )
-from notifications_utils.postal_address import (
-    PostalAddress,
-    address_lines_1_to_7_keys,
-)
+from notifications_utils.postal_address import PostalAddress, address_lines_1_to_7_keys
 from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 
-template_env = Environment(loader=FileSystemLoader(
-    path.join(
-        path.dirname(path.abspath(__file__)),
-        'jinja_templates',
+template_env = Environment(
+    loader=FileSystemLoader(
+        path.join(
+            path.dirname(path.abspath(__file__)),
+            "jinja_templates",
+        )
     )
-))
+)
 
 
 class Template(ABC):
@@ -69,13 +68,12 @@ class Template(ABC):
         redact_missing_personalisation=False,
     ):
         if not isinstance(template, dict):
-            raise TypeError('Template must be a dict')
+            raise TypeError("Template must be a dict")
         if values is not None and not isinstance(values, dict):
-            raise TypeError('Values must be a dict')
-        if template.get('template_type') != self.template_type:
+            raise TypeError("Values must be a dict")
+        if template.get("template_type") != self.template_type:
             raise TypeError(
-                f'Cannot initialise {self.__class__.__name__} '
-                f'with {template.get("template_type")} template_type'
+                f"Cannot initialise {self.__class__.__name__} " f'with {template.get("template_type")} template_type'
             )
         self.id = template.get("id", None)
         self.name = template.get("name", None)
@@ -85,7 +83,7 @@ class Template(ABC):
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __repr__(self):
-        return "{}(\"{}\", {})".format(self.__class__.__name__, self.content, self.values)
+        return '{}("{}", {})'.format(self.__class__.__name__, self.content, self.values)
 
     @abstractmethod
     def __str__(self):
@@ -93,17 +91,19 @@ class Template(ABC):
 
     @property
     def content_with_placeholders_filled_in(self):
-        return str(Field(
-            self.content,
-            self.values,
-            html='passthrough',
-            redact_missing_personalisation=self.redact_missing_personalisation,
-            markdown_lists=True,
-        )).strip()
+        return str(
+            Field(
+                self.content,
+                self.values,
+                html="passthrough",
+                redact_missing_personalisation=self.redact_missing_personalisation,
+                markdown_lists=True,
+            )
+        ).strip()
 
     @property
     def values(self):
-        if hasattr(self, '_values'):
+        if hasattr(self, "_values"):
             return self._values
         return {}
 
@@ -114,10 +114,8 @@ class Template(ABC):
         else:
             placeholders = InsensitiveDict.from_keys(self.placeholders)
             self._values = InsensitiveDict(value).as_dict_with_keys(
-                self.placeholders | set(
-                    key for key in value.keys()
-                    if InsensitiveDict.make_key(key) not in placeholders.keys()
-                )
+                self.placeholders
+                | set(key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys())
             )
 
     @property
@@ -126,10 +124,7 @@ class Template(ABC):
 
     @property
     def missing_data(self):
-        return list(
-            placeholder for placeholder in self.placeholders
-            if self.values.get(placeholder) is None
-        )
+        return list(placeholder for placeholder in self.placeholders if self.values.get(placeholder) is None)
 
     @property
     def additional_data(self):
@@ -150,7 +145,7 @@ class Template(ABC):
         if not self.content:
             return True
 
-        if not self.content.startswith('((') or not self.content.endswith('))'):
+        if not self.content.startswith("((") or not self.content.endswith("))"):
             # If the content doesn’t start or end with a placeholder we
             # can guarantee it’s not empty, no matter what
             # personalisation has been provided.
@@ -164,7 +159,7 @@ class Template(ABC):
 
 class BaseSMSTemplate(Template):
 
-    template_type = 'sms'
+    template_type = "sms"
 
     def __init__(
         self,
@@ -267,23 +262,15 @@ class BaseSMSTemplate(Template):
         if self.values:
             values = self.values
         else:
-            values = {
-                key: MAGIC_SEQUENCE for key in self.placeholders
-            }
-        return Take(PlainTextField(
-            self.content, values, html='passthrough'
-        )).then(
-            add_prefix, self.prefix
-        ).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            normalise_whitespace_and_newlines
-        ).then(
-            normalise_multiple_newlines
-        ).then(
-            str.strip
-        ).then(
-            str.replace, MAGIC_SEQUENCE, ''
+            values = {key: MAGIC_SEQUENCE for key in self.placeholders}
+        return (
+            Take(PlainTextField(self.content, values, html="passthrough"))
+            .then(add_prefix, self.prefix)
+            .then(remove_whitespace_before_punctuation)
+            .then(normalise_whitespace_and_newlines)
+            .then(normalise_multiple_newlines)
+            .then(str.strip)
+            .then(str.replace, MAGIC_SEQUENCE, "")
         )
 
 
@@ -293,7 +280,6 @@ class SMSMessageTemplate(BaseSMSTemplate):
 
 
 class SMSBodyPreviewTemplate(BaseSMSTemplate):
-
     def __init__(
         self,
         template,
@@ -303,27 +289,26 @@ class SMSBodyPreviewTemplate(BaseSMSTemplate):
 
     def __str__(self):
 
-        return Markup(Take(Field(
-            self.content,
-            self.values,
-            html='escape',
-            redact_missing_personalisation=True,
-        )).then(
-            sms_encode
-        ).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            normalise_whitespace_and_newlines
-        ).then(
-            normalise_multiple_newlines
-        ).then(
-            str.strip
-        ))
+        return Markup(
+            Take(
+                Field(
+                    self.content,
+                    self.values,
+                    html="escape",
+                    redact_missing_personalisation=True,
+                )
+            )
+            .then(sms_encode)
+            .then(remove_whitespace_before_punctuation)
+            .then(normalise_whitespace_and_newlines)
+            .then(normalise_multiple_newlines)
+            .then(str.strip)
+        )
 
 
 class SMSPreviewTemplate(BaseSMSTemplate):
 
-    jinja_template = template_env.get_template('sms_preview_template.jinja2')
+    jinja_template = template_env.get_template("sms_preview_template.jinja2")
 
     def __init__(
         self,
@@ -345,37 +330,38 @@ class SMSPreviewTemplate(BaseSMSTemplate):
 
     def __str__(self):
 
-        return Markup(self.jinja_template.render({
-            'sender': self.sender,
-            'show_sender': self.show_sender,
-            'recipient': Field('((phone number))', self.values, with_brackets=False, html='escape'),
-            'show_recipient': self.show_recipient,
-            'body': Take(Field(
-                self.content,
-                self.values,
-                html='escape',
-                redact_missing_personalisation=self.redact_missing_personalisation,
-            )).then(
-                add_prefix, (escape_html(self.prefix) or None) if self.show_prefix else None
-            ).then(
-                sms_encode if self.downgrade_non_sms_characters else str
-            ).then(
-                remove_whitespace_before_punctuation
-            ).then(
-                normalise_whitespace_and_newlines
-            ).then(
-                normalise_multiple_newlines
-            ).then(
-                nl2br
-            ).then(
-                autolink_urls,
-                classes="govuk-link govuk-link--no-visited-state",
+        return Markup(
+            self.jinja_template.render(
+                {
+                    "sender": self.sender,
+                    "show_sender": self.show_sender,
+                    "recipient": Field("((phone number))", self.values, with_brackets=False, html="escape"),
+                    "show_recipient": self.show_recipient,
+                    "body": Take(
+                        Field(
+                            self.content,
+                            self.values,
+                            html="escape",
+                            redact_missing_personalisation=self.redact_missing_personalisation,
+                        )
+                    )
+                    .then(add_prefix, (escape_html(self.prefix) or None) if self.show_prefix else None)
+                    .then(sms_encode if self.downgrade_non_sms_characters else str)
+                    .then(remove_whitespace_before_punctuation)
+                    .then(normalise_whitespace_and_newlines)
+                    .then(normalise_multiple_newlines)
+                    .then(nl2br)
+                    .then(
+                        autolink_urls,
+                        classes="govuk-link govuk-link--no-visited-state",
+                    ),
+                }
             )
-        }))
+        )
 
 
 class BaseBroadcastTemplate(BaseSMSTemplate):
-    template_type = 'broadcast'
+    template_type = "broadcast"
 
     MAX_CONTENT_COUNT_GSM = 1_395
     MAX_CONTENT_COUNT_UCS2 = 615
@@ -384,9 +370,7 @@ class BaseBroadcastTemplate(BaseSMSTemplate):
     def encoded_content_count(self):
         if self.non_gsm_characters:
             return self.content_count
-        return self.content_count + count_extended_gsm_chars(
-            self.content_with_placeholders_filled_in
-        )
+        return self.content_count + count_extended_gsm_chars(self.content_with_placeholders_filled_in)
 
     @property
     def non_gsm_characters(self):
@@ -404,17 +388,16 @@ class BaseBroadcastTemplate(BaseSMSTemplate):
 
 
 class BroadcastPreviewTemplate(BaseBroadcastTemplate, SMSPreviewTemplate):
-    jinja_template = template_env.get_template('broadcast_preview_template.jinja2')
+    jinja_template = template_env.get_template("broadcast_preview_template.jinja2")
 
 
 class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
-
     @classmethod
     def from_content(cls, content):
         return cls(
             template={
-                'template_type': cls.template_type,
-                'content': content,
+                "template_type": cls.template_type,
+                "content": content,
             },
             values=None,  # events have already done interpolation of any personalisation
         )
@@ -424,49 +407,43 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
         """
         should be directly callable with the results of the BroadcastEvent.serialize() function from api/models.py
         """
-        return cls.from_content(
-            broadcast_event['transmitted_content']['body']
-        )
+        return cls.from_content(broadcast_event["transmitted_content"]["body"])
 
     def __str__(self):
-        return Take(Field(
-            self.content.strip(),
-            self.values,
-            html='escape',
-        )).then(
-            sms_encode
-        ).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            normalise_whitespace_and_newlines
-        ).then(
-            normalise_multiple_newlines
+        return (
+            Take(
+                Field(
+                    self.content.strip(),
+                    self.values,
+                    html="escape",
+                )
+            )
+            .then(sms_encode)
+            .then(remove_whitespace_before_punctuation)
+            .then(normalise_whitespace_and_newlines)
+            .then(normalise_multiple_newlines)
         )
 
 
-class SubjectMixin():
-
-    def __init__(
-        self,
-        template,
-        values=None,
-        **kwargs
-    ):
-        self._subject = template['subject']
+class SubjectMixin:
+    def __init__(self, template, values=None, **kwargs):
+        self._subject = template["subject"]
         super().__init__(template, values, **kwargs)
 
     @property
     def subject(self):
-        return Markup(Take(Field(
-            self._subject,
-            self.values,
-            html='escape',
-            redact_missing_personalisation=self.redact_missing_personalisation,
-        )).then(
-            do_nice_typography
-        ).then(
-            normalise_whitespace
-        ))
+        return Markup(
+            Take(
+                Field(
+                    self._subject,
+                    self.values,
+                    html="escape",
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                )
+            )
+            .then(do_nice_typography)
+            .then(normalise_whitespace)
+        )
 
     @property
     def placeholders(self):
@@ -474,26 +451,25 @@ class SubjectMixin():
 
 
 class BaseEmailTemplate(SubjectMixin, Template):
-    template_type = 'email'
+    template_type = "email"
 
     @property
     def html_body(self):
-        return Take(Field(
-            self.content,
-            self.values,
-            html='escape',
-            markdown_lists=True,
-            redact_missing_personalisation=self.redact_missing_personalisation,
-        )).then(
-            unlink_govuk_escaped
-        ).then(
-            strip_unsupported_characters
-        ).then(
-            add_trailing_newline
-        ).then(
-            notify_email_markdown
-        ).then(
-            do_nice_typography
+        return (
+            Take(
+                Field(
+                    self.content,
+                    self.values,
+                    html="escape",
+                    markdown_lists=True,
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                )
+            )
+            .then(unlink_govuk_escaped)
+            .then(strip_unsupported_characters)
+            .then(add_trailing_newline)
+            .then(notify_email_markdown)
+            .then(do_nice_typography)
         )
 
     @property
@@ -502,78 +478,71 @@ class BaseEmailTemplate(SubjectMixin, Template):
 
     def is_message_too_long(self):
         """
-            SES rejects email messages bigger than 10485760 bytes (just over 10 MB per message (after base64 encoding)):
-            https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html#limits-message
+        SES rejects email messages bigger than 10485760 bytes (just over 10 MB per message (after base64 encoding)):
+        https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html#limits-message
 
-            Base64 is apparently wasteful because we use just 64 different values per byte, whereas a byte can represent
-            256 different characters. That is, we use bytes (which are 8-bit words) as 6-bit words. There is
-            a waste of 2 bits for each 8 bits of transmission data. To send three bytes of information
-            (3 times 8 is 24 bits), you need to use four bytes (4 times 6 is again 24 bits). Thus the base64 version
-            of a file is 4/3 larger than it might be. So we use 33% more storage than we could.
-            https://lemire.me/blog/2019/01/30/what-is-the-space-overhead-of-base64-encoding/
+        Base64 is apparently wasteful because we use just 64 different values per byte, whereas a byte can represent
+        256 different characters. That is, we use bytes (which are 8-bit words) as 6-bit words. There is
+        a waste of 2 bits for each 8 bits of transmission data. To send three bytes of information
+        (3 times 8 is 24 bits), you need to use four bytes (4 times 6 is again 24 bits). Thus the base64 version
+        of a file is 4/3 larger than it might be. So we use 33% more storage than we could.
+        https://lemire.me/blog/2019/01/30/what-is-the-space-overhead-of-base64-encoding/
 
-            That brings down our max safe size to 7.5 MB == 7500000 bytes before base64 encoding
+        That brings down our max safe size to 7.5 MB == 7500000 bytes before base64 encoding
 
-            But this is not the end! The message we send to SES is structured as follows:
-            "Message": {
-                'Subject': {
-                    'Data': subject,
-                },
-                'Body': {'Text': {'Data': body}, 'Html': {'Data': html_body}}
+        But this is not the end! The message we send to SES is structured as follows:
+        "Message": {
+            'Subject': {
+                'Data': subject,
             },
-            Which means that we are sending the contents of email message twice in one request: once in plain text
-            and once with html tags. That means our plain text content needs to be much shorter to make sure we
-            fit within the limit, especially since HTML body can be much byte-heavier than plain text body.
+            'Body': {'Text': {'Data': body}, 'Html': {'Data': html_body}}
+        },
+        Which means that we are sending the contents of email message twice in one request: once in plain text
+        and once with html tags. That means our plain text content needs to be much shorter to make sure we
+        fit within the limit, especially since HTML body can be much byte-heavier than plain text body.
 
-            Hence, we decided to put the limit at 1MB, which is equivalent of between 250 and 500 pages of text.
-            That's still an extremely long email, and should be sufficient for all normal use, while at the same
-            time giving us safe margin while sending the emails through Amazon SES.
+        Hence, we decided to put the limit at 1MB, which is equivalent of between 250 and 500 pages of text.
+        That's still an extremely long email, and should be sufficient for all normal use, while at the same
+        time giving us safe margin while sending the emails through Amazon SES.
 
-            EDIT: putting size up to 2MB as GOV.UK email digests are hitting the limit.
+        EDIT: putting size up to 2MB as GOV.UK email digests are hitting the limit.
         """
         return self.content_size_in_bytes > 2000000
 
 
 class PlainTextEmailTemplate(BaseEmailTemplate):
-
     def __str__(self):
-        return Take(Field(
-            self.content, self.values, html='passthrough', markdown_lists=True
-        )).then(
-            unlink_govuk_escaped
-        ).then(
-            strip_unsupported_characters
-        ).then(
-            add_trailing_newline
-        ).then(
-            notify_plain_text_email_markdown
-        ).then(
-            do_nice_typography
-        ).then(
-            unescape
-        ).then(
-            strip_leading_whitespace
-        ).then(
-            add_trailing_newline
+        return (
+            Take(Field(self.content, self.values, html="passthrough", markdown_lists=True))
+            .then(unlink_govuk_escaped)
+            .then(strip_unsupported_characters)
+            .then(add_trailing_newline)
+            .then(notify_plain_text_email_markdown)
+            .then(do_nice_typography)
+            .then(unescape)
+            .then(strip_leading_whitespace)
+            .then(add_trailing_newline)
         )
 
     @property
     def subject(self):
-        return Markup(Take(Field(
-            self._subject,
-            self.values,
-            html='passthrough',
-            redact_missing_personalisation=self.redact_missing_personalisation
-        )).then(
-            do_nice_typography
-        ).then(
-            normalise_whitespace
-        ))
+        return Markup(
+            Take(
+                Field(
+                    self._subject,
+                    self.values,
+                    html="passthrough",
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                )
+            )
+            .then(do_nice_typography)
+            .then(normalise_whitespace)
+        )
 
 
 class HTMLEmailTemplate(BaseEmailTemplate):
 
-    jinja_template = template_env.get_template('email_template.jinja2')
+    jinja_template = template_env.get_template("email_template.jinja2")
 
     PREHEADER_LENGTH_IN_CHARACTERS = 256
 
@@ -587,7 +556,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         brand_text=None,
         brand_colour=None,
         brand_banner=False,
-        brand_name=None
+        brand_name=None,
     ):
         super().__init__(template, values)
         self.govuk_banner = govuk_banner
@@ -600,42 +569,44 @@ class HTMLEmailTemplate(BaseEmailTemplate):
 
     @property
     def preheader(self):
-        return " ".join(Take(Field(
-            self.content,
-            self.values,
-            html='escape',
-            markdown_lists=True,
-        )).then(
-            unlink_govuk_escaped
-        ).then(
-            strip_unsupported_characters
-        ).then(
-            add_trailing_newline
-        ).then(
-            notify_email_preheader_markdown
-        ).then(
-            do_nice_typography
-        ).split())[:self.PREHEADER_LENGTH_IN_CHARACTERS].strip()
+        return " ".join(
+            Take(
+                Field(
+                    self.content,
+                    self.values,
+                    html="escape",
+                    markdown_lists=True,
+                )
+            )
+            .then(unlink_govuk_escaped)
+            .then(strip_unsupported_characters)
+            .then(add_trailing_newline)
+            .then(notify_email_preheader_markdown)
+            .then(do_nice_typography)
+            .split()
+        )[: self.PREHEADER_LENGTH_IN_CHARACTERS].strip()
 
     def __str__(self):
 
-        return self.jinja_template.render({
-            'subject': self.subject,
-            'body': self.html_body,
-            'preheader': self.preheader,
-            'govuk_banner': self.govuk_banner,
-            'complete_html': self.complete_html,
-            'brand_logo': self.brand_logo,
-            'brand_text': self.brand_text,
-            'brand_colour': self.brand_colour,
-            'brand_banner': self.brand_banner,
-            'brand_name': self.brand_name
-        })
+        return self.jinja_template.render(
+            {
+                "subject": self.subject,
+                "body": self.html_body,
+                "preheader": self.preheader,
+                "govuk_banner": self.govuk_banner,
+                "complete_html": self.complete_html,
+                "brand_logo": self.brand_logo,
+                "brand_text": self.brand_text,
+                "brand_colour": self.brand_colour,
+                "brand_banner": self.brand_banner,
+                "brand_name": self.brand_name,
+            }
+        )
 
 
 class EmailPreviewTemplate(BaseEmailTemplate):
 
-    jinja_template = template_env.get_template('email_preview_template.jinja2')
+    jinja_template = template_env.get_template("email_preview_template.jinja2")
 
     def __init__(
         self,
@@ -654,49 +625,53 @@ class EmailPreviewTemplate(BaseEmailTemplate):
         self.show_recipient = show_recipient
 
     def __str__(self):
-        return Markup(self.jinja_template.render({
-            'body': self.html_body,
-            'subject': self.subject,
-            'from_name': escape_html(self.from_name),
-            'from_address': self.from_address,
-            'reply_to': self.reply_to,
-            'recipient': Field("((email address))", self.values, with_brackets=False),
-            'show_recipient': self.show_recipient
-        }))
+        return Markup(
+            self.jinja_template.render(
+                {
+                    "body": self.html_body,
+                    "subject": self.subject,
+                    "from_name": escape_html(self.from_name),
+                    "from_address": self.from_address,
+                    "reply_to": self.reply_to,
+                    "recipient": Field("((email address))", self.values, with_brackets=False),
+                    "show_recipient": self.show_recipient,
+                }
+            )
+        )
 
     @property
     def subject(self):
-        return Take(Field(
-            self._subject,
-            self.values,
-            html='escape',
-            redact_missing_personalisation=self.redact_missing_personalisation
-        )).then(
-            do_nice_typography
-        ).then(
-            normalise_whitespace
+        return (
+            Take(
+                Field(
+                    self._subject,
+                    self.values,
+                    html="escape",
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                )
+            )
+            .then(do_nice_typography)
+            .then(normalise_whitespace)
         )
 
 
 class BaseLetterTemplate(SubjectMixin, Template):
 
-    template_type = 'letter'
+    template_type = "letter"
 
-    address_block = '\n'.join(
-        f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys
-    )
+    address_block = "\n".join(f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys)
 
     def __init__(
         self,
         template,
         values=None,
         contact_block=None,
-        admin_base_url='http://localhost:6012',
+        admin_base_url="http://localhost:6012",
         logo_file_name=None,
         redact_missing_personalisation=False,
         date=None,
     ):
-        self.contact_block = (contact_block or '').strip()
+        self.contact_block = (contact_block or "").strip()
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
@@ -704,15 +679,17 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def subject(self):
-        return Take(Field(
-            self._subject,
-            self.values,
-            redact_missing_personalisation=self.redact_missing_personalisation,
-            html='escape',
-        )).then(
-            do_nice_typography
-        ).then(
-            normalise_whitespace
+        return (
+            Take(
+                Field(
+                    self._subject,
+                    self.values,
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                    html="escape",
+                )
+            )
+            .then(do_nice_typography)
+            .then(normalise_whitespace)
         )
 
     @property
@@ -729,81 +706,84 @@ class BaseLetterTemplate(SubjectMixin, Template):
         if self.postal_address.has_enough_lines and not self.postal_address.has_too_many_lines:
             return self.postal_address.normalised_lines
 
-        if 'address line 7' not in self.values and 'postcode' in self.values:
-            self.values['address line 7'] = self.values['postcode']
+        if "address line 7" not in self.values and "postcode" in self.values:
+            self.values["address line 7"] = self.values["postcode"]
 
         return Field(
             self.address_block,
             self.values,
-            html='escape',
+            html="escape",
             with_brackets=False,
         ).splitlines()
 
     @property
     def _contact_block(self):
-        return Take(Field(
-            '\n'.join(
-                line.strip()
-                for line in self.contact_block.split('\n')
-            ),
-            self.values,
-            redact_missing_personalisation=self.redact_missing_personalisation,
-            html='escape',
-        )).then(
-            remove_whitespace_before_punctuation
-        ).then(
-            nl2br
+        return (
+            Take(
+                Field(
+                    "\n".join(line.strip() for line in self.contact_block.split("\n")),
+                    self.values,
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                    html="escape",
+                )
+            )
+            .then(remove_whitespace_before_punctuation)
+            .then(nl2br)
         )
 
     @property
     def _date(self):
-        return self.date.strftime('%-d %B %Y')
+        return self.date.strftime("%-d %B %Y")
 
     @property
     def _message(self):
-        return Take(Field(
-            self.content,
-            self.values,
-            html='escape',
-            markdown_lists=True,
-            redact_missing_personalisation=self.redact_missing_personalisation,
-        )).then(
-            add_trailing_newline
-        ).then(
-            notify_letter_preview_markdown
-        ).then(
-            do_nice_typography
-        ).then(
-            replace_hyphens_with_non_breaking_hyphens
+        return (
+            Take(
+                Field(
+                    self.content,
+                    self.values,
+                    html="escape",
+                    markdown_lists=True,
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                )
+            )
+            .then(add_trailing_newline)
+            .then(notify_letter_preview_markdown)
+            .then(do_nice_typography)
+            .then(replace_hyphens_with_non_breaking_hyphens)
         )
 
 
 class LetterPreviewTemplate(BaseLetterTemplate):
 
-    jinja_template = template_env.get_template('letter_pdf/preview.jinja2')
+    jinja_template = template_env.get_template("letter_pdf/preview.jinja2")
 
     def __str__(self):
-        return Markup(self.jinja_template.render({
-            'admin_base_url': self.admin_base_url,
-            'logo_file_name': self.logo_file_name,
-            # logo_class should only ever be None, svg or png
-            'logo_class': self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
-            'subject': self.subject,
-            'message': self._message,
-            'address': self._address_block,
-            'contact_block': self._contact_block,
-            'date': self._date,
-        }))
+        return Markup(
+            self.jinja_template.render(
+                {
+                    "admin_base_url": self.admin_base_url,
+                    "logo_file_name": self.logo_file_name,
+                    # logo_class should only ever be None, svg or png
+                    "logo_class": self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
+                    "subject": self.subject,
+                    "message": self._message,
+                    "address": self._address_block,
+                    "contact_block": self._contact_block,
+                    "date": self._date,
+                }
+            )
+        )
 
 
 class LetterPrintTemplate(LetterPreviewTemplate):
 
-    jinja_template = template_env.get_template('letter_pdf/print.jinja2')
+    jinja_template = template_env.get_template("letter_pdf/print.jinja2")
 
 
 class LetterImageTemplate(BaseLetterTemplate):
 
-    jinja_template = template_env.get_template('letter_image_template.jinja2')
+    jinja_template = template_env.get_template("letter_image_template.jinja2")
     first_page_number = 1
     allowed_postage_types = (
         Postage.FIRST,
@@ -823,16 +803,20 @@ class LetterImageTemplate(BaseLetterTemplate):
     ):
         super().__init__(template, values, contact_block=contact_block)
         if not image_url:
-            raise TypeError('image_url is required')
+            raise TypeError("image_url is required")
         if not page_count:
-            raise TypeError('page_count is required')
+            raise TypeError("page_count is required")
         if postage not in [None] + list(self.allowed_postage_types):
-            raise TypeError('postage must be None, {}'.format(formatted_list(
-                self.allowed_postage_types,
-                conjunction='or',
-                before_each='\'',
-                after_each='\'',
-            )))
+            raise TypeError(
+                "postage must be None, {}".format(
+                    formatted_list(
+                        self.allowed_postage_types,
+                        conjunction="or",
+                        before_each="'",
+                        after_each="'",
+                    )
+                )
+            )
         self.image_url = image_url
         self.page_count = int(page_count)
         self._postage = postage
@@ -854,34 +838,38 @@ class LetterImageTemplate(BaseLetterTemplate):
     @property
     def postage_description(self):
         return {
-            Postage.FIRST: 'first class',
-            Postage.SECOND: 'second class',
-            Postage.EUROPE: 'international',
-            Postage.REST_OF_WORLD: 'international',
+            Postage.FIRST: "first class",
+            Postage.SECOND: "second class",
+            Postage.EUROPE: "international",
+            Postage.REST_OF_WORLD: "international",
         }.get(self.postage)
 
     @property
     def postage_class_value(self):
         return {
-            Postage.FIRST: 'letter-postage-first',
-            Postage.SECOND: 'letter-postage-second',
-            Postage.EUROPE: 'letter-postage-international',
-            Postage.REST_OF_WORLD: 'letter-postage-international',
+            Postage.FIRST: "letter-postage-first",
+            Postage.SECOND: "letter-postage-second",
+            Postage.EUROPE: "letter-postage-international",
+            Postage.REST_OF_WORLD: "letter-postage-international",
         }.get(self.postage)
 
     def __str__(self):
-        return Markup(self.jinja_template.render({
-            'image_url': self.image_url,
-            'page_numbers': self.page_numbers,
-            'address': self._address_block,
-            'contact_block': self._contact_block,
-            'date': self._date,
-            'subject': self.subject,
-            'message': self._message,
-            'show_postage': bool(self.postage),
-            'postage_description': self.postage_description,
-            'postage_class_value': self.postage_class_value,
-        }))
+        return Markup(
+            self.jinja_template.render(
+                {
+                    "image_url": self.image_url,
+                    "page_numbers": self.page_numbers,
+                    "address": self._address_block,
+                    "contact_block": self._contact_block,
+                    "date": self._date,
+                    "subject": self.subject,
+                    "message": self._message,
+                    "show_postage": bool(self.postage),
+                    "postage_description": self.postage_description,
+                    "postage_class_value": self.postage_class_value,
+                }
+            )
+        )
 
 
 def get_sms_fragment_count(character_count, non_gsm_characters):
@@ -901,22 +889,16 @@ def non_gsm_characters(content):
 
 
 def count_extended_gsm_chars(content):
-    return sum(
-        map(content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS)
-    )
+    return sum(map(content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS))
 
 
 def do_nice_typography(value):
-    return Take(
-        value
-    ).then(
-        remove_whitespace_before_punctuation
-    ).then(
-        make_quotes_smart
-    ).then(
-        remove_smart_quotes_from_email_addresses
-    ).then(
-        replace_hyphens_with_en_dashes
+    return (
+        Take(value)
+        .then(remove_whitespace_before_punctuation)
+        .then(make_quotes_smart)
+        .then(remove_smart_quotes_from_email_addresses)
+        .then(replace_hyphens_with_en_dashes)
     )
 
 

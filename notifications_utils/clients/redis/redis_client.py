@@ -4,6 +4,7 @@ from time import time
 
 from flask import current_app
 from flask_redis import FlaskRedis
+
 # expose redis exceptions so that they can be caught
 from redis.exceptions import RedisError  # noqa
 
@@ -19,19 +20,20 @@ def prepare_value(val):
     value to redis-py.
     """
     # things redis-py natively supports
-    if isinstance(val, (
-        bytes,
-        str,
-        numbers.Number,
-    )):
+    if isinstance(
+        val,
+        (
+            bytes,
+            str,
+            numbers.Number,
+        ),
+    ):
         return val
     # things we know we can safely cast to string
-    elif isinstance(val, (
-        uuid.UUID,
-    )):
+    elif isinstance(val, (uuid.UUID,)):
         return str(val)
     else:
-        raise ValueError('cannot cast {} to a string'.format(type(val)))
+        raise ValueError("cannot cast {} to a string".format(type(val)))
 
 
 class RedisClient:
@@ -40,7 +42,7 @@ class RedisClient:
     scripts = {}
 
     def init_app(self, app):
-        self.active = app.config.get('REDIS_ENABLED')
+        self.active = app.config.get("REDIS_ENABLED")
         if self.active:
             self.redis_store.init_app(app)
 
@@ -51,7 +53,7 @@ class RedisClient:
         # delete keys matching a pattern supplied as a parameter. Does so in batches of 5000 to prevent unpack from
         # exceeding lua's stack limit, and also to prevent errors if no keys match the pattern.
         # Inspired by https://gist.github.com/ddre54/0a4751676272e0da8186
-        self.scripts['delete-keys-by-pattern'] = self.redis_store.register_script(
+        self.scripts["delete-keys-by-pattern"] = self.redis_store.register_script(
             """
             local keys = redis.call('keys', ARGV[1])
             local deleted = 0
@@ -77,9 +79,9 @@ class RedisClient:
         """
         if self.active:
             try:
-                return self.scripts['delete-keys-by-pattern'](args=[pattern])
+                return self.scripts["delete-keys-by-pattern"](args=[pattern])
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'delete-by-pattern', pattern)
+                self.__handle_exception(e, raise_exception, "delete-by-pattern", pattern)
 
         return 0
 
@@ -120,13 +122,13 @@ class RedisClient:
                 pipe = self.redis_store.pipeline()
                 when = time()
                 pipe.zadd(cache_key, {when: when})
-                pipe.zremrangebyscore(cache_key, '-inf', when - interval)
+                pipe.zremrangebyscore(cache_key, "-inf", when - interval)
                 pipe.zcard(cache_key)
                 pipe.expire(cache_key, interval)
                 result = pipe.execute()
                 return result[2] > limit
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'rate-limit-pipeline', cache_key)
+                self.__handle_exception(e, raise_exception, "rate-limit-pipeline", cache_key)
                 return False
         else:
             return False
@@ -138,7 +140,7 @@ class RedisClient:
             try:
                 self.redis_store.set(key, value, ex, px, nx, xx)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'set', key)
+                self.__handle_exception(e, raise_exception, "set", key)
 
     def incr(self, key, raise_exception=False):
         key = prepare_value(key)
@@ -146,7 +148,7 @@ class RedisClient:
             try:
                 return self.redis_store.incr(key)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'incr', key)
+                self.__handle_exception(e, raise_exception, "incr", key)
 
     def get(self, key, raise_exception=False):
         key = prepare_value(key)
@@ -154,7 +156,7 @@ class RedisClient:
             try:
                 return self.redis_store.get(key)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'get', key)
+                self.__handle_exception(e, raise_exception, "get", key)
 
         return None
 
@@ -164,9 +166,9 @@ class RedisClient:
             try:
                 self.redis_store.delete(*keys)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, 'delete', ', '.join(keys))
+                self.__handle_exception(e, raise_exception, "delete", ", ".join(keys))
 
     def __handle_exception(self, e, raise_exception, operation, key_name):
-        current_app.logger.exception('Redis error performing {} on {}'.format(operation, key_name))
+        current_app.logger.exception("Redis error performing {} on {}".format(operation, key_name))
         if raise_exception:
             raise e

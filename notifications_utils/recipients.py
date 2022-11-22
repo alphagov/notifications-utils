@@ -30,21 +30,18 @@ from notifications_utils.template import Template
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 
-uk_prefix = '44'
+uk_prefix = "44"
 
 first_column_headings = {
-    'email': ['email address'],
-    'sms': ['phone number'],
-    'letter': [
-        line.replace('_', ' ')
-        for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]
-    ],
+    "email": ["email address"],
+    "sms": ["phone number"],
+    "letter": [line.replace("_", " ") for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]],
 }
 
-address_columns = InsensitiveDict.from_keys(first_column_headings['letter'])
+address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
 
 
-class RecipientCSV():
+class RecipientCSV:
 
     max_rows = 100_000
 
@@ -60,7 +57,7 @@ class RecipientCSV():
         allow_international_letters=False,
         should_validate=True,
     ):
-        self.file_data = strip_all_whitespace(file_data, extra_characters=',')
+        self.file_data = strip_all_whitespace(file_data, extra_characters=",")
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.guestlist = guestlist
@@ -72,7 +69,7 @@ class RecipientCSV():
         self.should_validate = should_validate
 
     def __len__(self):
-        if not hasattr(self, '_len'):
+        if not hasattr(self, "_len"):
             self._len = len(self.rows)
         return self._len
 
@@ -97,10 +94,7 @@ class RecipientCSV():
     @template.setter
     def template(self, value):
         if not isinstance(value, Template):
-            raise TypeError(
-                'template must be an instance of '
-                'notifications_utils.template.Template'
-            )
+            raise TypeError("template must be an instance of " "notifications_utils.template.Template")
         self._template = value
         self.template_type = self._template.template_type
         self.recipient_column_headers = first_column_headings[self.template_type]
@@ -116,36 +110,29 @@ class RecipientCSV():
             self._placeholders = list(value) + self.recipient_column_headers
         except TypeError:
             self._placeholders = self.recipient_column_headers
-        self.placeholders_as_column_keys = [
-            InsensitiveDict.make_key(placeholder)
-            for placeholder in self._placeholders
-        ]
+        self.placeholders_as_column_keys = [InsensitiveDict.make_key(placeholder) for placeholder in self._placeholders]
         self.recipient_column_headers_as_column_keys = [
-            InsensitiveDict.make_key(placeholder)
-            for placeholder in self.recipient_column_headers
+            InsensitiveDict.make_key(placeholder) for placeholder in self.recipient_column_headers
         ]
 
     @property
     def has_errors(self):
         return bool(
-            self.missing_column_headers or
-            self.duplicate_recipient_column_headers or
-            self.more_rows_than_can_send or
-            self.too_many_rows or
-            (not self.allowed_to_send_to) or
-            any(self.rows_with_errors)
+            self.missing_column_headers
+            or self.duplicate_recipient_column_headers
+            or self.more_rows_than_can_send
+            or self.too_many_rows
+            or (not self.allowed_to_send_to)
+            or any(self.rows_with_errors)
         )  # `or` is 3x faster than using `any()` here
 
     @property
     def allowed_to_send_to(self):
-        if self.template_type == 'letter':
+        if self.template_type == "letter":
             return True
         if not self.guestlist:
             return True
-        return all(
-            allowed_to_send_to(row.recipient, self.guestlist)
-            for row in self.rows
-        )
+        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows)
 
     @property
     def rows(self):
@@ -203,7 +190,7 @@ class RecipientCSV():
                 placeholders=self.placeholders_as_column_keys,
                 template=self.template,
                 allow_international_letters=self.allow_international_letters,
-                validate_row=self.should_validate
+                validate_row=self.should_validate,
             )
 
     @property
@@ -229,23 +216,23 @@ class RecipientCSV():
 
     @property
     def rows_with_errors(self):
-        return self._filter_rows('has_error')
+        return self._filter_rows("has_error")
 
     @property
     def rows_with_bad_recipients(self):
-        return self._filter_rows('has_bad_recipient')
+        return self._filter_rows("has_bad_recipient")
 
     @property
     def rows_with_missing_data(self):
-        return self._filter_rows('has_missing_data')
+        return self._filter_rows("has_missing_data")
 
     @property
     def rows_with_message_too_long(self):
-        return self._filter_rows('message_too_long')
+        return self._filter_rows("message_too_long")
 
     @property
     def rows_with_empty_message(self):
-        return self._filter_rows('message_empty')
+        return self._filter_rows("message_empty")
 
     @property
     def initial_rows_with_errors(self):
@@ -268,10 +255,11 @@ class RecipientCSV():
     @property
     def missing_column_headers(self):
         return set(
-            key for key in self.placeholders
+            key
+            for key in self.placeholders
             if (
-                InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys and
-                not self.is_address_column(key)
+                InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys
+                and not self.is_address_column(key)
             )
         )
 
@@ -284,25 +272,25 @@ class RecipientCSV():
             if InsensitiveDict.make_key(column_header) in self.recipient_column_headers_as_column_keys
         ]
 
-        return OrderedSet((
-            column_header
-            for column_header in self._raw_column_headers
-            if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
-        ))
+        return OrderedSet(
+            (
+                column_header
+                for column_header in self._raw_column_headers
+                if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
+            )
+        )
 
     def is_address_column(self, key):
-        return (
-            self.template_type == 'letter' and key in address_columns
-        )
+        return self.template_type == "letter" and key in address_columns
 
     @property
     def count_of_required_recipient_columns(self):
-        return 3 if self.template_type == 'letter' else 1
+        return 3 if self.template_type == "letter" else 1
 
     @property
     def has_recipient_columns(self):
 
-        if self.template_type == 'letter':
+        if self.template_type == "letter":
             sets_to_check = [
                 InsensitiveDict.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
                 InsensitiveDict.from_keys(address_lines_1_to_7_keys).keys(),
@@ -313,12 +301,16 @@ class RecipientCSV():
             ]
 
         for set_to_check in sets_to_check:
-            if len(
-                # Work out which columns are shared between the possible
-                # letter address columns and the columns in the user’s
-                # spreadsheet (`&` means set intersection)
-                set_to_check & self.column_headers_as_column_keys
-            ) >= self.count_of_required_recipient_columns:
+            if (
+                len(
+                    # Work out which columns are shared between the possible
+                    # letter address columns and the columns in the user’s
+                    # spreadsheet (`&` means set intersection)
+                    set_to_check
+                    & self.column_headers_as_column_keys
+                )
+                >= self.count_of_required_recipient_columns
+            ):
                 return True
 
         return False
@@ -329,15 +321,15 @@ class RecipientCSV():
             return
 
         if InsensitiveDict.make_key(key) in self.recipient_column_headers_as_column_keys:
-            if value in [None, ''] or isinstance(value, list):
+            if value in [None, ""] or isinstance(value, list):
                 if self.duplicate_recipient_column_headers:
                     return None
                 else:
                     return Cell.missing_field_error
             try:
-                if self.template_type == 'email':
+                if self.template_type == "email":
                     validate_email_address(value)
-                if self.template_type == 'sms':
+                if self.template_type == "sms":
                     validate_phone_number(value, international=self.allow_international_sms)
             except (InvalidEmailError, InvalidPhoneError) as error:
                 return str(error)
@@ -345,7 +337,7 @@ class RecipientCSV():
         if InsensitiveDict.make_key(key) not in self.placeholders_as_column_keys:
             return
 
-        if value in [None, '']:
+        if value in [None, ""]:
             return Cell.missing_field_error
 
 
@@ -389,10 +381,7 @@ class Row(InsensitiveDict):
                 self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
 
-        super().__init__({
-            key: Cell(key, value, error_fn, self.placeholders)
-            for key, value in row_dict.items()
-        })
+        super().__init__({key: Cell(key, value, error_fn, self.placeholders) for key, value in row_dict.items()})
 
     def __getitem__(self, key):
         return super().__getitem__(key) if key in self else Cell()
@@ -404,19 +393,17 @@ class Row(InsensitiveDict):
 
     @property
     def has_error(self):
-        return self.has_error_spanning_multiple_cells or any(
-            cell.error for cell in self.values()
-        )
+        return self.has_error_spanning_multiple_cells or any(cell.error for cell in self.values())
 
     @property
     def has_bad_recipient(self):
-        if self.template_type == 'letter':
+        if self.template_type == "letter":
             return self.has_bad_postal_address
         return self.get(self.recipient_column_headers[0]).recipient_error
 
     @property
     def has_bad_postal_address(self):
-        return self.template_type == 'letter' and not self.as_postal_address.valid
+        return self.template_type == "letter" and not self.as_postal_address.valid
 
     @property
     def has_error_spanning_multiple_cells(self):
@@ -424,21 +411,17 @@ class Row(InsensitiveDict):
 
     @property
     def has_missing_data(self):
-        return any(
-            cell.error == Cell.missing_field_error
-            for cell in self.values()
-        )
+        return any(cell.error == Cell.missing_field_error for cell in self.values())
 
     @property
     def recipient(self):
-        columns = [
-            self.get(column).data for column in self.recipient_column_headers
-        ]
+        columns = [self.get(column).data for column in self.recipient_column_headers]
         return columns[0] if len(columns) == 1 else columns
 
     @property
     def as_postal_address(self):
         from notifications_utils.postal_address import PostalAddress
+
         return PostalAddress.from_personalisation(
             self.recipient_and_personalisation,
             allow_international_letters=self.allow_international_letters,
@@ -446,29 +429,18 @@ class Row(InsensitiveDict):
 
     @property
     def personalisation(self):
-        return InsensitiveDict({
-            key: cell.data for key, cell in self.items()
-            if key in self.placeholders
-        })
+        return InsensitiveDict({key: cell.data for key, cell in self.items() if key in self.placeholders})
 
     @property
     def recipient_and_personalisation(self):
-        return InsensitiveDict({
-            key: cell.data for key, cell in self.items()
-        })
+        return InsensitiveDict({key: cell.data for key, cell in self.items()})
 
 
-class Cell():
+class Cell:
 
-    missing_field_error = 'Missing'
+    missing_field_error = "Missing"
 
-    def __init__(
-        self,
-        key=None,
-        value=None,
-        error_fn=None,
-        placeholders=None
-    ):
+    def __init__(self, key=None, value=None, error_fn=None, placeholders=None):
         self.data = value
         self.error = error_fn(key, value) if error_fn else None
         self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
@@ -476,11 +448,13 @@ class Cell():
     def __eq__(self, other):
         if not other.__class__ == self.__class__:
             return False
-        return all((
-            self.data == other.data,
-            self.error == other.error,
-            self.ignore == other.ignore,
-        ))
+        return all(
+            (
+                self.data == other.data,
+                self.error == other.error,
+                self.ignore == other.ignore,
+            )
+        )
 
     @property
     def recipient_error(self):
@@ -488,9 +462,8 @@ class Cell():
 
 
 class InvalidEmailError(Exception):
-
     def __init__(self, message=None):
-        super().__init__(message or 'Not a valid email address')
+        super().__init__(message or "Not a valid email address")
 
 
 class InvalidPhoneError(InvalidEmailError):
@@ -503,41 +476,39 @@ class InvalidAddressError(InvalidEmailError):
 
 def normalise_phone_number(number):
 
-    for character in ALL_WHITESPACE + '()-+':
-        number = number.replace(character, '')
+    for character in ALL_WHITESPACE + "()-+":
+        number = number.replace(character, "")
 
     try:
         list(map(int, number))
     except ValueError:
-        raise InvalidPhoneError('Must not contain letters or symbols')
+        raise InvalidPhoneError("Must not contain letters or symbols")
 
-    return number.lstrip('0')
+    return number.lstrip("0")
 
 
 def is_uk_phone_number(number):
 
-    if (
-        (number.startswith('0') and not number.startswith('00'))
-    ):
+    if number.startswith("0") and not number.startswith("00"):
         return True
 
     number = normalise_phone_number(number)
 
-    if (
-        number.startswith(uk_prefix) or
-        (number.startswith('7') and len(number) < 11)
-    ):
+    if number.startswith(uk_prefix) or (number.startswith("7") and len(number) < 11):
         return True
 
     return False
 
 
-international_phone_info = namedtuple('PhoneNumber', [
-    'international',
-    'crown_dependency',
-    'country_prefix',
-    'billable_units',
-])
+international_phone_info = namedtuple(
+    "PhoneNumber",
+    [
+        "international",
+        "crown_dependency",
+        "country_prefix",
+        "billable_units",
+    ],
+)
 
 
 def get_international_phone_info(number):
@@ -550,50 +521,47 @@ def get_international_phone_info(number):
         international=(prefix != uk_prefix or crown_dependency),
         crown_dependency=crown_dependency,
         country_prefix=prefix,
-        billable_units=get_billable_units_for_prefix(prefix)
+        billable_units=get_billable_units_for_prefix(prefix),
     )
 
 
-CROWN_DEPENDENCY_RANGES = ['7781', '7839', '7911', '7509', '7797', '7937', '7700', '7829', '7624', '7524', '7924']
+CROWN_DEPENDENCY_RANGES = ["7781", "7839", "7911", "7509", "7797", "7937", "7700", "7829", "7624", "7524", "7924"]
 
 
 def _is_a_crown_dependency_number(number):
     num_in_crown_dependency_range = number[2:6] in CROWN_DEPENDENCY_RANGES
-    num_in_tv_range = number[2:9] == '7700900'
+    num_in_tv_range = number[2:9] == "7700900"
 
     return num_in_crown_dependency_range and not num_in_tv_range
 
 
 def get_international_prefix(number):
-    return next(
-        (prefix for prefix in COUNTRY_PREFIXES if number.startswith(prefix)),
-        None
-    )
+    return next((prefix for prefix in COUNTRY_PREFIXES if number.startswith(prefix)), None)
 
 
 def get_billable_units_for_prefix(prefix):
-    return INTERNATIONAL_BILLING_RATES[prefix]['billable_units']
+    return INTERNATIONAL_BILLING_RATES[prefix]["billable_units"]
 
 
 def use_numeric_sender(number):
     prefix = get_international_prefix(normalise_phone_number(number))
-    return INTERNATIONAL_BILLING_RATES[prefix]['attributes']['alpha'] == 'NO'
+    return INTERNATIONAL_BILLING_RATES[prefix]["attributes"]["alpha"] == "NO"
 
 
 def validate_uk_phone_number(number):
 
-    number = normalise_phone_number(number).lstrip(uk_prefix).lstrip('0')
+    number = normalise_phone_number(number).lstrip(uk_prefix).lstrip("0")
 
-    if not number.startswith('7'):
-        raise InvalidPhoneError('Not a UK mobile number')
+    if not number.startswith("7"):
+        raise InvalidPhoneError("Not a UK mobile number")
 
     if len(number) > 10:
-        raise InvalidPhoneError('Too many digits')
+        raise InvalidPhoneError("Too many digits")
 
     if len(number) < 10:
-        raise InvalidPhoneError('Not enough digits')
+        raise InvalidPhoneError("Not enough digits")
 
-    return '{}{}'.format(uk_prefix, number)
+    return "{}{}".format(uk_prefix, number)
 
 
 def validate_phone_number(number, international=False):
@@ -604,13 +572,13 @@ def validate_phone_number(number, international=False):
     number = normalise_phone_number(number)
 
     if len(number) < 8:
-        raise InvalidPhoneError('Not enough digits')
+        raise InvalidPhoneError("Not enough digits")
 
     if len(number) > 15:
-        raise InvalidPhoneError('Too many digits')
+        raise InvalidPhoneError("Too many digits")
 
     if get_international_prefix(number) is None:
-        raise InvalidPhoneError('Not a valid country prefix')
+        raise InvalidPhoneError("Not a valid country prefix")
 
     return number
 
@@ -627,7 +595,7 @@ def try_validate_and_format_phone_number(number, international=None, log_msg=Non
         return validate_and_format_phone_number(number, international)
     except InvalidPhoneError as exc:
         if log_msg:
-            current_app.logger.warning('{}: {}'.format(log_msg, exc))
+            current_app.logger.warning("{}: {}".format(log_msg, exc))
         return number
 
 
@@ -646,7 +614,7 @@ def validate_email_address(email_address):  # noqa (C901 too complex)
         raise InvalidEmailError
 
     # don't allow consecutive periods in either part
-    if '..' in email_address:
+    if ".." in email_address:
         raise InvalidEmailError
 
     hostname = match.group(1)
@@ -654,11 +622,11 @@ def validate_email_address(email_address):  # noqa (C901 too complex)
     # idna = "Internationalized domain name" - this encode/decode cycle converts unicode into its accurate ascii
     # representation as the web uses. '例え.テスト'.encode('idna') == b'xn--r8jz45g.xn--zckzah'
     try:
-        hostname = hostname.encode('idna').decode('ascii')
+        hostname = hostname.encode("idna").decode("ascii")
     except UnicodeError:
         raise InvalidEmailError
 
-    parts = hostname.split('.')
+    parts = hostname.split(".")
 
     if len(hostname) > 253 or len(parts) < 2:
         raise InvalidEmailError
@@ -685,7 +653,7 @@ def validate_and_format_email_address(email_address):
 @lru_cache(maxsize=32, typed=False)
 def format_recipient(recipient):
     if not isinstance(recipient, str):
-        return ''
+        return ""
     with suppress(InvalidPhoneError):
         return validate_and_format_phone_number(recipient, international=True)
     with suppress(InvalidEmailError):
@@ -702,12 +670,12 @@ def format_phone_number_human_readable(phone_number):
     international_phone_info = get_international_phone_info(phone_number)
 
     return phonenumbers.format_number(
-        phonenumbers.parse('+' + phone_number, None),
+        phonenumbers.parse("+" + phone_number, None),
         (
             phonenumbers.PhoneNumberFormat.INTERNATIONAL
             if international_phone_info.international
             else phonenumbers.PhoneNumberFormat.NATIONAL
-        )
+        ),
     )
 
 

@@ -13,6 +13,7 @@ bootstrap: ## Build project
 test: ## Run tests
 	flake8 .
 	isort --check-only ./notifications_utils ./tests
+	black --check .
 	pytest -n4
 	python setup.py sdist
 
