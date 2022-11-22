@@ -27,7 +27,7 @@ fix-imports:
 .PHONY: reset-version
 reset-version:
 	git fetch
-	git checkout origin/master -- notifications_utils/version.py
+	git checkout origin/main -- notifications_utils/version.py
 
 .PHONY: version-major
 version-major: reset-version ## Update the major version number
