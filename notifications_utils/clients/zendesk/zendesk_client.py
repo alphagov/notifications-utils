@@ -70,6 +70,7 @@ class NotifySupportTicket:
         org_type=None,
         service_id=None,
         email_ccs=None,
+        message_as_html=False,
     ):
         self.subject = subject
         self.message = message
@@ -84,6 +85,7 @@ class NotifySupportTicket:
         self.org_type = org_type
         self.service_id = service_id
         self.email_ccs = email_ccs
+        self.message_as_html = message_as_html
 
     @property
     def request_data(self):
@@ -91,7 +93,7 @@ class NotifySupportTicket:
             "ticket": {
                 "subject": self.subject,
                 "comment": {
-                    "body": self.message,
+                    ("html_body" if self.message_as_html else "body"): self.message,
                     "public": self.requester_sees_message_content,
                 },
                 "group_id": self.NOTIFY_GROUP_ID,

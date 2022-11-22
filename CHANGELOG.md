@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 58.1.0
+
+* add a `message_as_html` parameter to `NotifySupportTicket` to enable creating tickets containing HTML (eg links).
+
 ## 58.0.0
 
 * replace `brand_name` with `brand_alt_text` in HTMLEmailTemplate to more accurately reflect its purpose
