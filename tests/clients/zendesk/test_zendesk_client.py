@@ -180,3 +180,30 @@ def test_notify_support_ticket_request_data_email_ccs():
     assert notify_ticket_form.request_data["ticket"]["email_ccs"] == [
         {"user_email": "someone@example.com", "action": "put"},
     ]
+
+
+def test_notify_support_ticket_with_html_body():
+    notify_ticket_form = NotifySupportTicket("subject", "message", "task", message_as_html=True)
+
+    assert notify_ticket_form.request_data == {
+        "ticket": {
+            "subject": "subject",
+            "comment": {
+                "html_body": "message",
+                "public": True,
+            },
+            "group_id": NotifySupportTicket.NOTIFY_GROUP_ID,
+            "organization_id": NotifySupportTicket.NOTIFY_ORG_ID,
+            "ticket_form_id": NotifySupportTicket.NOTIFY_TICKET_FORM_ID,
+            "priority": "normal",
+            "tags": ["govuk_notify_support"],
+            "type": "task",
+            "custom_fields": [
+                {"id": "1900000744994", "value": "notify_ticket_type_non_technical"},
+                {"id": "360022836500", "value": []},
+                {"id": "360022943959", "value": None},
+                {"id": "360022943979", "value": None},
+                {"id": "1900000745014", "value": None},
+            ],
+        }
+    }
