@@ -1,0 +1,11 @@
+# see https://pyup.io/docs/configuration/ for all available options
+
+schedule: "every week on wednesday"
+
+# Security updates only - not just any newer version
+update: insecure
+
+search: False
+requirements:
+  - requirements_for_test.txt:
+    update: insecure
