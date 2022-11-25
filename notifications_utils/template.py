@@ -58,9 +58,6 @@ template_env = Environment(
 
 
 class Template(ABC):
-
-    encoding = "utf-8"
-
     def __init__(
         self,
         template,
