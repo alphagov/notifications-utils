@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 59.0.0
+
+* Remove `Template.encoding` (very unlikely to be used anywhere)
+
 ## 58.1.0
 
 * add a `message_as_html` parameter to `NotifySupportTicket` to enable creating tickets containing HTML (eg links).
