@@ -12,19 +12,13 @@ def statsd(namespace):
             try:
                 res = func(*args, **kwargs)
                 elapsed_time = time.monotonic() - start_time
-                current_app.statsd_client.incr("{namespace}.{func}".format(namespace=namespace, func=func.__name__))
-                current_app.statsd_client.timing(
-                    "{namespace}.{func}".format(namespace=namespace, func=func.__name__), elapsed_time
-                )
+                current_app.statsd_client.incr(f"{namespace}.{func.__name__}")
+                current_app.statsd_client.timing(f"{namespace}.{func.__name__}", elapsed_time)
 
             except Exception as e:
                 raise e
             else:
-                current_app.logger.debug(
-                    "{namespace} call {func} took {time}".format(
-                        namespace=namespace, func=func.__name__, time="{0:.4f}".format(elapsed_time)
-                    )
-                )
+                current_app.logger.debug(f"{namespace} call {func.__name__} took {elapsed_time:.4f}")
                 return res
 
         wrapper.__wrapped__.__name__ = func.__name__

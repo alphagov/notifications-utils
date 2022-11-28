@@ -10,7 +10,7 @@ def _append(value, to_append):
 
 
 def _prepend_with_service_name(value, service_name=None):
-    return "{}: {}".format(service_name, value)
+    return f"{service_name}: {value}"
 
 
 def test_take():

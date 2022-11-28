@@ -34,17 +34,17 @@ class Placeholder:
             # ((a?? b??c)) returns " b??c"
             return "??".join(self.body.split("??")[1:])
         else:
-            raise ValueError("{} not conditional".format(self))
+            raise ValueError(f"{self} not conditional")
 
     def get_conditional_body(self, show_conditional):
         # note: unsanitised/converted
         if self.is_conditional():
             return self.conditional_text if str2bool(show_conditional) else ""
         else:
-            raise ValueError("{} not conditional".format(self))
+            raise ValueError(f"{self} not conditional")
 
     def __repr__(self):
-        return "Placeholder({})".format(self.body)
+        return f"Placeholder({self.body})"
 
 
 class Field:
@@ -97,7 +97,7 @@ class Field:
         return self.formatted
 
     def __repr__(self):
-        return '{}("{}", {})'.format(self.__class__.__name__, self.content, self.values)  # TODO: more real
+        return f'{self.__class__.__name__}("{self.content}", {self.values})'
 
     def splitlines(self):
         return str(self).splitlines()
@@ -150,7 +150,7 @@ class Field:
 
     def get_replacement_as_list(self, replacement):
         if self.markdown_lists:
-            return "\n\n" + "\n".join("* {}".format(item) for item in replacement)
+            return "\n\n" + "\n".join(f"* {item}" for item in replacement)
         return unescaped_formatted_list(replacement, before_each="", after_each="")
 
     @property

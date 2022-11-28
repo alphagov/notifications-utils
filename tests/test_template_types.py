@@ -172,7 +172,7 @@ def test_brand_data_shows(brand_logo, brand_text, brand_colour):
     if brand_text:
         assert brand_text in email
     if brand_colour:
-        assert 'bgcolor="{}"'.format(brand_colour) in email
+        assert f'bgcolor="{brand_colour}"' in email
 
 
 def test_alt_text_with_brand_text_and_govuk_banner_shown():
@@ -427,9 +427,9 @@ def test_markdown_in_templates(
     ],
 )
 def test_makes_links_out_of_URLs(extra_attributes, template_class, template_type, url, url_with_entities_replaced):
-    assert '<a {} href="{}">{}</a>'.format(
-        extra_attributes, url_with_entities_replaced, url_with_entities_replaced
-    ) in str(template_class({"content": url, "subject": "", "template_type": template_type}))
+    assert f'<a {extra_attributes} href="{url_with_entities_replaced}">{url_with_entities_replaced}</a>' in str(
+        template_class({"content": url, "subject": "", "template_type": template_type})
+    )
 
 
 @pytest.mark.parametrize(

@@ -561,7 +561,7 @@ def validate_uk_phone_number(number):
     if len(number) < 10:
         raise InvalidPhoneError("Not enough digits")
 
-    return "{}{}".format(uk_prefix, number)
+    return f"{uk_prefix}{number}"
 
 
 def validate_phone_number(number, international=False):
@@ -595,7 +595,7 @@ def try_validate_and_format_phone_number(number, international=None, log_msg=Non
         return validate_and_format_phone_number(number, international)
     except InvalidPhoneError as exc:
         if log_msg:
-            current_app.logger.warning("{}: {}".format(log_msg, exc))
+            current_app.logger.warning(f"{log_msg}: {exc}")
         return number
 
 

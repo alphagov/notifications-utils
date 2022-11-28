@@ -79,7 +79,7 @@ def get_handlers(app):
     # only write json to file if we're not running on ECS
     if app.config["NOTIFY_RUNTIME_PLATFORM"] != "ecs":
         # machine readable json to both file and stdout
-        file_handler = logging.handlers.WatchedFileHandler(filename="{}.json".format(app.config["NOTIFY_LOG_PATH"]))
+        file_handler = logging.handlers.WatchedFileHandler(filename=f"{app.config['NOTIFY_LOG_PATH']}.json")
         handlers.append(configure_handler(file_handler, app, json_formatter))
 
     return handlers
@@ -150,7 +150,7 @@ class CustomLogFormatter(logging.Formatter):
         try:
             record.msg = str(record.msg).format(**record.__dict__)
         except (KeyError, IndexError) as e:
-            logger.exception("failed to format log message: {} not found".format(e))
+            logger.exception(f"failed to format log message: {e} not found")
         return super(CustomLogFormatter, self).format(record)
 
 
@@ -168,5 +168,5 @@ class JSONFormatter(BaseJSONFormatter):
         try:
             log_record["message"] = log_record["message"].format(**log_record)
         except (KeyError, IndexError) as e:
-            logger.exception("failed to format log message: {} not found".format(e))
+            logger.exception(f"failed to format log message: {e} not found")
         return log_record

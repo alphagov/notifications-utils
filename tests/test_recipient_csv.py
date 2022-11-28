@@ -925,7 +925,7 @@ def test_ignores_leading_whitespace_in_file(character, name):
         assert unicodedata.name(character) == name
 
     recipients = RecipientCSV(
-        "{}emailaddress\ntest@example.com".format(character),
+        f"{character}emailaddress\ntest@example.com",
         template=_sample_template("email"),
     )
     first_row = recipients[0]
@@ -1031,12 +1031,10 @@ def test_multiple_sms_recipient_columns(international_sms):
 )
 def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     recipients = RecipientCSV(
-        """
-            names, phone number, {}
+        f"""
+            names, phone number, {column_name}
             "Joanna and Steve", 07900 900111
-        """.format(
-            column_name
-        ),
+        """,
         template=_sample_template("sms"),
         allow_international_sms=True,
     )

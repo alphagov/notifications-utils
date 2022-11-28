@@ -20,10 +20,10 @@ from notifications_utils.template import HTMLEmailTemplate
     ],
 )
 def test_makes_links_out_of_URLs(url):
-    link = '<a style="word-wrap: break-word; color: #1D70B8;" href="{}">{}</a>'.format(url, url)
+    link = f'<a style="word-wrap: break-word; color: #1D70B8;" href="{url}">{url}</a>'
     assert notify_email_markdown(url) == (
-        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">' "{}" "</p>"
-    ).format(link)
+        f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{link}</p>'
+    )
 
 
 @pytest.mark.parametrize(
@@ -48,8 +48,8 @@ def test_makes_links_out_of_URLs(url):
 )
 def test_makes_links_out_of_URLs_in_context(input, output):
     assert notify_email_markdown(input) == (
-        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">' "{}" "</p>"
-    ).format(output)
+        f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{output}</p>'
+    )
 
 
 @pytest.mark.parametrize(
@@ -65,8 +65,8 @@ def test_makes_links_out_of_URLs_in_context(input, output):
 )
 def test_doesnt_make_links_out_of_invalid_urls(url):
     assert notify_email_markdown(url) == (
-        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">' "{}" "</p>"
-    ).format(url)
+        f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{url}</p>'
+    )
 
 
 def test_handles_placeholders_in_urls():
@@ -102,8 +102,8 @@ def test_handles_placeholders_in_urls():
 )
 def test_URLs_get_escaped(url, expected_html, expected_html_in_template):
     assert notify_email_markdown(url) == (
-        '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">' "{}" "</p>"
-    ).format(expected_html)
+        f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{expected_html}</p>'
+    )
     assert expected_html_in_template in str(
         HTMLEmailTemplate(
             {

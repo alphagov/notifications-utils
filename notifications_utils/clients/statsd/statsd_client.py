@@ -29,7 +29,7 @@ class NotifyStatsClient(StatsClientBase):
         except Exception as e:
             # if we get an error store None in the cache so that we don't keep trying to retrieve the DNS
             # if paas's dns server is having issues
-            current_app.logger.warning("Error resolving statsd dns: {}".format(str(e)))
+            current_app.logger.warning(f"Error resolving statsd dns: {e}")
             return None
 
     def _send(self, data):
@@ -40,7 +40,7 @@ class NotifyStatsClient(StatsClientBase):
             if host:
                 self._sock.sendto(data.encode("ascii"), (host, self._port))
         except Exception as e:
-            current_app.logger.warning("Error sending statsd metric: {}".format(str(e)))
+            current_app.logger.warning(f"Error sending statsd metric: {e}")
             pass
 
 
@@ -51,9 +51,7 @@ class StatsdClient:
     def init_app(self, app, *args, **kwargs):
         app.statsd_client = self
         self.active = app.config.get("STATSD_ENABLED")
-        self.namespace = "{}.notifications.{}.".format(
-            app.config.get("NOTIFY_ENVIRONMENT"), app.config.get("NOTIFY_APP_NAME")
-        )
+        self.namespace = f"{app.config.get('NOTIFY_ENVIRONMENT')}.notifications.{app.config.get('NOTIFY_APP_NAME')}."
 
         if self.active:
             self.statsd_client = NotifyStatsClient(
