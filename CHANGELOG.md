@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 59.1.0
+
+* Add synonyms for sending letters to the Canary Islands
+
 ## 59.0.0
 
 * Remove `Template.encoding` (very unlikely to be used anywhere)

@@ -1918,4 +1918,12 @@ CROWDSOURCED_MISTAKES = (
     ("Y Swistir", "Switzerland", "europe"),
     ("Saint Kitts", "St Kitts and Nevis", "rest-of-world"),
     ("St Kitts", "St Kitts and Nevis", "rest-of-world"),
+    ("El Hierro", "Canary Islands", "europe"),
+    ("La Palma", "Canary Islands", "europe"),
+    ("La Gomera", "Canary Islands", "europe"),
+    ("Tenerife", "Canary Islands", "europe"),
+    ("Gran Canaria", "Canary Islands", "europe"),
+    ("Fuerteventura", "Canary Islands", "europe"),
+    ("Lanzarote", "Canary Islands", "europe"),
+    ("La Graciosa", "Canary Islands", "europe"),
 )
