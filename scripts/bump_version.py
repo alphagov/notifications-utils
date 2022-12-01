@@ -6,6 +6,7 @@ import subprocess
 from pathlib import Path
 
 from notifications_utils.version import __version__
+from notifications_utils.version_tools import color
 
 version_parts = ("major", "minor", "patch")
 
@@ -41,20 +42,6 @@ __version__ = "{new_major}.{new_minor}.{new_patch}"  # {package_contents_hash}
 
 with Path("notifications_utils/version.py").open("w") as version_file:
     version_file.write(output)
-
-
-class color:
-    PURPLE = "\033[95m"
-    CYAN = "\033[96m"
-    DARKCYAN = "\033[36m"
-    BLUE = "\033[94m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-    END = "\033[0m"
-
 
 print("")
 print(
