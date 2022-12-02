@@ -14,7 +14,7 @@ test: ## Run tests
 	flake8 .
 	isort --check-only ./notifications_utils ./tests
 	black --check .
-	pytest -n4
+	pytest -n auto
 	python setup.py sdist
 
 clean:
