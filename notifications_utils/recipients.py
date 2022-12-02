@@ -9,7 +9,7 @@ from itertools import islice
 
 import phonenumbers
 from flask import current_app
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 
 from notifications_utils.formatters import (
     ALL_WHITESPACE,

@@ -9,7 +9,7 @@ import pytest
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 from markupsafe import Markup
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 
 from notifications_utils.formatters import unlink_govuk_escaped
 from notifications_utils.template import (
