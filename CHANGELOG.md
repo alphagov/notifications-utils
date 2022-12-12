@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 59.3.0
+
+* Add tooling to bump utils version in apps
+
 ## 59.2.0
 
 * Add support for creating redis cache keys for a specific notification type.
