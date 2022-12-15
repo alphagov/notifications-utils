@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 60.0.0
+
+* Bump pyproj to be version 3.4.1  or greater. This changes the ESPG codes to be upper case, which affects the how
+  `Polygons` class transforms data.
+
 ## 59.3.0
 
 * Add tooling to bump utils version in apps
