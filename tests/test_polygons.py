@@ -407,7 +407,7 @@ def test_precision():
 
 def test_passes_through_coordinates_without_converting_to_crs():
     without_crs = Polygons([HACKNEY_MARSHES])
-    with_crs = Polygons([HACKNEY_MARSHES], utm_crs="epsg:32630")
+    with_crs = Polygons([HACKNEY_MARSHES], utm_crs="EPSG:32630")
 
     assert without_crs.as_coordinate_pairs_lat_long == with_crs.as_coordinate_pairs_lat_long
 
