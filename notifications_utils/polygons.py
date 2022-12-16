@@ -24,11 +24,11 @@ transformers = {
         # earth because the earth is not a perfect sphere.
         # —
         # The UK, west to east
-        "epsg:32629",  # Zone 29N: Between 12°W and 6°W, equator and 84°N
-        "epsg:32630",  # Zone 30N: Between 6°W and 0°W, equator and 84°N
-        "epsg:32631",  # Zone 31N: Between 0°E and 6°E, equator and 84°N
+        "EPSG:32629",  # Zone 29N: Between 12°W and 6°W, equator and 84°N
+        "EPSG:32630",  # Zone 30N: Between 6°W and 0°W, equator and 84°N
+        "EPSG:32631",  # Zone 31N: Between 0°E and 6°E, equator and 84°N
         # Santa Claus village (Finland)
-        "epsg:32635",  # Zone 35N: Between 24°E and 30°E, equator and 84°N
+        "EPSG:32635",  # Zone 35N: Between 24°E and 30°E, equator and 84°N
     }
 }
 
