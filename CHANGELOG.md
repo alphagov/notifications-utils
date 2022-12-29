@@ -3,6 +3,15 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 60.1.0
+
+* Add `letter_timings.is_dvla_working_day`
+* Add `letter_timings.is_royal_mail_working_day`
+* Add `letter_timings.get_dvla_working_day_offset_by`
+* Add `letter_timings.get_previous_dvla_working_day`
+* Add `letter_timings.get_royal_mail_working_day_offset_by`
+* Add `letter_timings.get_previous_royal_mail_working_day`
+
 ## 60.0.0
 
 * Bump pyproj to be version 3.4.1  or greater. This changes the ESPG codes to be upper case, which affects the how

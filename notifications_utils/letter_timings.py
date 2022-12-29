@@ -30,32 +30,68 @@ non_working_days_royal_mail = BankHolidays(
 )
 
 
+def is_dvla_working_day(datetime_object):
+    return non_working_days_dvla.is_work_day(
+        datetime_object.date(),
+        division=BankHolidays.ENGLAND_AND_WALES,
+    )
+
+
+def is_royal_mail_working_day(datetime_object):
+    return non_working_days_royal_mail.is_work_day(
+        datetime_object.date(),
+        division=BankHolidays.ENGLAND_AND_WALES,
+    )
+
+
 def set_gmt_hour(day, hour):
     return day.astimezone(pytz.timezone("Europe/London")).replace(hour=hour, minute=0).astimezone(pytz.utc)
 
 
-def get_next_work_day(date, non_working_days):
-    next_day = date + timedelta(days=1)
-    if non_working_days.is_work_day(
-        date=next_day.date(),
-        division=BankHolidays.ENGLAND_AND_WALES,
-    ):
-        return next_day
-    return get_next_work_day(next_day, non_working_days)
+def get_offset_working_day(date, *, is_work_day, days):
+    if days > 0:
+        step = 1
+    elif days < 0:
+        step = -1
+    else:
+        raise ValueError("days argument must not be 0")
+
+    while days:
+        date = date + timedelta(days=step)
+        if is_work_day(date):
+            days -= step
+
+    return date
+
+
+def get_dvla_working_day_offset_by(date, *, days):
+    return get_offset_working_day(date, is_work_day=is_dvla_working_day, days=days)
 
 
 def get_next_dvla_working_day(date):
     """
     Printing takes place monday to friday, excluding bank holidays
     """
-    return get_next_work_day(date, non_working_days=non_working_days_dvla)
+    return get_dvla_working_day_offset_by(date, days=1)
+
+
+def get_previous_dvla_working_day(date):
+    return get_dvla_working_day_offset_by(date, days=-1)
+
+
+def get_royal_mail_working_day_offset_by(date, *, days):
+    return get_offset_working_day(date, is_work_day=is_royal_mail_working_day, days=days)
 
 
 def get_next_royal_mail_working_day(date):
     """
     Royal mail deliver letters on monday to saturday
     """
-    return get_next_work_day(date, non_working_days=non_working_days_royal_mail)
+    return get_royal_mail_working_day_offset_by(date, days=1)
+
+
+def get_previous_royal_mail_working_day(date):
+    return get_royal_mail_working_day_offset_by(date, days=-1)
 
 
 def get_delivery_day(date, *, days_to_deliver):
