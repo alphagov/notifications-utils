@@ -6,6 +6,12 @@ from freezegun import freeze_time
 
 from notifications_utils.letter_timings import (
     get_letter_timings,
+    get_next_dvla_working_day,
+    get_next_royal_mail_working_day,
+    get_previous_dvla_working_day,
+    get_previous_royal_mail_working_day,
+    is_dvla_working_day,
+    is_royal_mail_working_day,
     letter_can_be_cancelled,
 )
 
@@ -364,3 +370,31 @@ def test_letter_can_be_cancelled_if_after_1730_and_letter_created_at_1730_today_
 )
 def test_letter_can_be_cancelled_always_compares_in_bst(notification_created_at):
     assert letter_can_be_cancelled("created", notification_created_at)
+
+
+def test_next_previous_working_days():
+    friday_23_december = datetime(2022, 12, 23, 12, 0, 0)
+    saturday_24_december = datetime(2022, 12, 24, 12, 0, 0)
+    sunday_25_december = datetime(2022, 12, 25, 12, 0, 0)
+    monday_26_december = datetime(2022, 12, 26, 12, 0, 0)
+    tuesday_27_december = datetime(2022, 12, 27, 12, 0, 0)
+    wednesday_28_december = datetime(2022, 12, 28, 12, 0, 0)
+
+    # DVLA and Royal Mail don’t work on Sundays or bank holidays
+    assert not is_dvla_working_day(sunday_25_december)
+    assert not is_dvla_working_day(monday_26_december)
+    assert not is_dvla_working_day(tuesday_27_december)
+    assert get_next_dvla_working_day(monday_26_december) == wednesday_28_december
+
+    assert not is_royal_mail_working_day(sunday_25_december)
+    assert not is_royal_mail_working_day(monday_26_december)
+    assert not is_royal_mail_working_day(tuesday_27_december)
+    assert get_next_royal_mail_working_day(monday_26_december) == wednesday_28_december
+
+    # DVLA don’t work Saturdays
+    assert not is_dvla_working_day(saturday_24_december)
+    assert get_previous_dvla_working_day(monday_26_december) == friday_23_december
+
+    # Royal Mail do work Saturdays
+    assert is_royal_mail_working_day(saturday_24_december)
+    assert get_previous_royal_mail_working_day(monday_26_december) == saturday_24_december
