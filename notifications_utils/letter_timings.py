@@ -48,33 +48,50 @@ def set_gmt_hour(day, hour):
     return day.astimezone(pytz.timezone("Europe/London")).replace(hour=hour, minute=0).astimezone(pytz.utc)
 
 
-def get_offset_working_day(date, *, is_work_day, offset_days):
-    offset_day = date + timedelta(days=offset_days)
-    if is_work_day(offset_day):
-        return offset_day
-    return get_offset_working_day(offset_day, is_work_day=is_work_day, offset_days=offset_days)
+def get_offset_working_day(date, *, is_work_day, days):
+    if days > 0:
+        step = 1
+    elif days < 0:
+        step = -1
+    else:
+        raise ValueError("days argument must not be 0")
+
+    while days:
+        date = date + timedelta(days=step)
+        if is_work_day(date):
+            days -= step
+
+    return date
+
+
+def get_dvla_working_day_offset_by(date, *, days):
+    return get_offset_working_day(date, is_work_day=is_dvla_working_day, days=days)
 
 
 def get_next_dvla_working_day(date):
     """
     Printing takes place monday to friday, excluding bank holidays
     """
-    return get_offset_working_day(date, is_work_day=is_dvla_working_day, offset_days=1)
+    return get_dvla_working_day_offset_by(date, days=1)
 
 
 def get_previous_dvla_working_day(date):
-    return get_offset_working_day(date, is_work_day=is_dvla_working_day, offset_days=-1)
+    return get_dvla_working_day_offset_by(date, days=-1)
+
+
+def get_royal_mail_working_day_offset_by(date, *, days):
+    return get_offset_working_day(date, is_work_day=is_royal_mail_working_day, days=days)
 
 
 def get_next_royal_mail_working_day(date):
     """
     Royal mail deliver letters on monday to saturday
     """
-    return get_offset_working_day(date, is_work_day=is_royal_mail_working_day, offset_days=1)
+    return get_royal_mail_working_day_offset_by(date, days=1)
 
 
 def get_previous_royal_mail_working_day(date):
-    return get_offset_working_day(date, is_work_day=is_royal_mail_working_day, offset_days=-1)
+    return get_royal_mail_working_day_offset_by(date, days=-1)
 
 
 def get_delivery_day(date, *, days_to_deliver):

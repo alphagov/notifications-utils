@@ -7,7 +7,9 @@ More minor changes may optionally be recorded here too.
 
 * Add `letter_timings.is_dvla_working_day`
 * Add `letter_timings.is_royal_mail_working_day`
+* Add `letter_timings.get_dvla_working_day_offset_by`
 * Add `letter_timings.get_previous_dvla_working_day`
+* Add `letter_timings.get_royal_mail_working_day_offset_by`
 * Add `letter_timings.get_previous_royal_mail_working_day`
 
 ## 60.0.0
