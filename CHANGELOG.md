@@ -3,6 +3,12 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 61.0.0
+
+* Provide our own cache file for bank holidays data, which will help us keep it up-to-date. This is a breaking change
+  as any apps pulling in utils should now use notifications_utils.bank_holidays.BankHolidays rather than
+  govuk_bank_holidays.bank_holidays.BankHolidays directly.
+
 ## 60.1.0
 
 * Add `letter_timings.is_dvla_working_day`
