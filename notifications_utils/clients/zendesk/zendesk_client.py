@@ -1,3 +1,10 @@
+import dataclasses
+import datetime
+import enum
+import typing
+from typing import Optional
+from urllib.parse import urlencode
+
 import requests
 from flask import current_app
 
@@ -7,11 +14,41 @@ class ZendeskError(Exception):
         self.response = response
 
 
+DATETIME_FORMAT_ISO8601 = "%Y-%m-%dT%H:%M:%SZ"
+
+
+class NotifySupportTicketStatus(enum.Enum):
+    NEW = "new"
+    OPEN = "open"
+    PENDING = "pending"
+    SOLVED = "solved"
+
+
+@dataclasses.dataclass
+class NotifySupportTicketAttachment:
+    filename: str
+    filedata: typing.IO
+    content_type: str
+
+
+@dataclasses.dataclass
+class NotifySupportTicketComment:
+    body: str
+
+    # A list of file-like objects to attach to the comment
+    attachments: typing.Sequence[NotifySupportTicketAttachment] = tuple()
+
+    # Whether the comment is public or internal
+    public: bool = True
+
+
 class ZendeskClient:
     # the account used to authenticate with. If no requester is provided, the ticket will come from this account.
     NOTIFY_ZENDESK_EMAIL = "zd-api-notify@digital.cabinet-office.gov.uk"
 
     ZENDESK_TICKET_URL = "https://govuk.zendesk.com/api/v2/tickets.json"
+    ZENDESK_UPDATE_TICKET_URL = "https://govuk.zendesk.com/api/v2/tickets/{ticket_id}"
+    ZENDESK_UPLOAD_FILE_URL = "https://govuk.zendesk.com/api/v2/uploads.json"
 
     def __init__(self):
         self.api_key = None
@@ -33,6 +70,73 @@ class ZendeskClient:
         ticket_id = response.json()["ticket"]["id"]
 
         current_app.logger.info(f"Zendesk create ticket {ticket_id} succeeded")
+
+    def _upload_attachment(self, attachment: NotifySupportTicketAttachment):
+        query_params = {"filename": attachment.filename}
+
+        upload_url = self.ZENDESK_UPLOAD_FILE_URL + "?" + urlencode(query_params)
+
+        response = requests.post(
+            upload_url,
+            headers={"Content-Type": attachment.content_type},
+            data=attachment.filedata,
+            auth=(f"{self.NOTIFY_ZENDESK_EMAIL}/token", self.api_key),
+        )
+
+        if response.status_code != 201:
+            current_app.logger.error(
+                f"Zendesk upload attachment request failed with {response.status_code} '{response.json()}'"
+            )
+            raise ZendeskError(response)
+
+        upload_token = response.json()["upload"]["token"]
+
+        current_app.logger.info(f"Zendesk upload attachment `{attachment.filename}` succeeded")
+
+        return upload_token
+
+    def update_ticket(
+        self,
+        ticket_id: int,
+        comment: Optional[NotifySupportTicketComment] = None,
+        due_at: Optional[datetime.datetime] = None,
+        status: Optional[NotifySupportTicketStatus] = None,
+    ):
+        data = {"ticket": {}}
+
+        if comment:
+            data["ticket"]["comment"] = {
+                "body": comment.body,
+                "public": comment.public,
+            }
+
+            if comment.attachments:
+                data["ticket"]["comment"]["uploads"] = []
+                for attachment in comment.attachments:
+                    data["ticket"]["comment"]["uploads"].append(self._upload_attachment(attachment))
+
+        if due_at:
+            data["ticket"]["due_at"] = due_at.strftime(DATETIME_FORMAT_ISO8601)
+
+        if status:
+            data["ticket"]["status"] = status.value
+
+        update_url = self.ZENDESK_UPDATE_TICKET_URL.format(ticket_id=ticket_id)
+        response = requests.put(
+            update_url,
+            json=data,
+            auth=(f"{self.NOTIFY_ZENDESK_EMAIL}/token", self.api_key),
+        )
+
+        if response.status_code != 200:
+            current_app.logger.error(
+                f"Zendesk update ticket request failed with {response.status_code} '{response.text}'"
+            )
+            raise ZendeskError(response)
+
+        ticket_id = response.json()["ticket"]["id"]
+
+        current_app.logger.info(f"Zendesk update ticket {ticket_id} succeeded")
 
 
 class NotifySupportTicket:

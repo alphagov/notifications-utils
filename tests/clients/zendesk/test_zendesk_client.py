@@ -1,9 +1,14 @@
+import datetime
 from base64 import b64decode
+from io import StringIO
 
 import pytest
 
 from notifications_utils.clients.zendesk.zendesk_client import (
     NotifySupportTicket,
+    NotifySupportTicketAttachment,
+    NotifySupportTicketComment,
+    NotifySupportTicketStatus,
     ZendeskClient,
     ZendeskError,
 )
@@ -207,3 +212,85 @@ def test_notify_support_ticket_with_html_body():
             ],
         }
     }
+
+
+class TestZendeskClientUploadAttachment:
+    def test_upload_csv(self, zendesk_client, app, rmock):
+        rmock.request(
+            "POST",
+            "https://govuk.zendesk.com/api/v2/uploads.json?filename=blah.csv",
+            status_code=201,
+            json={"upload": {"token": "token"}},
+        )
+        zendesk_client._upload_attachment(
+            NotifySupportTicketAttachment(
+                filename="blah.csv", filedata=StringIO("a,b,c\n1,2,3"), content_type="text/csv"
+            )
+        )
+        assert rmock.last_request.body.read() == "a,b,c\n1,2,3"
+        assert rmock.last_request.headers["Content-Type"] == "text/csv"
+
+
+class TestZendeskClientUpdateTicket:
+    def test_comments(self, zendesk_client, app, rmock, mocker):
+        rmock.request(
+            "PUT",
+            "https://govuk.zendesk.com/api/v2/tickets/12345",
+            status_code=200,
+            json={"ticket": {"id": 12345}},
+        )
+        mock_upload = mocker.patch.object(zendesk_client, "_upload_attachment")
+        mock_upload.return_value = "token"
+        attachment_1 = NotifySupportTicketAttachment(
+            filename="blah.csv", filedata=StringIO("a,b,c\n1,2,3"), content_type="text/csv"
+        )
+        zendesk_client.update_ticket(
+            ticket_id=12345,
+            comment=NotifySupportTicketComment(
+                body="this is a comment",
+                attachments=[attachment_1],
+            ),
+        )
+        assert mock_upload.call_args_list == [mocker.call(attachment_1)]
+        assert rmock.last_request.json() == {
+            "ticket": {"comment": {"body": "this is a comment", "public": True, "uploads": ["token"]}}
+        }
+
+    def test_status(self, zendesk_client, app, rmock):
+        rmock.request(
+            "PUT",
+            "https://govuk.zendesk.com/api/v2/tickets/12345",
+            status_code=200,
+            json={"ticket": {"id": 12345}},
+        )
+        zendesk_client.update_ticket(
+            ticket_id=12345,
+            status=NotifySupportTicketStatus.PENDING,
+        )
+        assert rmock.last_request.json() == {"ticket": {"status": "pending"}}
+
+    def test_due_at(self, zendesk_client, app, rmock):
+        rmock.request(
+            "PUT",
+            "https://govuk.zendesk.com/api/v2/tickets/12345",
+            status_code=200,
+            json={"ticket": {"id": 12345}},
+        )
+        zendesk_client.update_ticket(
+            ticket_id=12345,
+            due_at=datetime.datetime(2023, 1, 1, 12, 0, 0),
+        )
+        assert rmock.last_request.json() == {"ticket": {"due_at": "2023-01-01T12:00:00Z"}}
+
+    def test_zendesk_error(self, zendesk_client, app, rmock):
+        rmock.request(
+            "PUT",
+            "https://govuk.zendesk.com/api/v2/tickets/12345",
+            status_code=400,
+        )
+
+        with pytest.raises(ZendeskError):
+            zendesk_client.update_ticket(
+                ticket_id=12345,
+                due_at=datetime.datetime(2023, 1, 1, 12, 0, 0),
+            )
