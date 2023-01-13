@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 61.1.0
+
+* Adds a method to the ZendeskClient to add a comment to a pre-existing ticket, including adding attachments.
+
 ## 61.0.0
 
 * Provide our own cache file for bank holidays data, which will help us keep it up-to-date. This is a breaking change
