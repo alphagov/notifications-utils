@@ -1,11 +1,17 @@
+import inspect
 import uuid
 from datetime import datetime
 from unittest.mock import Mock, call
 
 import pytest
+import redis
 from freezegun import freeze_time
 
-from notifications_utils.clients.redis.redis_client import RedisClient, prepare_value
+from notifications_utils.clients.redis.redis_client import (
+    RedisClient,
+    StubLock,
+    prepare_value,
+)
 
 
 @pytest.fixture(scope="function")
@@ -197,3 +203,49 @@ def test_delete_by_pattern(mocked_redis_client, delete_mock):
     ret = mocked_redis_client.delete_by_pattern("foo")
     assert ret == 4
     delete_mock.assert_called_once_with(args=["foo"])
+
+
+def test_get_redis_lock_returns_lock_with_kwargs(mocked_redis_client):
+    lock = mocked_redis_client.get_lock("lock_name", blocking=True)
+    assert isinstance(lock, redis.lock.Lock)
+    assert lock.redis == mocked_redis_client.redis_store
+    assert lock.name == "lock_name"
+    assert lock.blocking is True
+
+
+def test_get_redis_lock_returns_stub_if_redis_not_enabled(mocked_redis_client):
+    mocked_redis_client.active = False
+
+    lock = mocked_redis_client.get_lock("lock_name", blocking=True)
+    assert isinstance(lock, StubLock)
+
+    assert not lock.locked()
+    assert not lock.owned()
+    # test context manager changes values of locked/owned
+    with lock:
+        assert lock.locked()
+        assert lock.owned()
+
+
+def test_redis_stub_lock_function_signatures_match():
+    print(f"Testing StubLock agains redis=={redis.__version__}")
+    lock_methods = dict(inspect.getmembers(redis.lock.Lock, inspect.isfunction))
+    stub_methods = dict(inspect.getmembers(StubLock, inspect.isfunction))
+
+    # these methods are de-facto private methods (they don't have docstrings and aren't
+    # mentioned in the redis-py docs) so lets not commit to mocking them and testing them
+    lock_methods_to_test = lock_methods.keys() - {
+        "do_acquire",
+        "do_extend",
+        "do_reacquire",
+        "do_release",
+        "register_scripts",
+    }
+
+    missing_methods = lock_methods_to_test - stub_methods.keys()
+    assert not missing_methods, "stub has missing methods"
+
+    for fn_name in lock_methods_to_test:
+        lock_sig = inspect.signature(lock_methods[fn_name])
+        stub_sig = inspect.signature(stub_methods[fn_name])
+        assert lock_sig.parameters == stub_sig.parameters

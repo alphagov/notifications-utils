@@ -1,12 +1,16 @@
 import numbers
 import uuid
 from time import time
+from types import TracebackType
+from typing import Optional, Type
 
 from flask import current_app
 from flask_redis import FlaskRedis
 
 # expose redis exceptions so that they can be caught
 from redis.exceptions import RedisError  # noqa
+from redis.lock import Lock
+from redis.typing import Number
 
 
 def prepare_value(val):
@@ -168,7 +172,66 @@ class RedisClient:
             except Exception as e:
                 self.__handle_exception(e, raise_exception, "delete", ", ".join(keys))
 
+    def get_lock(self, key_name, **kwargs):
+        if self.active:
+            return Lock(self.redis_store, key_name, **kwargs)
+        else:
+            return StubLock(redis=None, name="")
+
     def __handle_exception(self, e, raise_exception, operation, key_name):
         current_app.logger.exception(f"Redis error performing {operation} on {key_name}")
         if raise_exception:
             raise e
+
+
+class StubLock:
+    def __init__(
+        self,
+        redis,
+        name: str,
+        timeout: Optional[Number] = None,
+        sleep: Number = 0.1,
+        blocking: bool = True,
+        blocking_timeout: Optional[Number] = None,
+        thread_local: bool = True,
+    ):
+        self._locked = False
+        return None
+
+    def __enter__(self) -> "StubLock":
+        self._locked = True
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
+        self._locked = False
+
+    def acquire(
+        self,
+        sleep: Optional[Number] = None,
+        blocking: Optional[bool] = None,
+        blocking_timeout: Optional[Number] = None,
+        token: Optional[str] = None,
+    ) -> bool:
+        self._locked = True
+        return True
+
+    def extend(self, additional_time: int, replace_ttl: bool = False) -> bool:
+        return True
+
+    def locked(self) -> bool:
+        return self._locked
+
+    def owned(self) -> bool:
+        return self._locked
+
+    def release(self) -> None:
+        self._locked = False
+
+    def reacquire(self) -> bool:
+        self._locked = True
+        return True
