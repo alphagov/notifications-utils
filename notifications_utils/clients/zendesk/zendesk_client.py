@@ -68,6 +68,10 @@ class ZendeskClient:
         )
 
         if response.status_code != 201:
+            if response.status_code == 422 and self._is_user_suspended(response.json()):
+                error_message = response.json()["details"]
+                current_app.logger.warning(f"Zendesk create ticket failed because user is suspended '{error_message}'")
+                return
             current_app.logger.error(
                 f"Zendesk create ticket request failed with {response.status_code} '{response.json()}'"
             )
@@ -76,6 +80,10 @@ class ZendeskClient:
         ticket_id = response.json()["ticket"]["id"]
 
         current_app.logger.info(f"Zendesk create ticket {ticket_id} succeeded")
+
+    def _is_user_suspended(self, response):
+        requester_error = response["details"].get("requester")
+        return requester_error and ("suspended" in requester_error[0]["description"])
 
     def _upload_attachment(self, attachment: NotifySupportTicketAttachment):
         query_params = {"filename": attachment.filename}
