@@ -3,6 +3,9 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 61.3.0
+* Only log a warning and no longer raise an error if creating a Zendesk ticket fails because the user is suspended.
+
 ## 61.2.0
 
 * Adds `redis_client.get_lock` which returns a redis lock object (or a stub lock if redis is not enabled). See https://redis-py.readthedocs.io/en/v4.4.2/lock.html for functionality.
