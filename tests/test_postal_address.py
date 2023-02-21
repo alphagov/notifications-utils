@@ -510,6 +510,82 @@ def test_from_personalisation_handles_int():
                 "postcode": "Eight",
             },
         ),
+        (
+            """
+            Mx One
+            BFPO
+            BFPO 123
+            BF1 1AA
+            """,
+            {
+                "address_line_1": "Mx One",
+                "address_line_2": "",
+                "address_line_3": "",
+                "address_line_4": "",
+                "address_line_5": "",
+                "address_line_6": "BF1 1AA",
+                "address_line_7": "BFPO 123",
+                "postcode": "BF1 1AA",
+            },
+        ),
+        (
+            """
+            Mx One
+            BFPO
+            BF1 1AA
+            BFPO 123
+            """,
+            {
+                "address_line_1": "Mx One",
+                "address_line_2": "",
+                "address_line_3": "",
+                "address_line_4": "",
+                "address_line_5": "",
+                "address_line_6": "BF1 1AA",
+                "address_line_7": "BFPO 123",
+                "postcode": "BF1 1AA",
+            },
+        ),
+        (
+            """
+            Mx One
+            Unit 1
+            BFPO
+            BFPO 123
+            """,
+            {
+                "address_line_1": "Mx One",
+                "address_line_2": "Unit 1",
+                "address_line_3": "",
+                "address_line_4": "",
+                "address_line_5": "",
+                "address_line_6": "",
+                "address_line_7": "BFPO 123",
+                "postcode": "",
+            },
+        ),
+        (
+            """
+            One
+            Two
+            Three
+            Four
+            BFPO 123
+            Five
+            Too long BFPO address line dropped
+            BF1 1AA
+            """,
+            {
+                "address_line_1": "One",
+                "address_line_2": "Two",
+                "address_line_3": "Three",
+                "address_line_4": "Four",
+                "address_line_5": "Five",
+                "address_line_6": "BF1 1AA",
+                "address_line_7": "BFPO 123",
+                "postcode": "BF1 1AA",
+            },
+        ),
     ),
 )
 def test_as_personalisation(address, expected_personalisation):
@@ -599,6 +675,7 @@ def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(m
         ("n5 \u00A0 \t 3Ef", "N5 3EF"),
         ("SO146WB", "SO14 6WB"),
         ("GIR0AA", "GIR 0AA"),
+        ("BF11AA", "BF1 1AA"),
     ],
 )
 def test_format_postcode_for_printing(postcode, postcode_with_space):
@@ -694,6 +771,17 @@ def test_format_postcode_for_printing(postcode, postcode_with_space):
             False,
             False,
         ),
+        (
+            """
+            International BFPO
+            We don't expect (or accept) explicit countries for BFPO addresses
+            BFPO 1
+            BF1 1AA
+            France
+        """,
+            True,
+            False,
+        ),
     ),
 )
 def test_valid_with_international_parameter(address, international, expected_valid):
@@ -764,3 +852,81 @@ def test_valid_from_personalisation_with_international_parameter(international, 
         ).valid
         is expected_valid
     )
+
+
+@pytest.mark.parametrize(
+    "address, is_bfpo",
+    (
+        # Standard addresses aren't BFPO addresses
+        ("Mr X\nLondon\nSW1 1AA", False),
+        # We don't do detection/resolution of BFPO postcodes
+        ("Mr X\nBF1 1AA", False),
+        # A BFPO numbered address is parsed
+        ("Mr X\nBFPO 1", True),
+        # We can handle C/O on the BFPO line
+        ("Mr X\nBFPO C/O 1", True),
+        # Even if the BFPO number isn't on the last line
+        ("Mr X\nBFPO 1\nBF1 1AA", True),
+    ),
+)
+def test_bfpo_addresses(address, is_bfpo):
+    assert PostalAddress(address).is_bfpo_address == is_bfpo
+
+
+@pytest.mark.parametrize(
+    "address, bfpo_number",
+    (
+        # Standard addresses have no bfpo number
+        ("Mr X\nLondon\nSW1 1AA", None),
+        # We don't do detection/resolution of BFPO postcodes
+        ("Mr X\nBF1 1AA", None),
+        # A BFPO numbered address is extracted
+        ("Mr X\nBFPO 1", 1),
+        ("Mr X\nBFPO 5432", 5432),
+        # We can handle C/O on the BFPO line
+        ("Mr X\nBFPO C/O 1", 1),
+        # Spaces aren't needed
+        ("Mr X\nBFPO1", 1),
+        ("Mr X\nBFPOC/O1", 1),
+        # Even if the BFPO number isn't on the last line
+        ("Mr X\nBFPO 5432\nBF1 1AA", 5432),
+        # Even if it's in the middle of a long address
+        ("Mr X\nUnit 5\nBFPO\nBFPO 5432\nLondon\nBF1 1AA", 5432),
+    ),
+)
+def test_bfpo_number_parsing(address, bfpo_number):
+    assert PostalAddress(address)._bfpo_number == bfpo_number
+
+
+@pytest.mark.parametrize(
+    "address, expected_normalised_lines",
+    (
+        ("Mr X\nBFPO 1", ["Mr X", "BFPO 1"]),
+        # Postcodes are moved before the BFPO #
+        ("Mr X\nBFPO 1\nBF1 1AA", ["Mr X", "BF1 1AA", "BFPO 1"]),
+        # Blank BFPO lines are removed
+        ("Mr X\nBFPO\nBFPO 1", ["Mr X", "BFPO 1"]),
+        # BFPO capitalisation and spacing is normalised
+        ("Mr X\nbfpo\nBF1 1AA\nbfpo1", ["Mr X", "BF1 1AA", "BFPO 1"]),
+    ),
+)
+def test_normalised_lines(address, expected_normalised_lines):
+    assert PostalAddress(address).normalised_lines == expected_normalised_lines
+
+
+@pytest.mark.parametrize(
+    "address, expected_bfpo_normalised_lines",
+    (
+        ("Mr X\nBFPO 1", ["Mr X"]),
+        ("Mr X\nBFPO 1\nBF1 1AA", ["Mr X"]),
+        ("Mr X\nBFPO\nBFPO 1", ["Mr X"]),
+        ("Mr X\nbfpo\nBF1 1AA\nbfpo1", ["Mr X"]),
+    ),
+)
+def test_bfpo_normalised_lines(address, expected_bfpo_normalised_lines):
+    assert PostalAddress(address).bfpo_normalised_lines == expected_bfpo_normalised_lines
+
+
+def test_bfpo_normalised_lines_error():
+    with pytest.raises(ValueError):
+        assert PostalAddress("Mr X\nLondon\nSW1 1AA").bfpo_normalised_lines

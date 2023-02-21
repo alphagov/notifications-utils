@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 62.0.0
+
+* Updated PostalAddress to parse BFPO addresses. Any validation done on PostalAddresses should be update to report on the new error property `has_invalid_country_for_bfpo_address`.
+
 ## 61.2.0
 
 * Adds `redis_client.get_lock` which returns a redis lock object (or a stub lock if redis is not enabled). See https://redis-py.readthedocs.io/en/v4.4.2/lock.html for functionality.
