@@ -168,10 +168,6 @@ def format_postcode_for_printing(postcode):
     :param String postcode: A postcode that's already been validated by _is_a_real_uk_postcode
     """
     postcode = normalise_postcode(postcode)
-    if "BFPOC/O" in postcode:
-        return postcode[:4] + " C/O " + postcode[7:]
-    elif "BFPO" in postcode:
-        return postcode[:4] + " " + postcode[4:]
     return postcode[:-3] + " " + postcode[-3:]
 
 

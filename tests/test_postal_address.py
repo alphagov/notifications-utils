@@ -561,14 +561,17 @@ def test_normalise_postcode(postcode, normalised_postcode):
         ("SO14 6WBA", False),
         ("", False),
         ("Bad postcode", False),
-        # valid British Forces postcodes
-        ("BFPO1234", True),
-        ("BFPO C/O 1234", True),
-        ("BFPO 1234", True),
-        ("BFPO1", True),
-        # invalid British Forces postcodes
+        # British Forces Post Office numbers are not postcodes
+        ("BFPO1234", False),
+        ("BFPO C/O 1234", False),
+        ("BFPO 1234", False),
+        ("BFPO1", False),
         ("BFPO", False),
         ("BFPO12345", False),
+        # But actual BFPO post codes are still valid post codes
+        ("BF1 3AA", True),
+        ("BF13AA", True),
+        (" BF2 0FR ", True),
         # Giro Bank valid postcode and invalid postcode
         ("GIR0AA", True),
         ("GIR0AB", False),
@@ -595,11 +598,6 @@ def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(m
         ("n53Ef", "N5 3EF"),
         ("n5 \u00A0 \t 3Ef", "N5 3EF"),
         ("SO146WB", "SO14 6WB"),
-        ("BFPO2", "BFPO 2"),
-        ("BFPO232", "BFPO 232"),
-        ("BFPO 2432", "BFPO 2432"),
-        ("BFPO C/O 2", "BFPO C/O 2"),
-        ("BFPO c/o 232", "BFPO C/O 232"),
         ("GIR0AA", "GIR 0AA"),
     ],
 )
