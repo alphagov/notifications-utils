@@ -151,7 +151,7 @@ def normalise_postcode(postcode):
     return remove_whitespace(postcode).upper()
 
 
-def is_a_real_uk_postcode(postcode):
+def _is_a_real_uk_postcode(postcode):
     pattern = re.compile(
         r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"  # Standard
         r"|"
@@ -165,7 +165,7 @@ def is_a_real_uk_postcode(postcode):
 def format_postcode_for_printing(postcode):
     """
     This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
-    :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
+    :param String postcode: A postcode that's already been validated by _is_a_real_uk_postcode
     """
     postcode = normalise_postcode(postcode)
     if "BFPOC/O" in postcode:
@@ -181,5 +181,5 @@ def format_postcode_for_printing(postcode):
 # power of 2
 @lru_cache(maxsize=8)
 def format_postcode_or_none(postcode):
-    if is_a_real_uk_postcode(postcode):
+    if _is_a_real_uk_postcode(postcode):
         return format_postcode_for_printing(postcode)
