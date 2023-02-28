@@ -895,7 +895,7 @@ def test_bfpo_addresses(address, is_bfpo):
     ),
 )
 def test_bfpo_number_parsing(address, bfpo_number):
-    assert PostalAddress(address)._bfpo_number == bfpo_number
+    assert PostalAddress(address).bfpo_number == bfpo_number
 
 
 @pytest.mark.parametrize(

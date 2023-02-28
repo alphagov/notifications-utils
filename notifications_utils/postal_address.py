@@ -149,6 +149,10 @@ class PostalAddress:
         return self._bfpo_number is not None
 
     @property
+    def bfpo_number(self):
+        return self._bfpo_number
+
+    @property
     def normalised(self):
         return "\n".join(self.normalised_lines)
 
