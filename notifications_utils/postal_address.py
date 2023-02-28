@@ -82,7 +82,9 @@ class PostalAddress:
 
     @property
     def as_personalisation(self):
-        postcode_offset = 2 if self.postcode and self.is_bfpo_address else 1
+        bfpo_with_postcode = self.postcode and self.is_bfpo_address
+        postcode_offset = 2 if bfpo_with_postcode else 1
+
         lines = dict.fromkeys(address_lines_1_to_6_keys, "")
         lines.update(
             {
@@ -92,7 +94,8 @@ class PostalAddress:
             }
         )
         lines["postcode"] = lines["address_line_7"] = self.normalised_lines[-1]
-        if postcode_offset == 2:
+
+        if bfpo_with_postcode:
             lines["postcode"] = lines["address_line_6"] = self.postcode or ""
         elif self.is_bfpo_address:
             lines["postcode"] = ""
