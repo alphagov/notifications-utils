@@ -53,6 +53,17 @@ class PostalAddress:
     def __bool__(self):
         return bool(self.normalised)
 
+    def __eq__(self, other):
+        if not isinstance(other, PostalAddress):
+            return False
+
+        return (
+            self.normalised_lines == other.normalised_lines
+            and self.allow_international_letters == other.allow_international_letters
+            and self.bfpo_number == other.bfpo_number
+            and self.country == other.country
+        )
+
     def __repr__(self):
         return f"{self.__class__.__name__}({repr(self.raw_address)})"
 

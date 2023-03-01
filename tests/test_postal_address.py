@@ -946,3 +946,15 @@ def test_bfpo_normalised_lines(address, expected_bfpo_normalised_lines):
 def test_bfpo_normalised_lines_error():
     with pytest.raises(ValueError):
         assert PostalAddress("Mr X\nLondon\nSW1 1AA").bfpo_normalised_lines
+
+
+def test_postal_address_equality():
+    assert PostalAddress("A\nB\nC") == PostalAddress("A\nB\nC"), "The same raw address should match"
+    assert PostalAddress("A\nB\nC") != PostalAddress("A\nB\nC\nD"), "Different addresses should not match"
+    assert PostalAddress("A\nB\nC") == PostalAddress("\nA\n  B  \nC\n"), "Extra lines/whitespace should be ignored"
+    assert PostalAddress("A\nB\nC", allow_international_letters=True) != PostalAddress(
+        "A\nB\nC", allow_international_letters=False
+    ), "Different international states don't match"
+    assert PostalAddress.from_personalisation(
+        {"address_line_1": "A", "address_line_2": "B", "address_line_3": "C"}
+    ) == PostalAddress("A\nB\nC"), "Different instantiation of the same address should still match"
