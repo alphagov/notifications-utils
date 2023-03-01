@@ -854,6 +854,22 @@ def test_valid_from_personalisation_with_international_parameter(international, 
     )
 
 
+def test_from_personalisation_to_normalisation_doesnt_stringify_nones():
+    assert PostalAddress.from_personalisation(
+        InsensitiveDict(
+            {
+                "addressline1": "Notify user",
+                "addressline2": "Notifyland",
+                "addressline3": None,
+                "addressline4": None,
+                "addressline5": None,
+                "addressline6": None,
+                "addressline7": "SW1 1AA",
+            }
+        )
+    ).normalised_lines == ["Notify user", "Notifyland", "SW1 1AA"]
+
+
 @pytest.mark.parametrize(
     "address, is_bfpo",
     (
