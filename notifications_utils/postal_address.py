@@ -170,6 +170,9 @@ class PostalAddress:
     @property
     def normalised_lines(self):
         if self.is_bfpo_address:
+            if self.postcode:
+                return self._lines_without_country_or_bfpo[:-1] + [self.postcode] + [f"BFPO {self._bfpo_number}"]
+
             return self._lines_without_country_or_bfpo + [f"BFPO {self._bfpo_number}"]
 
         if self.international:

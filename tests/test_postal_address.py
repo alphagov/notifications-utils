@@ -924,6 +924,8 @@ def test_bfpo_number_parsing(address, bfpo_number):
         ("Mr X\nBFPO\nBFPO 1", ["Mr X", "BFPO 1"]),
         # BFPO capitalisation and spacing is normalised
         ("Mr X\nbfpo\nBF1 1AA\nbfpo1", ["Mr X", "BF1 1AA", "BFPO 1"]),
+        # Postcodes for BFPO addresses are still normalised
+        ("Mr X\nbfpo\nbf11aa\nbfpo1", ["Mr X", "BF1 1AA", "BFPO 1"]),
     ),
 )
 def test_normalised_lines(address, expected_normalised_lines):
