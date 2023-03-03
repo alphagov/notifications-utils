@@ -41,7 +41,7 @@ class PostalAddress:
             if line.rstrip(" ,")
         ] or [""]
 
-        self._bfpo_number, self._lines_without_bfpo = self._parse_and_remove_bfpo(self._lines)
+        self._bfpo_number, self._lines_without_bfpo = self._parse_and_extract_bfpo(self._lines)
 
         try:
             self.country = Country(self._lines_without_bfpo[-1])
@@ -67,7 +67,7 @@ class PostalAddress:
     def __repr__(self):
         return f"{self.__class__.__name__}({repr(self.raw_address)})"
 
-    def _parse_and_remove_bfpo(self, lines):
+    def _parse_and_extract_bfpo(self, lines):
         bfpo_matcher = re.compile(r"^\s*bfpo\s*(?:c\/o)?(?:\s*(\d+))?\s*$")
         bfpo_number_line = next(
             filter(lambda l: bfpo_matcher.match(l.lower()) and bfpo_matcher.match(l.lower()).group(1), lines), None
@@ -149,6 +149,8 @@ class PostalAddress:
 
     @property
     def has_invalid_country_for_bfpo_address(self):
+        """We don't want users to specify the country if they provide a BFPO number. Some BFPO numbers may resolve
+        to non-UK addresses, but this will be handled as part of the BFPO delivery."""
         return self.international and self.is_bfpo_address
 
     @property
@@ -171,6 +173,7 @@ class PostalAddress:
     def normalised_lines(self):
         if self.is_bfpo_address:
             if self.postcode:
+                # Replace the raw postcode with the normalised (eg uppercase with spaces) postcode
                 return self._lines_without_country_or_bfpo[:-1] + [self.postcode] + [f"BFPO {self._bfpo_number}"]
 
             return self._lines_without_country_or_bfpo + [f"BFPO {self._bfpo_number}"]
@@ -179,6 +182,7 @@ class PostalAddress:
             return self._lines_without_country_or_bfpo + [self.country.canonical_name]
 
         if self.postcode:
+            # Replace the raw postcode with the normalised (eg uppercase with spaces) postcode
             return self._lines_without_country_or_bfpo[:-1] + [self.postcode]
 
         return self._lines_without_country_or_bfpo
