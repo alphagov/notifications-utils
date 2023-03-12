@@ -14,7 +14,7 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
 
     app = App()
 
-    handlers = logging.get_handlers(app)
+    handlers = logging.get_handlers(app, extra_filters=[])
 
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
@@ -31,6 +31,11 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
     ],
 )
 def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ecs(tmpdir, platform):
+    class TestFilter(builtin_logging.Filter):
+        def filter(self, record):
+            record.arbitrary_info = "some-extra-info"
+            return record
+
     class App:
         config = {
             # make a tempfile called foo
@@ -43,14 +48,16 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ec
 
     app = App()
 
-    handlers = logging.get_handlers(app)
+    handlers = logging.get_handlers(app, extra_filters=[TestFilter()])
 
     assert len(handlers) == 2
     assert type(handlers[0]) == builtin_logging.StreamHandler
     assert type(handlers[0].formatter) == logging.JSONFormatter
+    assert len(handlers[0].filters) == 5
 
     assert type(handlers[1]) == builtin_logging_handlers.WatchedFileHandler
     assert type(handlers[1].formatter) == logging.JSONFormatter
+    assert len(handlers[1].filters) == 5
 
     dir_contents = tmpdir.listdir()
     assert len(dir_contents) == 1
@@ -70,7 +77,7 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug_on_ecs(tmpdir)
 
     app = App()
 
-    handlers = logging.get_handlers(app)
+    handlers = logging.get_handlers(app, extra_filters=[])
 
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
