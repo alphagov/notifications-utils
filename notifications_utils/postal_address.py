@@ -188,7 +188,7 @@ class PostalAddress:
         return self._lines_without_country_or_bfpo
 
     @property
-    def bfpo_normalised_lines(self):
+    def bfpo_address_lines(self):
         """Removes the postcode and BFPO footer lines for BFPO addresses"""
         if not self.is_bfpo_address:
             raise ValueError("Cannot be used for non-BFPO addresses")

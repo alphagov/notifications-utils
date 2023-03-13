@@ -933,7 +933,7 @@ def test_normalised_lines(address, expected_normalised_lines):
 
 
 @pytest.mark.parametrize(
-    "address, expected_bfpo_normalised_lines",
+    "address, expected_bfpo_address_lines",
     (
         ("Mr X\nBFPO 1", ["Mr X"]),
         ("Mr X\nBFPO 1\nBF1 1AA", ["Mr X"]),
@@ -941,13 +941,13 @@ def test_normalised_lines(address, expected_normalised_lines):
         ("Mr X\nbfpo\nBF1 1AA\nbfpo1", ["Mr X"]),
     ),
 )
-def test_bfpo_normalised_lines(address, expected_bfpo_normalised_lines):
-    assert PostalAddress(address).bfpo_normalised_lines == expected_bfpo_normalised_lines
+def test_bfpo_address_lines(address, expected_bfpo_address_lines):
+    assert PostalAddress(address).bfpo_address_lines == expected_bfpo_address_lines
 
 
-def test_bfpo_normalised_lines_error():
+def test_bfpo_address_lines_error():
     with pytest.raises(ValueError):
-        assert PostalAddress("Mr X\nLondon\nSW1 1AA").bfpo_normalised_lines
+        assert PostalAddress("Mr X\nLondon\nSW1 1AA").bfpo_address_lines
 
 
 def test_postal_address_equality():
