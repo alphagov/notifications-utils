@@ -41,18 +41,44 @@ class PostalAddress:
             if line.rstrip(" ,")
         ] or [""]
 
+        self._bfpo_number, self._lines_without_bfpo = self._parse_and_extract_bfpo(self._lines)
+
         try:
-            self.country = Country(self._lines[-1])
-            self._lines_without_country = self._lines[:-1]
+            self.country = Country(self._lines_without_bfpo[-1])
+            self._lines_without_country_or_bfpo = self._lines_without_bfpo[:-1]
         except CountryNotFoundError:
-            self._lines_without_country = self._lines
+            self._lines_without_country_or_bfpo = self._lines_without_bfpo
             self.country = country_UK
 
     def __bool__(self):
         return bool(self.normalised)
 
+    def __eq__(self, other):
+        if not isinstance(other, PostalAddress):
+            return False
+
+        return (
+            self.normalised_lines == other.normalised_lines
+            and self.allow_international_letters == other.allow_international_letters
+            and self.bfpo_number == other.bfpo_number
+            and self.country == other.country
+        )
+
     def __repr__(self):
         return f"{self.__class__.__name__}({repr(self.raw_address)})"
+
+    def _parse_and_extract_bfpo(self, lines):
+        bfpo_matcher = re.compile(r"^\s*bfpo\s*(?:c\/o)?(?:\s*(\d+))?\s*$")
+        bfpo_number_line = next(
+            filter(lambda l: bfpo_matcher.match(l.lower()) and bfpo_matcher.match(l.lower()).group(1), lines), None
+        )
+        if not bfpo_number_line:
+            return None, lines
+
+        bfpo_number = bfpo_matcher.match(bfpo_number_line.lower()).group(1)
+        lines = [line for line in lines if not bfpo_matcher.match(line.lower())]
+
+        return int(bfpo_number), lines
 
     @classmethod
     def from_personalisation(cls, personalisation_dict, allow_international_letters=False):
@@ -67,15 +93,24 @@ class PostalAddress:
 
     @property
     def as_personalisation(self):
+        bfpo_with_postcode = self.postcode and self.is_bfpo_address
+        postcode_offset = 2 if bfpo_with_postcode else 1
+
         lines = dict.fromkeys(address_lines_1_to_6_keys, "")
         lines.update(
             {
                 f"address_line_{index}": value
-                for index, value in enumerate(self.normalised_lines[:-1], start=1)
+                for index, value in enumerate(self.normalised_lines[:-postcode_offset], start=1)
                 if index < 7
             }
         )
         lines["postcode"] = lines["address_line_7"] = self.normalised_lines[-1]
+
+        if bfpo_with_postcode:
+            lines["postcode"] = lines["address_line_6"] = self.postcode or ""
+        elif self.is_bfpo_address:
+            lines["postcode"] = ""
+
         return lines
 
     @property
@@ -100,7 +135,11 @@ class PostalAddress:
 
     @property
     def has_valid_last_line(self):
-        return (self.allow_international_letters and self.international) or self.has_valid_postcode
+        return (
+            (self.allow_international_letters and self.international and not self.is_bfpo_address)
+            or self.has_valid_postcode
+            or (self.is_bfpo_address and not self.has_invalid_country_for_bfpo_address)
+        )
 
     @property
     def has_invalid_characters(self):
@@ -109,8 +148,22 @@ class PostalAddress:
         )
 
     @property
+    def has_invalid_country_for_bfpo_address(self):
+        """We don't want users to specify the country if they provide a BFPO number. Some BFPO numbers may resolve
+        to non-UK addresses, but this will be handled as part of the BFPO delivery."""
+        return self.international and self.is_bfpo_address
+
+    @property
     def international(self):
         return self.postage != Postage.UK
+
+    @property
+    def is_bfpo_address(self):
+        return self._bfpo_number is not None
+
+    @property
+    def bfpo_number(self):
+        return self._bfpo_number
 
     @property
     def normalised(self):
@@ -118,14 +171,32 @@ class PostalAddress:
 
     @property
     def normalised_lines(self):
+        if self.is_bfpo_address:
+            if self.postcode:
+                # Replace the raw postcode with the normalised (eg uppercase with spaces) postcode
+                return self._lines_without_country_or_bfpo[:-1] + [self.postcode] + [f"BFPO {self._bfpo_number}"]
+
+            return self._lines_without_country_or_bfpo + [f"BFPO {self._bfpo_number}"]
 
         if self.international:
-            return self._lines_without_country + [self.country.canonical_name]
+            return self._lines_without_country_or_bfpo + [self.country.canonical_name]
 
         if self.postcode:
-            return self._lines_without_country[:-1] + [self.postcode]
+            # Replace the raw postcode with the normalised (eg uppercase with spaces) postcode
+            return self._lines_without_country_or_bfpo[:-1] + [self.postcode]
 
-        return self._lines_without_country
+        return self._lines_without_country_or_bfpo
+
+    @property
+    def bfpo_address_lines(self):
+        """Removes the postcode and BFPO footer lines for BFPO addresses"""
+        if not self.is_bfpo_address:
+            raise ValueError("Cannot be used for non-BFPO addresses")
+
+        if self.postcode:
+            return self.normalised_lines[:-2]
+
+        return self.normalised_lines[:-1]
 
     @property
     def postage(self):
@@ -135,7 +206,7 @@ class PostalAddress:
     def postcode(self):
         if self.international:
             return None
-        return format_postcode_or_none(self._lines_without_country[-1])
+        return format_postcode_or_none(self._lines_without_country_or_bfpo[-1])
 
     @property
     def valid(self):
@@ -144,6 +215,7 @@ class PostalAddress:
             and self.has_enough_lines
             and not self.has_too_many_lines
             and not self.has_invalid_characters
+            and not (self.international and self.is_bfpo_address)
         )
 
 
@@ -151,27 +223,18 @@ def normalise_postcode(postcode):
     return remove_whitespace(postcode).upper()
 
 
-def is_a_real_uk_postcode(postcode):
-    pattern = re.compile(
-        r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})"  # Standard
-        r"|"
-        r"(BFPO?(C\/O)?[0-9]{1,4})"  # BFPO
-        r"|"
-        r"(GIR0AA)"  # Girobank
-    )
+def _is_a_real_uk_postcode(postcode):
+    # GIR0AA is Girobank
+    pattern = re.compile(r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})|(GIR0AA)")
     return bool(pattern.fullmatch(normalise_postcode(postcode)))
 
 
 def format_postcode_for_printing(postcode):
     """
     This function formats the postcode so that it is ready for automatic sorting by Royal Mail.
-    :param String postcode: A postcode that's already been validated by is_a_real_uk_postcode
+    :param String postcode: A postcode that's already been validated by _is_a_real_uk_postcode
     """
     postcode = normalise_postcode(postcode)
-    if "BFPOC/O" in postcode:
-        return postcode[:4] + " C/O " + postcode[7:]
-    elif "BFPO" in postcode:
-        return postcode[:4] + " " + postcode[4:]
     return postcode[:-3] + " " + postcode[-3:]
 
 
@@ -181,5 +244,5 @@ def format_postcode_for_printing(postcode):
 # power of 2
 @lru_cache(maxsize=8)
 def format_postcode_or_none(postcode):
-    if is_a_real_uk_postcode(postcode):
+    if _is_a_real_uk_postcode(postcode):
         return format_postcode_for_printing(postcode)
