@@ -950,6 +950,23 @@ def test_bfpo_address_lines_error():
         assert PostalAddress("Mr X\nLondon\nSW1 1AA").bfpo_address_lines
 
 
+def test_bfpo_address_with_country_still_shows_country_in_normalised_lines_even_if_invalid():
+    assert (
+        PostalAddress(
+            """International BFPO
+            BFPO 1
+            BF1 1AA
+            usa"""
+        ).normalised_lines
+        == [
+            "International BFPO",
+            "BF1 1AA",
+            "BFPO 1",
+            "United States",
+        ]
+    )
+
+
 def test_postal_address_equality():
     assert PostalAddress("A\nB\nC") == PostalAddress("A\nB\nC"), "The same raw address should match"
     assert PostalAddress("A\nB\nC") != PostalAddress("A\nB\nC\nD"), "Different addresses should not match"
