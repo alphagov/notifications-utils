@@ -172,6 +172,11 @@ class PostalAddress:
     @property
     def normalised_lines(self):
         if self.is_bfpo_address:
+            if self.international:
+                return (
+                    self._lines_without_country_or_bfpo + [f"BFPO {self._bfpo_number}"] + [self.country.canonical_name]
+                )
+
             if self.postcode:
                 # Replace the raw postcode with the normalised (eg uppercase with spaces) postcode
                 return self._lines_without_country_or_bfpo[:-1] + [self.postcode] + [f"BFPO {self._bfpo_number}"]
