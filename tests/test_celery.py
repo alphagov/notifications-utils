@@ -95,10 +95,17 @@ def test_call_exports_request_id_from_headers(mocker, request_id_task):
     assert g.request_id == "1234"
 
 
-def test_call_copes_if_request_id_not_in_headers(mocker, celery_task):
+def test_copes_if_request_id_not_in_headers(mocker, celery_task):
     g = mocker.patch("notifications_utils.celery.g")
     celery_task()
     assert g.request_id is None
+
+
+def test_injects_celery_task_id_if_no_request_id(mocker, celery_task):
+    mocker.patch("celery.app.task.uuid", return_value="my-random-uuid")
+    g = mocker.patch("notifications_utils.celery.g")
+    celery_task.apply()
+    assert g.request_id == "my-random-uuid"
 
 
 def test_send_task_injects_global_request_id_into_headers(
