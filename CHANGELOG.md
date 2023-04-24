@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 62.3.0
+
+* Adds support for Chinese character sets in letters
+
 ## 62.2.1
 
 * Injects the celery task ID into logging output if no requestId is present.
