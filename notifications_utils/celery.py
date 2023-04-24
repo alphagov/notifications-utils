@@ -20,7 +20,7 @@ def make_task(app):
         def request_id(self):
             # Note that each header is a direct attribute of the
             # task context (aka "request").
-            return self.request.get("notify_request_id")
+            return self.request.get("notify_request_id") or self.request.id
 
         @contextmanager
         def app_context(self):

@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 62.0.1
+
+* Injects the celery task ID into logging output if no requestId is present.
+
 ## 62.0.0
 
 * Updated PostalAddress to parse BFPO addresses. Any validation done on PostalAddresses should be update to report on the new error property `has_invalid_country_for_bfpo_address`.
