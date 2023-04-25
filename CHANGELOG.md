@@ -3,9 +3,22 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
-## 62.0.1
+## 62.2.1
 
 * Injects the celery task ID into logging output if no requestId is present.
+
+## 62.2.0
+
+* Add odd/even class to letter pages
+
+## 62.1.0
+
+* Allow extra logging filters to be passed into `notifications_utils.logging.init_app`.
+* Add a `UserIdFilter` to automatically inject the user_id to flask request logs.
+
+## 62.0.1
+
+* Include the country for normalised BFPO lines.
 
 ## 62.0.0
 
