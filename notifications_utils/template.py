@@ -797,6 +797,8 @@ class LetterImageTemplate(BaseLetterTemplate):
         page_count=None,
         contact_block=None,
         postage=None,
+        attachment_image_url=None,
+        attachment_page_count=0,
     ):
         super().__init__(template, values, contact_block=contact_block)
         if not image_url:
@@ -814,9 +816,13 @@ class LetterImageTemplate(BaseLetterTemplate):
                     )
                 )
             )
+        if not attachment_image_url and attachment_page_count > 0:
+            raise TypeError("attachment_image_url is required")
         self.image_url = image_url
         self.page_count = int(page_count)
         self._postage = postage
+        self.attachment_image_url = attachment_image_url
+        self.attachment_page_count = attachment_page_count
 
     @property
     def postage(self):
@@ -831,6 +837,10 @@ class LetterImageTemplate(BaseLetterTemplate):
     @property
     def page_numbers(self):
         return list(range(self.first_page_number, self.last_page_number))
+
+    @property
+    def attachment_page_numbers(self):
+        return list(range(1, self.attachment_page_count))
 
     @property
     def postage_description(self):
@@ -864,6 +874,8 @@ class LetterImageTemplate(BaseLetterTemplate):
                     "show_postage": bool(self.postage),
                     "postage_description": self.postage_description,
                     "postage_class_value": self.postage_class_value,
+                    "attachment_page_numbers": self.attachment_page_numbers,
+                    "attachment_image_url": self.attachment_image_url,
                 }
             )
         )

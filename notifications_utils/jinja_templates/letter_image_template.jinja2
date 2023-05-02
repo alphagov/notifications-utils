@@ -8,6 +8,11 @@
     <img src="{{ image_url }}?page={{ page_number }}" alt="" loading="{{ 'eager' if loop.first else 'lazy' }}">
   </div>
 {% endfor %}
+{% for page_number in attachment_page_numbers %}
+  <div class="letter attachment-page--{{ loop.cycle('odd', 'even') }}">
+    <img src="{{ attachment_image_url }}?page={{ page_number }}" alt="" loading="lazy">
+  </div>
+{% endfor %}
 
 <div class="govuk-visually-hidden">
   <h3>
