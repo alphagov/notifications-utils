@@ -168,7 +168,7 @@ class CustomLogFormatter(logging.Formatter):
         try:
             record.msg = str(record.msg).format(**record.__dict__)
         except (KeyError, IndexError) as e:
-            logger.exception(f"failed to format log message: {e} not found")
+            logger.warning(f"failed to format log message: {e} not found")
         return super(CustomLogFormatter, self).format(record)
 
 
@@ -186,5 +186,5 @@ class JSONFormatter(BaseJSONFormatter):
         try:
             log_record["message"] = log_record["message"].format(**log_record)
         except (KeyError, IndexError) as e:
-            logger.exception(f"failed to format log message: {e} not found")
+            logger.warning(f"failed to format log message: {e} not found")
         return log_record

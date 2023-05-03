@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 62.3.1
+
+* Change `logger.exception` to `logger.warning` for log formatting error.
+
 ## 62.3.0
 
 * Adds support for Chinese character sets in letters
