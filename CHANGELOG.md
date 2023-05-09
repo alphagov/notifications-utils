@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 62.4.0
+
+* Add `class="page--first"` and `class="page--last"` to the first and last
+  pages (respectively) of letters rendered with `LetterImageTemplate`
+
 ## 62.3.1
 
 * Change `logger.exception` to `logger.warning` for log formatting error.
