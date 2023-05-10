@@ -1,5 +1,5 @@
 {% for page_number in page_numbers %}
-  <div class="letter page--{{ loop.cycle('odd', 'even') }}{% if loop.first %} page--first{% elif loop.last %} page--last{% endif %}">
+  <div class="letter page--{{ loop.cycle('odd', 'even') }}{% if loop.first %} page--first{% endif %}{% if loop.last %} page--last{% endif %}">
     {% if loop.first and show_postage %}
       <p class="letter-postage {{ postage_class_value }}">
         Postage: {{ postage_description }}

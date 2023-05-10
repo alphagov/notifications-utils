@@ -995,24 +995,49 @@ def test_letter_image_renderer(
     )
 
 
-def test_letter_image_renderer_adds_classes_to_pages():
+@pytest.mark.parametrize(
+    "page_count, expected_classes",
+    (
+        (
+            1,
+            [
+                ["letter", "page--odd", "page--first", "page--last"],
+            ],
+        ),
+        (
+            2,
+            [
+                ["letter", "page--odd", "page--first"],
+                ["letter", "page--even", "page--last"],
+            ],
+        ),
+        (
+            5,
+            [
+                ["letter", "page--odd", "page--first"],
+                ["letter", "page--even"],
+                ["letter", "page--odd"],
+                ["letter", "page--even"],
+                ["letter", "page--odd", "page--last"],
+            ],
+        ),
+    ),
+)
+def test_letter_image_renderer_adds_classes_to_pages(
+    page_count,
+    expected_classes,
+):
     template = BeautifulSoup(
         str(
             LetterImageTemplate(
                 {"content": "Content", "subject": "Subject", "template_type": "letter"},
                 image_url="http://example.com/endpoint.png",
-                page_count=5,
+                page_count=page_count,
             )
         ),
         features="html.parser",
     )
-    assert [page["class"] for page in template.select(".letter")] == [
-        ["letter", "page--odd", "page--first"],
-        ["letter", "page--even"],
-        ["letter", "page--odd"],
-        ["letter", "page--even"],
-        ["letter", "page--odd", "page--last"],
-    ]
+    assert [page["class"] for page in template.select(".letter")] == expected_classes
 
 
 @freeze_time("2012-12-12 12:12:12")
