@@ -1,6 +1,5 @@
 import logging
 import logging.handlers
-import re
 import sys
 from itertools import product
 from pathlib import Path
@@ -56,7 +55,7 @@ def ensure_log_path_exists(path):
 
 def get_handlers(app, extra_filters: Sequence[logging.Filter]):
     handlers = []
-    standard_formatter = CustomLogFormatter(LOG_FORMAT, TIME_FORMAT)
+    standard_formatter = logging.Formatter(LOG_FORMAT, TIME_FORMAT)
     json_formatter = JSONFormatter(LOG_FORMAT, TIME_FORMAT)
 
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -153,25 +152,6 @@ class UserIdFilter(logging.Filter):
         return record
 
 
-class CustomLogFormatter(logging.Formatter):
-    """Accepts a format string for the message and formats it with the extra fields"""
-
-    FORMAT_STRING_FIELDS_PATTERN = re.compile(r"\((.+?)\)", re.IGNORECASE)
-
-    def add_fields(self, record):
-        for field in self.FORMAT_STRING_FIELDS_PATTERN.findall(self._fmt):
-            record.__dict__[field] = record.__dict__.get(field)
-        return record
-
-    def format(self, record):
-        record = self.add_fields(record)
-        try:
-            record.msg = str(record.msg).format(**record.__dict__)
-        except (KeyError, IndexError) as e:
-            logger.warning(f"failed to format log message: {e} not found")
-        return super(CustomLogFormatter, self).format(record)
-
-
 class JSONFormatter(BaseJSONFormatter):
     def process_log_record(self, log_record):
         rename_map = {
@@ -183,8 +163,4 @@ class JSONFormatter(BaseJSONFormatter):
         for key, newkey in rename_map.items():
             log_record[newkey] = log_record.pop(key)
         log_record["logType"] = "application"
-        try:
-            log_record["message"] = log_record["message"].format(**log_record)
-        except (KeyError, IndexError) as e:
-            logger.warning(f"failed to format log message: {e} not found")
         return log_record

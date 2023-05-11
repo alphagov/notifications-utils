@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
@@ -99,14 +100,15 @@ def test_should_call_gauge_if_enabled(enabled_statsd_client):
     enabled_statsd_client.statsd_client.gauge.assert_called_with("test.notifications.api.key", 100)
 
 
-def test_should_log_but_not_throw_if_socket_errors(app, mocker):
+def test_should_log_but_not_throw_if_socket_errors(app, mocker, caplog):
     stats_client = NotifyStatsClient("localhost", 8125, "")
     mocker.patch.object(stats_client, "_sock")
     stats_client._sock.sendto = Mock(side_effect=Exception("Mock Exception"))
-    mock_logger = mocker.patch("flask.Flask.logger")
 
-    stats_client._send("data")
-    mock_logger.warning.assert_called_with("Error sending statsd metric: Mock Exception")
+    with caplog.at_level(logging.WARNING):
+        stats_client._send("data")
+
+    assert "Error sending statsd metric: Mock Exception" in caplog.messages
 
 
 def test_should_not_attempt_to_send_if_cache_contains_none(app, mocker):

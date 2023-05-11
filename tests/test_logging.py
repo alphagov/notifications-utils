@@ -18,7 +18,7 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
 
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
-    assert type(handlers[0].formatter) == logging.CustomLogFormatter
+    assert type(handlers[0].formatter) == builtin_logging.Formatter
     assert not (tmpdir / "foo").exists()
 
 

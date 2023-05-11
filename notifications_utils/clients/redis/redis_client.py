@@ -179,7 +179,7 @@ class RedisClient:
             return StubLock(redis=None, name="")
 
     def __handle_exception(self, e, raise_exception, operation, key_name):
-        current_app.logger.exception(f"Redis error performing {operation} on {key_name}")
+        current_app.logger.exception("Redis error performing %s on %s", operation, key_name)
         if raise_exception:
             raise e
 

@@ -1,4 +1,5 @@
 import datetime
+import logging
 from base64 import b64decode
 from io import StringIO
 
@@ -26,7 +27,7 @@ def zendesk_client(app):
     return client
 
 
-def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, mocker, rmock):
+def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, rmock, caplog):
     rmock.request(
         "POST",
         ZendeskClient.ZENDESK_TICKET_URL,
@@ -38,29 +39,27 @@ def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, mocker, rmoc
             }
         },
     )
-    mock_logger = mocker.patch.object(app.logger, "info")
 
-    ticket = NotifySupportTicket("subject", "message", "incident")
-    zendesk_client.send_ticket_to_zendesk(ticket)
+    with caplog.at_level(logging.INFO):
+        ticket = NotifySupportTicket("subject", "message", "incident")
+        zendesk_client.send_ticket_to_zendesk(ticket)
 
     assert rmock.last_request.headers["Authorization"][:6] == "Basic "
     b64_auth = rmock.last_request.headers["Authorization"][6:]
     assert b64decode(b64_auth.encode()).decode() == "zd-api-notify@digital.cabinet-office.gov.uk/token:testkey"
     assert rmock.last_request.json() == ticket.request_data
-    mock_logger.assert_called_once_with("Zendesk create ticket 12345 succeeded")
+    assert "Zendesk create ticket 12345 succeeded" in caplog.messages
 
 
-def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, mocker, rmock):
+def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, rmock, caplog):
     rmock.request("POST", ZendeskClient.ZENDESK_TICKET_URL, status_code=401, json={"foo": "bar"})
-
-    mock_logger = mocker.patch.object(app.logger, "error")
 
     ticket = NotifySupportTicket("subject", "message", "incident")
 
-    with pytest.raises(ZendeskError):
+    with pytest.raises(ZendeskError), caplog.at_level(logging.ERROR):
         zendesk_client.send_ticket_to_zendesk(ticket)
 
-    mock_logger.assert_called_with("Zendesk create ticket request failed with 401 '{'foo': 'bar'}'")
+    assert "Zendesk create ticket request failed with 401 '{'foo': 'bar'}'" in caplog.messages
 
 
 def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk_client, rmock, caplog):

@@ -3,6 +3,14 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+# 65.0.0
+
+* Remove automatic formatting from JSONFormatter. Any log messages using `{}` to inject strings should be converted
+  to "old-style" log messages using %s and passing variables as arguments to the log function. Do not eagerly
+  interpolate the string (eg "log: {}" % ("string") - let Python's logging module do this itself. This is to provide
+  compatability with Sentry. Add the "G" rule to Ruff's checks to enforce this.
+* Removes `CustomLogFormatter` altogether, as its only purpose was the auto-formatting as above.
+
 ## 64.2.0
 
 * `LetterImageTemplate` now adds a hidden element marking the first page of any attachment
