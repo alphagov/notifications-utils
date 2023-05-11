@@ -3,6 +3,13 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+# 63.0.0
+
+* Remove the `technical_ticket` parameter from NotifySupportTicket; replace with an optional `notify_ticket_type`
+  that takes a NotifyTicketType enum value. If provided, this will maintain the existing behaviour where tickets are
+  tagged as technical/non-technical on creation. If omitted, then tickets will have no ticket type, which may help
+  us have a clearer process around triaging tickets.
+
 ## 62.4.0
 
 * Add `class="page--first"` and `class="page--last"` to the first and last

@@ -9,6 +9,7 @@ from notifications_utils.clients.zendesk.zendesk_client import (
     NotifySupportTicketAttachment,
     NotifySupportTicketComment,
     NotifySupportTicketStatus,
+    NotifyTicketType,
     ZendeskClient,
     ZendeskError,
 )
@@ -103,7 +104,6 @@ def test_notify_support_ticket_request_data(p1_arg, expected_tags, expected_prio
             "tags": expected_tags,
             "type": "question",
             "custom_fields": [
-                {"id": "1900000744994", "value": "notify_ticket_type_non_technical"},
                 {"id": "360022836500", "value": []},
                 {"id": "360022943959", "value": None},
                 {"id": "360022943979", "value": None},
@@ -132,11 +132,18 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
 @pytest.mark.parametrize(
     "custom_fields, tech_ticket_tag, categories, org_id, org_type, service_id",
     [
-        ({"technical_ticket": True}, "notify_ticket_type_technical", [], None, None, None),
-        ({"technical_ticket": False}, "notify_ticket_type_non_technical", [], None, None, None),
+        ({"notify_ticket_type": NotifyTicketType.TECHNICAL}, "notify_ticket_type_technical", [], None, None, None),
+        (
+            {"notify_ticket_type": NotifyTicketType.NON_TECHNICAL},
+            "notify_ticket_type_non_technical",
+            [],
+            None,
+            None,
+            None,
+        ),
         (
             {"ticket_categories": ["notify_billing", "notify_bug"]},
-            "notify_ticket_type_non_technical",
+            None,
             ["notify_billing", "notify_bug"],
             None,
             None,
@@ -144,7 +151,7 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
         ),
         (
             {"org_id": "1234", "org_type": "local"},
-            "notify_ticket_type_non_technical",
+            None,
             [],
             "1234",
             "notify_org_type_local",
@@ -152,7 +159,7 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
         ),
         (
             {"service_id": "abcd", "org_type": "nhs"},
-            "notify_ticket_type_non_technical",
+            None,
             [],
             None,
             "notify_org_type_nhs",
@@ -170,13 +177,14 @@ def test_notify_support_ticket_request_data_custom_fields(
 ):
     notify_ticket_form = NotifySupportTicket("subject", "message", "question", **custom_fields)
 
-    assert notify_ticket_form.request_data["ticket"]["custom_fields"] == [
-        {"id": "1900000744994", "value": tech_ticket_tag},
-        {"id": "360022836500", "value": categories},
-        {"id": "360022943959", "value": org_id},
-        {"id": "360022943979", "value": org_type},
-        {"id": "1900000745014", "value": service_id},
-    ]
+    if tech_ticket_tag:
+        assert {"id": "1900000744994", "value": tech_ticket_tag} in notify_ticket_form.request_data["ticket"][
+            "custom_fields"
+        ]
+    assert {"id": "360022836500", "value": categories} in notify_ticket_form.request_data["ticket"]["custom_fields"]
+    assert {"id": "360022943959", "value": org_id} in notify_ticket_form.request_data["ticket"]["custom_fields"]
+    assert {"id": "360022943979", "value": org_type} in notify_ticket_form.request_data["ticket"]["custom_fields"]
+    assert {"id": "1900000745014", "value": service_id} in notify_ticket_form.request_data["ticket"]["custom_fields"]
 
 
 def test_notify_support_ticket_request_data_email_ccs():
@@ -204,7 +212,6 @@ def test_notify_support_ticket_with_html_body():
             "tags": ["govuk_notify_support"],
             "type": "task",
             "custom_fields": [
-                {"id": "1900000744994", "value": "notify_ticket_type_non_technical"},
                 {"id": "360022836500", "value": []},
                 {"id": "360022943959", "value": None},
                 {"id": "360022943979", "value": None},
