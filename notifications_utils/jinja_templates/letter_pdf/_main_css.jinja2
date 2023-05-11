@@ -7,15 +7,15 @@
   @page :first {
     margin-top: 10mm;
   }
-  @page {
-    @bottom-right {
-      content: "Page " counter(page) " of " counter(pages);
-      font-family: 'Nimbus Sans L';
-      font-size: 10pt;
-      text-align: right;
-      vertical-align: top;
-    }
-  }
+  {#@page {#}
+  {#  @bottom-right {#}
+  {#    content: "Page " counter(page) " of " counter(pages);#}
+  {#    font-family: 'Nimbus Sans L';#}
+  {#    font-size: 10pt;#}
+  {#    text-align: right;#}
+  {#    vertical-align: top;#}
+  {#  }#}
+  {#}#}
   body {
     font-family: 'Nimbus Sans L', 'FreeSans', 'WenQuanYi Zen Hei', sans-serif;
     font-size: 12.5pt;
@@ -82,25 +82,25 @@
   #mdi {
     font-size: 6pt;
   }
-  #barcode {
-    position: absolute;
-    top: 61mm;
-    left: 9.6mm;
-    width: 85mm; /* not width constrained */
-    height: 8.1mm;
-    background: url({{admin_base_url}}/static/images/letter-template/type29.png);
-    background-repeat: no-repeat;
-    background-size: auto 110%;
-  }
-  #qrcode {
-    position: absolute;
-    top: 26.9mm;
-    left: -10.6mm;
-    width: 6.7mm;
-    height: 6.7mm;
-    background: url({{admin_base_url}}/static/images/letter-template/qr1.png);
-    background-size: 100% 100%;
-  }
+  {##barcode {#}
+  {#  position: absolute;#}
+  {#  top: 61mm;#}
+  {#  left: 9.6mm;#}
+  {#  width: 85mm; /* not width constrained */#}
+  {#  height: 8.1mm;#}
+  {#  background: url({{admin_base_url}}/static/images/letter-template/type29.png);#}
+  {#  background-repeat: no-repeat;#}
+  {#  background-size: auto 110%;#}
+  {#}#}
+  {##qrcode {#}
+  {#  position: absolute;#}
+  {#  top: 26.9mm;#}
+  {#  left: -10.6mm;#}
+  {#  width: 6.7mm;#}
+  {#  height: 6.7mm;#}
+  {#  background: url({{admin_base_url}}/static/images/letter-template/qr1.png);#}
+  {#  background-size: 100% 100%;#}
+  {#}#}
   #content {
     width: 137.5mm;
   }
@@ -150,6 +150,15 @@
   }
   #content *:last-child {
     margin-bottom: 0;
+  }
+
+  #content .qrcode {
+      display: flex;
+  }
+
+  #content .qrcode img {
+      height: 300px;
+      width: 300px;
   }
 
   .page‑break {

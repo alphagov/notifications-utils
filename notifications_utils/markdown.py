@@ -1,7 +1,13 @@
 import re
+import uuid
 from itertools import count
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import mistune
+import qrcode
+import qrcode.constants as qrcode_ec_constants
+import qrcode.image.svg
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
@@ -58,8 +64,33 @@ mistune.InlineLexer.inline_html_rules = list(
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._temp_dir = TemporaryDirectory()
+        self.tmp = Path(self._temp_dir.name)
+
     def block_code(self, code, language=None):
-        return code
+        code = code.strip()
+        resolutions = {
+            "low": qrcode_ec_constants.ERROR_CORRECT_L,
+            "medium": qrcode_ec_constants.ERROR_CORRECT_M,
+            "quality": qrcode_ec_constants.ERROR_CORRECT_Q,
+            "highest": qrcode_ec_constants.ERROR_CORRECT_H,
+        }
+
+        qrblock = ""
+        numbytes = len(code)
+        for resname, resval in resolutions.items():
+            qr = qrcode.QRCode(error_correction=resval)
+            qr.add_data(code)
+            fname = self.tmp / (str(uuid.uuid4()).replace("-", "") + ".png")
+            with open(fname, "wb") as svg:
+                img = qr.make_image()
+                img.save(svg)
+
+            qrblock += f'<p>{numbytes} characters ({resname})</p><div class="qrcode"><img src="file://{fname}"/></div>'
+
+        return qrblock
 
     def block_quote(self, text):
         return text
