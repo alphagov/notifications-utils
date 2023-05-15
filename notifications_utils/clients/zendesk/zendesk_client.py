@@ -17,6 +17,12 @@ class ZendeskError(Exception):
 DATETIME_FORMAT_ISO8601 = "%Y-%m-%dT%H:%M:%SZ"
 
 
+class NotifyTicketType(enum.Enum):
+    # If you're adding a new value here, make sure it matches the custom field value in Zendesk.
+    TECHNICAL = "notify_ticket_type_technical"
+    NON_TECHNICAL = "notify_ticket_type_non_technical"
+
+
 class NotifySupportTicketStatus(enum.Enum):
     NEW = "new"
     OPEN = "open"
@@ -168,7 +174,7 @@ class NotifySupportTicket:
         user_name=None,
         user_email=None,
         requester_sees_message_content=True,
-        technical_ticket=False,
+        notify_ticket_type: Optional[NotifyTicketType] = None,
         ticket_categories=None,
         org_id=None,
         org_type=None,
@@ -183,7 +189,7 @@ class NotifySupportTicket:
         self.user_name = user_name
         self.user_email = user_email
         self.requester_sees_message_content = requester_sees_message_content
-        self.technical_ticket = technical_ticket
+        self.notify_ticket_type = notify_ticket_type
         self.ticket_categories = ticket_categories or []
         self.org_id = org_id
         self.org_type = org_type
@@ -220,13 +226,16 @@ class NotifySupportTicket:
         return data
 
     def _get_custom_fields(self):
-        technical_ticket_tag = f'notify_ticket_type_{"" if self.technical_ticket else "non_"}technical'
         org_type_tag = f"notify_org_type_{self.org_type}" if self.org_type else None
-
-        return [
-            {"id": "1900000744994", "value": technical_ticket_tag},  # Notify Ticket type field
+        custom_fields = [
             {"id": "360022836500", "value": self.ticket_categories},  # Notify Ticket category field
             {"id": "360022943959", "value": self.org_id},  # Notify Organisation ID field
             {"id": "360022943979", "value": org_type_tag},  # Notify Organisation type field
             {"id": "1900000745014", "value": self.service_id},  # Notify Service ID field
         ]
+
+        if self.notify_ticket_type:
+            # Notify Ticket type field
+            custom_fields.append({"id": "1900000744994", "value": self.notify_ticket_type.value})
+
+        return custom_fields
