@@ -18,8 +18,9 @@ DATETIME_FORMAT_ISO8601 = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class NotifyTicketType(enum.Enum):
-    TECHNICAL = "technical"
-    NON_TECHNICAL = "non-technical"
+    # If you're adding a new value here, make sure it matches the custom field value in Zendesk.
+    TECHNICAL = "notify_ticket_type_technical"
+    NON_TECHNICAL = "notify_ticket_type_non_technical"
 
 
 class NotifySupportTicketStatus(enum.Enum):
@@ -234,9 +235,7 @@ class NotifySupportTicket:
         ]
 
         if self.notify_ticket_type:
-            technical_ticket_tag = (
-                f'notify_ticket_type_{"" if self.notify_ticket_type == NotifyTicketType.TECHNICAL else "non_"}technical'
-            )
-            custom_fields.append({"id": "1900000744994", "value": technical_ticket_tag})  # Notify Ticket type field
+            # Notify Ticket type field
+            custom_fields.append({"id": "1900000744994", "value": self.notify_ticket_type.value})
 
         return custom_fields
