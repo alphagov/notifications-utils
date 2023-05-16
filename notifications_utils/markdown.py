@@ -3,10 +3,12 @@ import re
 from itertools import count
 
 import mistune
+import segno
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
 from notifications_utils.formatters import create_sanitised_html_for_url
+from notifications_utils.insensitive_dict import InsensitiveDict
 
 LINK_STYLE = "word-wrap: break-word; color: #1D70B8;"
 
@@ -58,6 +60,11 @@ mistune.InlineLexer.inline_html_rules = list(
 )
 
 
+def qr_code_as_svg(data):
+    qr = segno.make(data, error="m", micro=False)
+    return qr.svg_inline(border=0, svgclass=None, lineclass=None, omitsize=True)
+
+
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def block_code(self, code, language=None):
         return code
@@ -98,6 +105,12 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return f"<li>{text.strip()}</li>\n"
 
     def link(self, link, title, content):
+
+        if InsensitiveDict.make_key(content) == "qr":
+            if "span class='placeholder" in link:
+                return f"<div class='qrcode-placeholder'><{link}></div>"
+            return f"<div class='qrcode'>{qr_code_as_svg(link)}</div>"
+
         return f"{content}: {self.autolink(link)}"
 
     def footnote_ref(self, key, index):
