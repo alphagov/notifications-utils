@@ -42,5 +42,6 @@ setup(
         "geojson>=2.5.0",
         "Shapely>=1.8.0",
         "boto3>=1.19.4",
+        "qrcode",
     ],
 )
