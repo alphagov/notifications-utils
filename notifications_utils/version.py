@@ -6,3 +6,4 @@
 # - `make version-patch` for bug fixes
 
 __version__ = "65.2.0"  # 18c26c679786d36aaefea4924e784719
+
