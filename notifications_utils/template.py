@@ -799,8 +799,6 @@ class LetterImageTemplate(BaseLetterTemplate):
         postage=None,
     ):
         super().__init__(template, values, contact_block=contact_block)
-        if not image_url:
-            raise TypeError("image_url is required")
         if not page_count:
             raise TypeError("page_count is required")
         if postage not in [None] + list(self.allowed_postage_types):
@@ -851,6 +849,8 @@ class LetterImageTemplate(BaseLetterTemplate):
         }.get(self.postage)
 
     def __str__(self):
+        if not self.image_url:
+            raise TypeError("image_url is required")
         return Markup(
             self.jinja_template.render(
                 {
