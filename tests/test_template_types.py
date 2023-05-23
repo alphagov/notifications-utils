@@ -996,6 +996,39 @@ def test_letter_image_renderer(
 
 
 @pytest.mark.parametrize(
+    "postage_args",
+    (
+        {},
+        {"postage": None},
+        {"postage": "first"},
+        {"postage": "second"},
+        {"postage": "europe"},
+        {"postage": "rest-of-world"},
+        pytest.param(
+            {"postage": "third"},
+            marks=pytest.mark.xfail(raises=TypeError),
+        ),
+    ),
+)
+@pytest.mark.parametrize(
+    "contact_block_args, expected_contact_block",
+    (
+        ({}, ""),
+        ({"contact_block": None}, ""),
+        ({"contact_block": "Example"}, "Example"),
+    ),
+)
+def test_postage_for_letter_preview_template(postage_args, contact_block_args, expected_contact_block):
+    template = LetterPreviewTemplate(
+        {"content": "Content", "subject": "Subject", "template_type": "letter"},
+        **contact_block_args,
+        **postage_args,
+    )
+    assert template.postage == postage_args.get("postage")
+    assert template.contact_block == expected_contact_block
+
+
+@pytest.mark.parametrize(
     "page_count, expected_classes",
     (
         (

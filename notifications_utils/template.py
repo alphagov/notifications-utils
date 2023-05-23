@@ -658,6 +658,13 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     address_block = "\n".join(f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys)
 
+    allowed_postage_types = (
+        Postage.FIRST,
+        Postage.SECOND,
+        Postage.EUROPE,
+        Postage.REST_OF_WORLD,
+    )
+
     def __init__(
         self,
         template,
@@ -667,12 +674,33 @@ class BaseLetterTemplate(SubjectMixin, Template):
         logo_file_name=None,
         redact_missing_personalisation=False,
         date=None,
+        postage=None,
     ):
         self.contact_block = (contact_block or "").strip()
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
+
+        if postage not in [None] + list(self.allowed_postage_types):
+            raise TypeError(
+                "postage must be None, {}".format(
+                    formatted_list(
+                        self.allowed_postage_types,
+                        conjunction="or",
+                        before_each="'",
+                        after_each="'",
+                    )
+                )
+            )
+
+        self._postage = postage
+
+    @property
+    def postage(self):
+        if self.postal_address.international:
+            return self.postal_address.postage
+        return self._postage
 
     @property
     def subject(self):
@@ -782,12 +810,6 @@ class LetterImageTemplate(BaseLetterTemplate):
 
     jinja_template = template_env.get_template("letter_image_template.jinja2")
     first_page_number = 1
-    allowed_postage_types = (
-        Postage.FIRST,
-        Postage.SECOND,
-        Postage.EUROPE,
-        Postage.REST_OF_WORLD,
-    )
 
     def __init__(
         self,
@@ -798,31 +820,13 @@ class LetterImageTemplate(BaseLetterTemplate):
         contact_block=None,
         postage=None,
     ):
-        super().__init__(template, values, contact_block=contact_block)
+        super().__init__(template, values, contact_block=contact_block, postage=postage)
         if not image_url:
             raise TypeError("image_url is required")
         if not page_count:
             raise TypeError("page_count is required")
-        if postage not in [None] + list(self.allowed_postage_types):
-            raise TypeError(
-                "postage must be None, {}".format(
-                    formatted_list(
-                        self.allowed_postage_types,
-                        conjunction="or",
-                        before_each="'",
-                        after_each="'",
-                    )
-                )
-            )
         self.image_url = image_url
         self.page_count = int(page_count)
-        self._postage = postage
-
-    @property
-    def postage(self):
-        if self.postal_address.international:
-            return self.postal_address.postage
-        return self._postage
 
     @property
     def last_page_number(self):
