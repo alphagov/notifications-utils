@@ -681,8 +681,17 @@ class BaseLetterTemplate(SubjectMixin, Template):
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
+        self.postage = postage
 
-        if postage not in [None] + list(self.allowed_postage_types):
+    @property
+    def postage(self):
+        if self.postal_address.international:
+            return self.postal_address.postage
+        return self._postage
+
+    @postage.setter
+    def postage(self, value):
+        if value not in [None] + list(self.allowed_postage_types):
             raise TypeError(
                 "postage must be None, {}".format(
                     formatted_list(
@@ -693,14 +702,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
                     )
                 )
             )
-
-        self._postage = postage
-
-    @property
-    def postage(self):
-        if self.postal_address.international:
-            return self.postal_address.postage
-        return self._postage
+        self._postage = value
 
     @property
     def subject(self):
