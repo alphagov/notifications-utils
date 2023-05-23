@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 63.1.0
+
+* Let `postage` and `contact_block` be set on `LetterPreviewTemplate`
+
 # 63.0.0
 
 * Remove the `technical_ticket` parameter from NotifySupportTicket; replace with an optional `notify_ticket_type`
