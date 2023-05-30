@@ -1117,16 +1117,6 @@ def test_letter_image_renderer_pagination(page_image_url):
     "partial_call, expected_exception, expected_message",
     [
         (
-            partial(LetterImageTemplate),
-            TypeError,
-            "image_url is required",
-        ),
-        (
-            partial(LetterImageTemplate, page_count=1),
-            TypeError,
-            "image_url is required",
-        ),
-        (
             partial(LetterImageTemplate, image_url="foo"),
             TypeError,
             "page_count is required",
@@ -1151,6 +1141,16 @@ def test_letter_image_renderer_requires_arguments(
     with pytest.raises(expected_exception) as exception:
         partial_call({"content": "", "subject": "", "template_type": "letter"})
     assert str(exception.value) == expected_message
+
+
+def test_letter_image_renderer_requires_image_url_to_render():
+    template = LetterImageTemplate(
+        {"content": "", "subject": "", "template_type": "letter"},
+        page_count=1,
+    )
+    with pytest.raises(TypeError) as exception:
+        str(template)
+    assert str(exception.value) == "image_url is required"
 
 
 @pytest.mark.parametrize(

@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+
+## 63.1.0
+
+* argument `image_url` to `LetterImageTemplate` is now optional unless calling `str(LetterImageTemplate(…))`
+
 # 63.0.0
 
 * Remove the `technical_ticket` parameter from NotifySupportTicket; replace with an optional `notify_ticket_type`
