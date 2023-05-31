@@ -783,6 +783,7 @@ class LetterImageTemplate(BaseLetterTemplate):
     jinja_template = template_env.get_template("letter_image_template.jinja2")
     first_page_number = 1
     max_page_count = LETTER_MAX_PAGE_COUNT
+    max_sheet_count = max_page_count // 2
     allowed_postage_types = (
         Postage.FIRST,
         Postage.SECOND,
