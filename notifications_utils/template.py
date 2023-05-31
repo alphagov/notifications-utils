@@ -813,8 +813,12 @@ class LetterImageTemplate(BaseLetterTemplate):
                 )
             )
         self.image_url = image_url
-        self.page_count = int(page_count)
+        self._page_count = int(page_count)
         self._postage = postage
+
+    @property
+    def page_count(self):
+        return self._page_count
 
     @property
     def postage(self):
