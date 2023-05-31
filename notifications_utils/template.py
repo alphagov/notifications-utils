@@ -782,6 +782,7 @@ class LetterImageTemplate(BaseLetterTemplate):
 
     jinja_template = template_env.get_template("letter_image_template.jinja2")
     first_page_number = 1
+    max_page_count = LETTER_MAX_PAGE_COUNT
     allowed_postage_types = (
         Postage.FIRST,
         Postage.SECOND,
@@ -828,7 +829,7 @@ class LetterImageTemplate(BaseLetterTemplate):
 
     @property
     def last_page_number(self):
-        return min(self.page_count, LETTER_MAX_PAGE_COUNT) + self.first_page_number
+        return min(self.page_count, self.max_page_count) + self.first_page_number
 
     @property
     def page_numbers(self):
