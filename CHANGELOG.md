@@ -4,6 +4,14 @@ This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
 
+## 63.2.0
+
+* `LetterImageTemplate.page_count` is now a property which can be overriden by subclasses
+* New attributes and properties on `BaseLetterTemplate` (and its subclasses):
+  - `max_page_count`
+  - `max_sheet_count`
+  - `too_many_pages` (requires subclasses to implement `page_count`)
+
 ## 63.1.0
 
 * argument `image_url` to `LetterImageTemplate` is now optional unless calling `str(LetterImageTemplate(…))`

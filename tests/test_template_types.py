@@ -1058,6 +1058,35 @@ def test_letter_image_renderer_knows_if_letter_is_too_long(
         page_count=page_count,
     )
     assert template.too_many_pages is expected_too_many_pages
+    assert template.max_page_count == 10
+    assert template.max_sheet_count == 5
+
+
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        BaseLetterTemplate,
+        LetterPreviewTemplate,
+        LetterPrintTemplate,
+        LetterImageTemplate,
+    ),
+)
+def test_max_page_count_on_all_types_of_letter_template(template_class):
+    assert template_class.max_page_count == 10
+    assert template_class.max_sheet_count == 5
+
+
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        LetterPreviewTemplate,
+        LetterPrintTemplate,
+    ),
+)
+def test_too_many_pages_raises_for_unknown_page_count(template_class):
+    template = template_class({"content": "Content", "subject": "Subject", "template_type": "letter"})
+    with pytest.raises(AttributeError):
+        template.too_many_pages  # noqa
 
 
 @freeze_time("2012-12-12 12:12:12")
