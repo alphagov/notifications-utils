@@ -1040,6 +1040,26 @@ def test_letter_image_renderer_adds_classes_to_pages(
     assert [page["class"] for page in template.select(".letter")] == expected_classes
 
 
+@pytest.mark.parametrize(
+    "page_count, expected_too_many_pages",
+    (
+        (1, False),
+        (10, False),
+        (11, True),
+        (99, True),
+    ),
+)
+def test_letter_image_renderer_knows_if_letter_is_too_long(
+    page_count,
+    expected_too_many_pages,
+):
+    template = LetterImageTemplate(
+        {"content": "Content", "subject": "Subject", "template_type": "letter"},
+        page_count=page_count,
+    )
+    assert template.too_many_pages is expected_too_many_pages
+
+
 @freeze_time("2012-12-12 12:12:12")
 @mock.patch("notifications_utils.template.LetterImageTemplate.jinja_template.render")
 @pytest.mark.parametrize(

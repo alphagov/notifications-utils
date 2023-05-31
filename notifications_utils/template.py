@@ -823,6 +823,10 @@ class LetterImageTemplate(BaseLetterTemplate):
         return self._page_count
 
     @property
+    def too_many_pages(self):
+        return self.page_count > self.max_page_count
+
+    @property
     def postage(self):
         if self.postal_address.international:
             return self.postal_address.postage
