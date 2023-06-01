@@ -7,10 +7,9 @@ pytest-mock==3.9.0
 pytest-xdist==3.0.2
 requests-mock==1.10.0
 freezegun==1.2.2
-flake8==5.0.4  # Also update `.pre-commit-config.yaml` if this changes
 flake8-bugbear==22.10.27
 flake8-print==5.0.0
 pytest-profiling==1.7.0
 snakeviz==2.1.1
-isort==5.12.0  # Also update `.pre-commit-config.yaml` if this changes
 black==22.10.0  # Also update `.pre-commit-config.yaml` if this changes
+ruff==0.0.261  # Also update `.pre-commit-config.yaml` if this changes

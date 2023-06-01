@@ -353,9 +353,9 @@ def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(mocker, template
     )
     is_message_too_long = mocker.patch("notifications_utils.template.Template.is_message_too_long", side_effect=False)
     if template_type == "email":
-        is_message_too_long.assert_not_called
+        is_message_too_long.assert_not_called  # noqa
     else:
-        is_message_too_long.called
+        is_message_too_long.called  # noqa
 
 
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):

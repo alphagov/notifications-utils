@@ -90,7 +90,7 @@ def test_model_raises_for_unknown_attributes(json_response):
     assert model.ALLOWED_PROPERTIES == set()
 
     with pytest.raises(AttributeError) as e:
-        model.foo
+        model.foo  # noqa
 
     assert str(e.value) == ("'Custom' object has no attribute 'foo'")
 
@@ -100,7 +100,7 @@ def test_model_raises_keyerror_if_item_missing_from_dict():
         ALLOWED_PROPERTIES = {"foo"}
 
     with pytest.raises(KeyError) as e:
-        Custom({}).foo
+        Custom({}).foo  # noqa
 
     assert str(e.value) == "'foo'"
 
@@ -122,7 +122,7 @@ def test_model_doesnt_swallow_attribute_errors(json_response):
             raise AttributeError("Something has gone wrong")
 
     with pytest.raises(AttributeError) as e:
-        Custom(json_response).foo
+        Custom(json_response).foo  # noqa
 
     assert str(e.value) == "Something has gone wrong"
 

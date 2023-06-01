@@ -70,7 +70,8 @@ class PostalAddress:
     def _parse_and_extract_bfpo(self, lines):
         bfpo_matcher = re.compile(r"^\s*bfpo\s*(?:c\/o)?(?:\s*(\d+))?\s*$")
         bfpo_number_line = next(
-            filter(lambda l: bfpo_matcher.match(l.lower()) and bfpo_matcher.match(l.lower()).group(1), lines), None
+            filter(lambda line: bfpo_matcher.match(line.lower()) and bfpo_matcher.match(line.lower()).group(1), lines),
+            None,
         )
         if not bfpo_number_line:
             return None, lines
