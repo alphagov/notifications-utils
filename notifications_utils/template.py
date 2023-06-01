@@ -656,7 +656,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     template_type = "letter"
     max_page_count = LETTER_MAX_PAGE_COUNT
-    max_sheet_count = max_page_count // 2
+    max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
 
     address_block = "\n".join(f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys)
 
