@@ -316,7 +316,7 @@ def test_remove_areas_too_small():
 
 def test_empty_bounds():
     with pytest.raises(ValueError) as exception:
-        Polygons([]).bounds
+        Polygons([]).bounds  # noqa
     assert str(exception.value) == "Can't determine bounds of empty Polygons"
 
 

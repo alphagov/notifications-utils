@@ -16,7 +16,7 @@ def pdf_page_count(src_pdf):
     try:
         pdf = PyPDF2.PdfReader(src_pdf)
     except AttributeError as e:
-        raise PdfReadError("Could not open PDF file, stream is null", e)
+        raise PdfReadError("Could not open PDF file, stream is null", e) from e
 
     return len(pdf.pages)
 

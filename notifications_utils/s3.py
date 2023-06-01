@@ -44,4 +44,4 @@ def s3download(bucket_name, filename):
         key = s3.Object(bucket_name, filename)
         return key.get()["Body"]
     except botocore.exceptions.ClientError as error:
-        raise S3ObjectNotFound(error.response, error.operation_name)
+        raise S3ObjectNotFound(error.response, error.operation_name) from error

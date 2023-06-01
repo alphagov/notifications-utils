@@ -42,7 +42,7 @@ def test_placeholder_gets_conditional_text(body, conditional_text):
 
 def test_placeholder_raises_if_accessing_conditional_text_on_non_conditional():
     with pytest.raises(ValueError):
-        Placeholder("hello").conditional_text
+        Placeholder("hello").conditional_text  # noqa
 
 
 @pytest.mark.parametrize(

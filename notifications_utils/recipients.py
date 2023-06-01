@@ -481,8 +481,8 @@ def normalise_phone_number(number):
 
     try:
         list(map(int, number))
-    except ValueError:
-        raise InvalidPhoneError("Must not contain letters or symbols")
+    except ValueError as e:
+        raise InvalidPhoneError("Must not contain letters or symbols") from e
 
     return number.lstrip("0")
 
@@ -623,8 +623,8 @@ def validate_email_address(email_address):  # noqa (C901 too complex)
     # representation as the web uses. '例え.テスト'.encode('idna') == b'xn--r8jz45g.xn--zckzah'
     try:
         hostname = hostname.encode("idna").decode("ascii")
-    except UnicodeError:
-        raise InvalidEmailError
+    except UnicodeError as e:
+        raise InvalidEmailError from e
 
     parts = hostname.split(".")
 
