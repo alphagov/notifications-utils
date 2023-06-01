@@ -11,8 +11,7 @@ bootstrap: ## Build project
 
 .PHONY: test
 test: ## Run tests
-	flake8 .
-	isort --check-only ./notifications_utils ./tests
+	ruff check .
 	black --check .
 	pytest -n auto
 	python setup.py sdist
@@ -22,7 +21,7 @@ clean:
 
 .PHONY: fix-imports
 fix-imports:
-	isort ./notifications_utils ./tests
+	ruff --fix --select=I ./notifications_utils ./tests
 
 .PHONY: reset-version
 reset-version:
