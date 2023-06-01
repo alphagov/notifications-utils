@@ -655,6 +655,8 @@ class EmailPreviewTemplate(BaseEmailTemplate):
 class BaseLetterTemplate(SubjectMixin, Template):
 
     template_type = "letter"
+    max_page_count = LETTER_MAX_PAGE_COUNT
+    max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
 
     address_block = "\n".join(f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys)
 
@@ -692,6 +694,10 @@ class BaseLetterTemplate(SubjectMixin, Template):
     @property
     def placeholders(self):
         return get_placeholders(self.contact_block) | super().placeholders
+
+    @property
+    def too_many_pages(self):
+        return self.page_count > self.max_page_count
 
     @property
     def postal_address(self):
@@ -813,8 +819,12 @@ class LetterImageTemplate(BaseLetterTemplate):
                 )
             )
         self.image_url = image_url
-        self.page_count = int(page_count)
+        self._page_count = int(page_count)
         self._postage = postage
+
+    @property
+    def page_count(self):
+        return self._page_count
 
     @property
     def postage(self):
@@ -824,7 +834,7 @@ class LetterImageTemplate(BaseLetterTemplate):
 
     @property
     def last_page_number(self):
-        return min(self.page_count, LETTER_MAX_PAGE_COUNT) + self.first_page_number
+        return min(self.page_count, self.max_page_count) + self.first_page_number
 
     @property
     def page_numbers(self):
