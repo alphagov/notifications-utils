@@ -3,6 +3,9 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 63.3.0
+
+* Allow subheadings via markdown for emails and letters using `##`.
 
 ## 63.2.0
 

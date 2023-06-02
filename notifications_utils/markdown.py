@@ -67,6 +67,8 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def header(self, text, level, raw=None):
         if level == 1:
             return super().header(text, 2)
+        elif level == 2:
+            return super().header(text, 3)
         return self.paragraph(text)
 
     def hrule(self):
@@ -117,6 +119,13 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
                 'font-size: 27px; line-height: 35px; font-weight: bold; color: #0B0C0C;">'
                 f"{text}"
                 "</h2>"
+            )
+        if level == 2:
+            return (
+                '<h3 style="Margin: 0 0 20px 0; padding: 0; '
+                'font-size: 24px; line-height: 30px; font-weight: bold; color: #0B0C0C;">'
+                f"{text}"
+                "</h3>"
             )
         return self.paragraph(text)
 
@@ -196,6 +205,15 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
             return "".join(
                 (
                     self.linebreak() * 3,
+                    text,
+                    self.linebreak(),
+                    "-" * self.COLUMN_WIDTH,
+                )
+            )
+        elif level == 2:
+            return "".join(
+                (
+                    self.linebreak() * 2,
                     text,
                     self.linebreak(),
                     "-" * self.COLUMN_WIDTH,

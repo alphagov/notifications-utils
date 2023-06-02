@@ -197,12 +197,35 @@ def test_block_quote(markdown_function, expected):
         ],
         [
             notify_plain_text_email_markdown,
-            ("\n" "\n" "\nheading" "\n-----------------------------------------------------------------"),
+            ("\n\n\nheading\n-----------------------------------------------------------------"),
         ],
     ),
 )
 def test_level_1_header(markdown_function, heading, expected):
     assert markdown_function(heading) == expected
+
+
+@pytest.mark.parametrize(
+    "markdown_function, expected",
+    (
+        [notify_letter_preview_markdown, "<h3>heading</h3>\n"],
+        [
+            notify_email_markdown,
+            (
+                '<h3 style="Margin: 0 0 20px 0; padding: 0; font-size: 24px; '
+                'line-height: 30px; font-weight: bold; color: #0B0C0C;">'
+                "heading"
+                "</h3>"
+            ),
+        ],
+        [
+            notify_plain_text_email_markdown,
+            ("\n\nheading\n-----------------------------------------------------------------"),
+        ],
+    ),
+)
+def test_level_2_header(markdown_function, expected):
+    assert markdown_function("## heading") == (expected)
 
 
 @pytest.mark.parametrize(
@@ -215,12 +238,12 @@ def test_level_1_header(markdown_function, heading, expected):
         ],
         [
             notify_plain_text_email_markdown,
-            ("\n" "\ninset text"),
+            ("\n\ninset text"),
         ],
     ),
 )
-def test_level_2_header(markdown_function, expected):
-    assert markdown_function("## inset text") == (expected)
+def test_level_3_header(markdown_function, expected):
+    assert markdown_function("### inset text") == (expected)
 
 
 @pytest.mark.parametrize(
