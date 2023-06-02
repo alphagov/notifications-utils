@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 63.4.0
+
+* Allow subheadings via markdown for emails using `##`.
+
 ## 63.3.0
 
 * Only log a warning and no longer raise an error if creating a Zendesk ticket fails because the user is suspended.
