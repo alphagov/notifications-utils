@@ -189,7 +189,7 @@ def test_block_quote(markdown_function, expected):
         [
             notify_email_markdown,
             (
-                '<h2 style="Margin: 0 0 20px 0; padding: 0; font-size: 27px; '
+                '<h2 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; font-size: 27px; '
                 'line-height: 35px; font-weight: bold; color: #0B0C0C;">'
                 "heading"
                 "</h2>"
@@ -212,8 +212,8 @@ def test_level_1_header(markdown_function, heading, expected):
         [
             notify_email_markdown,
             (
-                '<h3 style="Margin: 0 0 20px 0; padding: 0; font-size: 24px; '
-                'line-height: 30px; font-weight: bold; color: #0B0C0C;">'
+                '<h3 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; font-size: 19px; '
+                'line-height: 25px; font-weight: bold; color: #0B0C0C;">'
                 "heading"
                 "</h3>"
             ),
