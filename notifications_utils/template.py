@@ -805,20 +805,9 @@ class LetterImageTemplate(BaseLetterTemplate):
         postage=None,
     ):
         super().__init__(template, values, contact_block=contact_block)
-        if postage not in [None] + list(self.allowed_postage_types):
-            raise TypeError(
-                "postage must be None, {}".format(
-                    formatted_list(
-                        self.allowed_postage_types,
-                        conjunction="or",
-                        before_each="'",
-                        after_each="'",
-                    )
-                )
-            )
         self.image_url = image_url
         self._page_count = page_count
-        self._postage = postage
+        self.postage = postage
 
     @property
     def page_count(self):
@@ -829,6 +818,21 @@ class LetterImageTemplate(BaseLetterTemplate):
         if self.postal_address.international:
             return self.postal_address.postage
         return self._postage
+
+    @postage.setter
+    def postage(self, value):
+        if value not in [None] + list(self.allowed_postage_types):
+            raise TypeError(
+                "postage must be None, {}".format(
+                    formatted_list(
+                        self.allowed_postage_types,
+                        conjunction="or",
+                        before_each="'",
+                        after_each="'",
+                    )
+                )
+            )
+        self._postage = value
 
     @property
     def last_page_number(self):
