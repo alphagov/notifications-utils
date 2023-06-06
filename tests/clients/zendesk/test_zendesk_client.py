@@ -63,6 +63,26 @@ def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, mocker
     mock_logger.assert_called_with("Zendesk create ticket request failed with 401 '{'foo': 'bar'}'")
 
 
+def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk_client, rmock, caplog):
+    rmock.request(
+        "POST",
+        ZendeskClient.ZENDESK_TICKET_URL,
+        status_code=422,
+        json={
+            "error": "RecordInvalid",
+            "description": "Record validation errors",
+            "details": {"requester": [{"description": "Requester: Joe Bloggs is suspended."}]},
+        },
+    )
+    ticket = NotifySupportTicket("subject", "message", "incident")
+    zendesk_client.send_ticket_to_zendesk(ticket)
+
+    assert caplog.messages == [
+        "Zendesk create ticket failed because user is suspended "
+        "'{'requester': [{'description': 'Requester: Joe Bloggs is suspended.'}]}'"
+    ]
+
+
 @pytest.mark.parametrize(
     "p1_arg, expected_tags, expected_priority",
     (
