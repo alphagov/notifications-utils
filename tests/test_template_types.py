@@ -2696,17 +2696,17 @@ def test_plain_text_email_whitespace():
     )
     assert str(email) == (
         "Heading\n"
-        "-----------------------------------------------------------------\n"
+        "=================================================================\n"
         "\n"
         "1. one\n"
         "2. two\n"
         "3. three\n"
         "\n"
-        "=================================================================\n"
+        "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
         "\n"
         "\n"
         "Heading\n"
-        "-----------------------------------------------------------------\n"
+        "=================================================================\n"
         "\n"
         "Paragraph\n"
         "\n"
@@ -2727,14 +2727,14 @@ def test_plain_text_email_whitespace():
             "email",
             (
                 "Heading link: https://example.com\n"
-                "-----------------------------------------------------------------\n"
+                "=================================================================\n"
             ),
         ),
         (
             HTMLEmailTemplate,
             "email",
             (
-                '<h2 style="Margin: 0 0 20px 0; padding: 0; font-size: 27px; '
+                '<h2 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; font-size: 27px; '
                 'line-height: 35px; font-weight: bold; color: #0B0C0C;">'
                 'Heading <a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com">link</a>'
                 "</h2>"

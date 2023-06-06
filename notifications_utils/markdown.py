@@ -1,3 +1,4 @@
+import itertools
 import re
 from itertools import count
 
@@ -113,10 +114,17 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def header(self, text, level, raw=None):
         if level == 1:
             return (
-                '<h2 style="Margin: 0 0 20px 0; padding: 0; '
+                '<h2 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; '
                 'font-size: 27px; line-height: 35px; font-weight: bold; color: #0B0C0C;">'
                 f"{text}"
                 "</h2>"
+            )
+        if level == 2:
+            return (
+                '<h3 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; '
+                'font-size: 19px; line-height: 25px; font-weight: bold; color: #0B0C0C;">'
+                f"{text}"
+                "</h3>"
             )
         return self.paragraph(text)
 
@@ -198,13 +206,24 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
                     self.linebreak() * 3,
                     text,
                     self.linebreak(),
+                    "=" * self.COLUMN_WIDTH,
+                )
+            )
+        elif level == 2:
+            return "".join(
+                (
+                    self.linebreak() * 3,
+                    text,
+                    self.linebreak(),
                     "-" * self.COLUMN_WIDTH,
                 )
             )
         return self.paragraph(text)
 
     def hrule(self):
-        return self.paragraph("=" * self.COLUMN_WIDTH)
+        pattern = "=-"
+        pattern_iterator = itertools.cycle(pattern)
+        return self.paragraph("".join(next(pattern_iterator) for _ in range(self.COLUMN_WIDTH)))
 
     def linebreak(self):
         return "\n"
