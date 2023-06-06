@@ -857,10 +857,9 @@ class LetterImageTemplate(BaseLetterTemplate):
         }.get(self.postage)
 
     def __str__(self):
-        if not self.page_count:
-            raise TypeError("page_count is required")
-        if not self.image_url:
-            raise TypeError("image_url is required")
+        for attr in ("page_count", "image_url"):
+            if not getattr(self, attr):
+                raise TypeError(f"{attr} is required")
         return Markup(
             self.jinja_template.render(
                 {
