@@ -963,11 +963,10 @@ def test_letter_image_renderer(
 ):
     str(
         LetterImageTemplate(
-            {"content": "Content", "subject": "Subject", "template_type": "letter"},
+            {"content": "Content", "subject": "Subject", "template_type": "letter"} | postage_args,
             image_url="http://example.com/endpoint.png",
             page_count=page_count,
             contact_block="10 Downing Street",
-            **postage_args,
         )
     )
     jinja_template.assert_called_once_with(
@@ -1106,7 +1105,7 @@ def test_letter_image_renderer_shows_international_post(
 ):
     str(
         LetterImageTemplate(
-            {"content": "Content", "subject": "Subject", "template_type": "letter"},
+            {"content": "Content", "subject": "Subject", "template_type": "letter", "postage": postage_argument},
             {
                 "address line 1": "123 Example Street",
                 "address line 2": "Lima",
@@ -1114,7 +1113,6 @@ def test_letter_image_renderer_shows_international_post(
             },
             image_url="http://example.com/endpoint.png",
             page_count=1,
-            postage=postage_argument,
         )
     )
     assert jinja_template.call_args_list[0][0][0]["postage_description"] == ("international")
@@ -1186,11 +1184,40 @@ def test_letter_image_renderer_requires_page_count_to_render(kwargs, expected_ex
 def test_letter_image_renderer_requires_valid_postage():
     with pytest.raises(TypeError) as exception:
         LetterImageTemplate(
-            {"content": "", "subject": "", "template_type": "letter"},
+            {"content": "", "subject": "", "template_type": "letter", "postage": "third"},
             image_url="foo",
-            postage="third",
         )
     assert str(exception.value) == ("postage must be None, 'first', 'second', 'europe' or 'rest-of-world'")
+
+
+@pytest.mark.parametrize(
+    "initial_postage_value",
+    (
+        {},
+        {"postage": None},
+        {"postage": "first"},
+        {"postage": "second"},
+        {"postage": "europe"},
+        {"postage": "rest-of-world"},
+    ),
+)
+@pytest.mark.parametrize(
+    "postage_value",
+    (
+        None,
+        "first",
+        "second",
+        "europe",
+        "rest-of-world",
+        pytest.param("other", marks=pytest.mark.xfail(raises=TypeError)),
+    ),
+)
+def test_letter_image_renderer_postage_can_be_overridden(initial_postage_value, postage_value):
+    template = LetterImageTemplate({"content": "", "subject": "", "template_type": "letter"} | initial_postage_value)
+    assert template.postage == initial_postage_value.get("postage")
+
+    template.postage = postage_value
+    assert template.postage == postage_value
 
 
 def test_letter_image_renderer_requires_image_url_to_render():
@@ -1237,10 +1264,9 @@ def test_letter_image_renderer_passes_postage_to_html_attribute(
     template = BeautifulSoup(
         str(
             LetterImageTemplate(
-                {"content": "", "subject": "", "template_type": "letter"},
+                {"content": "", "subject": "", "template_type": "letter", "postage": postage},
                 image_url="foo",
                 page_count=1,
-                postage=postage,
             )
         ),
         features="html.parser",

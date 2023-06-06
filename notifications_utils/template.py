@@ -802,12 +802,11 @@ class LetterImageTemplate(BaseLetterTemplate):
         image_url=None,
         page_count=None,
         contact_block=None,
-        postage=None,
     ):
         super().__init__(template, values, contact_block=contact_block)
         self.image_url = image_url
         self._page_count = page_count
-        self.postage = postage
+        self.postage = template.get("postage")
 
     @property
     def page_count(self):
