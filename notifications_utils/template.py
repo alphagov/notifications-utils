@@ -805,8 +805,6 @@ class LetterImageTemplate(BaseLetterTemplate):
         postage=None,
     ):
         super().__init__(template, values, contact_block=contact_block)
-        if not page_count:
-            raise TypeError("page_count is required")
         if postage not in [None] + list(self.allowed_postage_types):
             raise TypeError(
                 "postage must be None, {}".format(
@@ -819,7 +817,7 @@ class LetterImageTemplate(BaseLetterTemplate):
                 )
             )
         self.image_url = image_url
-        self._page_count = int(page_count)
+        self._page_count = page_count
         self._postage = postage
 
     @property
@@ -859,6 +857,8 @@ class LetterImageTemplate(BaseLetterTemplate):
         }.get(self.postage)
 
     def __str__(self):
+        if not self.page_count:
+            raise TypeError("page_count is required")
         if not self.image_url:
             raise TypeError("image_url is required")
         return Markup(

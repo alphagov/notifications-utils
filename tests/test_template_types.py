@@ -1,7 +1,6 @@
 import datetime
 import os
 import sys
-from functools import partial
 from time import process_time
 from unittest import mock
 
@@ -1163,33 +1162,35 @@ def test_letter_image_renderer_pagination(page_image_url):
 
 
 @pytest.mark.parametrize(
-    "partial_call, expected_exception, expected_message",
-    [
+    "kwargs, expected_exception, expected_exception_value",
+    (
         (
-            partial(LetterImageTemplate, image_url="foo"),
+            {"image_url": "foo"},
             TypeError,
             "page_count is required",
         ),
         (
-            partial(LetterImageTemplate, image_url="foo", page_count="foo"),
-            ValueError,
-            "invalid literal for int() with base 10: 'foo'",
-        ),
-        (
-            partial(LetterImageTemplate, image_url="foo", page_count=1, postage="third"),
+            {"image_url": "foo", "page_count": "foo"},
             TypeError,
-            "postage must be None, 'first', 'second', 'europe' or 'rest-of-world'",
+            "'<' not supported between instances of 'int' and 'str'",
         ),
-    ],
+    ),
 )
-def test_letter_image_renderer_requires_arguments(
-    partial_call,
-    expected_exception,
-    expected_message,
-):
+def test_letter_image_renderer_requires_page_count_to_render(kwargs, expected_exception, expected_exception_value):
+    template = LetterImageTemplate({"content": "", "subject": "", "template_type": "letter"}, **kwargs)
     with pytest.raises(expected_exception) as exception:
-        partial_call({"content": "", "subject": "", "template_type": "letter"})
-    assert str(exception.value) == expected_message
+        str(template)
+    assert str(exception.value) == expected_exception_value
+
+
+def test_letter_image_renderer_requires_valid_postage():
+    with pytest.raises(TypeError) as exception:
+        LetterImageTemplate(
+            {"content": "", "subject": "", "template_type": "letter"},
+            image_url="foo",
+            postage="third",
+        )
+    assert str(exception.value) == ("postage must be None, 'first', 'second', 'europe' or 'rest-of-world'")
 
 
 def test_letter_image_renderer_requires_image_url_to_render():
