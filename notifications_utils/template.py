@@ -859,7 +859,7 @@ class LetterImageTemplate(BaseLetterTemplate):
     def __str__(self):
         for attr in ("page_count", "image_url"):
             if not getattr(self, attr):
-                raise TypeError(f"{attr} is required")
+                raise TypeError(f"{attr} is required to render {type(self).__name__}")
         return Markup(
             self.jinja_template.render(
                 {

@@ -1167,7 +1167,7 @@ def test_letter_image_renderer_pagination(page_image_url):
         (
             {"image_url": "foo"},
             TypeError,
-            "page_count is required",
+            "page_count is required to render LetterImageTemplate",
         ),
         (
             {"image_url": "foo", "page_count": "foo"},
@@ -1200,7 +1200,7 @@ def test_letter_image_renderer_requires_image_url_to_render():
     )
     with pytest.raises(TypeError) as exception:
         str(template)
-    assert str(exception.value) == "image_url is required"
+    assert str(exception.value) == "image_url is required to render LetterImageTemplate"
 
 
 @pytest.mark.parametrize(
