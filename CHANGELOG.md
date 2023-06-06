@@ -3,6 +3,13 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 64.0.0
+
+* Remove the `postage` argument from `LetterImageTemplate` in favour of getting `postage`
+  from the `template` `dict` (can still be overridden by setting `template_instance.postage`)
+* The `page_count` argument of `LetterImageTemplate` is now optional until the template is
+  rendered (calling `str(template)`)
+
 ## 63.4.0
 
 * Allow subheadings via markdown for emails using `##`.
