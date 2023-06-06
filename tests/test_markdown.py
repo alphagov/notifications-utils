@@ -197,7 +197,7 @@ def test_block_quote(markdown_function, expected):
         ],
         [
             notify_plain_text_email_markdown,
-            ("\n\n\nheading\n-----------------------------------------------------------------"),
+            ("\n\n\nheading\n================================================================="),
         ],
     ),
 )
@@ -220,7 +220,7 @@ def test_level_1_header(markdown_function, heading, expected):
         ],
         [
             notify_plain_text_email_markdown,
-            ("\n\n\nheading\n--------------------------------"),
+            ("\n\n\nheading\n-----------------------------------------------------------------"),
         ],
     ),
 )

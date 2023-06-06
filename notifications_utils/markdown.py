@@ -205,7 +205,7 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
                     self.linebreak() * 3,
                     text,
                     self.linebreak(),
-                    "-" * self.COLUMN_WIDTH,
+                    "=" * self.COLUMN_WIDTH,
                 )
             )
         elif level == 2:
@@ -214,7 +214,7 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
                     self.linebreak() * 3,
                     text,
                     self.linebreak(),
-                    "-" * (self.COLUMN_WIDTH // 2),
+                    "-" * self.COLUMN_WIDTH,
                 )
             )
         return self.paragraph(text)
