@@ -1,3 +1,4 @@
+import itertools
 import re
 from itertools import count
 
@@ -220,7 +221,9 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
         return self.paragraph(text)
 
     def hrule(self):
-        return self.paragraph("=" * self.COLUMN_WIDTH)
+        pattern = "=-"
+        pattern_iterator = itertools.cycle(pattern)
+        return self.paragraph("".join(next(pattern_iterator) for _ in range(self.COLUMN_WIDTH)))
 
     def linebreak(self):
         return "\n"
