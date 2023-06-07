@@ -1,7 +1,6 @@
 import datetime
 import os
 import sys
-from functools import partial
 from time import process_time
 from unittest import mock
 
@@ -964,11 +963,10 @@ def test_letter_image_renderer(
 ):
     str(
         LetterImageTemplate(
-            {"content": "Content", "subject": "Subject", "template_type": "letter"},
+            {"content": "Content", "subject": "Subject", "template_type": "letter"} | postage_args,
             image_url="http://example.com/endpoint.png",
             page_count=page_count,
             contact_block="10 Downing Street",
-            **postage_args,
         )
     )
     jinja_template.assert_called_once_with(
@@ -1107,7 +1105,7 @@ def test_letter_image_renderer_shows_international_post(
 ):
     str(
         LetterImageTemplate(
-            {"content": "Content", "subject": "Subject", "template_type": "letter"},
+            {"content": "Content", "subject": "Subject", "template_type": "letter", "postage": postage_argument},
             {
                 "address line 1": "123 Example Street",
                 "address line 2": "Lima",
@@ -1115,7 +1113,6 @@ def test_letter_image_renderer_shows_international_post(
             },
             image_url="http://example.com/endpoint.png",
             page_count=1,
-            postage=postage_argument,
         )
     )
     assert jinja_template.call_args_list[0][0][0]["postage_description"] == ("international")
@@ -1163,33 +1160,64 @@ def test_letter_image_renderer_pagination(page_image_url):
 
 
 @pytest.mark.parametrize(
-    "partial_call, expected_exception, expected_message",
-    [
+    "kwargs, expected_exception, expected_exception_value",
+    (
         (
-            partial(LetterImageTemplate, image_url="foo"),
+            {"image_url": "foo"},
             TypeError,
-            "page_count is required",
+            "page_count is required to render LetterImageTemplate",
         ),
         (
-            partial(LetterImageTemplate, image_url="foo", page_count="foo"),
-            ValueError,
-            "invalid literal for int() with base 10: 'foo'",
-        ),
-        (
-            partial(LetterImageTemplate, image_url="foo", page_count=1, postage="third"),
+            {"image_url": "foo", "page_count": "foo"},
             TypeError,
-            "postage must be None, 'first', 'second', 'europe' or 'rest-of-world'",
+            "'<' not supported between instances of 'int' and 'str'",
         ),
-    ],
+    ),
 )
-def test_letter_image_renderer_requires_arguments(
-    partial_call,
-    expected_exception,
-    expected_message,
-):
+def test_letter_image_renderer_requires_page_count_to_render(kwargs, expected_exception, expected_exception_value):
+    template = LetterImageTemplate({"content": "", "subject": "", "template_type": "letter"}, **kwargs)
     with pytest.raises(expected_exception) as exception:
-        partial_call({"content": "", "subject": "", "template_type": "letter"})
-    assert str(exception.value) == expected_message
+        str(template)
+    assert str(exception.value) == expected_exception_value
+
+
+def test_letter_image_renderer_requires_valid_postage():
+    with pytest.raises(TypeError) as exception:
+        LetterImageTemplate(
+            {"content": "", "subject": "", "template_type": "letter", "postage": "third"},
+            image_url="foo",
+        )
+    assert str(exception.value) == ("postage must be None, 'first', 'second', 'europe' or 'rest-of-world'")
+
+
+@pytest.mark.parametrize(
+    "initial_postage_value",
+    (
+        {},
+        {"postage": None},
+        {"postage": "first"},
+        {"postage": "second"},
+        {"postage": "europe"},
+        {"postage": "rest-of-world"},
+    ),
+)
+@pytest.mark.parametrize(
+    "postage_value",
+    (
+        None,
+        "first",
+        "second",
+        "europe",
+        "rest-of-world",
+        pytest.param("other", marks=pytest.mark.xfail(raises=TypeError)),
+    ),
+)
+def test_letter_image_renderer_postage_can_be_overridden(initial_postage_value, postage_value):
+    template = LetterImageTemplate({"content": "", "subject": "", "template_type": "letter"} | initial_postage_value)
+    assert template.postage == initial_postage_value.get("postage")
+
+    template.postage = postage_value
+    assert template.postage == postage_value
 
 
 def test_letter_image_renderer_requires_image_url_to_render():
@@ -1199,7 +1227,7 @@ def test_letter_image_renderer_requires_image_url_to_render():
     )
     with pytest.raises(TypeError) as exception:
         str(template)
-    assert str(exception.value) == "image_url is required"
+    assert str(exception.value) == "image_url is required to render LetterImageTemplate"
 
 
 @pytest.mark.parametrize(
@@ -1236,10 +1264,9 @@ def test_letter_image_renderer_passes_postage_to_html_attribute(
     template = BeautifulSoup(
         str(
             LetterImageTemplate(
-                {"content": "", "subject": "", "template_type": "letter"},
+                {"content": "", "subject": "", "template_type": "letter", "postage": postage},
                 image_url="foo",
                 page_count=1,
-                postage=postage,
             )
         ),
         features="html.parser",

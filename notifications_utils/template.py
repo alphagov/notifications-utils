@@ -802,25 +802,11 @@ class LetterImageTemplate(BaseLetterTemplate):
         image_url=None,
         page_count=None,
         contact_block=None,
-        postage=None,
     ):
         super().__init__(template, values, contact_block=contact_block)
-        if not page_count:
-            raise TypeError("page_count is required")
-        if postage not in [None] + list(self.allowed_postage_types):
-            raise TypeError(
-                "postage must be None, {}".format(
-                    formatted_list(
-                        self.allowed_postage_types,
-                        conjunction="or",
-                        before_each="'",
-                        after_each="'",
-                    )
-                )
-            )
         self.image_url = image_url
-        self._page_count = int(page_count)
-        self._postage = postage
+        self._page_count = page_count
+        self.postage = template.get("postage")
 
     @property
     def page_count(self):
@@ -831,6 +817,21 @@ class LetterImageTemplate(BaseLetterTemplate):
         if self.postal_address.international:
             return self.postal_address.postage
         return self._postage
+
+    @postage.setter
+    def postage(self, value):
+        if value not in [None] + list(self.allowed_postage_types):
+            raise TypeError(
+                "postage must be None, {}".format(
+                    formatted_list(
+                        self.allowed_postage_types,
+                        conjunction="or",
+                        before_each="'",
+                        after_each="'",
+                    )
+                )
+            )
+        self._postage = value
 
     @property
     def last_page_number(self):
@@ -859,8 +860,9 @@ class LetterImageTemplate(BaseLetterTemplate):
         }.get(self.postage)
 
     def __str__(self):
-        if not self.image_url:
-            raise TypeError("image_url is required")
+        for attr in ("page_count", "image_url"):
+            if not getattr(self, attr):
+                raise TypeError(f"{attr} is required to render {type(self).__name__}")
         return Markup(
             self.jinja_template.render(
                 {
