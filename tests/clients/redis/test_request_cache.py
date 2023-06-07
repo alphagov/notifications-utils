@@ -55,7 +55,7 @@ def test_set(
     mock_redis_set.assert_called_once_with(
         expected_cache_key,
         '"bar"',
-        ex=604_800,
+        ex=2_419_200,
     )
 
 
