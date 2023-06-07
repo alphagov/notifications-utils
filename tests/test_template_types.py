@@ -3084,7 +3084,7 @@ def test_letter_image_template_marks_first_page_of_attachment():
         '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=4"/>',
         '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=5"/>',
         '<div id="first-page-of-attachment"></div>',
-        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=6"/>',
+        '<img alt="" loading="eager" src="http://example.com/endpoint.png?page=6"/>',
         '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=7"/>',
         '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=8"/>',
     ]
