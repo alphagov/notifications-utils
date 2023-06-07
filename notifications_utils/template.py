@@ -859,6 +859,11 @@ class LetterImageTemplate(BaseLetterTemplate):
             Postage.REST_OF_WORLD: "letter-postage-international",
         }.get(self.postage)
 
+    @property
+    def first_page_of_attachment(self):
+        if getattr(self, "attachment", None):
+            return self.page_count - self.attachment.page_count + 1
+
     def __str__(self):
         for attr in ("page_count", "image_url"):
             if not getattr(self, attr):
@@ -868,6 +873,7 @@ class LetterImageTemplate(BaseLetterTemplate):
                 {
                     "image_url": self.image_url,
                     "page_numbers": self.page_numbers,
+                    "first_page_of_attachment": self.first_page_of_attachment,
                     "address": self._address_block,
                     "contact_block": self._contact_block,
                     "date": self._date,

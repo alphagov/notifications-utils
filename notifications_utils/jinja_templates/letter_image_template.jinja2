@@ -5,6 +5,9 @@
         Postage: {{ postage_description }}
       </p>
     {% endif %}
+    {% if page_number == first_page_of_attachment %}
+    <div id="first-page-of-attachment"></div>
+    {% endif %}
     <img src="{{ image_url }}?page={{ page_number }}" alt="" loading="{{ 'eager' if loop.first else 'lazy' }}">
   </div>
 {% endfor %}
