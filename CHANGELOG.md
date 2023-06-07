@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 64.2.0
+
+* `LetterImageTemplate` now adds a hidden element marking the first page of any attachment
+
 ## 64.1.0
 
 * `RequestCache` now stores items in Redis for 28 days by default (2419200 seconds instead
