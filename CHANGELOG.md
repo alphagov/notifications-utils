@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 64.1.0
+
+* `RequestCache` now stores items in Redis for 28 days by default (2419200 seconds instead
+  of 7 days or 604800 seconds)
+
 ## 64.0.0
 
 * Remove the `postage` argument from `LetterImageTemplate` in favour of getting `postage`

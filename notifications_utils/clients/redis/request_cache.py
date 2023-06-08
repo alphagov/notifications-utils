@@ -7,7 +7,7 @@ from inspect import signature
 
 class RequestCache:
 
-    DEFAULT_TTL = int(timedelta(days=7).total_seconds())
+    DEFAULT_TTL = int(timedelta(days=28).total_seconds())
 
     def __init__(self, redis_client):
         self.redis_client = redis_client
