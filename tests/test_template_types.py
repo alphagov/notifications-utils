@@ -973,6 +973,7 @@ def test_letter_image_renderer(
         {
             "image_url": "http://example.com/endpoint.png",
             "page_numbers": expected_page_numbers,
+            "first_page_of_attachment": None,
             "address": [
                 "<span class='placeholder-no-brackets'>address line 1</span>",
                 "<span class='placeholder-no-brackets'>address line 2</span>",
@@ -3056,3 +3057,34 @@ def test_broadcast_message_single_counts_diacritics_in_gsm(
     )
     assert template.encoded_content_count == 1
     assert template.max_content_count == 1_395
+
+
+def test_letter_image_template_marks_first_page_of_attachment():
+    class Attachment:
+        page_count = 3
+
+    class LetterImageTemplateWithAttachment(LetterImageTemplate):
+        attachment = Attachment()
+        page_count = 8
+
+    template = BeautifulSoup(
+        str(
+            LetterImageTemplateWithAttachment(
+                {"content": "Content", "subject": "Subject", "template_type": "letter"},
+                image_url="http://example.com/endpoint.png",
+            )
+        ),
+        features="html.parser",
+    )
+
+    assert [str(element) for element in template.select(".letter *")] == [
+        '<img alt="" loading="eager" src="http://example.com/endpoint.png?page=1"/>',
+        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=2"/>',
+        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=3"/>',
+        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=4"/>',
+        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=5"/>',
+        '<div id="first-page-of-attachment"></div>',
+        '<img alt="" loading="eager" src="http://example.com/endpoint.png?page=6"/>',
+        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=7"/>',
+        '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=8"/>',
+    ]
