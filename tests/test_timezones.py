@@ -20,7 +20,7 @@ from notifications_utils.timezones import (
     ],
 )
 def test_utc_string_to_aware_gmt_datetime_rejects_bad_input(input_value):
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa
         utc_string_to_aware_gmt_datetime(input_value)
 
 

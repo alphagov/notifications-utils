@@ -42,10 +42,10 @@ def test_base64_converter_to_url(python_val):
     ],
 )
 def test_base64_converter_to_python_raises_validation_error(url_val):
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa
         base64_to_uuid(url_val)
 
 
 def test_base64_converter_to_url_raises_validation_error():
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa
         uuid_to_base64(object())

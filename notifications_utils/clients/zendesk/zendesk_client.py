@@ -70,7 +70,7 @@ class ZendeskClient:
         if response.status_code != 201:
             if response.status_code == 422 and self._is_user_suspended(response.json()):
                 error_message = response.json()["details"]
-                current_app.logger.warning(f"Zendesk create ticket failed because user is suspended '{error_message}'")
+                current_app.logger.warning("Zendesk create ticket failed because user is suspended '%s'", error_message)
                 return
             current_app.logger.error(
                 "Zendesk create ticket request failed with %s '%s'", response.status_code, response.json()
