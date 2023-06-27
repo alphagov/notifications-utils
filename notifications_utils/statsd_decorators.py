@@ -18,7 +18,7 @@ def statsd(namespace):
             except Exception as e:
                 raise e
             else:
-                current_app.logger.debug(f"{namespace} call {func.__name__} took {elapsed_time:.4f}")
+                current_app.logger.debug("%s call %s took %.4f", namespace, func.__name__, elapsed_time)
                 return res
 
         wrapper.__wrapped__.__name__ = func.__name__

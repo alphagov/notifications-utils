@@ -34,7 +34,7 @@ def make_task(app):
             with self.app_context():
                 elapsed_time = time.monotonic() - self.start
 
-                app.logger.info(f"Celery task {self.name} (queue: {self.queue_name}) took {elapsed_time:.4f}")
+                app.logger.info("Celery task %s (queue: %s) took %.4f", self.name, self.queue_name, elapsed_time)
 
                 app.statsd_client.timing(
                     f"celery.{self.queue_name}.{self.name}.success",
@@ -44,7 +44,7 @@ def make_task(app):
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
             with self.app_context():
-                app.logger.exception(f"Celery task {self.name} (queue: {self.queue_name}) failed")
+                app.logger.exception("Celery task %s (queue: %s) failed", self.name, self.queue_name)
 
                 app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
 

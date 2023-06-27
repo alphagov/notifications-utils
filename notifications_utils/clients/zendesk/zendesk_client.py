@@ -70,16 +70,16 @@ class ZendeskClient:
         if response.status_code != 201:
             if response.status_code == 422 and self._is_user_suspended(response.json()):
                 error_message = response.json()["details"]
-                current_app.logger.warning(f"Zendesk create ticket failed because user is suspended '{error_message}'")
+                current_app.logger.warning("Zendesk create ticket failed because user is suspended '%s'", error_message)
                 return
             current_app.logger.error(
-                f"Zendesk create ticket request failed with {response.status_code} '{response.json()}'"
+                "Zendesk create ticket request failed with %s '%s'", response.status_code, response.json()
             )
             raise ZendeskError(response)
 
         ticket_id = response.json()["ticket"]["id"]
 
-        current_app.logger.info(f"Zendesk create ticket {ticket_id} succeeded")
+        current_app.logger.info("Zendesk create ticket %s succeeded", ticket_id)
 
     def _is_user_suspended(self, response):
         requester_error = response["details"].get("requester")
@@ -99,13 +99,13 @@ class ZendeskClient:
 
         if response.status_code != 201:
             current_app.logger.error(
-                f"Zendesk upload attachment request failed with {response.status_code} '{response.json()}'"
+                "Zendesk upload attachment request failed with %s '%s'", response.status_code, response.json()
             )
             raise ZendeskError(response)
 
         upload_token = response.json()["upload"]["token"]
 
-        current_app.logger.info(f"Zendesk upload attachment `{attachment.filename}` succeeded")
+        current_app.logger.info("Zendesk upload attachment `%s` succeeded", attachment.filename)
 
         return upload_token
 
@@ -144,13 +144,13 @@ class ZendeskClient:
 
         if response.status_code != 200:
             current_app.logger.error(
-                f"Zendesk update ticket request failed with {response.status_code} '{response.text}'"
+                "Zendesk update ticket request failed with %s '%s'", response.status_code, response.text
             )
             raise ZendeskError(response)
 
         ticket_id = response.json()["ticket"]["id"]
 
-        current_app.logger.info(f"Zendesk update ticket {ticket_id} succeeded")
+        current_app.logger.info("Zendesk update ticket %s succeeded", ticket_id)
 
 
 class NotifySupportTicket:

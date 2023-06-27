@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 import pytest
@@ -39,54 +40,52 @@ def request_id_task(celery_task):
     celery_task.pop_request()
 
 
-def test_success_should_log_and_call_statsd(mocker, celery_app, async_task):
-    logger_mock = mocker.patch.object(celery_app.logger, "info")
+def test_success_should_log_and_call_statsd(celery_app, async_task, caplog):
     statsd_mock = celery_app.statsd_client.timing
 
-    with freeze_time() as frozen:
+    with freeze_time() as frozen, caplog.at_level(logging.INFO):
         async_task()
         frozen.tick(5)
 
         async_task.on_success(retval=None, task_id=1234, args=[], kwargs={})
 
     statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.success", 5.0)
-    logger_mock.assert_called_once_with(f"Celery task {async_task.name} (queue: test-queue) took 5.0000")
+    assert f"Celery task {async_task.name} (queue: test-queue) took 5.0000" in caplog.messages
 
 
-def test_success_queue_when_applied_synchronously(mocker, celery_app, celery_task):
-    logger_mock = mocker.patch.object(celery_app.logger, "info")
+def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplog):
     statsd_mock = celery_app.statsd_client.timing
 
-    with freeze_time() as frozen:
+    with freeze_time() as frozen, caplog.at_level(logging.INFO):
         celery_task()
         frozen.tick(5)
 
         celery_task.on_success(retval=None, task_id=1234, args=[], kwargs={})
 
     statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.success", 5.0)
-    logger_mock.assert_called_once_with(f"Celery task {celery_task.name} (queue: none) took 5.0000")
+    assert f"Celery task {celery_task.name} (queue: none) took 5.0000" in caplog.messages
 
 
-def test_failure_should_log_and_call_statsd(mocker, celery_app, async_task):
-    logger_mock = mocker.patch.object(celery_app.logger, "error")
+def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog):
     statsd_mock = celery_app.statsd_client.incr
 
-    async_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
+    with caplog.at_level(logging.ERROR):
+        async_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
 
     statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.failure")
 
-    logger_mock.assert_called_once_with(f"Celery task {async_task.name} (queue: test-queue) failed", exc_info=True)
+    assert f"Celery task {async_task.name} (queue: test-queue) failed" in caplog.messages
 
 
-def test_failure_queue_when_applied_synchronously(mocker, celery_app, celery_task):
-    logger_mock = mocker.patch.object(celery_app.logger, "error")
+def test_failure_queue_when_applied_synchronously(celery_app, celery_task, caplog):
     statsd_mock = celery_app.statsd_client.incr
 
-    celery_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
+    with caplog.at_level(logging.ERROR):
+        celery_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
 
     statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.failure")
 
-    logger_mock.assert_called_once_with(f"Celery task {celery_task.name} (queue: none) failed", exc_info=True)
+    assert f"Celery task {celery_task.name} (queue: none) failed" in caplog.messages
 
 
 def test_call_exports_request_id_from_headers(mocker, request_id_task):

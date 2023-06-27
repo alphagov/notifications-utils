@@ -595,7 +595,7 @@ def try_validate_and_format_phone_number(number, international=None, log_msg=Non
         return validate_and_format_phone_number(number, international)
     except InvalidPhoneError as exc:
         if log_msg:
-            current_app.logger.warning(f"{log_msg}: {exc}")
+            current_app.logger.warning("%s: %s", log_msg, exc)
         return number
 
 

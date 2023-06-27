@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import ANY, Mock
 
 from notifications_utils.statsd_decorators import statsd
@@ -8,7 +9,7 @@ class AnyStringWith(str):
         return self in other
 
 
-def test_should_call_statsd(app, mocker):
+def test_should_call_statsd(app, caplog):
     app.config["NOTIFY_ENVIRONMENT"] = "test"
     app.config["NOTIFY_APP_NAME"] = "api"
     app.config["STATSD_HOST"] = "localhost"
@@ -16,13 +17,13 @@ def test_should_call_statsd(app, mocker):
     app.config["STATSD_PREFIX"] = "prefix"
     app.statsd_client = Mock()
 
-    mock_logger = mocker.patch.object(app.logger, "debug")
-
     @statsd(namespace="test")
     def test_function():
         return True
 
-    assert test_function()
-    mock_logger.assert_called_once_with(AnyStringWith("test call test_function took "))
+    with caplog.at_level(logging.DEBUG):
+        assert test_function()
+
+    assert AnyStringWith("test call test_function took ") in caplog.messages
     app.statsd_client.incr.assert_called_once_with("test.test_function")
     app.statsd_client.timing.assert_called_once_with("test.test_function", ANY)
