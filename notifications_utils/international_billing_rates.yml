@@ -66,7 +66,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: Transactional traffic ONLY
-  billable_units: 1
+  billable_units: 4
   names:
   - South Ossetia
   - Kazakhstan
@@ -95,7 +95,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into long numeric sender
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - South Africa
 '30':
@@ -263,7 +263,7 @@
     sc: 'YES'
     sender_and_registration_info: ''
     text_restrictions: Only transactional traffic allowed
-  billable_units: 1
+  billable_units: 2
   names:
   - Denmark
 '46':
@@ -302,7 +302,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: ''
-  billable_units: 1
+  billable_units: 2
   names:
   - Poland
 '49':
@@ -315,7 +315,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 4
   names:
   - Germany
 '51':
@@ -382,7 +382,7 @@
     sender_and_registration_info: LIMITED amount of SCs available
     text_restrictions: NO marketing traffic. NO special characters. 160 chars per
       message available
-  billable_units: 1
+  billable_units: 2
   names:
   - Brazil
 '56':
@@ -395,7 +395,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 2
+  billable_units: 1
   names:
   - Chile
 '57':
@@ -421,7 +421,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Venezuela
 '60':
@@ -461,7 +461,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: ''
-  billable_units: 1
+  billable_units: 2
   names:
   - Indonesia
 '63':
@@ -521,7 +521,7 @@
       of the sender. Numeric sender up to 11 digits in length. Dynamic sender available
       over Offnet connection.
     text_restrictions: NO political nor erotic content and other text restrictions
-  billable_units: 1
+  billable_units: 2
   names:
   - Thailand
 '81':
@@ -578,7 +578,7 @@
       numeric sender
     text_restrictions: Content template MUST be approved by the MNO. Transactional
       traffic ONLY. Sufix added in the message text
-  billable_units: 1
+  billable_units: 2
   names:
   - China
 '90':
@@ -592,7 +592,7 @@
     sender_and_registration_info: LIMITED amount of numeric senders are allowed (just
       some ranges)
     text_restrictions: NO lottery, gambling nor erotic content and other text restrictions
-  billable_units: 1
+  billable_units: 2
   names:
   - Turkey
   - Northern Cyprus
@@ -606,7 +606,7 @@
     sc: 'NO'
     sender_and_registration_info: Alpha senders with exactly 6 characters ONLY
     text_restrictions: Transactional traffic ONLY
-  billable_units: 1
+  billable_units: 3
   names:
   - India
 '92':
@@ -619,7 +619,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Pakistan
 '93':
@@ -647,7 +647,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Sri Lanka
 '95':
@@ -674,7 +674,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Iran
 '211':
@@ -687,7 +687,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - South Sudan
 '212':
@@ -713,7 +713,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Algeria
 '216':
@@ -726,7 +726,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Tunisia
 '218':
@@ -739,7 +739,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Libya
 '220':
@@ -752,7 +752,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Gambia
 '221':
@@ -765,7 +765,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Senegal
 '222':
@@ -791,7 +791,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Mali
 '224':
@@ -830,7 +830,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Burkina Faso
 '227':
@@ -843,7 +843,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Niger
 '228':
@@ -856,7 +856,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Togo
 '229':
@@ -869,7 +869,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Benin
 '230':
@@ -908,7 +908,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Sierra Leone
 '233':
@@ -921,7 +921,7 @@
     sc: REG
     sender_and_registration_info: One time and monthly FEEs for each SC
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Ghana
 '234':
@@ -934,7 +934,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 4
   names:
   - Nigeria
 '235':
@@ -947,7 +947,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Chad
 '236':
@@ -960,7 +960,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Central African Republic
 '237':
@@ -1051,7 +1051,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Congo, Democratic Republic of
 '244':
@@ -1064,7 +1064,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Angola
 '245':
@@ -1077,7 +1077,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Guinea-Bissau
 '246':
@@ -1090,7 +1090,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - British Indian Ocean Territory
 '248':
@@ -1129,7 +1129,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Rwanda, Republic of
 '251':
@@ -1168,7 +1168,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Djibouti, Republic of
 '254':
@@ -1211,7 +1211,7 @@
       Only local entities can register the sender (requires Authorization letter).
     text_restrictions: As per regulation, 'DND*196#' is being added at the end of
       each message.
-  billable_units: 1
+  billable_units: 2
   names:
   - Uganda
 '257':
@@ -1224,7 +1224,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Burundi
 '258':
@@ -1276,7 +1276,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Reunion
 '263':
@@ -1303,7 +1303,7 @@
     sender_and_registration_info: Long registration procedure, up to 30 days. Monthly
       FEE for each sender
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Namibia
 '265':
@@ -1329,7 +1329,7 @@
     sc: null  # should be 'NO'
     sender_and_registration_info: null  # should be "Sender names can only be 3-11 chars, no spaces"
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Lesotho
 '267':
@@ -1342,7 +1342,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Botswana
 '268':
@@ -1381,7 +1381,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Aruba
 '298':
@@ -1394,7 +1395,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Faroe Islands
 '299':
@@ -1407,7 +1408,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Greenland
 '350':
@@ -1460,7 +1461,7 @@
     sender_and_registration_info: Numeric sender up to 12 digits in length. SC available
       upon registration
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Ireland
 '354':
@@ -1473,7 +1474,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Iceland
 '355':
@@ -1486,7 +1487,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Albania
 '356':
@@ -1499,7 +1500,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Malta
 '357':
@@ -1513,7 +1514,7 @@
     sender_and_registration_info: Senders up to 11 characters in length. NO special
       characters. Generic senders available
     text_restrictions: NO violent, offensive, discriminatory or erotic content
-  billable_units: 1
+  billable_units: 2
   names:
   - Cyprus
 '358':
@@ -1527,7 +1528,7 @@
     sender_and_registration_info: $ INSERTED in front of each Alpha sender, "00" in
       front of long numeric senders
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Finland
 '359':
@@ -1540,7 +1541,7 @@
     sc: 'YES'
     sender_and_registration_info: Sender converts to short code 1917.
     text_restrictions: null
-  billable_units: 3
+  billable_units: 4
   names:
   - Bulgaria
 '370':
@@ -1553,7 +1554,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Lithuania
 '371':
@@ -1631,7 +1632,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Andorra
 '377':
@@ -1644,7 +1645,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Monaco
 '378':
@@ -1657,7 +1658,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - San Marino, Republic of
 '380':
@@ -1670,7 +1671,7 @@
     sc: 'NO'
     sender_and_registration_info: Alpha senders are case sensitive
     text_restrictions: null
-  billable_units: 3
+  billable_units: 4
   names:
   - Ukraine
 '381':
@@ -1724,7 +1725,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Slovenia
 '387':
@@ -1738,7 +1739,7 @@
     sender_and_registration_info: Numeric sender available for the FEE upon registration.
       SC registration CHARGED - one time and monthly FEEs per each sender.
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Bosnia and Herzegovina
 '389':
@@ -1751,7 +1752,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Macedonia
 '420':
@@ -1768,7 +1770,8 @@
     text_restrictions: Traffic allowed ONLY between 8am and 6pm (CET) on working days.
       Content promoting lottery, betting, gambling nor consumer loans NOT allowed.
       NO political, violent, erotic nor abusive content and other text restrictions
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Czech Republic
 '421':
@@ -1783,7 +1786,8 @@
       FEEs for numeric senders. All not registered long numeric senders are CONVERTED
       into "Info"
     text_restrictions: ''
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Slovakia
 '423':
@@ -1796,7 +1800,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Liechtenstein
 '500':
@@ -1809,7 +1814,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Falkland Islands
 '501':
@@ -1822,7 +1827,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Belize
 '502':
@@ -1835,7 +1840,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Guatemala
 '503':
@@ -1874,7 +1879,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Nicaragua
 '506':
@@ -1913,7 +1918,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Saint Pierre and Miquelon
 '509':
@@ -1926,7 +1931,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Haiti
 '590':
@@ -1952,7 +1957,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Bolivia
 '592':
@@ -2030,7 +2035,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Suriname
 '598':
@@ -2043,7 +2049,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 1
   names:
   - Uruguay
 '599':
@@ -2056,7 +2062,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Curacao (former Netherlands Antilles)
 '670':
@@ -2069,7 +2075,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Timor L'este
 '672':
@@ -2147,7 +2153,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Solomon Islands
 '678':
@@ -2186,7 +2193,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Palau
 '682':
@@ -2199,7 +2206,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Cook Islands
 '685':
@@ -2225,7 +2232,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - New Caledonia
 '689':
@@ -2251,7 +2258,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Micronesia, Federated States of
 '692':
@@ -2264,7 +2272,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Marshall Islands
 '852':
@@ -2304,7 +2313,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Cambodia
 '856':
@@ -2317,7 +2326,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Laos
 '880':
@@ -2356,7 +2365,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Maldives
 '961':
@@ -2369,7 +2378,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Lebanon
 '962':
@@ -2382,7 +2391,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Jordan
 '963':
@@ -2395,7 +2404,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  billable_units: 3
   names:
   - Syria
 '964':
@@ -2408,7 +2417,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  billable_units: 2
   names:
   - Iraq
 '965':
@@ -2435,7 +2444,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Saudi Arabia
 '967':
@@ -2448,7 +2457,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Yemen
 '968':
@@ -2475,7 +2484,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 4
   names:
   - Palestinian Territory
 '971':
@@ -2503,7 +2512,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Israel
 '973':
@@ -2516,7 +2525,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 3
   names:
   - Bahrain
 '974':
@@ -2543,7 +2552,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Bhutan
 '976':
@@ -2556,7 +2565,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Mongolia
 '977':
@@ -2583,7 +2592,7 @@
     sender_and_registration_info: Numeric sender available upon registration. Numeric
       sender MUST begin with "992" or "0" (zero)
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Tajikistan
 '993':
@@ -2596,7 +2605,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Turkmenistan
 '994':
@@ -2611,7 +2620,7 @@
     text_restrictions: NO political, erotic, religious, alcoholic or tobacco products,
       premium services related info. APPROVAL required for food add., medical, non-govern.
       organizations or minor individuals related messages
-  billable_units: 3
+  billable_units: 2
   names:
   - Azerbaijan
 '995':
@@ -2624,7 +2633,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: Few GSM 7 characters are not supported
-  billable_units: 1
+  billable_units: 2
   names:
   - Georgia
 '996':
@@ -2638,7 +2647,7 @@
     sender_and_registration_info: ONLY two shared numeric senders available. Long
       numeric usage MUST be approved by MNO
     text_restrictions: null
-  billable_units: 1
+  billable_units: 2
   names:
   - Kyrgyzstan
 '998':
@@ -2652,7 +2661,7 @@
     sender_and_registration_info: Numeric and all non registered senders are converted
       to InfoSMS
     text_restrictions: ''
-  billable_units: 1
+  billable_units: 2
   names:
   - Uzbekistan
 '1242':
@@ -2665,7 +2674,8 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Bahamas
 '1246':
@@ -2678,7 +2688,8 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Barbados
 '1264':
@@ -2691,7 +2702,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Anguilla
 '1268':
@@ -2704,7 +2716,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Antigua and Barbuda
 '1284':
@@ -2717,7 +2730,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Virgin Islands, British
 '1345':
@@ -2730,7 +2744,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Cayman Islands
 '1441':
@@ -2743,7 +2758,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Bermuda
 '1473':
@@ -2756,7 +2772,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Grenada
 '1649':
@@ -2769,7 +2786,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Turks and Caicos Islands
 '1664':
@@ -2782,7 +2800,8 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Montserrat
 '1684':
@@ -2795,7 +2814,8 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 3
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - American Samoa
 '1721':
@@ -2808,7 +2828,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Sint Maarten
 '1758':
@@ -2821,7 +2842,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Saint Lucia
 '1767':
@@ -2834,7 +2856,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Dominica, Commonwealth of
 '1784':
@@ -2847,7 +2870,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Saint Vincent and The Grenadines
 '1868':
@@ -2860,7 +2884,8 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Trinidad and Tobago
 '1869':
@@ -2873,7 +2898,8 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Saint Kitts and Nevis
 '1876':
@@ -2886,6 +2912,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  # not specified in MMG multiplier sheet so set to default of 4
+  billable_units: 4
   names:
   - Jamaica
