@@ -1700,6 +1700,20 @@
   billable_units: 2
   names:
   - Montenegro
+'383':
+  attributes:
+    # all attributes are unknown for kosovo
+    alpha: null
+    comment: null
+    dlr: null
+    generic_sender: null
+    numeric: null
+    sc: null
+    sender_and_registration_info: null
+    text_restrictions: null
+  billable_units: 4
+  names:
+  - Kosovo
 '385':
   attributes:
     alpha: REG
