@@ -11,9 +11,7 @@ def test_international_billing_rates_exists():
     assert INTERNATIONAL_BILLING_RATES["1"]["names"][0] == "Canada"
 
 
-@pytest.mark.parametrize(
-    "country_prefix, values", sorted(INTERNATIONAL_BILLING_RATES.items())
-)
+@pytest.mark.parametrize("country_prefix, values", sorted(INTERNATIONAL_BILLING_RATES.items()))
 def test_international_billing_rates_are_in_correct_format(country_prefix, values):
     assert isinstance(country_prefix, str)
     # we don't want the prefixes to have + at the beginning for instance
@@ -28,9 +26,7 @@ def test_international_billing_rates_are_in_correct_format(country_prefix, value
     assert all(isinstance(country, str) for country in values["names"])
 
     assert isinstance(values["attributes"], dict)
-    assert values["attributes"]["dlr"] is None or isinstance(
-        values["attributes"]["dlr"], str
-    )
+    assert values["attributes"]["dlr"] is None or isinstance(values["attributes"]["dlr"], str)
 
 
 def test_country_codes():
