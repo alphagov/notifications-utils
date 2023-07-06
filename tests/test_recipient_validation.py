@@ -232,7 +232,7 @@ def test_detect_uk_phone_numbers(phone_number):
                 international=True,
                 crown_dependency=False,
                 country_prefix="1664",  # Montserrat
-                billable_units=4,
+                billable_units=3,
             ),
         ),
         (

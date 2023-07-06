@@ -1381,8 +1381,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Aruba
 '298':
@@ -1766,8 +1765,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 1
   names:
   - Macedonia
 '420':
@@ -1800,8 +1798,7 @@
       FEEs for numeric senders. All not registered long numeric senders are CONVERTED
       into "Info"
     text_restrictions: ''
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 2
   names:
   - Slovakia
 '423':
@@ -1814,8 +1811,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 1
   names:
   - Liechtenstein
 '500':
@@ -2049,7 +2045,6 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
   billable_units: 4
   names:
   - Suriname
@@ -2167,8 +2162,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 1
   names:
   - Solomon Islands
 '678':
@@ -2272,8 +2266,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 2
   names:
   - Micronesia, Federated States of
 '692':
@@ -2286,8 +2279,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 1
   names:
   - Marshall Islands
 '852':
@@ -2688,8 +2680,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 2
   names:
   - Bahamas
 '1246':
@@ -2702,8 +2693,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Barbados
 '1264':
@@ -2716,8 +2706,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Anguilla
 '1268':
@@ -2730,8 +2719,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Antigua and Barbuda
 '1284':
@@ -2744,8 +2732,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Virgin Islands, British
 '1345':
@@ -2758,8 +2745,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Cayman Islands
 '1441':
@@ -2772,8 +2758,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Bermuda
 '1473':
@@ -2786,8 +2771,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Grenada
 '1649':
@@ -2800,8 +2784,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Turks and Caicos Islands
 '1664':
@@ -2814,8 +2797,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Montserrat
 '1684':
@@ -2828,8 +2810,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - American Samoa
 '1721':
@@ -2842,8 +2823,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 1
   names:
   - Sint Maarten
 '1758':
@@ -2856,8 +2836,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Saint Lucia
 '1767':
@@ -2870,8 +2849,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Dominica, Commonwealth of
 '1784':
@@ -2884,8 +2862,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Saint Vincent and The Grenadines
 '1868':
@@ -2898,8 +2875,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Trinidad and Tobago
 '1869':
@@ -2912,8 +2888,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Saint Kitts and Nevis
 '1876':
@@ -2926,7 +2901,6 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  billable_units: 3
   names:
   - Jamaica
