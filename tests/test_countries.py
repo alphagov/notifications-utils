@@ -117,6 +117,16 @@ def test_crowdsourced_test_data():
         ("Illes Balears", "Balearic Islands"),
         ("Corsica", "Corsica"),
         ("Corse", "Corsica"),
+        ("Congo, Democratic Republic of", "Congo"),
+        ("Curacao (former Netherlands Antilles)", "Curaçao"),
+        ("Djibouti, Republic of", "Djibouti"),
+        ("Dominica, Commonwealth of", "Dominica"),
+        ("Korea, Republic of", "South Korea"),
+        ("Micronesia, Federated States of", "Micronesia"),
+        ("Palestinian Territory", "Occupied Palestinian Territories"),
+        ("Rwanda, Republic of", "Rwanda"),
+        ("San Marino, Republic of", "San Marino"),
+        ("Virgin Islands, British", "British Virgin Islands"),
     ),
 )
 def test_hand_crafted_synonyms(search, expected):
