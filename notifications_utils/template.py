@@ -44,6 +44,7 @@ from notifications_utils.markdown import (
 )
 from notifications_utils.postal_address import PostalAddress, address_lines_1_to_7_keys
 from notifications_utils.sanitise_text import SanitiseSMS
+from notifications_utils.serialised_model import SerialisedModel
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
 
@@ -774,9 +775,14 @@ class LetterPreviewTemplate(BaseLetterTemplate):
                     "address": self._address_block,
                     "contact_block": self._contact_block,
                     "date": self._date,
+                    "attachment_page_count": self.attachment_page_count
                 }
             )
         )
+
+    @property
+    def attachment_page_count(self):
+        return self.get_raw("letter_attachment", {}).get("page_count", 0)
 
 
 class LetterPrintTemplate(LetterPreviewTemplate):

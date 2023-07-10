@@ -9,7 +9,7 @@
   }
   @page {
     @bottom-right {
-      content: "Page " counter(page) " of " counter(pages);
+      content: "Page " counter(page) " of " counter(pages) + {{ attachment_page_count }};
       font-family: 'Nimbus Sans L';
       font-size: 10pt;
       text-align: right;
