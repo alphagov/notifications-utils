@@ -3,11 +3,15 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 65.2.0
+
+* Update international billing rates for text messages to latest values from MMG.
+
 ## 65.1.0
 
 * Add a few more mappings to the list of countries for postage
 
-# 65.0.0
+## 65.0.0
 
 * Remove automatic formatting from JSONFormatter. Any log messages using `{}` to inject strings should be converted
   to "old-style" log messages using %s and passing variables as arguments to the log function. Do not eagerly
