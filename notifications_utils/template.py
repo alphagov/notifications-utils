@@ -30,6 +30,7 @@ from notifications_utils.formatters import (
     remove_whitespace_before_punctuation,
     replace_hyphens_with_en_dashes,
     replace_hyphens_with_non_breaking_hyphens,
+    restore_svg_dashes,
     sms_encode,
     strip_leading_whitespace,
     strip_unsupported_characters,
@@ -754,6 +755,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
             .then(notify_letter_preview_markdown)
             .then(do_nice_typography)
             .then(replace_hyphens_with_non_breaking_hyphens)
+            .then(restore_svg_dashes)
         )
 
 
