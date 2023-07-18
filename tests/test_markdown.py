@@ -614,6 +614,11 @@ def test_link_with_title(markdown_function, expected):
     assert markdown_function('[Example](http://example.com "An example URL")') == expected
 
 
+def test_letter_qr_code():
+    expected_qr_code_start = "<p><div class=\'qrcode\'><svg width=\"25mm\" height=\"25mm\" version=\"1.1\" viewBox=\"0 0 25 25\" xmlns=\"http://www.w3.org/2000/svg\">"
+    assert notify_letter_preview_markdown('[qr](http://example.com")').startswith(expected_qr_code_start)
+
+
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (

@@ -2,16 +2,14 @@ import itertools
 import re
 from itertools import count
 
+import mistune
 import qrcode
 import qrcode.image.svg
-import mistune
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
-from notifications_utils.insensitive_dict import InsensitiveDict
-from notifications_utils.field import Field
 from notifications_utils.formatters import create_sanitised_html_for_url
-
+from notifications_utils.insensitive_dict import InsensitiveDict
 
 LINK_STYLE = "word-wrap: break-word; color: #1D70B8;"
 
