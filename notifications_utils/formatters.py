@@ -224,11 +224,22 @@ def replace_hyphens_with_en_dashes(value):
     )
 
 
+SVG_DASH_REPLACEMENT = "🛳️🐦🥴"
+
+
+def replace_svg_dashes(value):
+    return value.replace("-", SVG_DASH_REPLACEMENT)
+
+
 def replace_hyphens_with_non_breaking_hyphens(value):
     return value.replace(
         "-",
         "\u2011",  # non-breaking hyphen
     )
+
+
+def restore_svg_dashes(value):
+    return value.replace(SVG_DASH_REPLACEMENT, "-")
 
 
 def normalise_whitespace_and_newlines(value):
