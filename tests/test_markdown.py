@@ -615,8 +615,9 @@ def test_link_with_title(markdown_function, expected):
 
 
 def test_letter_qr_code():
-    expected_qr_code_start = "<p><div class='qrcode'><svg viewBox=\"0 0 25 25\">"
-    assert notify_letter_preview_markdown('[qr](http://example.com")').startswith(expected_qr_code_start)
+    expected_qr_code = '<p><div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h8m2 0h7m🛳️🐦🥴25 1h1m5 0h1m1 0h1m1 0h1m1 0h5m1 0h1m5 0h1m🛳️🐦🥴25 1h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m2 0h1m1 0h3m1 0h1m🛳️🐦🥴25 1h1m1 0h3m1 0h1m1 0h2m1 0h1m6 0h1m1 0h3m1 0h1m🛳️🐦🥴25 1h1m1 0h3m1 0h1m1 0h5m1 0h2m2 0h1m1 0h3m1 0h1m🛳️🐦🥴25 1h1m5 0h1m3 0h1m4 0h2m1 0h1m5 0h1m🛳️🐦🥴25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m🛳️🐦🥴17 1h1m2 0h3m🛳️🐦🥴13 1h2m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h5m🛳️🐦🥴25 1h3m5 0h1m1 0h2m1 0h1m2 0h3m5 0h1m🛳️🐦🥴25 1h1m1 0h1m3 0h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m🛳️🐦🥴25 1h2m1 0h1m1 0h1m1 0h1m3 0h3m2 0h1m2 0h2m2 0h1m🛳️🐦🥴24 1h4m2 0h1m2 0h1m4 0h6m1 0h1m1 0h2m🛳️🐦🥴23 1h1m2 0h1m2 0h2m1 0h1m1 0h1m3 0h2m2 0h1m2 0h1m🛳️🐦🥴25 1h1m1 0h1m1 0h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h2m1 0h3m🛳️🐦🥴24 1h2m4 0h1m1 0h2m2 0h1m1 0h2m4 0h1m1 0h1m🛳️🐦🥴24 1h1m4 0h2m3 0h1m1 0h1m1 0h1m1 0h6m🛳️🐦🥴14 1h3m1 0h1m2 0h2m3 0h5m🛳️🐦🥴25 1h7m1 0h2m2 0h1m2 0h2m1 0h1m1 0h1m2 0h2m🛳️🐦🥴25 1h1m5 0h1m2 0h2m3 0h1m1 0h1m3 0h2m2 0h1m🛳️🐦🥴25 1h1m1 0h3m1 0h1m1 0h3m2 0h1m2 0h5m3 0h1m🛳️🐦🥴25 1h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h3m3 0h2m1 0h1m🛳️🐦🥴23 1h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h3m2 0h1m🛳️🐦🥴25 1h1m5 0h1m1 0h1m2 0h1m1 0h5m2 0h2m1 0h1m🛳️🐦🥴24 1h7m3 0h2m2 0h3m1 0h2m3 0h2"/></svg></div></p>'  # noqa
+
+    assert notify_letter_preview_markdown('[qr](http://example.com")') == expected_qr_code
 
 
 def test_letter_qr_code_works_with_extra_whitespace():
