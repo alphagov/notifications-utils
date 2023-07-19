@@ -901,6 +901,27 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
     assert jinja_template_locals["logo_file_name"] is None
 
 
+@mock.patch("notifications_utils.template.LetterPreviewTemplate.jinja_template.render")
+def test_letter_preview_renders_QR_code_correctly(jinja_template):
+
+    str(
+        LetterPreviewTemplate(
+            {
+                "content": "This is your link: [qr](https://www.example.com)",
+                "subject": "Subject",
+                "template_type": "letter",
+            },
+            {"addressline1": "name", "addressline2": "street", "postcode": "SW1 1AA"},
+            contact_block="",
+        )
+    )
+
+    jinja_template_locals = jinja_template.call_args_list[0][0][0]
+
+    expected_qr_code_svg = '<p>This is your link: <div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h2m1 0h1m2 0h1m3 0h7m-25 1h1m5 0h1m1 0h6m4 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h1m4 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h1m2 0h2m2 0h1m-17 1h1m2 0h6m1 0h2m4 0h2m2 0h1m1 0h3m-24 1h3m3 0h2m2 0h5m1 0h1m1 0h5m-24 1h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m-25 1h1m2 0h1m5 0h2m1 0h1m3 0h1m2 0h1m1 0h4m-24 1h1m3 0h2m1 0h1m1 0h1m4 0h2m1 0h1m5 0h1m-25 1h2m1 0h2m2 0h1m4 0h6m2 0h1m2 0h1m-24 1h3m2 0h3m2 0h1m4 0h4m1 0h5m-25 1h1m1 0h2m3 0h2m3 0h1m3 0h2m1 0h1m1 0h2m1 0h1m-25 1h1m5 0h1m1 0h2m1 0h3m2 0h5m1 0h2m-16 1h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h2m-24 1h7m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h4m1 0h1m1 0h2m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h7m2 0h2m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m4 0h2m-25 1h1m1 0h3m1 0h1m4 0h2m4 0h1m2 0h5m-25 1h1m5 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h5m1 0h2m3 0h1m2 0h1"/></svg></div></p>'  # noqa
+    assert jinja_template_locals["message"] == expected_qr_code_svg
+
+
 @freeze_time("2012-12-12 12:12:12")
 @mock.patch("notifications_utils.template.LetterImageTemplate.jinja_template.render")
 @pytest.mark.parametrize(
