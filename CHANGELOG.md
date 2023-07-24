@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 66.0.0
+
+* Switch from PyPDF2 to pypdf, and bump to version 3.9.0. This addresses an infinite loop vulnerability in PDF processing (https://nvd.nist.gov/vuln/detail/CVE-2023-36464).
+
 ## 65.2.0
 
 * Update international billing rates for text messages to latest values from MMG.
