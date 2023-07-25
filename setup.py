@@ -36,7 +36,7 @@ setup(
         "pyproj>=3.4.1",
         "pytz>=2020.4",
         "smartypants>=2.0.1",
-        "pypdf2>=2.0.0",
+        "pypdf>=3.9.0",
         "itsdangerous>=1.1.0",
         "govuk-bank-holidays>=0.10,<1.0",
         "geojson>=2.5.0",
