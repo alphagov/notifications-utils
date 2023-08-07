@@ -3117,7 +3117,7 @@ def test_letter_image_template_marks_first_page_of_attachment():
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](((var)))"},
-            "<p>Example: <strong>span class=’placeholder’>&#40;&#40;var&#41;&#41;</span</strong></p>",
+            "<p>Example: <strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong></p>",
         ),
         (
             LetterPreviewTemplate,
@@ -3129,13 +3129,18 @@ def test_letter_image_template_marks_first_page_of_attachment():
             ),
         ),
         (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "[Example](pre((var))post)"},
+            ("<p>Example: <strong>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</strong></p>"),
+        ),
+        (
             EmailPreviewTemplate,
             {"template_type": "email", "subject": "foo", "content": "[Example](((var)))"},
             (
                 '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
                 'color: #0B0C0C;">'
                 '<a style="word-wrap: break-word; color: #1D70B8;" '
-                "href=\"span class='placeholder'>&#40;&#40;var&#41;&#41;</span\">"
+                "href=\"<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>\">"
                 "Example"
                 "</a>"
                 "</p>"
@@ -3149,6 +3154,19 @@ def test_letter_image_template_marks_first_page_of_attachment():
                 'color: #0B0C0C;">'
                 '<a style="word-wrap: break-word; color: #1D70B8;" '
                 "href=\"https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>\">"
+                "Example"
+                "</a>"
+                "</p>"
+            ),
+        ),
+        (
+            EmailPreviewTemplate,
+            {"template_type": "email", "subject": "foo", "content": "[Example](pre((var))post)"},
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
+                'color: #0B0C0C;">'
+                '<a style="word-wrap: break-word; color: #1D70B8;" '
+                "href=\"pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post\">"
                 "Example"
                 "</a>"
                 "</p>"
