@@ -1364,7 +1364,7 @@ def test_subject_line_gets_applied_to_correct_template_types():
 )
 def test_subject_line_gets_replaced(template_class, template_type, extra_args):
     template = template_class({"content": "", "template_type": template_type, "subject": "((name))"}, **extra_args)
-    assert template.subject == Markup("<span class='placeholder'>((name))</span>")
+    assert template.subject == Markup("<span class='placeholder'>&#40;&#40;name&#41;&#41;</span>")
     template.values = {"name": "Jo"}
     assert template.subject == "Jo"
 
@@ -3109,3 +3109,52 @@ def test_letter_image_template_marks_first_page_of_attachment():
         '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=7"/>',
         '<img alt="" loading="lazy" src="http://example.com/endpoint.png?page=8"/>',
     ]
+
+
+@pytest.mark.parametrize(
+    "template_class, template_data, expect_content",
+    (
+        (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "[Example](((var)))"},
+            "<p>Example: <strong>span class=’placeholder’>&#40;&#40;var&#41;&#41;</span</strong></p>",
+        ),
+        (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
+            (
+                "<p>Example: "
+                "<strong>blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"
+                "</p>"
+            ),
+        ),
+        (
+            EmailPreviewTemplate,
+            {"template_type": "email", "subject": "foo", "content": "[Example](((var)))"},
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
+                'color: #0B0C0C;">'
+                '<a style="word-wrap: break-word; color: #1D70B8;" '
+                "href=\"span class='placeholder'>&#40;&#40;var&#41;&#41;</span\">"
+                "Example"
+                "</a>"
+                "</p>"
+            ),
+        ),
+        (
+            EmailPreviewTemplate,
+            {"template_type": "email", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
+                'color: #0B0C0C;">'
+                '<a style="word-wrap: break-word; color: #1D70B8;" '
+                "href=\"https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>\">"
+                "Example"
+                "</a>"
+                "</p>"
+            ),
+        ),
+    ),
+)
+def test_links_with_personalisation(template_class, template_data, expect_content):
+    assert expect_content in str(template_class(template_data))
