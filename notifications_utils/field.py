@@ -66,8 +66,8 @@ class Field:
         r"([^()]+)"  # body of placeholder - potentially standard or conditional.
         r"\){2}"  # closing ))
     )
-    placeholder_tag = "<span class='placeholder'>(({}))</span>"
-    conditional_placeholder_tag = "<span class='placeholder-conditional'>(({}??</span>{}))"
+    placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
+    conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
     placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
 

@@ -1364,7 +1364,7 @@ def test_subject_line_gets_applied_to_correct_template_types():
 )
 def test_subject_line_gets_replaced(template_class, template_type, extra_args):
     template = template_class({"content": "", "template_type": template_type, "subject": "((name))"}, **extra_args)
-    assert template.subject == Markup("<span class='placeholder'>((name))</span>")
+    assert template.subject == Markup("<span class='placeholder'>&#40;&#40;name&#41;&#41;</span>")
     template.values = {"name": "Jo"}
     assert template.subject == "Jo"
 
