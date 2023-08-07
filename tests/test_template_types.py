@@ -3134,6 +3134,29 @@ def test_letter_image_template_marks_first_page_of_attachment():
             ("<p>Example: <strong>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</strong></p>"),
         ),
         (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "[QR](((var)))"},
+            "<p><div class='qrcode‑placeholder'><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></div></p>",
+        ),
+        (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "[QR](https://blah.blah/?query=((var)))"},
+            (
+                "<p><div class='qrcode‑placeholder'>"
+                "https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>"
+                "</div></p>"
+            ),
+        ),
+        (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "[QR](pre((var))post)"},
+            (
+                "<p><div class='qrcode‑placeholder'>"
+                "pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post"
+                "</div></p>"
+            ),
+        ),
+        (
             EmailPreviewTemplate,
             {"template_type": "email", "subject": "foo", "content": "[Example](((var)))"},
             (
