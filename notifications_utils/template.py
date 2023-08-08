@@ -14,6 +14,7 @@ from notifications_utils import (
     SMS_CHAR_COUNT_LIMIT,
 )
 from notifications_utils.countries.data import Postage
+from notifications_utils.exceptions import QrCodeTooLong
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     add_prefix,
@@ -41,6 +42,7 @@ from notifications_utils.markdown import (
     notify_email_markdown,
     notify_email_preheader_markdown,
     notify_letter_preview_markdown,
+    notify_letter_qrcode_validator,
     notify_plain_text_email_markdown,
 )
 from notifications_utils.postal_address import PostalAddress, address_lines_1_to_7_keys
@@ -704,6 +706,15 @@ class BaseLetterTemplate(SubjectMixin, Template):
     def postal_address(self):
         return PostalAddress.from_personalisation(InsensitiveDict(self.values))
 
+    def has_qr_code_with_too_much_data(self):
+        content = self._personalised_content if self.values else self.content
+        try:
+            Take(content).then(notify_letter_qrcode_validator)
+        except QrCodeTooLong:
+            return True
+
+        return False
+
     @property
     def _address_block(self):
 
@@ -740,17 +751,19 @@ class BaseLetterTemplate(SubjectMixin, Template):
         return self.date.strftime("%-d %B %Y")
 
     @property
+    def _personalised_content(self) -> Field:
+        return Field(
+            self.content,
+            self.values,
+            html="escape",
+            markdown_lists=True,
+            redact_missing_personalisation=self.redact_missing_personalisation,
+        )
+
+    @property
     def _message(self):
         return (
-            Take(
-                Field(
-                    self.content,
-                    self.values,
-                    html="escape",
-                    markdown_lists=True,
-                    redact_missing_personalisation=self.redact_missing_personalisation,
-                )
-            )
+            Take(self._personalised_content)
             .then(add_trailing_newline)
             .then(notify_letter_preview_markdown)
             .then(do_nice_typography)

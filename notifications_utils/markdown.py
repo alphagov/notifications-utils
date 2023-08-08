@@ -8,6 +8,7 @@ import segno
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
+from notifications_utils.exceptions import QR_CODE_MAX_BYTES, QrCodeTooLong
 from notifications_utils.formatters import create_sanitised_html_for_url, replace_svg_dashes
 from notifications_utils.insensitive_dict import InsensitiveDict
 
@@ -80,21 +81,20 @@ def qr_code_placeholder(link):
     )
 
 
-def qr_code_html(data):
-    if "<span class='placeholder" in data:
-        placeholder = qr_code_placeholder(data)
-        return replace_svg_dashes(placeholder)
-
-    qr_data = qr_code_as_svg(data)
-    return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
-
-
 def qr_code_contents_from_paragraph(text):
     if match := paragraph_is_qr_code_markup_regex.fullmatch(text):
         return match[1]
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
+    def _render_qr_data(self, data):
+        if "<span class='placeholder" in data:
+            placeholder = qr_code_placeholder(data)
+            return replace_svg_dashes(placeholder)
+
+        qr_data = qr_code_as_svg(data)
+        return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
+
     def block_code(self, code, language=None):
         return code
 
@@ -114,7 +114,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
             return ""
 
         if qr_code_contents := qr_code_contents_from_paragraph(text):
-            text = qr_code_html(qr_code_contents)
+            text = self._render_qr_data(qr_code_contents)
 
         return f"<p>{text}</p>"
 
@@ -142,7 +142,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
             link = f"<{link}>"
 
         if InsensitiveDict.make_key(content) == "qr":
-            return qr_code_html(link)
+            return self._render_qr_data(link)
 
         return f"{content}: {self.autolink(link)}"
 
@@ -154,6 +154,16 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def footnotes(self, text):
         return text
+
+
+class NotifyLetterMarkdownValidatingRenderer(NotifyLetterMarkdownPreviewRenderer):
+    """Renders letter markdown as normal, except validates QR code data does not exceed a maximum length."""
+
+    def _render_qr_data(self, data):
+        if (num_bytes := len(data.encode("utf8"))) > QR_CODE_MAX_BYTES:
+            raise QrCodeTooLong(num_bytes=num_bytes, data=data)
+
+        return data
 
 
 class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
@@ -362,4 +372,7 @@ notify_letter_preview_markdown = mistune.Markdown(
     renderer=NotifyLetterMarkdownPreviewRenderer(),
     hard_wrap=True,
     use_xhtml=False,
+)
+notify_letter_qrcode_validator = mistune.Markdown(
+    renderer=NotifyLetterMarkdownValidatingRenderer(), hard_wrap=True, use_xhtml=False
 )
