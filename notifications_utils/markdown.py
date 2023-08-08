@@ -59,6 +59,7 @@ mistune.InlineLexer.inline_html_rules = list(
         )
     )
 )
+paragraph_is_qr_code_markup_regex = re.compile(r"^qr[\s]*:[\s]*(.+)", re.I)
 
 
 def qr_code_as_svg(data):
@@ -79,6 +80,11 @@ def qr_code_placeholder(link):
     )
 
 
+def qr_code_contents_from_paragraph(text):
+    if match := paragraph_is_qr_code_markup_regex.fullmatch(text):
+        return match[1]
+
+
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def block_code(self, code, language=None):
         return code
@@ -96,6 +102,12 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def paragraph(self, text):
         if text.strip():
+            if qr_code_contents := qr_code_contents_from_paragraph(text):
+                if "<span class='placeholder" in qr_code_contents:
+                    placeholder = replace_svg_dashes(qr_code_placeholder(qr_code_contents))
+                    return f"<p>{placeholder}</p>"
+                qr_data = replace_svg_dashes(qr_code_as_svg(qr_code_contents))
+                return f"<p><div class='qrcode'>{qr_data}</div></p>"
             return f"<p>{text}</p>"
         return ""
 
