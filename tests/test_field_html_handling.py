@@ -15,8 +15,8 @@ from notifications_utils.field import Field
         (
             "string ((<em>with</em>)) html",
             {},
-            "string <span class='placeholder'>((&lt;em&gt;with&lt;/em&gt;))</span> html",
-            "string <span class='placeholder'>((<em>with</em>))</span> html",
+            "string <span class='placeholder'>&#40;&#40;&lt;em&gt;with&lt;/em&gt;&#41;&#41;</span> html",
+            "string <span class='placeholder'>&#40;&#40;<em>with</em>&#41;&#41;</span> html",
         ),
         (
             "string ((placeholder)) html",
@@ -30,15 +30,15 @@ from notifications_utils.field import Field
             (
                 "string "
                 "<span class='placeholder-conditional'>"
-                "((&lt;em&gt;conditional&lt;/em&gt;??</span>"
-                "&lt;em&gt;placeholder&lt;/em&gt;)) "
+                "&#40;&#40;&lt;em&gt;conditional&lt;/em&gt;??</span>"
+                "&lt;em&gt;placeholder&lt;/em&gt;&#41;&#41; "
                 "html"
             ),
             (
                 "string "
                 "<span class='placeholder-conditional'>"
-                "((<em>conditional</em>??</span>"
-                "<em>placeholder</em>)) "
+                "&#40;&#40;<em>conditional</em>??</span>"
+                "<em>placeholder</em>&#41;&#41; "
                 "html"
             ),
         ),

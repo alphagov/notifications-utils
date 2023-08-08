@@ -145,11 +145,11 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
 @pytest.mark.parametrize(
     "content,expected",
     [
-        ("((colour))", "<span class='placeholder'>((colour))</span>"),
-        ("the quick ((colour)) fox", "the quick <span class='placeholder'>((colour))</span> fox"),
+        ("((colour))", "<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>"),
+        ("the quick ((colour)) fox", "the quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> fox"),
         (
             "((article)) quick ((colour)) ((animal))",
-            "<span class='placeholder'>((article))</span> quick <span class='placeholder'>((colour))</span> <span class='placeholder'>((animal))</span>",  # noqa
+            "<span class='placeholder'>&#40;&#40;article&#41;&#41;</span> quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> <span class='placeholder'>&#40;&#40;animal&#41;&#41;</span>",  # noqa
         ),
         (
             """
@@ -158,24 +158,24 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
                 ((animal))
             """,
             """
-                <span class='placeholder'>((article))</span> quick
-                <span class='placeholder'>((colour))</span>
-                <span class='placeholder'>((animal))</span>
+                <span class='placeholder'>&#40;&#40;article&#41;&#41;</span> quick
+                <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>
+                <span class='placeholder'>&#40;&#40;animal&#41;&#41;</span>
             """,
         ),
-        ("the quick (((colour))) fox", "the quick (<span class='placeholder'>((colour))</span>) fox"),
-        ("((warning?))", "<span class='placeholder'>((warning?))</span>"),
+        ("the quick (((colour))) fox", "the quick (<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>) fox"),
+        ("((warning?))", "<span class='placeholder'>&#40;&#40;warning?&#41;&#41;</span>"),
         (
             "((warning? This is not a conditional))",
-            "<span class='placeholder'>((warning? This is not a conditional))</span>",
+            "<span class='placeholder'>&#40;&#40;warning? This is not a conditional&#41;&#41;</span>",
         ),
         (
             "((warning?? This is a warning))",
-            "<span class='placeholder-conditional'>((warning??</span> This is a warning))",
+            "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This is a warning&#41;&#41;",
         ),
         (
             "((warning?? This is a warning\n text after linebreak))",
-            "<span class='placeholder-conditional'>((warning??</span> This is a warning\n text after linebreak))",
+            "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This is a warning\n text after linebreak&#41;&#41;",  # noqa
         ),
     ],
 )
@@ -189,17 +189,17 @@ def test_formatting_of_placeholders(content, expected):
         (
             "((name)) ((colour))",
             {"name": "Jo"},
-            "Jo <span class='placeholder'>((colour))</span>",
+            "Jo <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>",
         ),
         (
             "((name)) ((colour))",
             {"name": "Jo", "colour": None},
-            "Jo <span class='placeholder'>((colour))</span>",
+            "Jo <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>",
         ),
         (
             "((show_thing??thing)) ((colour))",
             {"colour": "red"},
-            "<span class='placeholder-conditional'>((show_thing??</span>thing)) red",
+            "<span class='placeholder-conditional'>&#40;&#40;show_thing??</span>thing&#41;&#41; red",
         ),
     ],
 )

@@ -105,11 +105,14 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return f"<li>{text.strip()}</li>\n"
 
     def link(self, link, title, content):
+        if link.startswith("span class='placeholder") and link.endswith("</span"):
+            link = f"<{link}>"
 
         if InsensitiveDict.make_key(content) == "qr":
             qr_data = replace_svg_dashes(qr_code_as_svg(link))
-            if "span class='placeholder" in link:
-                return f"<div class='qrcode-placeholder'><{link}></div>"
+            if "<span class='placeholder" in link:
+                return f"<div class='qrcode-placeholder'>{link}</div>"
+
             return f"<div class='qrcode'>{qr_data}</div>"
 
         return f"{content}: {self.autolink(link)}"
@@ -199,6 +202,8 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         )
 
     def link(self, link, title, content):
+        if link.startswith("span class='placeholder") and link.endswith("</span"):
+            link = f"<{link}>"
         if title:
             return f'<a style="{LINK_STYLE}" href="{link}" title="{title}">{content}</a>'
         return f'<a style="{LINK_STYLE}" href="{link}">{content}</a>'
