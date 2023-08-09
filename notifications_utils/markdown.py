@@ -80,6 +80,15 @@ def qr_code_placeholder(link):
     )
 
 
+def qr_code_html(data):
+    if "<span class='placeholder" in data:
+        placeholder = qr_code_placeholder(data)
+        return replace_svg_dashes(placeholder)
+
+    qr_data = qr_code_as_svg(data)
+    return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
+
+
 def qr_code_contents_from_paragraph(text):
     if match := paragraph_is_qr_code_markup_regex.fullmatch(text):
         return match[1]
@@ -101,15 +110,13 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return '<div class="page-break">&nbsp;</div>'
 
     def paragraph(self, text):
-        if text.strip():
-            if qr_code_contents := qr_code_contents_from_paragraph(text):
-                if "<span class='placeholder" in qr_code_contents:
-                    placeholder = replace_svg_dashes(qr_code_placeholder(qr_code_contents))
-                    return f"<p>{placeholder}</p>"
-                qr_data = replace_svg_dashes(qr_code_as_svg(qr_code_contents))
-                return f"<p><div class='qrcode'>{qr_data}</div></p>"
-            return f"<p>{text}</p>"
-        return ""
+        if not text.strip():
+            return ""
+
+        if qr_code_contents := qr_code_contents_from_paragraph(text):
+            text = qr_code_html(qr_code_contents)
+
+        return f"<p>{text}</p>"
 
     def table(self, header, body):
         return ""
@@ -135,10 +142,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
             link = f"<{link}>"
 
         if InsensitiveDict.make_key(content) == "qr":
-            qr_data = replace_svg_dashes(qr_code_as_svg(link))
-            if "<span class='placeholder" in link:
-                return replace_svg_dashes(qr_code_placeholder(link))
-            return f"<div class='qrcode'>{qr_data}</div>"
+            return qr_code_html(link)
 
         return f"{content}: {self.autolink(link)}"
 
