@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 66.0.2
+
+* Style the QR code placeholder so it looks better when the placeholder text is long
+
 ## 66.0.1
 
 * Use HTML-encoded parenthesis (`(` and `)`) when rendering template content with placeholders.

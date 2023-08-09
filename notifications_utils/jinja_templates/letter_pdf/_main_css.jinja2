@@ -195,23 +195,32 @@
     border-radius: 1.05em;
   }
   .qrcode,
-  .qrcode‑placeholder {
+  .qrcode-placeholder {
       display: block;
-      width: {{ line_height_raw * 5.25 }}pt;
       height: {{ line_height_raw * 5.25 }}pt;
       margin: {{ line_height_raw * 1.25 }}pt auto {{ line_height_raw * 1.5 }}pt auto;
+  }
+  .qrcode {
+      width: {{ line_height_raw * 5.25 }}pt;
   }
   .qrcode svg {
     display: block;
     width: 100%;
     height: 100%;
   }
-  .qrcode‑placeholder {
-      padding-top: {{ line_height_raw * 2 }}pt;
+  .qrcode-placeholder-border {
+      width: {{ line_height_raw * 5.25 }}pt;
+      height: {{ line_height_raw * 5.25 }}pt;
       border: 4pt dashed black;
-      vertical-align: middle;
-      text-align: center;
+      margin: 0 auto 0 auto;
       box-sizing: border-box;
   }
-
+  .qrcode-placeholder-content {
+      text-align: center;
+      margin-top: {{ line_height_raw * -3.125 }}pt;
+  }
+  .qrcode-placeholder-content-background {
+      padding: 4pt;
+      background: #fff;
+  }
 </style>

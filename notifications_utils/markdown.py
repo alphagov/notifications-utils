@@ -1,6 +1,7 @@
 import itertools
 import re
 from itertools import count
+from textwrap import dedent
 
 import mistune
 import segno
@@ -65,6 +66,19 @@ def qr_code_as_svg(data):
     return qr.svg_inline(border=0, svgclass=None, lineclass=None, omitsize=True)
 
 
+def qr_code_placeholder(link):
+    return dedent(
+        f"""
+            <div class='qrcode-placeholder'>
+                <div class='qrcode-placeholder-border'></div>
+                <div class='qrcode-placeholder-content'>
+                    <span class='qrcode-placeholder-content-background'>{link}</span>
+                </div>
+            </div>
+        """
+    )
+
+
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def block_code(self, code, language=None):
         return code
@@ -111,8 +125,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         if InsensitiveDict.make_key(content) == "qr":
             qr_data = replace_svg_dashes(qr_code_as_svg(link))
             if "<span class='placeholder" in link:
-                return f"<div class='qrcode-placeholder'>{link}</div>"
-
+                return replace_svg_dashes(qr_code_placeholder(link))
             return f"<div class='qrcode'>{qr_data}</div>"
 
         return f"{content}: {self.autolink(link)}"
