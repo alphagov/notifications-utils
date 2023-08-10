@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 66.1.0
+
+* Add a simpler syntax for QR codes in letters (QR: http://example.com)
+
 ## 66.0.2
 
 * Style the QR code placeholder so it looks better when the placeholder text is long

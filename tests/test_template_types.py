@@ -3149,6 +3149,20 @@ def test_letter_image_template_marks_first_page_of_attachment():
         ),
         (
             LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "QR: ((var))"},
+            (
+                "<p>\n"
+                "<div class='qrcode-placeholder'>\n"
+                "    <div class='qrcode-placeholder-border'></div>\n"
+                "    <div class='qrcode-placeholder-content'>\n"
+                "        <span class='qrcode-placeholder-content-background'><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
+                "    </div>\n"
+                "</div>\n"
+                "</p>"
+            ),
+        ),
+        (
+            LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[QR](https://blah.blah/?query=((var)))"},
             (
                 "<p>\n"
@@ -3163,7 +3177,34 @@ def test_letter_image_template_marks_first_page_of_attachment():
         ),
         (
             LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "QR:https://blah.blah/?query=((var))"},
+            (
+                "<p>\n"
+                "<div class='qrcode-placeholder'>\n"
+                "    <div class='qrcode-placeholder-border'></div>\n"
+                "    <div class='qrcode-placeholder-content'>\n"
+                "        <span class='qrcode-placeholder-content-background'><strong>blah.blah/?query=</strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
+                "    </div>\n"
+                "</div>\n"
+                "</p>"
+            ),
+        ),
+        (
+            LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[QR](pre((var))post)"},
+            (
+                "<p>\n<div class='qrcode-placeholder'>\n"
+                "    <div class='qrcode-placeholder-border'></div>\n"
+                "    <div class='qrcode-placeholder-content'>\n"
+                "        <span class='qrcode-placeholder-content-background'>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</span>\n"  # noqa
+                "    </div>\n"
+                "</div>\n"
+                "</p>"
+            ),
+        ),
+        (
+            LetterPreviewTemplate,
+            {"template_type": "letter", "subject": "foo", "content": "qr:pre((var))post"},
             (
                 "<p>\n<div class='qrcode-placeholder'>\n"
                 "    <div class='qrcode-placeholder-border'></div>\n"
