@@ -6,7 +6,7 @@ from textwrap import dedent
 import segno
 
 QR_CODE_MAX_BYTES = 504
-paragraph_is_qr_code_markup_regex = re.compile(r"^qr[\s]*:[\s]*(.+)", re.I)
+paragraph_is_qr_code_markup_regex = re.compile(r"^[\s]*qr[\s]*:[\s]*(.+)", re.I)
 
 
 class QrCodeTooLong(ValueError):

@@ -907,7 +907,7 @@ def test_letter_preview_renders_QR_code_correctly(jinja_template):
     str(
         LetterPreviewTemplate(
             {
-                "content": "This is your link: [qr](https://www.example.com)",
+                "content": "This is your link:\n\nqr: https://www.example.com",
                 "subject": "Subject",
                 "template_type": "letter",
             },
@@ -918,7 +918,7 @@ def test_letter_preview_renders_QR_code_correctly(jinja_template):
 
     jinja_template_locals = jinja_template.call_args_list[0][0][0]
 
-    expected_qr_code_svg = '<p>This is your link: <div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h2m1 0h1m2 0h1m3 0h7m-25 1h1m5 0h1m1 0h6m4 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h1m4 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h1m2 0h2m2 0h1m-17 1h1m2 0h6m1 0h2m4 0h2m2 0h1m1 0h3m-24 1h3m3 0h2m2 0h5m1 0h1m1 0h5m-24 1h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m-25 1h1m2 0h1m5 0h2m1 0h1m3 0h1m2 0h1m1 0h4m-24 1h1m3 0h2m1 0h1m1 0h1m4 0h2m1 0h1m5 0h1m-25 1h2m1 0h2m2 0h1m4 0h6m2 0h1m2 0h1m-24 1h3m2 0h3m2 0h1m4 0h4m1 0h5m-25 1h1m1 0h2m3 0h2m3 0h1m3 0h2m1 0h1m1 0h2m1 0h1m-25 1h1m5 0h1m1 0h2m1 0h3m2 0h5m1 0h2m-16 1h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h2m-24 1h7m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h4m1 0h1m1 0h2m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h7m2 0h2m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m4 0h2m-25 1h1m1 0h3m1 0h1m4 0h2m4 0h1m2 0h5m-25 1h1m5 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h5m1 0h2m3 0h1m2 0h1"/></svg></div></p>'  # noqa
+    expected_qr_code_svg = '<p>This is your link:</p><p><div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h2m1 0h1m2 0h1m3 0h7m-25 1h1m5 0h1m1 0h6m4 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h1m4 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h1m2 0h2m2 0h1m-17 1h1m2 0h6m1 0h2m4 0h2m2 0h1m1 0h3m-24 1h3m3 0h2m2 0h5m1 0h1m1 0h5m-24 1h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m-25 1h1m2 0h1m5 0h2m1 0h1m3 0h1m2 0h1m1 0h4m-24 1h1m3 0h2m1 0h1m1 0h1m4 0h2m1 0h1m5 0h1m-25 1h2m1 0h2m2 0h1m4 0h6m2 0h1m2 0h1m-24 1h3m2 0h3m2 0h1m4 0h4m1 0h5m-25 1h1m1 0h2m3 0h2m3 0h1m3 0h2m1 0h1m1 0h2m1 0h1m-25 1h1m5 0h1m1 0h2m1 0h3m2 0h5m1 0h2m-16 1h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h2m-24 1h7m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h4m1 0h1m1 0h2m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h7m2 0h2m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m4 0h2m-25 1h1m1 0h3m1 0h1m4 0h2m4 0h1m2 0h5m-25 1h1m5 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h5m1 0h2m3 0h1m2 0h1"/></svg></div></p>'  # noqa
     assert jinja_template_locals["message"] == expected_qr_code_svg
 
 
@@ -3151,20 +3151,6 @@ def test_letter_image_template_marks_first_page_of_attachment():
         ),
         (
             LetterPreviewTemplate,
-            {"template_type": "letter", "subject": "foo", "content": "[QR](((var)))"},
-            (
-                "<p>\n"
-                "<div class='qrcode-placeholder'>\n"
-                "    <div class='qrcode-placeholder-border'></div>\n"
-                "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
-                "    </div>\n"
-                "</div>\n"
-                "</p>"
-            ),
-        ),
-        (
-            LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "QR: ((var))"},
             (
                 "<p>\n"
@@ -3179,20 +3165,6 @@ def test_letter_image_template_marks_first_page_of_attachment():
         ),
         (
             LetterPreviewTemplate,
-            {"template_type": "letter", "subject": "foo", "content": "[QR](https://blah.blah/?query=((var)))"},
-            (
-                "<p>\n"
-                "<div class='qrcode-placeholder'>\n"
-                "    <div class='qrcode-placeholder-border'></div>\n"
-                "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'>https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
-                "    </div>\n"
-                "</div>\n"
-                "</p>"
-            ),
-        ),
-        (
-            LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "QR:https://blah.blah/?query=((var))"},
             (
                 "<p>\n"
@@ -3200,19 +3172,6 @@ def test_letter_image_template_marks_first_page_of_attachment():
                 "    <div class='qrcode-placeholder-border'></div>\n"
                 "    <div class='qrcode-placeholder-content'>\n"
                 "        <span class='qrcode-placeholder-content-background'>https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
-                "    </div>\n"
-                "</div>\n"
-                "</p>"
-            ),
-        ),
-        (
-            LetterPreviewTemplate,
-            {"template_type": "letter", "subject": "foo", "content": "[QR](pre((var))post)"},
-            (
-                "<p>\n<div class='qrcode-placeholder'>\n"
-                "    <div class='qrcode-placeholder-border'></div>\n"
-                "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</span>\n"  # noqa
                 "    </div>\n"
                 "</div>\n"
                 "</p>"
