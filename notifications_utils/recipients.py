@@ -482,7 +482,7 @@ def normalise_phone_number(number):
     try:
         list(map(int, number))
     except ValueError as e:
-        raise InvalidPhoneError("Must not contain letters or symbols") from e
+        raise InvalidPhoneError("Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -") from e
 
     return number.lstrip("0")
 
@@ -553,13 +553,13 @@ def validate_uk_phone_number(number):
     number = normalise_phone_number(number).lstrip(uk_prefix).lstrip("0")
 
     if not number.startswith("7"):
-        raise InvalidPhoneError("Not a UK mobile number")
+        raise InvalidPhoneError("This does not look like a UK mobile number - double check the number you entered")
 
     if len(number) > 10:
-        raise InvalidPhoneError("Too many digits")
+        raise InvalidPhoneError("Mobile number is too long")
 
     if len(number) < 10:
-        raise InvalidPhoneError("Not enough digits")
+        raise InvalidPhoneError("Mobile number is too short")
 
     return f"{uk_prefix}{number}"
 
@@ -572,13 +572,13 @@ def validate_phone_number(number, international=False):
     number = normalise_phone_number(number)
 
     if len(number) < 8:
-        raise InvalidPhoneError("Not enough digits")
+        raise InvalidPhoneError("Mobile number is too short")
 
     if len(number) > 15:
-        raise InvalidPhoneError("Too many digits")
+        raise InvalidPhoneError("Mobile number is too long")
 
     if get_international_prefix(number) is None:
-        raise InvalidPhoneError("Not a valid country prefix")
+        raise InvalidPhoneError("Country code not found - double check this mobile number")
 
     return number
 
