@@ -386,11 +386,7 @@ class Row(InsensitiveDict):
             else:
                 self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
-
-            if self.template_type == "letter":
-                self.qr_code_too_long = self._has_qr_code_with_too_much_data()
-            else:
-                self.qr_code_too_long = False
+            self.qr_code_too_long = self._has_qr_code_with_too_much_data()
 
         super().__init__({key: Cell(key, value, error_fn, self.placeholders) for key, value in row_dict.items()})
 

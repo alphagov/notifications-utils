@@ -1,16 +1,20 @@
 import itertools
 import re
 from itertools import count
-from textwrap import dedent
 
 import mistune
-import segno
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
-from notifications_utils.exceptions import QR_CODE_MAX_BYTES, QrCodeTooLong
 from notifications_utils.formatters import create_sanitised_html_for_url, replace_svg_dashes
 from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.qr_code import (
+    QR_CODE_MAX_BYTES,
+    QrCodeTooLong,
+    paragraph_is_qr_code_markup_regex,
+    qr_code_as_svg,
+    qr_code_placeholder,
+)
 
 LINK_STYLE = "word-wrap: break-word; color: #1D70B8;"
 
@@ -60,25 +64,6 @@ mistune.InlineLexer.inline_html_rules = list(
         )
     )
 )
-paragraph_is_qr_code_markup_regex = re.compile(r"^qr[\s]*:[\s]*(.+)", re.I)
-
-
-def qr_code_as_svg(data):
-    qr = segno.make(data, error="m", micro=False)
-    return qr.svg_inline(border=0, svgclass=None, lineclass=None, omitsize=True)
-
-
-def qr_code_placeholder(link):
-    return dedent(
-        f"""
-            <div class='qrcode-placeholder'>
-                <div class='qrcode-placeholder-border'></div>
-                <div class='qrcode-placeholder-content'>
-                    <span class='qrcode-placeholder-content-background'>{link}</span>
-                </div>
-            </div>
-        """
-    )
 
 
 def qr_code_contents_from_paragraph(text):

@@ -14,7 +14,6 @@ from notifications_utils import (
     SMS_CHAR_COUNT_LIMIT,
 )
 from notifications_utils.countries.data import Postage
-from notifications_utils.exceptions import QrCodeTooLong
 from notifications_utils.field import Field, PlainTextField
 from notifications_utils.formatters import (
     add_prefix,
@@ -46,6 +45,7 @@ from notifications_utils.markdown import (
     notify_plain_text_email_markdown,
 )
 from notifications_utils.postal_address import PostalAddress, address_lines_1_to_7_keys
+from notifications_utils.qr_code import QrCodeTooLong
 from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
