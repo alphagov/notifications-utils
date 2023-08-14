@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 67.0.0
+
+* Add `has_qr_code_with_too_much_data` property to letter templates.
+* Update RecipientCSV to detect and throw errors when rows generate QR codes with too much data in them. Anything using RecipientCSV to process letters will need to check for and report on the row-level property `qr_code_too_long`.
+
 ## 66.1.0
 
 * Add a simpler syntax for QR codes in letters (QR: http://example.com)

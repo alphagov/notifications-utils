@@ -3258,3 +3258,18 @@ def test_letter_image_template_marks_first_page_of_attachment():
 )
 def test_links_with_personalisation(template_class, template_data, expect_content):
     assert expect_content in str(template_class(template_data))
+
+
+@pytest.mark.parametrize(
+    "content, values, should_error",
+    (
+        ("i am some clean content", {}, False),
+        ("i am some short ((content))", {"content": "content"}, False),
+        ("i am some long ((content))", {"content": "content" * 100}, False),
+        ("i am a long qr code\n\nqr: ((content))", {"content": "content" * 100}, True),
+    ),
+)
+def test_letter_qr_codes_with_too_much_data(content, values, should_error):
+    template = LetterPreviewTemplate({"template_type": "letter", "subject": "foo", "content": content}, values)
+
+    assert template.has_qr_code_with_too_much_data() is should_error

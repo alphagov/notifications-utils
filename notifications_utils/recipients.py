@@ -6,6 +6,7 @@ from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
 from itertools import islice
+from typing import cast
 
 import phonenumbers
 from flask import current_app
@@ -26,7 +27,7 @@ from notifications_utils.postal_address import (
     address_lines_1_to_6_and_postcode_keys,
     address_lines_1_to_7_keys,
 )
-from notifications_utils.template import Template
+from notifications_utils.template import BaseLetterTemplate, Template
 
 from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 
@@ -235,6 +236,10 @@ class RecipientCSV:
         return self._filter_rows("message_empty")
 
     @property
+    def rows_with_bad_qr_codes(self):
+        return self._filter_rows("qr_code_too_long")
+
+    @property
     def initial_rows_with_errors(self):
         return islice(self.rows_with_errors, self.max_errors_shown)
 
@@ -354,7 +359,7 @@ class Row(InsensitiveDict):
         error_fn,
         recipient_column_headers,
         placeholders,
-        template,
+        template: Template,
         allow_international_letters,
         validate_row=True,
     ):
@@ -371,6 +376,7 @@ class Row(InsensitiveDict):
         self.placeholders = placeholders
         self.allow_international_letters = allow_international_letters
 
+        self._template = template
         if template:
             template.values = row_dict
             self.template_type = template.template_type
@@ -380,6 +386,7 @@ class Row(InsensitiveDict):
             else:
                 self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
+            self.qr_code_too_long = self._has_qr_code_with_too_much_data()
 
         super().__init__({key: Cell(key, value, error_fn, self.placeholders) for key, value in row_dict.items()})
 
@@ -405,9 +412,19 @@ class Row(InsensitiveDict):
     def has_bad_postal_address(self):
         return self.template_type == "letter" and not self.as_postal_address.valid
 
+    def _has_qr_code_with_too_much_data(self):
+        if not self._template:
+            return False
+
+        if self._template.template_type != "letter":
+            return False
+
+        self._template = cast(BaseLetterTemplate, self._template)
+        return self._template.has_qr_code_with_too_much_data()
+
     @property
     def has_error_spanning_multiple_cells(self):
-        return self.message_too_long or self.message_empty or self.has_bad_postal_address
+        return self.message_too_long or self.message_empty or self.has_bad_postal_address or self.qr_code_too_long
 
     @property
     def has_missing_data(self):
