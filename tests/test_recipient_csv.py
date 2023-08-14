@@ -1238,8 +1238,8 @@ def test_errors_on_qr_codes_with_too_much_data():
     template = _sample_template("letter", content="QR: ((qr_code))")
     template.is_message_empty = Mock(return_value=False)
 
-    short = "a" * 10
-    long = "a" * 1000
+    short = "a" * 504
+    long = "a" * 505
     recipients = RecipientCSV(
         f"""
             address_line_1, address_line_2, address_line_3, qr_code
