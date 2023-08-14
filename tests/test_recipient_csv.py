@@ -1232,3 +1232,26 @@ def test_recipient_csv_checks_should_validate_flag(should_validate):
 
     assert template.is_message_empty.called is should_validate
     assert recipients._get_error_for_field.called is should_validate
+
+
+def test_errors_on_qr_codes_with_too_much_data():
+    template = _sample_template("letter", content="QR: ((qr_code))")
+    template.is_message_empty = Mock(return_value=False)
+
+    short = "a" * 10
+    long = "a" * 1000
+    recipients = RecipientCSV(
+        f"""
+            address_line_1, address_line_2, address_line_3, qr_code
+            First Lastname, 123 Example St, SW1A 1AA,{short}
+            First Lastname, 123 Example St, SW1A 1AA,{long}
+        """,
+        template=template,
+    )
+
+    assert recipients.has_errors is True
+    assert len(list(recipients.rows_with_errors)) == 1
+    assert recipients.rows_as_list[0].has_error is False
+    assert recipients.rows_as_list[0].qr_code_too_long is False
+    assert recipients.rows_as_list[1].has_error is True
+    assert recipients.rows_as_list[1].qr_code_too_long is True
