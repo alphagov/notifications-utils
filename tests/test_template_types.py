@@ -3199,7 +3199,7 @@ def test_letter_image_template_marks_first_page_of_attachment():
                 "<div class='qrcode-placeholder'>\n"
                 "    <div class='qrcode-placeholder-border'></div>\n"
                 "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'><strong data-original-protocol='https://'>blah.blah/?query=</strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
+                "        <span class='qrcode-placeholder-content-background'>https://blah.blah/?query=<span class=\"placeholder\">&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
                 "    </div>\n"
                 "</div>\n"
                 "</p>"

@@ -636,6 +636,38 @@ def test_letter_qr_code_works_with_extra_whitespace():
 
 
 @pytest.mark.parametrize(
+    "content, mock, expected_data",
+    (
+        (
+            "qr: http://example.com",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "http://example.com",
+        ),
+        (
+            "qr: http://example.com?foo=<span class='placeholder'>((bar))</span>",
+            "notifications_utils.markdown.qr_code_placeholder",
+            'http://example.com?foo=<span class="placeholder">&#40;&#40;bar&#41;&#41;</span>',
+        ),
+        (
+            "qr: arbitrary data not a URL",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "arbitrary data not a URL",
+        ),
+    ),
+)
+def test_letter_qr_code_only_passes_through_url(
+    mocker,
+    content,
+    mock,
+    expected_data,
+):
+    mock_render = mocker.patch(mock)
+    notify_letter_preview_markdown(content)
+
+    mock_render.assert_called_once_with(expected_data)
+
+
+@pytest.mark.parametrize(
     "markdown_function, expected",
     (
         [notify_letter_preview_markdown, "<p>~~Strike~~</p>"],
