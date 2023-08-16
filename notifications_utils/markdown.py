@@ -107,8 +107,9 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return ""
 
     def autolink(self, link, is_email=False):
-        link = link.replace("http://", "").replace("https://", "")
-        return f"<strong>{link}</strong>"
+        link_without_protocol = link.replace("http://", "").replace("https://", "")
+        protocol = link[: (len(link) - len(link_without_protocol))]
+        return f"<strong data-original-protocol='{protocol}'>{link_without_protocol}</strong>"
 
     def image(self, src, title, alt_text):
         return ""

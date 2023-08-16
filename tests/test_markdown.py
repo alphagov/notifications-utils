@@ -426,7 +426,11 @@ def test_table(markdown_function):
 @pytest.mark.parametrize(
     "markdown_function, link, expected",
     (
-        [notify_letter_preview_markdown, "http://example.com", "<p><strong>example.com</strong></p>"],
+        [
+            notify_letter_preview_markdown,
+            "http://example.com",
+            "<p><strong data-original-protocol='http://'>example.com</strong></p>",
+        ],
         [
             notify_email_markdown,
             "http://example.com",
@@ -569,7 +573,10 @@ def test_image(markdown_function):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<p>Example: <strong>example.com</strong></p>")],
+        [
+            notify_letter_preview_markdown,
+            ("<p>Example: <strong data-original-protocol='http://'>example.com</strong></p>"),
+        ],
         [
             notify_email_markdown,
             (
@@ -592,7 +599,10 @@ def test_link(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<p>Example: <strong>example.com</strong></p>")],
+        [
+            notify_letter_preview_markdown,
+            ("<p>Example: <strong data-original-protocol='http://'>example.com</strong></p>"),
+        ],
         [
             notify_email_markdown,
             (
