@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 68.0.0
+
+* Update return value of `BaseLetterTemplate.has_qr_code_with_too_much_data` from `bool` to `Optional[QrCodeTooLong]`.
+
 ## 67.0.0
 
 * Add `has_qr_code_with_too_much_data` property to letter templates.

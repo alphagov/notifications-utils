@@ -3272,4 +3272,11 @@ def test_links_with_personalisation(template_class, template_data, expect_conten
 def test_letter_qr_codes_with_too_much_data(content, values, should_error):
     template = LetterPreviewTemplate({"template_type": "letter", "subject": "foo", "content": content}, values)
 
-    assert template.has_qr_code_with_too_much_data() is should_error
+    error = template.has_qr_code_with_too_much_data()
+
+    if should_error:
+        assert error.data == "content" * 100
+        assert error.max_bytes == 504
+        assert error.num_bytes == 700
+    else:
+        assert error is None

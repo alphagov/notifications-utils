@@ -10,6 +10,7 @@ from orderedset import OrderedSet
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
 from notifications_utils.countries import Country
+from notifications_utils.qr_code import QrCodeTooLong
 from notifications_utils.recipients import (
     Cell,
     RecipientCSV,
@@ -1252,6 +1253,6 @@ def test_errors_on_qr_codes_with_too_much_data():
     assert recipients.has_errors is True
     assert len(list(recipients.rows_with_errors)) == 1
     assert recipients.rows_as_list[0].has_error is False
-    assert recipients.rows_as_list[0].qr_code_too_long is False
+    assert recipients.rows_as_list[0].qr_code_too_long is None
     assert recipients.rows_as_list[1].has_error is True
-    assert recipients.rows_as_list[1].qr_code_too_long is True
+    assert isinstance(recipients.rows_as_list[1].qr_code_too_long, QrCodeTooLong)
