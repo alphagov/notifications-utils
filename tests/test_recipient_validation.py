@@ -298,7 +298,7 @@ def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
 def test_get_international_info_raises(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
         get_international_phone_info(phone_number)
-    assert str(error.value) == "Country code not found - double check the number you entered"
+    assert str(error.value) == "Country code not found - double check the mobile number you entered"
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
