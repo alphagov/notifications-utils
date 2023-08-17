@@ -108,7 +108,7 @@ invalid_phone_numbers = list(
         invalid_uk_phone_numbers,
     )
 ) + [
-    ("800000000000", "Country code not found - double check the number you entered"),
+    ("800000000000", "Country code not found - double check the mobile number you entered"),
     ("1234567", "Mobile number is too short"),
     ("+682 1234", "Mobile number is too short"),  # Cook Islands phone numbers can be 5 digits
     ("+12345 12345 12345 6", "Mobile number is too long"),
