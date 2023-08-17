@@ -553,7 +553,9 @@ def validate_uk_phone_number(number):
     number = normalise_phone_number(number).lstrip(uk_prefix).lstrip("0")
 
     if not number.startswith("7"):
-        raise InvalidPhoneError("This does not look like a UK mobile number - double check the number you entered")
+        raise InvalidPhoneError(
+            "This does not look like a UK mobile number - double check the mobile number you entered"
+        )
 
     if len(number) > 10:
         raise InvalidPhoneError("Mobile number is too long")
@@ -578,7 +580,7 @@ def validate_phone_number(number, international=False):
         raise InvalidPhoneError("Mobile number is too long")
 
     if get_international_prefix(number) is None:
-        raise InvalidPhoneError("Country code not found - double check this mobile number")
+        raise InvalidPhoneError("Country code not found - double check the number you entered")
 
     return number
 

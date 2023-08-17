@@ -71,7 +71,7 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "This does not look like a UK mobile number - double check the number you entered",
+                "This does not look like a UK mobile number - double check the mobile number you entered",
                 (
                     "08081 570364",
                     "+44 8081 570364",
@@ -108,7 +108,7 @@ invalid_phone_numbers = list(
         invalid_uk_phone_numbers,
     )
 ) + [
-    ("800000000000", "Country code not found - double check this mobile number"),
+    ("800000000000", "Country code not found - double check the number you entered"),
     ("1234567", "Mobile number is too short"),
     ("+682 1234", "Mobile number is too short"),  # Cook Islands phone numbers can be 5 digits
     ("+12345 12345 12345 6", "Mobile number is too long"),
@@ -298,7 +298,7 @@ def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
 def test_get_international_info_raises(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
         get_international_phone_info(phone_number)
-    assert str(error.value) == "Country code not found - double check this mobile number"
+    assert str(error.value) == "Country code not found - double check the number you entered"
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
