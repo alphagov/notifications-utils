@@ -7,7 +7,6 @@ from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
 from notifications_utils.formatters import create_sanitised_html_for_url, replace_svg_dashes
-from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.qr_code import (
     QR_CODE_MAX_BYTES,
     QrCodeTooLong,
@@ -129,9 +128,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def link(self, link, title, content):
         if link.startswith("span class='placeholder") and link.endswith("</span"):
             link = f"<{link}>"
-
-        if InsensitiveDict.make_key(content) == "qr":
-            return self._render_qr_data(link)
 
         return f"{content}: {self.autolink(link)}"
 

@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 69.0.0
+
+* Remove old syntax for QR codes in letters (only `QR: http://example.com` will work now)
+
 ## 68.0.1
 
 * Fix a bug with some HTML getting injected into QR codes
