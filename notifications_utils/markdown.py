@@ -73,7 +73,10 @@ def qr_code_contents_from_paragraph(text):
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def _render_qr_data(self, data):
-        if "<span class='placeholder" in data:
+        # Restore http:// or https:// and strip out the <strong> tag that gets injected by the `link`/`autolink` methods
+        data = re.sub(r"<strong data-original-protocol='(https?://)'>(.*?)</strong>", r"\1\2", data)
+
+        if "<span class='placeholder" in data or '<span class="placeholder' in data:
             placeholder = qr_code_placeholder(data)
             return replace_svg_dashes(placeholder)
 
@@ -107,8 +110,9 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return ""
 
     def autolink(self, link, is_email=False):
-        link = link.replace("http://", "").replace("https://", "")
-        return f"<strong>{link}</strong>"
+        link_without_protocol = link.replace("http://", "").replace("https://", "")
+        protocol = link[: (len(link) - len(link_without_protocol))]
+        return f"<strong data-original-protocol='{protocol}'>{link_without_protocol}</strong>"
 
     def image(self, src, title, alt_text):
         return ""

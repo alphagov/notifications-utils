@@ -2789,8 +2789,16 @@ def test_plain_text_email_whitespace():
                 "</h2>"
             ),
         ),
-        (LetterPreviewTemplate, "letter", ("<h2>Heading link: <strong>example.com</strong></h2>")),
-        (LetterPrintTemplate, "letter", ("<h2>Heading link: <strong>example.com</strong></h2>")),
+        (
+            LetterPreviewTemplate,
+            "letter",
+            ("<h2>Heading link: <strong data‑original‑protocol='https://'>example.com</strong></h2>"),
+        ),
+        (
+            LetterPrintTemplate,
+            "letter",
+            ("<h2>Heading link: <strong data‑original‑protocol='https://'>example.com</strong></h2>"),
+        ),
     ),
 )
 def test_heading_only_template_renders(renderer, template_type, expected_content):
@@ -3117,21 +3125,29 @@ def test_letter_image_template_marks_first_page_of_attachment():
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](((var)))"},
-            "<p>Example: <strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong></p>",
+            (
+                "<p>Example: "
+                "<strong data‑original‑protocol=''><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"
+                "</p>"
+            ),
         ),
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
             (
                 "<p>Example: "
-                "<strong>blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"
+                "<strong data‑original‑protocol='https://'>blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"  # noqa
                 "</p>"
             ),
         ),
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](pre((var))post)"},
-            ("<p>Example: <strong>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</strong></p>"),
+            (
+                "<p>Example: "
+                "<strong data‑original‑protocol=''>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</strong>"  # noqa
+                "</p>"
+            ),
         ),
         (
             LetterPreviewTemplate,
@@ -3183,7 +3199,7 @@ def test_letter_image_template_marks_first_page_of_attachment():
                 "<div class='qrcode-placeholder'>\n"
                 "    <div class='qrcode-placeholder-border'></div>\n"
                 "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'><strong>blah.blah/?query=</strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
+                "        <span class='qrcode-placeholder-content-background'>https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
                 "    </div>\n"
                 "</div>\n"
                 "</p>"

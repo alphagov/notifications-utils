@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 68.0.1
+
+* Fix a bug with some HTML getting injected into QR codes
+
 ## 68.0.0
 
 * Update return value of `BaseLetterTemplate.has_qr_code_with_too_much_data` from `bool` to `Optional[QrCodeTooLong]`.

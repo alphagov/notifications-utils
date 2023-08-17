@@ -426,7 +426,11 @@ def test_table(markdown_function):
 @pytest.mark.parametrize(
     "markdown_function, link, expected",
     (
-        [notify_letter_preview_markdown, "http://example.com", "<p><strong>example.com</strong></p>"],
+        [
+            notify_letter_preview_markdown,
+            "http://example.com",
+            "<p><strong data-original-protocol='http://'>example.com</strong></p>",
+        ],
         [
             notify_email_markdown,
             "http://example.com",
@@ -569,7 +573,10 @@ def test_image(markdown_function):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<p>Example: <strong>example.com</strong></p>")],
+        [
+            notify_letter_preview_markdown,
+            ("<p>Example: <strong data-original-protocol='http://'>example.com</strong></p>"),
+        ],
         [
             notify_email_markdown,
             (
@@ -592,7 +599,10 @@ def test_link(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<p>Example: <strong>example.com</strong></p>")],
+        [
+            notify_letter_preview_markdown,
+            ("<p>Example: <strong data-original-protocol='http://'>example.com</strong></p>"),
+        ],
         [
             notify_email_markdown,
             (
@@ -623,6 +633,38 @@ def test_letter_qr_code():
 def test_letter_qr_code_works_with_extra_whitespace():
     expected_qr_code_start = "<p><div class='qrcode'><svg viewBox=\"0 0 25 25\">"
     assert notify_letter_preview_markdown('[ qr ](http://example.com")').startswith(expected_qr_code_start)
+
+
+@pytest.mark.parametrize(
+    "content, mock, expected_data",
+    (
+        (
+            "qr: http://example.com",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "http://example.com",
+        ),
+        (
+            'qr: http://example.com?foo=<span class="placeholder">&#40;&#40;bar&#41;&#41;</span>',
+            "notifications_utils.markdown.qr_code_placeholder",
+            'http://example.com?foo=<span class="placeholder">&#40;&#40;bar&#41;&#41;</span>',
+        ),
+        (
+            "qr: arbitrary data not a URL",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "arbitrary data not a URL",
+        ),
+    ),
+)
+def test_letter_qr_code_only_passes_through_url(
+    mocker,
+    content,
+    mock,
+    expected_data,
+):
+    mock_render = mocker.patch(mock)
+    notify_letter_preview_markdown(content)
+
+    mock_render.assert_called_once_with(expected_data)
 
 
 @pytest.mark.parametrize(
