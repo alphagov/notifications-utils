@@ -644,7 +644,7 @@ def test_letter_qr_code_works_with_extra_whitespace():
             "http://example.com",
         ),
         (
-            "qr: http://example.com?foo=<span class='placeholder'>((bar))</span>",
+            'qr: http://example.com?foo=<span class="placeholder">&#40;&#40;bar&#41;&#41;</span>',
             "notifications_utils.markdown.qr_code_placeholder",
             'http://example.com?foo=<span class="placeholder">&#40;&#40;bar&#41;&#41;</span>',
         ),

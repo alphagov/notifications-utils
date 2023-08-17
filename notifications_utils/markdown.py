@@ -3,7 +3,6 @@ import re
 from itertools import count
 
 import mistune
-from bs4 import BeautifulSoup
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
@@ -74,14 +73,8 @@ def qr_code_contents_from_paragraph(text):
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def _render_qr_data(self, data):
-        if "<strong data-original-protocol=" in data:
-            parsed_data = BeautifulSoup(data, "html.parser")
-            strong_tag = parsed_data.select_one("strong[data-original-protocol]")
-            original_protocol = strong_tag["data-original-protocol"]
-            original_link = strong_tag.text
-            strong_tag.decompose()
-            rest_of_html = str(parsed_data).replace(">((", ">&#40;&#40;").replace("))<", "&#41;&#41;<")
-            data = f"{original_protocol}{original_link}{rest_of_html}"
+        # Restore http:// or https:// and strip out the <strong> tag that gets injected by the `link`/`autolink` methods
+        data = re.sub(r"<strong data-original-protocol='(https?://)'>(.*?)</strong>", r"\1\2", data)
 
         if "<span class='placeholder" in data or '<span class="placeholder' in data:
             placeholder = qr_code_placeholder(data)
