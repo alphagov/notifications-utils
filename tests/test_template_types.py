@@ -901,7 +901,6 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
     assert jinja_template_locals["logo_file_name"] is None
 
 
-
 @mock.patch("notifications_utils.template.LetterPreviewTemplate.jinja_template.render")
 def test_letter_preview_renders_QR_code_correctly(jinja_template):
 
@@ -922,6 +921,7 @@ def test_letter_preview_renders_QR_code_correctly(jinja_template):
     expected_qr_code_svg = '<p>This is your link:</p><p><div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h2m1 0h1m2 0h1m3 0h7m-25 1h1m5 0h1m1 0h6m4 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h1m4 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h1m2 0h2m2 0h1m-17 1h1m2 0h6m1 0h2m4 0h2m2 0h1m1 0h3m-24 1h3m3 0h2m2 0h5m1 0h1m1 0h5m-24 1h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m-25 1h1m2 0h1m5 0h2m1 0h1m3 0h1m2 0h1m1 0h4m-24 1h1m3 0h2m1 0h1m1 0h1m4 0h2m1 0h1m5 0h1m-25 1h2m1 0h2m2 0h1m4 0h6m2 0h1m2 0h1m-24 1h3m2 0h3m2 0h1m4 0h4m1 0h5m-25 1h1m1 0h2m3 0h2m3 0h1m3 0h2m1 0h1m1 0h2m1 0h1m-25 1h1m5 0h1m1 0h2m1 0h3m2 0h5m1 0h2m-16 1h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h2m-24 1h7m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h4m1 0h1m1 0h2m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h7m2 0h2m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m4 0h2m-25 1h1m1 0h3m1 0h1m4 0h2m4 0h1m2 0h5m-25 1h1m5 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h5m1 0h2m3 0h1m2 0h1"/></svg></div></p>'  # noqa
     assert jinja_template_locals["message"] == expected_qr_code_svg
 
+
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_welsh_letter_preview_renderer_without_mocks():
 
@@ -934,7 +934,6 @@ def test_welsh_letter_preview_renderer_without_mocks():
         )
     )
     assert "Tudalen" in template_string
-
 
 
 @freeze_time("2012-12-12 12:12:12")
@@ -1382,6 +1381,21 @@ def test_subject_line_gets_replaced(template_class, template_type, extra_args):
     assert template.subject == Markup("<span class='placeholder'>&#40;&#40;name&#41;&#41;</span>")
     template.values = {"name": "Jo"}
     assert template.subject == "Jo"
+
+
+@pytest.mark.parametrize(
+    "template_class, template_type, extra_args",
+    (
+        (LetterPreviewTemplate, "letter", {}),
+    ),
+)
+def test_subject_line_welsh(template_class, template_type, extra_args):
+
+    template = template_class({
+        "content": "", "template_type": template_type, "subject": "((name))", "welsh_subject": "Syt du chri",
+    }, language="welsh", **extra_args)
+
+    assert template.subject == "Syt du chri"
 
 
 @pytest.mark.parametrize(
