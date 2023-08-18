@@ -52,7 +52,7 @@ invalid_uk_phone_numbers = sum(
         [(phone_number, error) for phone_number in group]
         for error, group in [
             (
-                "Too many digits",
+                "Mobile number is too long",
                 (
                     "712345678910",
                     "0712345678910",
@@ -62,7 +62,7 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "Not enough digits",
+                "Mobile number is too short",
                 (
                     "0712345678",
                     "004471234567",
@@ -71,7 +71,7 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "Not a UK mobile number",
+                "This does not look like a UK mobile number - double check the mobile number you entered",
                 (
                     "08081 570364",
                     "+44 8081 570364",
@@ -82,7 +82,7 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "Must not contain letters or symbols",
+                "Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -",
                 (
                     "07890x32109",
                     "07123 456789...",
@@ -108,10 +108,10 @@ invalid_phone_numbers = list(
         invalid_uk_phone_numbers,
     )
 ) + [
-    ("800000000000", "Not a valid country prefix"),
-    ("1234567", "Not enough digits"),
-    ("+682 1234", "Not enough digits"),  # Cook Islands phone numbers can be 5 digits
-    ("+12345 12345 12345 6", "Too many digits"),
+    ("800000000000", "Country code not found - double check the mobile number you entered"),
+    ("1234567", "Mobile number is too short"),
+    ("+682 1234", "Mobile number is too short"),  # Cook Islands phone numbers can be 5 digits
+    ("+12345 12345 12345 6", "Mobile number is too long"),
 ]
 
 
@@ -298,7 +298,7 @@ def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
 def test_get_international_info_raises(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
         get_international_phone_info(phone_number)
-    assert str(error.value) == "Not a valid country prefix"
+    assert str(error.value) == "Country code not found - double check the mobile number you entered"
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
