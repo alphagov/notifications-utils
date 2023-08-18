@@ -688,7 +688,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     @property
     def subject(self):
         print(self._subject)
-        return (
+        subject = (
             Take(
                 Field(
                     self._subject,
@@ -700,6 +700,8 @@ class BaseLetterTemplate(SubjectMixin, Template):
             .then(do_nice_typography)
             .then(normalise_whitespace)
         )
+        print(subject)
+        return subject
 
     @property
     def placeholders(self):
@@ -789,7 +791,8 @@ class LetterPreviewTemplate(BaseLetterTemplate):
     jinja_template = template_env.get_template("letter_pdf/preview.jinja2")
 
     def __str__(self):
-        return Markup(
+        print(self.subject)
+        markup_to_return = Markup(
             self.jinja_template.render(
                 {
                     "admin_base_url": self.admin_base_url,
@@ -805,6 +808,8 @@ class LetterPreviewTemplate(BaseLetterTemplate):
                 }
             )
         )
+        print(markup_to_return)
+        return markup_to_return
 
 
 class LetterPrintTemplate(LetterPreviewTemplate):
