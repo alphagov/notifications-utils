@@ -427,9 +427,8 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
 
 class SubjectMixin:
-    def __init__(self, template, values=None, language=None, **kwargs):
+    def __init__(self, template, values=None, language="english", **kwargs):
         self._subject = template["subject"] if language == "english" else template.get("welsh_subject", None)
-        print(self._subject)
         super().__init__(template, values, **kwargs)
 
     @property
@@ -684,10 +683,10 @@ class BaseLetterTemplate(SubjectMixin, Template):
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
         self.language = language
+        self.content = template["content"] if language == "english" else template.get("welsh_content", None)
 
     @property
     def subject(self):
-        print(self._subject)
         subject = (
             Take(
                 Field(
@@ -700,7 +699,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
             .then(do_nice_typography)
             .then(normalise_whitespace)
         )
-        print(subject)
+ 
         return subject
 
     @property
@@ -791,7 +790,6 @@ class LetterPreviewTemplate(BaseLetterTemplate):
     jinja_template = template_env.get_template("letter_pdf/preview.jinja2")
 
     def __str__(self):
-        print(self.subject)
         markup_to_return = Markup(
             self.jinja_template.render(
                 {
@@ -808,7 +806,6 @@ class LetterPreviewTemplate(BaseLetterTemplate):
                 }
             )
         )
-        print(markup_to_return)
         return markup_to_return
 
 

@@ -1389,13 +1389,15 @@ def test_subject_line_gets_replaced(template_class, template_type, extra_args):
         (LetterPreviewTemplate, "letter", {}),
     ),
 )
-def test_subject_line_welsh(template_class, template_type, extra_args):
+def test_welsh_letter_template(template_class, template_type, extra_args):
 
     template = template_class({
-        "content": "", "template_type": template_type, "subject": "((name))", "welsh_subject": "Syt du chri",
+        "content": "Some content", "template_type": template_type, "subject": "((name))", "welsh_subject": "Syt du chri", "welsh_content": "Yn gwych"
     }, language="welsh", **extra_args)
 
     assert template.subject == "Syt du chri"
+  
+    assert template.content == "Yn gwych"
 
 
 @pytest.mark.parametrize(
