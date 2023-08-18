@@ -1,15 +1,19 @@
 import itertools
 import re
 from itertools import count
-from textwrap import dedent
 
 import mistune
-import segno
 from orderedset import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
 from notifications_utils.formatters import create_sanitised_html_for_url, replace_svg_dashes
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.qr_code import (
+    QR_CODE_MAX_BYTES,
+    QrCodeTooLong,
+    paragraph_is_qr_code_markup_regex,
+    qr_code_as_svg,
+    qr_code_placeholder,
+)
 
 LINK_STYLE = "word-wrap: break-word; color: #1D70B8;"
 
@@ -59,34 +63,6 @@ mistune.InlineLexer.inline_html_rules = list(
         )
     )
 )
-paragraph_is_qr_code_markup_regex = re.compile(r"^qr[\s]*:[\s]*(.+)", re.I)
-
-
-def qr_code_as_svg(data):
-    qr = segno.make(data, error="m", micro=False)
-    return qr.svg_inline(border=0, svgclass=None, lineclass=None, omitsize=True)
-
-
-def qr_code_placeholder(link):
-    return dedent(
-        f"""
-            <div class='qrcode-placeholder'>
-                <div class='qrcode-placeholder-border'></div>
-                <div class='qrcode-placeholder-content'>
-                    <span class='qrcode-placeholder-content-background'>{link}</span>
-                </div>
-            </div>
-        """
-    )
-
-
-def qr_code_html(data):
-    if "<span class='placeholder" in data:
-        placeholder = qr_code_placeholder(data)
-        return replace_svg_dashes(placeholder)
-
-    qr_data = qr_code_as_svg(data)
-    return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
 
 
 def qr_code_contents_from_paragraph(text):
@@ -95,6 +71,17 @@ def qr_code_contents_from_paragraph(text):
 
 
 class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
+    def _render_qr_data(self, data):
+        # Restore http:// or https:// and strip out the <strong> tag that gets injected by the `link`/`autolink` methods
+        data = re.sub(r"<strong data-original-protocol='(https?://)'>(.*?)</strong>", r"\1\2", data)
+
+        if "<span class='placeholder" in data or '<span class="placeholder' in data:
+            placeholder = qr_code_placeholder(data)
+            return replace_svg_dashes(placeholder)
+
+        qr_data = qr_code_as_svg(data)
+        return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
+
     def block_code(self, code, language=None):
         return code
 
@@ -114,7 +101,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
             return ""
 
         if qr_code_contents := qr_code_contents_from_paragraph(text):
-            text = qr_code_html(qr_code_contents)
+            text = self._render_qr_data(qr_code_contents)
 
         return f"<p>{text}</p>"
 
@@ -122,8 +109,9 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return ""
 
     def autolink(self, link, is_email=False):
-        link = link.replace("http://", "").replace("https://", "")
-        return f"<strong>{link}</strong>"
+        link_without_protocol = link.replace("http://", "").replace("https://", "")
+        protocol = link[: (len(link) - len(link_without_protocol))]
+        return f"<strong data-original-protocol='{protocol}'>{link_without_protocol}</strong>"
 
     def image(self, src, title, alt_text):
         return ""
@@ -141,9 +129,6 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         if link.startswith("span class='placeholder") and link.endswith("</span"):
             link = f"<{link}>"
 
-        if InsensitiveDict.make_key(content) == "qr":
-            return qr_code_html(link)
-
         return f"{content}: {self.autolink(link)}"
 
     def footnote_ref(self, key, index):
@@ -154,6 +139,16 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
     def footnotes(self, text):
         return text
+
+
+class NotifyLetterMarkdownValidatingRenderer(NotifyLetterMarkdownPreviewRenderer):
+    """Renders letter markdown as normal, except validates QR code data does not exceed a maximum length."""
+
+    def _render_qr_data(self, data):
+        if (num_bytes := len(data.encode("utf8"))) > QR_CODE_MAX_BYTES:
+            raise QrCodeTooLong(num_bytes=num_bytes, data=data)
+
+        return data
 
 
 class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
@@ -362,4 +357,7 @@ notify_letter_preview_markdown = mistune.Markdown(
     renderer=NotifyLetterMarkdownPreviewRenderer(),
     hard_wrap=True,
     use_xhtml=False,
+)
+notify_letter_qrcode_validator = mistune.Markdown(
+    renderer=NotifyLetterMarkdownValidatingRenderer(), hard_wrap=True, use_xhtml=False
 )

@@ -907,7 +907,7 @@ def test_letter_preview_renders_QR_code_correctly(jinja_template):
     str(
         LetterPreviewTemplate(
             {
-                "content": "This is your link: [qr](https://www.example.com)",
+                "content": "This is your link:\n\nqr: https://www.example.com",
                 "subject": "Subject",
                 "template_type": "letter",
             },
@@ -918,7 +918,7 @@ def test_letter_preview_renders_QR_code_correctly(jinja_template):
 
     jinja_template_locals = jinja_template.call_args_list[0][0][0]
 
-    expected_qr_code_svg = '<p>This is your link: <div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h2m1 0h1m2 0h1m3 0h7m-25 1h1m5 0h1m1 0h6m4 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h1m4 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h1m2 0h2m2 0h1m-17 1h1m2 0h6m1 0h2m4 0h2m2 0h1m1 0h3m-24 1h3m3 0h2m2 0h5m1 0h1m1 0h5m-24 1h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m-25 1h1m2 0h1m5 0h2m1 0h1m3 0h1m2 0h1m1 0h4m-24 1h1m3 0h2m1 0h1m1 0h1m4 0h2m1 0h1m5 0h1m-25 1h2m1 0h2m2 0h1m4 0h6m2 0h1m2 0h1m-24 1h3m2 0h3m2 0h1m4 0h4m1 0h5m-25 1h1m1 0h2m3 0h2m3 0h1m3 0h2m1 0h1m1 0h2m1 0h1m-25 1h1m5 0h1m1 0h2m1 0h3m2 0h5m1 0h2m-16 1h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h2m-24 1h7m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h4m1 0h1m1 0h2m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h7m2 0h2m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m4 0h2m-25 1h1m1 0h3m1 0h1m4 0h2m4 0h1m2 0h5m-25 1h1m5 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h5m1 0h2m3 0h1m2 0h1"/></svg></div></p>'  # noqa
+    expected_qr_code_svg = '<p>This is your link:</p><p><div class=\'qrcode\'><svg viewBox="0 0 25 25"><path stroke="#000" d="M0 0.5h7m1 0h2m1 0h1m2 0h1m3 0h7m-25 1h1m5 0h1m1 0h6m4 0h1m5 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m2 0h2m2 0h1m4 0h1m1 0h3m1 0h1m-25 1h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-25 1h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1m-25 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-16 1h1m2 0h2m2 0h1m-17 1h1m2 0h6m1 0h2m4 0h2m2 0h1m1 0h3m-24 1h3m3 0h2m2 0h5m1 0h1m1 0h5m-24 1h1m3 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m-25 1h1m2 0h1m5 0h2m1 0h1m3 0h1m2 0h1m1 0h4m-24 1h1m3 0h2m1 0h1m1 0h1m4 0h2m1 0h1m5 0h1m-25 1h2m1 0h2m2 0h1m4 0h6m2 0h1m2 0h1m-24 1h3m2 0h3m2 0h1m4 0h4m1 0h5m-25 1h1m1 0h2m3 0h2m3 0h1m3 0h2m1 0h1m1 0h2m1 0h1m-25 1h1m5 0h1m1 0h2m1 0h3m2 0h5m1 0h2m-16 1h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h2m-24 1h7m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m-25 1h1m5 0h1m1 0h4m1 0h1m1 0h2m3 0h1m2 0h1m-24 1h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h7m2 0h2m-25 1h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m4 0h2m-25 1h1m1 0h3m1 0h1m4 0h2m4 0h1m2 0h5m-25 1h1m5 0h1m2 0h1m1 0h2m1 0h1m4 0h2m1 0h3m-25 1h7m1 0h1m1 0h5m1 0h2m3 0h1m2 0h1"/></svg></div></p>'  # noqa
     assert jinja_template_locals["message"] == expected_qr_code_svg
 
 
@@ -2789,8 +2789,16 @@ def test_plain_text_email_whitespace():
                 "</h2>"
             ),
         ),
-        (LetterPreviewTemplate, "letter", ("<h2>Heading link: <strong>example.com</strong></h2>")),
-        (LetterPrintTemplate, "letter", ("<h2>Heading link: <strong>example.com</strong></h2>")),
+        (
+            LetterPreviewTemplate,
+            "letter",
+            ("<h2>Heading link: <strong data‑original‑protocol='https://'>example.com</strong></h2>"),
+        ),
+        (
+            LetterPrintTemplate,
+            "letter",
+            ("<h2>Heading link: <strong data‑original‑protocol='https://'>example.com</strong></h2>"),
+        ),
     ),
 )
 def test_heading_only_template_renders(renderer, template_type, expected_content):
@@ -3117,33 +3125,27 @@ def test_letter_image_template_marks_first_page_of_attachment():
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](((var)))"},
-            "<p>Example: <strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong></p>",
+            (
+                "<p>Example: "
+                "<strong data‑original‑protocol=''><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"
+                "</p>"
+            ),
         ),
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
             (
                 "<p>Example: "
-                "<strong>blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"
+                "<strong data‑original‑protocol='https://'>blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></strong>"  # noqa
                 "</p>"
             ),
         ),
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](pre((var))post)"},
-            ("<p>Example: <strong>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</strong></p>"),
-        ),
-        (
-            LetterPreviewTemplate,
-            {"template_type": "letter", "subject": "foo", "content": "[QR](((var)))"},
             (
-                "<p>\n"
-                "<div class='qrcode-placeholder'>\n"
-                "    <div class='qrcode-placeholder-border'></div>\n"
-                "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
-                "    </div>\n"
-                "</div>\n"
+                "<p>Example: "
+                "<strong data‑original‑protocol=''>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</strong>"  # noqa
                 "</p>"
             ),
         ),
@@ -3163,40 +3165,13 @@ def test_letter_image_template_marks_first_page_of_attachment():
         ),
         (
             LetterPreviewTemplate,
-            {"template_type": "letter", "subject": "foo", "content": "[QR](https://blah.blah/?query=((var)))"},
-            (
-                "<p>\n"
-                "<div class='qrcode-placeholder'>\n"
-                "    <div class='qrcode-placeholder-border'></div>\n"
-                "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'>https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
-                "    </div>\n"
-                "</div>\n"
-                "</p>"
-            ),
-        ),
-        (
-            LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "QR:https://blah.blah/?query=((var))"},
             (
                 "<p>\n"
                 "<div class='qrcode-placeholder'>\n"
                 "    <div class='qrcode-placeholder-border'></div>\n"
                 "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'><strong>blah.blah/?query=</strong><span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
-                "    </div>\n"
-                "</div>\n"
-                "</p>"
-            ),
-        ),
-        (
-            LetterPreviewTemplate,
-            {"template_type": "letter", "subject": "foo", "content": "[QR](pre((var))post)"},
-            (
-                "<p>\n<div class='qrcode-placeholder'>\n"
-                "    <div class='qrcode-placeholder-border'></div>\n"
-                "    <div class='qrcode-placeholder-content'>\n"
-                "        <span class='qrcode-placeholder-content-background'>pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post</span>\n"  # noqa
+                "        <span class='qrcode-placeholder-content-background'>https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span></span>\n"  # noqa
                 "    </div>\n"
                 "</div>\n"
                 "</p>"
@@ -3258,3 +3233,25 @@ def test_letter_image_template_marks_first_page_of_attachment():
 )
 def test_links_with_personalisation(template_class, template_data, expect_content):
     assert expect_content in str(template_class(template_data))
+
+
+@pytest.mark.parametrize(
+    "content, values, should_error",
+    (
+        ("i am some clean content", {}, False),
+        ("i am some short ((content))", {"content": "content"}, False),
+        ("i am some long ((content))", {"content": "content" * 100}, False),
+        ("i am a long qr code\n\nqr: ((content))", {"content": "content" * 100}, True),
+    ),
+)
+def test_letter_qr_codes_with_too_much_data(content, values, should_error):
+    template = LetterPreviewTemplate({"template_type": "letter", "subject": "foo", "content": content}, values)
+
+    error = template.has_qr_code_with_too_much_data()
+
+    if should_error:
+        assert error.data == "content" * 100
+        assert error.max_bytes == 504
+        assert error.num_bytes == 700
+    else:
+        assert error is None
