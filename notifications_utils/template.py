@@ -79,6 +79,7 @@ class Template(ABC):
         self.id = template.get("id", None)
         self.name = template.get("name", None)
         self.content = template["content"]
+        self.welsh_content = template.get("welsh_content", None)
         self.values = values
         self._template = template
         self.redact_missing_personalisation = redact_missing_personalisation
@@ -121,7 +122,12 @@ class Template(ABC):
 
     @property
     def placeholders(self):
-        return get_placeholders(self.content)
+        welsh = []
+        if self.welsh_content:
+            welsh = get_placeholders(self.welsh_content)
+        english = get_placeholders(self.content)
+        all = welsh | english
+        return all
 
     @property
     def missing_data(self):
@@ -429,6 +435,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 class SubjectMixin:
     def __init__(self, template, values=None, language="english", **kwargs):
         self._subject = template["subject"] if language == "english" else template.get("welsh_subject", None)
+        self._welsh_subject = template.get("welsh_subject", None)
         super().__init__(template, values, **kwargs)
 
     @property
@@ -448,7 +455,13 @@ class SubjectMixin:
 
     @property
     def placeholders(self):
-        return get_placeholders(self._subject) | super().placeholders
+        welsh = []
+        if self._welsh_subject:
+            welsh = get_placeholders(self._welsh_subject)
+        english = get_placeholders(self._subject)
+        all = welsh | english
+
+        return all | super().placeholders
 
 
 class BaseEmailTemplate(SubjectMixin, Template):
