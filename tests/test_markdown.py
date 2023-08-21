@@ -1,10 +1,13 @@
 import pytest
 
+from notifications_utils.field import Field
 from notifications_utils.markdown import (
     notify_email_markdown,
     notify_letter_preview_markdown,
+    notify_letter_qrcode_validator,
     notify_plain_text_email_markdown,
 )
+from notifications_utils.take import Take
 from notifications_utils.template import HTMLEmailTemplate
 
 
@@ -665,6 +668,14 @@ def test_letter_qr_code_only_passes_through_url(
     notify_letter_preview_markdown(content)
 
     mock_render.assert_called_once_with(expected_data)
+
+
+def test_qr_code_validator_gets_expected_data(mocker):
+    mock_render = mocker.patch("notifications_utils.markdown.NotifyLetterMarkdownValidatingRenderer._render_qr_data")
+
+    Take(Field("qr: ((data))", {"data": "https://www.example.com"}, html="escape")).then(notify_letter_qrcode_validator)
+
+    assert mock_render.call_args_list == [mocker.call("https://www.example.com")]
 
 
 @pytest.mark.parametrize(
