@@ -17,6 +17,8 @@ OBSCURE_ZERO_WIDTH_WHITESPACE = (
     "\u200D"  # zero width joiner
     "\u2060"  # word joiner
     "\uFEFF"  # zero width non-breaking space
+    "\u2028"  # line separator
+    "\u2029"  # paragraph separator
 )
 
 OBSCURE_FULL_WIDTH_WHITESPACE = "\u00A0" "\u202F"  # non breaking space  # narrow no break space

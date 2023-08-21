@@ -18,6 +18,8 @@ class SanitiseText:
         "\u200D": "",  # zero width joiner
         "\u2060": "",  # word joiner
         "\uFEFF": "",  # zero width non-breaking space
+        "\u2028": "",  # line separator
+        "\u2029": "",  # paragraph separator
         "\u00A0": " ",  # NON BREAKING WHITE SPACE (U+200B)
         "\u202F": " ",  # narrow no break space
         "\t": " ",  # TAB
