@@ -395,7 +395,7 @@ def test_strip_unsupported_characters():
         # Narrow no break spaces replaced by single spaces
         "\u202FYour\u202Ftax\u202F is\u202F\u202Fdue\u202F",
         # zero width spaces are removed
-        "\u180EYour \u200Btax\u200C is \u200D\u2060due \uFEFF",
+        "\u180EYour \u200Btax\u200C is \u200D\u2060due \uFEFF\u2028\u2029",
         # tabs are replaced by single spaces
         "\tYour tax\tis due  ",
     ],
