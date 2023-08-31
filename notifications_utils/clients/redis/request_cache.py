@@ -3,6 +3,7 @@ from contextlib import suppress
 from datetime import timedelta
 from functools import wraps
 from inspect import signature
+from uuid import UUID
 
 
 class RequestCache:
@@ -11,6 +12,13 @@ class RequestCache:
 
     def __init__(self, redis_client):
         self.redis_client = redis_client
+
+    @staticmethod
+    def _format_argument(argument):
+        if isinstance(argument, str):
+            with suppress(ValueError):
+                return str(UUID(argument)).lower()
+        return argument
 
     @staticmethod
     def _get_argument(argument_name, client_method, args, kwargs):
@@ -31,7 +39,9 @@ class RequestCache:
     def _make_key(key_format, client_method, args, kwargs):
         return key_format.format(
             **{
-                argument_name: RequestCache._get_argument(argument_name, client_method, args, kwargs)
+                argument_name: RequestCache._format_argument(
+                    RequestCache._get_argument(argument_name, client_method, args, kwargs)
+                )
                 for argument_name in list(signature(client_method).parameters)
             }
         )
