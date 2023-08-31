@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 70.0.3
+
+* Remove empty table cell from 'branding only' branding HTML to fix bug with JAWS screen reader
+
 ## 70.0.2
 
 * Update sanitising of SMS content to include more obscure whitespace
