@@ -23,3 +23,13 @@ make bootstrap
 # run the tests
 make test
 ```
+
+## Publishing a new version
+
+Versioning should be done by running the `make version-[type of change]` command, following [semantic versioning](https://semver.org/). For example
+
+```
+make version-patch
+```
+
+Major changes must be recorded in the `CHANGELOG.md` file, but notes on any other types of change are also welcome.
