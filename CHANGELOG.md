@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 70.0.6
+
+* Fix QR code rendering for old-style syntax `[QR]()`
+
 ## 70.0.5
 
 * Ensure UUIDs in Redis cache keys are always lowercase
