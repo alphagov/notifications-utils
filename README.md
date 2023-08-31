@@ -32,4 +32,4 @@ Versioning should be done by running the `make version-[type of change]` command
 make version-patch
 ```
 
-Major changes must be recorded in the `CHANGELOG.md` file, but notes on any other types of change are also welcome.
+Include a short summary (sentence or two) about the changes you've made in `CHANGELOG.md`. Please do this even if you're only making a minor or patch version change.
