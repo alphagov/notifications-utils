@@ -24,6 +24,20 @@ def cache(mocked_redis_client):
         ([1, 2, 3, 4, 5, 6], {}, "1-2-3-4-5-6"),
         ([1, 2, 3], {"x": 4, "y": 5, "z": 6}, "1-2-3-4-5-6"),
         ([1, 2, 3, 4], {"y": 5}, "1-2-3-4-5-None"),
+        (
+            [
+                "6CE466D0-FD6A-11E5-82F5-E0ACCB9D11A6",
+                "B",
+                "c",
+            ],
+            {
+                "x": "6ce466d0-fd6a-11e5-82f5-e0accb9d11a6",
+                "y": "Y",
+                "z": "z",
+            },
+            # UUIDs get lowercased but other strings keep their original case
+            "6ce466d0-fd6a-11e5-82f5-e0accb9d11a6-B-c-6ce466d0-fd6a-11e5-82f5-e0accb9d11a6-Y-z",
+        ),
     ),
 )
 def test_set(
@@ -110,7 +124,20 @@ def test_raises_if_key_doesnt_match_arguments(cache):
         foo()
 
 
-def test_get(mocker, mocked_redis_client, cache):
+@pytest.mark.parametrize(
+    "args, expected_cache_key",
+    (
+        (
+            (1, 2, 3),
+            ("1-2-3"),
+        ),
+        (
+            ("A", "B", "6CE466D0-FD6A-11E5-82F5-E0ACCB9D11A6"),
+            ("A-B-6ce466d0-fd6a-11e5-82f5-e0accb9d11a6"),
+        ),
+    ),
+)
+def test_get(mocker, mocked_redis_client, cache, args, expected_cache_key):
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
         "get",
@@ -123,12 +150,25 @@ def test_get(mocker, mocked_redis_client, cache):
         # returned a value
         raise RuntimeError
 
-    assert foo(1, 2, 3) == "bar"
+    assert foo(*args) == "bar"
 
-    mock_redis_get.assert_called_once_with("1-2-3")
+    mock_redis_get.assert_called_once_with(expected_cache_key)
 
 
-def test_delete(mocker, mocked_redis_client, cache):
+@pytest.mark.parametrize(
+    "args, expected_cache_key",
+    (
+        (
+            (1, 2, 3),
+            ("1-2-3"),
+        ),
+        (
+            ("A", "B", "6CE466D0-FD6A-11E5-82F5-E0ACCB9D11A6"),
+            ("A-B-6ce466d0-fd6a-11e5-82f5-e0accb9d11a6"),
+        ),
+    ),
+)
+def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
         "delete",
@@ -138,9 +178,9 @@ def test_delete(mocker, mocked_redis_client, cache):
     def foo(a, b, c):
         return "bar"
 
-    assert foo(1, 2, 3) == "bar"
+    assert foo(*args) == "bar"
 
-    mock_redis_delete.assert_called_once_with("1-2-3")
+    mock_redis_delete.assert_called_once_with(expected_cache_key)
 
 
 def test_delete_even_if_call_raises(mocker, mocked_redis_client, cache):
