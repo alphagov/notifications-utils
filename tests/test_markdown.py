@@ -578,7 +578,7 @@ def test_image(markdown_function):
     (
         [
             notify_letter_preview_markdown,
-            ("<p>Example: <strong data-original-protocol='http://'>example.com</strong></p>"),
+            ("<p>[Example](http://example.com)</p>"),
         ],
         [
             notify_email_markdown,
@@ -604,7 +604,7 @@ def test_link(markdown_function, expected):
     (
         [
             notify_letter_preview_markdown,
-            ("<p>Example: <strong data-original-protocol='http://'>example.com</strong></p>"),
+            ('<p>[Example](http://example.com "An example URL")</p>'),
         ],
         [
             notify_email_markdown,
@@ -679,19 +679,21 @@ def test_letter_qr_code_only_passes_through_url(
         ("qr: prefix https://www.google.com suffix", {}, "prefix https://www.google.com suffix"),
         ("qr: prefix ((data))", {"data": "https://www.example.com"}, "prefix https://www.example.com"),
         #
-        # This is not our public syntax for QR codes, but mistune takes this and converts it to our officially-supported
-        # syntax, so we make sure it doesn't render broken QR codes.
-        ("[qr](((data)))", {"data": "https://www.example.com"}, "https://www.example.com"),
-        ("[qr](static)", {}, "static"),
-        ("[qr](prefix https://www.google.com suffix)", {}, "prefix https://www.google.com suffix"),
-        ("[qr](prefix ((data)))", {"data": "https://www.example.com"}, "prefix https://www.example.com"),
+        # This is an old syntax which we don’t support, so we make sure it doesn't render broken QR codes
+        ("[qr](((data)))", {"data": "https://www.example.com"}, None),
+        ("[qr](static)", {}, None),
+        ("[qr](prefix https://www.google.com suffix)", {}, None),
+        ("[qr](prefix ((data)))", {"data": "https://www.example.com"}, None),
     ),
 )
 def test_qr_code_validator_gets_expected_data(mocker, content, data, expected_data):
     mock_render = mocker.patch("notifications_utils.markdown.NotifyLetterMarkdownValidatingRenderer._render_qr_data")
 
     Take(Field(content, data, html="escape")).then(notify_letter_qrcode_validator)
-    assert mock_render.call_args_list == [mocker.call(expected_data)]
+    if expected_data:
+        assert mock_render.call_args_list == [mocker.call(expected_data)]
+    else:
+        assert mock_render.call_args_list == []
 
 
 @pytest.mark.parametrize(

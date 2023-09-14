@@ -135,7 +135,10 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         if link.startswith("span class='placeholder") and link.endswith("</span"):
             link = f"<{link}>"
 
-        return f"{content}: {self.autolink(link)}"
+        if title:
+            return f'[{content}]({link} "{title}")'
+
+        return f"[{content}]({link})"
 
     def footnote_ref(self, key, index):
         return ""
