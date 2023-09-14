@@ -101,7 +101,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
             # Restore http:// or https:// and strip out the <strong> tag that gets injected by
             # the `link`/`autolink` methods
             text = self._render_qr_data(
-                re.sub(r"<strong data-original-protocol='(https?://)'>(.*?)</strong>", r"\1\2", qr_code_contents)
+                re.sub(r"<strong data-original-protocol='(https?://|)'>(.*?)</strong>", r"\1\2", qr_code_contents)
             )
 
         return f"<p>{text}</p>"
@@ -110,9 +110,14 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         return ""
 
     def autolink(self, link, is_email=False):
-        link_without_protocol = link.replace("http://", "").replace("https://", "")
-        protocol = link[: (len(link) - len(link_without_protocol))]
-        return f"<strong data-original-protocol='{protocol}'>{link_without_protocol}</strong>"
+        proto_matcher = re.compile(r"^(https?://)")
+
+        protocol = ""
+        if match := proto_matcher.match(link):
+            protocol = match.group(1)
+            link = proto_matcher.sub("", link, 1)
+
+        return f"<strong data-original-protocol='{protocol}'>{link}</strong>"
 
     def image(self, src, title, alt_text):
         return ""

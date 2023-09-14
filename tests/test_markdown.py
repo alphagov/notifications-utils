@@ -670,12 +670,28 @@ def test_letter_qr_code_only_passes_through_url(
     mock_render.assert_called_once_with(expected_data)
 
 
-def test_qr_code_validator_gets_expected_data(mocker):
+@pytest.mark.parametrize(
+    "content, data, expected_data",
+    (
+        # This is the officially-supported syntax
+        ("qr: ((data))", {"data": "https://www.example.com"}, "https://www.example.com"),
+        ("qr: static", {}, "static"),
+        ("qr: prefix https://www.google.com suffix", {}, "prefix https://www.google.com suffix"),
+        ("qr: prefix ((data))", {"data": "https://www.example.com"}, "prefix https://www.example.com"),
+        #
+        # This is not our public syntax for QR codes, but mistune takes this and converts it to our officially-supported
+        # syntax, so we make sure it doesn't render broken QR codes.
+        ("[qr](((data)))", {"data": "https://www.example.com"}, "https://www.example.com"),
+        ("[qr](static)", {}, "static"),
+        ("[qr](prefix https://www.google.com suffix)", {}, "prefix https://www.google.com suffix"),
+        ("[qr](prefix ((data)))", {"data": "https://www.example.com"}, "prefix https://www.example.com"),
+    ),
+)
+def test_qr_code_validator_gets_expected_data(mocker, content, data, expected_data):
     mock_render = mocker.patch("notifications_utils.markdown.NotifyLetterMarkdownValidatingRenderer._render_qr_data")
 
-    Take(Field("qr: ((data))", {"data": "https://www.example.com"}, html="escape")).then(notify_letter_qrcode_validator)
-
-    assert mock_render.call_args_list == [mocker.call("https://www.example.com")]
+    Take(Field(content, data, html="escape")).then(notify_letter_qrcode_validator)
+    assert mock_render.call_args_list == [mocker.call(expected_data)]
 
 
 @pytest.mark.parametrize(
