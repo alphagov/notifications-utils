@@ -2223,10 +2223,6 @@ def test_html_template_can_inject_personalisation_with_special_characters():
     "extra_args",
     [
         {"from_name": "Example service"},
-        {
-            "from_name": "Example service",
-            "from_address": "test@example.com",
-        },
         pytest.param({}, marks=pytest.mark.xfail),
     ],
 )
@@ -2236,14 +2232,11 @@ def test_email_preview_shows_from_name(extra_args):
     )
     assert '<th scope="row">From</th>' in str(template)
     assert "Example service" in str(template)
-    assert "test@example.com" not in str(template)
 
 
 def test_email_preview_escapes_html_in_from_name():
     template = EmailPreviewTemplate(
-        {"content": "content", "subject": "subject", "template_type": "email"},
-        from_name='<script>alert("")</script>',
-        from_address="test@example.com",
+        {"content": "content", "subject": "subject", "template_type": "email"}, from_name='<script>alert("")</script>'
     )
     assert "<script>" not in str(template)
     assert '&lt;script&gt;alert("")&lt;/script&gt;' in str(template)
