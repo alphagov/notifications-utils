@@ -614,14 +614,12 @@ class EmailPreviewTemplate(BaseEmailTemplate):
         template,
         values=None,
         from_name=None,
-        from_address=None,
         reply_to=None,
         show_recipient=True,
         redact_missing_personalisation=False,
     ):
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.from_name = from_name
-        self.from_address = from_address
         self.reply_to = reply_to
         self.show_recipient = show_recipient
 
@@ -632,7 +630,6 @@ class EmailPreviewTemplate(BaseEmailTemplate):
                     "body": self.html_body,
                     "subject": self.subject,
                     "from_name": escape_html(self.from_name),
-                    "from_address": self.from_address,
                     "reply_to": self.reply_to,
                     "recipient": Field("((email address))", self.values, with_brackets=False),
                     "show_recipient": self.show_recipient,
