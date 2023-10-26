@@ -1,7 +1,9 @@
 import re
 import unicodedata
+from functools import lru_cache
 
 
+@lru_cache()
 def make_string_safe(string, whitespace):
     # strips accents, diacritics etc
     string = "".join(c for c in unicodedata.normalize("NFD", string) if unicodedata.category(c) != "Mn")
