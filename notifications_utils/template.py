@@ -422,8 +422,12 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
 
 class SubjectMixin:
-    def __init__(self, template, values=None, **kwargs):
-        self._subject = template["subject"]
+    def __init__(self, template, values=None, language="english", **kwargs):
+        if language == "english":
+            self._subject = template["subject"]
+        else:
+            self._subject = template.get("welsh_subject", None)
+
         super().__init__(template, values, **kwargs)
 
     @property
@@ -664,7 +668,9 @@ class BaseLetterTemplate(SubjectMixin, Template):
         language="english",
     ):
         self.contact_block = (contact_block or "").strip()
-        super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
+        super().__init__(
+            template, values, redact_missing_personalisation=redact_missing_personalisation, language=language
+        )
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
