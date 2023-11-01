@@ -1106,6 +1106,22 @@ def test_too_many_pages_raises_for_unknown_page_count(template_class):
         template.too_many_pages  # noqa
 
 
+@freeze_time("2023-10-31 00:00:01")
+def test_letter_template_shows_date_and_page_count_in_welsh_if_language_set_to_welsh():
+    template = BeautifulSoup(
+        str(
+            LetterPreviewTemplate(
+                {"content": "Foo", "subject": "Subject", "template_type": "letter"},
+            )
+        ),
+        features="html.parser",
+    )
+
+    assert "31 Hydref 2023" in template.text
+
+    assert 'content: "Tudalen " counter(page) " o " counter(pages);' in template.select_one("style").text
+
+
 @freeze_time("2012-12-12 12:12:12")
 @mock.patch("notifications_utils.template.LetterImageTemplate.jinja_template.render")
 @pytest.mark.parametrize(
