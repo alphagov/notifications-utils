@@ -1112,6 +1112,7 @@ def test_letter_template_shows_date_and_page_count_in_welsh_if_language_set_to_w
         str(
             LetterPreviewTemplate(
                 {"content": "Foo", "subject": "Subject", "template_type": "letter"},
+                language="welsh"
             )
         ),
         features="html.parser",

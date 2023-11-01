@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+from babel.dates import format_date
 from datetime import datetime
 from functools import lru_cache
 from html import unescape
@@ -660,12 +661,14 @@ class BaseLetterTemplate(SubjectMixin, Template):
         logo_file_name=None,
         redact_missing_personalisation=False,
         date=None,
+        language="english",
     ):
         self.contact_block = (contact_block or "").strip()
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
+        self.language = language
 
     @property
     def subject(self):
@@ -735,7 +738,12 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def _date(self):
-        return self.date.strftime("%-d %B %Y")
+        date_string = ""
+        if self.language == "english":
+            date_string = self.date.strftime("%-d %B %Y")
+        else:
+            date_string = format_date(self.date, "d MMMM yyyy", locale='cy')
+        return date_string
 
     @property
     def _personalised_content(self) -> Field:
@@ -775,6 +783,7 @@ class LetterPreviewTemplate(BaseLetterTemplate):
                     "address": self._address_block,
                     "contact_block": self._contact_block,
                     "date": self._date,
+                    "language": self.language,
                 }
             )
         )
