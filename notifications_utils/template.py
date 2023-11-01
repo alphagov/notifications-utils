@@ -675,6 +675,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
         self.language = language
+        self.content = template["content"] if language == "english" else template.get("welsh_content", None)
 
     @property
     def subject(self):

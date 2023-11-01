@@ -1123,13 +1123,15 @@ def test_letter_template_shows_date_and_page_count_in_welsh_if_language_set_to_w
     assert 'content: "Tudalen " counter(page) " o " counter(pages);' in template.select_one("style").text
 
 
-def test_letter_template_shows_welsh_subject_if_language_set_to_welsh():
+def test_letter_template_shows_welsh_subject_and_content_if_language_set_to_welsh():
     template = LetterPreviewTemplate({
-        "content": "", "template_type": "letter",
+        "content": "Very good", "welsh_content": "Yn gwych",
         "subject": "How are you", "welsh_subject": "Sut dych chi",
+        "template_type": "letter",
     }, language="welsh")
 
     assert template.subject == "Sut dych chi"
+    assert template.content == "Yn gwych"
 
 
 @freeze_time("2012-12-12 12:12:12")
