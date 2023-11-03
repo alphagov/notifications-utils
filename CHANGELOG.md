@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 72.1.0
+
+* Change the email template to use a HTML5 doctype and add a 'hidden' attribute to the preheader
+
 ## 72.0.0
 
 * Remove the deprecated `from_address` param from EmailPreviewTemplate (it's been unused for six years)
