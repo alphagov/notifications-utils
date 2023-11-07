@@ -34,7 +34,6 @@ transformers = {
 
 
 class Polygons:
-
     # Estimated amount of bleed into neigbouring areas based on typical
     # range/separation of cell towers.
     approx_bleed_in_m = 1_500
@@ -63,7 +62,6 @@ class Polygons:
     output_precision_in_decimal_places = 6
 
     def __init__(self, polygons, utm_crs=None):
-
         if not isinstance(polygons, list):
             raise TypeError(
                 f"First argument to {self.__class__.__name__} must be a list " f"(not {type(polygons).__name__})"
@@ -96,7 +94,6 @@ class Polygons:
 
     @cached_property
     def utm_polygons(self):
-
         if all(isinstance(polygon, Polygon) for polygon in self):
             # These polygons already have UTM coordinates
             return self

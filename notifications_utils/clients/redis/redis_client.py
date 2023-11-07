@@ -53,7 +53,6 @@ class RedisClient:
             self.register_scripts()
 
     def register_scripts(self):
-
         # delete keys matching a pattern supplied as a parameter. Does so in batches of 5000 to prevent unpack from
         # exceeding lua's stack limit, and also to prevent errors if no keys match the pattern.
         # Inspired by https://gist.github.com/ddre54/0a4751676272e0da8186

@@ -119,7 +119,6 @@ def get_earliest_and_latest_delivery(print_day, postage):
 
 
 def get_letter_timings(upload_time, postage):
-
     LetterTimings = namedtuple("LetterTimings", "printed_by, is_printed, earliest_delivery, latest_delivery")
 
     # shift anything after 5:30pm to the next day

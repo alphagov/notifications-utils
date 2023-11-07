@@ -7,7 +7,6 @@ from uuid import UUID
 
 
 class RequestCache:
-
     DEFAULT_TTL = int(timedelta(days=28).total_seconds())
 
     def __init__(self, redis_client):
@@ -22,7 +21,6 @@ class RequestCache:
 
     @staticmethod
     def _get_argument(argument_name, client_method, args, kwargs):
-
         with suppress(KeyError):
             return kwargs[argument_name]
 

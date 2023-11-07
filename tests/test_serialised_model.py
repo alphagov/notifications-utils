@@ -61,7 +61,6 @@ def test_looks_up_from_dict():
 
 def test_cant_override_custom_property_from_dict():
     class Custom(SerialisedModel):
-
         ALLOWED_PROPERTIES = {"foo"}
 
         @property
@@ -114,7 +113,6 @@ def test_model_raises_keyerror_if_item_missing_from_dict():
 )
 def test_model_doesnt_swallow_attribute_errors(json_response):
     class Custom(SerialisedModel):
-
         ALLOWED_PROPERTIES = set()
 
         @property

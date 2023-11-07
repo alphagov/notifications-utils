@@ -12,5 +12,5 @@ flake8-print==5.0.0
 pytest-profiling==1.7.0
 redis>=4.3.4  # Earlier versions of redis miss features the tests need
 snakeviz==2.1.1
-black==22.10.0  # Also update `.pre-commit-config.yaml` if this changes
+black==23.10.1  # Also update `.pre-commit-config.yaml` if this changes
 ruff==0.0.272  # Also update `.pre-commit-config.yaml` if this changes
