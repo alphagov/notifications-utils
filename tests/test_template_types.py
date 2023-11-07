@@ -282,7 +282,7 @@ def test_preheader_is_at_start_of_html_emails():
     assert (
         '<body style="font-family: Helvetica, Arial, sans-serif;font-size: 16px;margin: 0;color:#0b0c0c;">\n'
         "\n"
-        '<span style="display: none;font-size: 1px;color: #fff; max-height: 0;">content…</span>'
+        '<span style="display: none;font-size: 1px;color: #fff; max-height: 0;" hidden>content…</span>'
     ) in str(HTMLEmailTemplate({"content": "content", "subject": "subject", "template_type": "email"}))
 
 
