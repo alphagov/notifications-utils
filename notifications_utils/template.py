@@ -142,7 +142,6 @@ class Template(ABC):
         return len(self.content_with_placeholders_filled_in)
 
     def is_message_empty(self):
-
         if not self.content:
             return True
 
@@ -159,7 +158,6 @@ class Template(ABC):
 
 
 class BaseSMSTemplate(Template):
-
     template_type = "sms"
 
     def __init__(
@@ -182,7 +180,6 @@ class BaseSMSTemplate(Template):
 
     @values.setter
     def values(self, value):
-
         # If we change the values of the template it’s possible the
         # content count will have changed, so we need to reset the
         # cached count.
@@ -289,7 +286,6 @@ class SMSBodyPreviewTemplate(BaseSMSTemplate):
         super().__init__(template, values, show_prefix=False)
 
     def __str__(self):
-
         return Markup(
             Take(
                 Field(
@@ -308,7 +304,6 @@ class SMSBodyPreviewTemplate(BaseSMSTemplate):
 
 
 class SMSPreviewTemplate(BaseSMSTemplate):
-
     jinja_template = template_env.get_template("sms_preview_template.jinja2")
 
     def __init__(
@@ -330,7 +325,6 @@ class SMSPreviewTemplate(BaseSMSTemplate):
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __str__(self):
-
         return Markup(
             self.jinja_template.render(
                 {
@@ -542,7 +536,6 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
 
 
 class HTMLEmailTemplate(BaseEmailTemplate):
-
     jinja_template = template_env.get_template("email_template.jinja2")
 
     PREHEADER_LENGTH_IN_CHARACTERS = 256
@@ -588,7 +581,6 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         )[: self.PREHEADER_LENGTH_IN_CHARACTERS].strip()
 
     def __str__(self):
-
         return self.jinja_template.render(
             {
                 "subject": self.subject,
@@ -606,7 +598,6 @@ class HTMLEmailTemplate(BaseEmailTemplate):
 
 
 class EmailPreviewTemplate(BaseEmailTemplate):
-
     jinja_template = template_env.get_template("email_preview_template.jinja2")
 
     def __init__(
@@ -654,7 +645,6 @@ class EmailPreviewTemplate(BaseEmailTemplate):
 
 
 class BaseLetterTemplate(SubjectMixin, Template):
-
     template_type = "letter"
     max_page_count = LETTER_MAX_PAGE_COUNT
     max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
@@ -715,7 +705,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def _address_block(self):
-
         if self.postal_address.has_enough_lines and not self.postal_address.has_too_many_lines:
             return self.postal_address.normalised_lines
 
@@ -771,7 +760,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
 
 class LetterPreviewTemplate(BaseLetterTemplate):
-
     jinja_template = template_env.get_template("letter_pdf/preview.jinja2")
 
     def __str__(self):
@@ -793,12 +781,10 @@ class LetterPreviewTemplate(BaseLetterTemplate):
 
 
 class LetterPrintTemplate(LetterPreviewTemplate):
-
     jinja_template = template_env.get_template("letter_pdf/print.jinja2")
 
 
 class LetterImageTemplate(BaseLetterTemplate):
-
     jinja_template = template_env.get_template("letter_image_template.jinja2")
     first_page_number = 1
     allowed_postage_types = (

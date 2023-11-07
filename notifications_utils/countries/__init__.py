@@ -19,7 +19,6 @@ class CountryMapping(InsensitiveDict):
     @staticmethod
     @lru_cache(maxsize=2048, typed=False)
     def make_key(original_key):
-
         original_key = original_key.replace("&", "and")
         original_key = original_key.replace("+", "and")
 
@@ -40,7 +39,6 @@ class CountryMapping(InsensitiveDict):
         return super().__contains__(key)
 
     def __getitem__(self, key):
-
         for key_ in (key, f"the {key}", f"yr {key}", f"y {key}"):
             if key_ in self:
                 return super().__getitem__(key_)

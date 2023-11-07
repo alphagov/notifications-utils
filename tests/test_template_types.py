@@ -241,7 +241,6 @@ def test_alt_text_with_no_govuk_banner(brand_banner, brand_text, expected_alt_te
 )
 @pytest.mark.parametrize("content", ("DOCTYPE", "html", "body"))
 def test_complete_html(complete_html, branding_should_be_present, brand_logo, brand_text, brand_colour, content):
-
     email = str(
         HTMLEmailTemplate(
             {"content": "hello world", "subject": "", "template_type": "email"},
@@ -877,7 +876,6 @@ def test_letter_preview_renderer(
 @freeze_time("2001-01-01 12:00:00.000000")
 @mock.patch("notifications_utils.template.LetterPreviewTemplate.jinja_template.render")
 def test_letter_preview_renderer_without_mocks(jinja_template):
-
     str(
         LetterPreviewTemplate(
             {"content": "Foo", "subject": "Subject", "template_type": "letter"},
@@ -903,7 +901,6 @@ def test_letter_preview_renderer_without_mocks(jinja_template):
 
 @mock.patch("notifications_utils.template.LetterPreviewTemplate.jinja_template.render")
 def test_letter_preview_renders_QR_code_correctly(jinja_template):
-
     str(
         LetterPreviewTemplate(
             {
@@ -2584,7 +2581,6 @@ def test_multiple_newlines_in_letters(
     ],
 )
 def test_whitespace_in_subjects(template_class, template_type, subject, extra_args):
-
     template_instance = template_class(
         {"content": "foo", "subject": subject, "template_type": template_type}, **extra_args
     )
@@ -2627,7 +2623,6 @@ def test_whitespace_in_subject_placeholders(template_class):
     ],
 )
 def test_govuk_email_whitespace_hack(template_class, expected_output):
-
     template_instance = template_class(
         {
             "content": "paragraph one\n\n&nbsp;\n\nparagraph two",
@@ -2661,7 +2656,6 @@ def test_letter_preview_uses_non_breaking_hyphens():
 
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_nested_lists_in_lettr_markup():
-
     template_content = str(
         LetterPreviewTemplate(
             {

@@ -20,7 +20,6 @@ class color:
 
 
 def upgrade_version():
-
     current_version = get_app_version()
     newest_version = get_remote_version()
 
@@ -61,7 +60,6 @@ def write_version_to_requirements_file(version):
 
 
 def get_relevant_changelog_lines(current_version, newest_version):
-
     old_changelog, new_changelog = (
         get_file_contents_from_github(version, "CHANGELOG.md") for version in (current_version, newest_version)
     )

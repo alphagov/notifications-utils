@@ -454,7 +454,6 @@ def test_empty_column_names():
     ],
 )
 def test_get_recipient(file_contents, template, expected_recipients, expected_personalisation):
-
     recipients = RecipientCSV(file_contents, template=template)
 
     for index, row in enumerate(expected_personalisation):
@@ -485,7 +484,11 @@ def test_get_recipient_respects_order(file_contents, template, expected_recipien
     recipients = RecipientCSV(file_contents, template=template)
 
     for row, email in expected_recipients:
-        assert (recipients[row].index, recipients[row].recipient, recipients[row].personalisation,) == (
+        assert (
+            recipients[row].index,
+            recipients[row].recipient,
+            recipients[row].personalisation,
+        ) == (
             row,
             email,
             expected_personalisation[row],
@@ -793,7 +796,6 @@ def test_errors_when_too_many_rows():
     ],
 )
 def test_recipient_guestlist(file_contents, template_type, guestlist, count_of_rows_with_errors):
-
     recipients = RecipientCSV(file_contents, template=_sample_template(template_type), guestlist=guestlist)
 
     if count_of_rows_with_errors:
@@ -921,7 +923,6 @@ def test_ignores_spaces_and_case_in_placeholders(key, expected):
     ),
 )
 def test_ignores_leading_whitespace_in_file(character, name):
-
     if name is not None:
         assert unicodedata.name(character) == name
 
