@@ -867,6 +867,7 @@ def test_letter_preview_renderer(
             "admin_base_url": "http://localhost:6012",
             "logo_file_name": expected_logo_file_name,
             "logo_class": expected_logo_class,
+            "language": "english",
         }
     )
     letter_markdown.assert_called_once_with(Markup("Foo\n"))
@@ -1111,8 +1112,14 @@ def test_letter_template_shows_date_and_page_count_in_welsh_if_language_set_to_w
     template = BeautifulSoup(
         str(
             LetterPreviewTemplate(
-                {"content": "Foo", "subject": "Subject", "template_type": "letter"},
-                language="welsh"
+                {
+                    "content": "Some content",
+                    "subject": "Some subject",
+                    "letter_welsh_content": "Welsh content",
+                    "letter_welsh_subject": "Welsh subject",
+                    "template_type": "letter",
+                },
+                language="welsh",
             )
         ),
         features="html.parser",
@@ -1124,14 +1131,35 @@ def test_letter_template_shows_date_and_page_count_in_welsh_if_language_set_to_w
 
 
 def test_letter_template_shows_welsh_subject_and_content_if_language_set_to_welsh():
-    template = LetterPreviewTemplate({
-        "content": "Very good", "welsh_content": "Yn gwych",
-        "subject": "How are you", "welsh_subject": "Sut dych chi",
-        "template_type": "letter",
-    }, language="welsh")
+    template = LetterPreviewTemplate(
+        {
+            "content": "Very good",
+            "letter_welsh_content": "Yn gwych",
+            "subject": "How are you",
+            "letter_welsh_subject": "Sut dych chi",
+            "template_type": "letter",
+        },
+        language="welsh",
+    )
 
     assert template.subject == "Sut dych chi"
     assert template.content == "Yn gwych"
+
+
+def test_letter_template_detects_all_placeholders_in_both_english_and_welsh_subject_and_content():
+    template = LetterPreviewTemplate(
+        {
+            "content": "Send us ((document_type))",
+            "letter_welsh_content": "Anfonwch ((document_type_cy)) atom",
+            "subject": "Getting ((allowance_type))",
+            "letter_welsh_subject": "Cael ((allowance_type_cy))",
+            "template_type": "letter",
+        }
+    )
+
+    assert template.placeholders == OrderedSet(
+        ["allowance_type_cy", "allowance_type", "document_type_cy", "document_type"]
+    )
 
 
 @freeze_time("2012-12-12 12:12:12")

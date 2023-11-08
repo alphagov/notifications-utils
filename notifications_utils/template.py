@@ -1,12 +1,12 @@
 import math
 from abc import ABC, abstractmethod
-from babel.dates import format_date
 from datetime import datetime
 from functools import lru_cache
 from html import unescape
 from os import path
 from typing import Optional
 
+from babel.dates import format_date
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
@@ -80,6 +80,7 @@ class Template(ABC):
         self.id = template.get("id", None)
         self.name = template.get("name", None)
         self.content = template["content"]
+        self.welsh_content = template.get("letter_welsh_content", "")
         self.values = values
         self._template = template
         self.redact_missing_personalisation = redact_missing_personalisation
@@ -122,7 +123,12 @@ class Template(ABC):
 
     @property
     def placeholders(self):
-        return get_placeholders(self.content)
+        welsh = set()
+        if self.welsh_content:
+            welsh = get_placeholders(self.welsh_content)
+        english = get_placeholders(self.content)
+        all = welsh | english
+        return all
 
     @property
     def missing_data(self):
@@ -423,10 +429,14 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
 class SubjectMixin:
     def __init__(self, template, values=None, language="english", **kwargs):
+        welsh_subject = template.get("letter_welsh_subject", "")
+
         if language == "english":
             self._subject = template["subject"]
         else:
-            self._subject = template.get("welsh_subject", None)
+            self._subject = welsh_subject
+
+        self._welsh_subject = welsh_subject
 
         super().__init__(template, values, **kwargs)
 
@@ -447,7 +457,13 @@ class SubjectMixin:
 
     @property
     def placeholders(self):
-        return get_placeholders(self._subject) | super().placeholders
+        welsh = set()
+        if self._welsh_subject:
+            welsh = get_placeholders(self._welsh_subject)
+        english = get_placeholders(self._subject)
+        all = welsh | english
+
+        return all | super().placeholders
 
 
 class BaseEmailTemplate(SubjectMixin, Template):
@@ -675,7 +691,10 @@ class BaseLetterTemplate(SubjectMixin, Template):
         self.logo_file_name = logo_file_name
         self.date = date or datetime.utcnow()
         self.language = language
-        self.content = template["content"] if language == "english" else template.get("welsh_content", None)
+        if language == "english":
+            self.content = template["content"]
+        else:
+            self.content = template.get("letter_welsh_content", "")
 
     @property
     def subject(self):
@@ -749,7 +768,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
         if self.language == "english":
             date_string = self.date.strftime("%-d %B %Y")
         else:
-            date_string = format_date(self.date, "d MMMM yyyy", locale='cy')
+            date_string = format_date(self.date, "d MMMM yyyy", locale="cy")
         return date_string
 
     @property
