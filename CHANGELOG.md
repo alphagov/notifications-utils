@@ -3,6 +3,12 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 72.2.0
+
+* Render Welsh language templated letter, with page numbers footer and name of the month in Welsh
+* Recognise placeholders from letter_welsh_content and letter_welsh_subject fields
+
+
 ## 72.1.0
 
 * Change the email template to use a HTML5 doctype and add a 'hidden' attribute to the preheader
