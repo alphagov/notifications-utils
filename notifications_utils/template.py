@@ -6,11 +6,11 @@ from html import unescape
 from os import path
 from typing import Optional
 
-from babel.dates import format_date
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
 
 from notifications_utils import (
+    ENGLISH_TO_WELSH_MONTHS,
     LETTER_MAX_PAGE_COUNT,
     MAGIC_SEQUENCE,
     SMS_CHAR_COUNT_LIMIT,
@@ -764,12 +764,10 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def _date(self):
-        date_string = ""
-        if self.language == "english":
-            date_string = self.date.strftime("%-d %B %Y")
-        else:
-            date_string = format_date(self.date, "d MMMM yyyy", locale="cy")
-        return date_string
+        month = self.date.strftime("%B")
+        if self.language == "welsh":
+            month = ENGLISH_TO_WELSH_MONTHS[month]
+        return self.date.strftime(f"%-d {month} %Y")
 
     @property
     def _personalised_content(self) -> Field:
