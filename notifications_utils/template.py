@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import lru_cache
 from html import unescape
 from os import path
-from typing import Optional
+from typing import Literal, Optional
 
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
@@ -428,7 +428,7 @@ class BroadcastMessageTemplate(BaseBroadcastTemplate, SMSMessageTemplate):
 
 
 class SubjectMixin:
-    def __init__(self, template, values=None, language="english", **kwargs):
+    def __init__(self, template, values=None, language: Literal["english", "welsh"] = "english", **kwargs):
         welsh_subject = template.get("letter_welsh_subject", "")
 
         if language == "english":
