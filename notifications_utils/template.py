@@ -80,7 +80,7 @@ class Template(ABC):
         self.id = template.get("id", None)
         self.name = template.get("name", None)
         self.content = template["content"]
-        self.welsh_content = template.get("letter_welsh_content", "")
+        self.welsh_content = template.get("letter_welsh_content", None)
         self.values = values
         self._template = template
         self.redact_missing_personalisation = redact_missing_personalisation
