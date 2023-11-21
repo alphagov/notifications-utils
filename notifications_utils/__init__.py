@@ -22,3 +22,18 @@ email_with_smart_quotes_regex = re.compile(
 # and then later remove when performing tricky formatting operations
 MAGIC_SEQUENCE = "🇬🇧🐦✉️"
 magic_sequence_regex = re.compile(MAGIC_SEQUENCE)
+
+ENGLISH_TO_WELSH_MONTHS = {
+    "January": "Ionawr",
+    "February": "Chwefror",
+    "March": "Mawrth",
+    "April": "Ebrill",
+    "May": "Mai",
+    "June": "Mehefin",
+    "July": "Gorffennaf",
+    "August": "Awst",
+    "September": "Medi",
+    "October": "Hydref",
+    "November": "Tachwedd",
+    "December": "Rhagfyr",
+}

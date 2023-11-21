@@ -10,7 +10,9 @@
   }
   @page {
     @bottom-right {
-      content: "Page " counter(page) " of " counter(pages);
+      {% set word_for_page = 'Tudalen' if language == 'welsh' else 'Page' %}
+      {% set word_for_of = 'o' if language == 'welsh' else 'of' %}
+      content: "{{word_for_page}} " counter(page) " {{word_for_of}} " counter(pages);
       font-family: 'Nimbus Sans L';
       font-size: 10pt;
       text-align: right;
