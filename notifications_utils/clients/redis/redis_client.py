@@ -45,10 +45,10 @@ class RedisClient:
     active = False
     scripts = {}
 
-    def init_app(self, app):
+    def init_app(self, app, redis_client_kwargs: Optional[dict] = None):
         self.active = app.config.get("REDIS_ENABLED")
         if self.active:
-            self.redis_store.init_app(app)
+            self.redis_store.init_app(app, **redis_client_kwargs or {})
 
             self.register_scripts()
 

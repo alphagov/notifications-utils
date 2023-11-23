@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 72.3.0
+
+* allow optional `redis_client_kwargs` dict to be passed through `RedisClient.init_app`
+
 ## 72.2.0
 
 * Render Welsh language templated letter, with page numbers footer and name of the month in Welsh

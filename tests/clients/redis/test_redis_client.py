@@ -58,6 +58,16 @@ def failing_redis_client(mocked_redis_client, delete_mock):
     return mocked_redis_client
 
 
+def test_redis_client_accepts_optional_kwargs(app, mocker):
+    app.config["REDIS_ENABLED"] = True
+    app.config["REDIS_URL"] = "rediss://foo.localhost:6379"
+
+    redis_client = RedisClient()
+    redis_client.init_app(app, redis_client_kwargs={"db": 1})
+
+    assert redis_client.redis_store.connection_pool.connection_kwargs["db"] == 1
+
+
 def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_redis_client):
     with caplog.at_level(logging.ERROR):
         assert failing_redis_client.get("get_key") is None
