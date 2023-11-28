@@ -1,5 +1,5 @@
-from functools import lru_cache
 import re
+from functools import lru_cache
 from types import MappingProxyType
 from typing.re import Pattern
 
@@ -17,6 +17,7 @@ class RestrictedAny:
     >>> (4, 9, 6,) == (4, RestrictedAny(lambda x: x % 2), 6,)
     True
     """
+
     def __init__(self, condition):
         self._condition = condition
 
@@ -39,10 +40,13 @@ class AnySupersetOf(RestrictedAny):
     >>> [{"a": 123, "b": 456, "less": "predictabananas"}, 789] == [AnySupersetOf({"a": 123, "b": 456}), 789]
     True
     """
+
     def __init__(self, subset_dict):
         # take an immutable dict copy of supplied dict-like object
         self._subset_dict = MappingProxyType(dict(subset_dict))
-        super().__init__(lambda other: self._subset_dict == {k: v for k, v in other.items() if k in self._subset_dict})
+
+    def _condition(self, other):
+        return self._subset_dict == {k: v for k, v in other.items() if k in self._subset_dict}
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._subset_dict})"
@@ -55,6 +59,7 @@ class AnyStringMatching(RestrictedAny):
     >>> {"a": "Metempsychosis", "b": "c"} == {"a": AnyStringMatching(r"m+.+psycho.*", flags=re.I), "b": "c"}
     True
     """
+
     _cached_re_compile = staticmethod(lru_cache(maxsize=32)(re.compile))
 
     def __init__(self, *args, **kwargs):
@@ -63,9 +68,7 @@ class AnyStringMatching(RestrictedAny):
         recognized by ``re.compile``, alternatively accepts an existing regex pattern object as a single argument.
         """
         self._regex = (
-            args[0]
-            if len(args) == 1 and isinstance(args[0], Pattern)
-            else self._cached_re_compile(*args, **kwargs)
+            args[0] if len(args) == 1 and isinstance(args[0], Pattern) else self._cached_re_compile(*args, **kwargs)
         )
         super().__init__(lambda other: isinstance(other, (str, bytes)) and bool(self._regex.match(other)))
 
@@ -83,6 +86,7 @@ class ExactIdentity(RestrictedAny):
     >>> (7, ExactIdentity(x),) == (7, [],)
     False
     """
+
     def __init__(self, reference_object):
         self._reference_object = reference_object
         super().__init__(lambda other: self._reference_object is other)

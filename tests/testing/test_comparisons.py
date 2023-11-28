@@ -11,9 +11,33 @@ from notifications_utils.testing.comparisons import (
 class TestRestrictedAny:
     def test_any_odd(self):
         any_odd = RestrictedAny(lambda x: x % 2)
-        assert (4, 5, 6,) == (4, any_odd, 6,)
-        assert (4, 9, 6,) == (4, any_odd, 6,)
-        assert not (4, 9, 6,) == (4, any_odd, any_odd,)
+        assert (
+            4,
+            5,
+            6,
+        ) == (
+            4,
+            any_odd,
+            6,
+        )
+        assert (
+            4,
+            9,
+            6,
+        ) == (
+            4,
+            any_odd,
+            6,
+        )
+        assert not (
+            4,
+            9,
+            6,
+        ) == (
+            4,
+            any_odd,
+            any_odd,
+        )
 
 
 class TestAnySupersetOf:
@@ -71,5 +95,17 @@ class TestStringMatching:
 class TestExactIdentity:
     def test_exact_identity(self):
         x = []
-        assert (7, ExactIdentity(x),) == (7, x,)
-        assert not (7, ExactIdentity(x),) == (7, [],)
+        assert (
+            7,
+            ExactIdentity(x),
+        ) == (
+            7,
+            x,
+        )
+        assert not (
+            7,
+            ExactIdentity(x),
+        ) == (
+            7,
+            [],
+        )
