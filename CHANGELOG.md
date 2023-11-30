@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 73.0.0
+
+* Removes `LetterImageTemplate`. This has been moved to admin, as that is the only app using it.
+
 ## 72.2.0
 
 * Render Welsh language templated letter, with page numbers footer and name of the month in Welsh
