@@ -1,11 +1,13 @@
 import logging
 import logging.handlers
 import sys
+import time
 from itertools import product
+from os import getpid
 from pathlib import Path
 from typing import Sequence
 
-from flask import g, request
+from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseJSONFormatter
 
@@ -17,11 +19,63 @@ TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 logger = logging.getLogger(__name__)
 
 
+def _common_request_extra_log_context():
+    return {
+        "method": request.method,
+        "url": request.url,
+        "endpoint": request.endpoint,
+        # pid and is available on LogRecord by default, as `process` but I don't see
+        # a straightforward way of selectively including it only in certain log messages -
+        # it is designed to be included when the formatter is being configured. This is
+        # why I'm manually grabbing it and putting it in as `extra` here, avoiding the
+        # existing parameter name to prevent LogRecord from complaining
+        "process_": getpid(),
+    }
+
+
 def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = tuple()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_PATH", "./log/application.log")
     app.config.setdefault("NOTIFY_RUNTIME_PLATFORM", None)
+    app.config.setdefault(
+        "NOTIFY_REQUEST_LOG_LEVEL",
+        "CRITICAL" if app.config["NOTIFY_RUNTIME_PLATFORM"] == "paas" else "NOTSET",
+    )
+
+    @app.before_request
+    def before_request():
+        # annotating this onto request instead of flask.g as it probably shouldn't
+        # be inheritable from a request-less application context
+        request.before_request_real_time = time.perf_counter()
+
+        # emit an early log message to record that the request was received by the app
+        context = _common_request_extra_log_context()
+        current_app.logger.getChild("request").log(
+            logging.DEBUG,
+            "Received request %(method)s %(url)s",
+            context,
+            extra=context,
+        )
+
+    @app.after_request
+    def after_request(response):
+        context = {
+            "status": response.status_code,
+            "request_time": (
+                (time.perf_counter() - request.before_request_real_time)
+                if hasattr(request, "before_request_real_time")
+                else None
+            ),
+            **_common_request_extra_log_context(),
+        }
+        current_app.logger.getChild("request").log(
+            logging.WARNING if response.status_code // 100 == 5 else logging.INFO,
+            "%(method)s %(url)s %(status)s took %(request_time)ss",
+            context,
+            extra=context,
+        )
+        return response
 
     logging.getLogger().addHandler(logging.NullHandler())
 
@@ -39,6 +93,10 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
         logger_instance.setLevel(loglevel)
     logging.getLogger("boto3").setLevel(logging.WARNING)
     logging.getLogger("s3transfer").setLevel(logging.WARNING)
+
+    request_loglevel = logging.getLevelName(app.config["NOTIFY_REQUEST_LOG_LEVEL"])
+    app.logger.getChild("request").setLevel(request_loglevel)
+
     app.logger.info("Logging configured")
 
 
