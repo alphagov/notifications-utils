@@ -3,6 +3,11 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 73.1.0
+
+* Adds request logging to flask apps.
+* Adds `RestrictedAny` family of testing utilities to new `testing.comparisons` submodule.
+
 ## 73.0.0
 
 * Removes `LetterImageTemplate`. This has been moved to admin, as that is the only app using it.
