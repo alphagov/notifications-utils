@@ -18,38 +18,47 @@ def test_cant_be_instatiated_with_abstract_properties():
     with pytest.raises(TypeError) as e:
         SerialisedModel()
 
-    if sys.version_info < (3, 9):
+    if sys.version_info >= (3, 12):
         assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModel with abstract methods ALLOWED_PROPERTIES"
+            "Can't instantiate abstract class SerialisedModel without an implementation "
+            "for abstract method 'ALLOWED_PROPERTIES'"
         )
     else:
-        assert "Can't instantiate abstract class SerialisedModel with abstract method ALLOWED_PROPERTIES"
+        assert str(e.value) == (
+            "Can't instantiate abstract class SerialisedModel with abstract method ALLOWED_PROPERTIES"
+        )
 
     with pytest.raises(TypeError) as e:
         Custom()
 
-    if sys.version_info < (3, 9):
-        assert str(e.value) == ("Can't instantiate abstract class Custom with abstract methods ALLOWED_PROPERTIES")
+    if sys.version_info >= (3, 12):
+        assert str(e.value) == (
+            "Can't instantiate abstract class Custom without an implementation "
+            "for abstract method 'ALLOWED_PROPERTIES'"
+        )
     else:
-        assert str(e.value) == ("Can't instantiate abstract class Custom with abstract method ALLOWED_PROPERTIES")
+        assert str(e.value) == "Can't instantiate abstract class Custom with abstract method ALLOWED_PROPERTIES"
 
     with pytest.raises(TypeError) as e:
         SerialisedModelCollection()
 
-    if sys.version_info < (3, 9):
+    if sys.version_info >= (3, 12):
         assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModelCollection with abstract methods model"
+            "Can't instantiate abstract class SerialisedModelCollection without an implementation "
+            "for abstract method 'model'"
         )
     else:
-        assert str(e.value) == ("Can't instantiate abstract class SerialisedModelCollection with abstract method model")
+        assert str(e.value) == "Can't instantiate abstract class SerialisedModelCollection with abstract method model"
 
     with pytest.raises(TypeError) as e:
         CustomCollection()
 
-    if sys.version_info < (3, 9):
-        assert str(e.value) == ("Can't instantiate abstract class CustomCollection with abstract methods model")
+    if sys.version_info >= (3, 12):
+        assert str(e.value) == (
+            "Can't instantiate abstract class CustomCollection without an implementation " "for abstract method 'model'"
+        )
     else:
-        assert str(e.value) == ("Can't instantiate abstract class CustomCollection with abstract method model")
+        assert str(e.value) == "Can't instantiate abstract class CustomCollection with abstract method model"
 
 
 def test_looks_up_from_dict():
