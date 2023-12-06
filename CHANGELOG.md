@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 74.0.0
+
+Removes Emergency-Alerts-related code
+
+* the `polygons` module has been removed
+* `template.BroadcastPreviewTemplate` and `template.BroadcastMessageTemplate` have been removed
+
 ## 73.2.1
 
 * Fix utils packaging to allow access to subpackages again.
