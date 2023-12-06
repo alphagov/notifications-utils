@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 
 
 class InsensitiveDict(dict):
