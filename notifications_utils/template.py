@@ -792,27 +792,55 @@ class BaseLetterTemplate(SubjectMixin, Template):
 class LetterPreviewTemplate(BaseLetterTemplate):
     jinja_template = template_env.get_template("letter_pdf/preview.jinja2")
 
+    @property
+    def render_params(self):
+        return {
+            "admin_base_url": self.admin_base_url,
+            "logo_file_name": self.logo_file_name,
+            # logo_class should only ever be None, svg or png
+            "logo_class": self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
+            "subject": self.subject,
+            "message": self._message,
+            "address": self._address_block,
+            "contact_block": self._contact_block,
+            "date": self._date,
+            "language": self.language,
+        }
+
     def __str__(self):
-        return Markup(
-            self.jinja_template.render(
-                {
-                    "admin_base_url": self.admin_base_url,
-                    "logo_file_name": self.logo_file_name,
-                    # logo_class should only ever be None, svg or png
-                    "logo_class": self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
-                    "subject": self.subject,
-                    "message": self._message,
-                    "address": self._address_block,
-                    "contact_block": self._contact_block,
-                    "date": self._date,
-                    "language": self.language,
-                }
-            )
-        )
+        return Markup(self.jinja_template.render(self.render_params))
 
 
 class LetterPrintTemplate(LetterPreviewTemplate):
     jinja_template = template_env.get_template("letter_pdf/print.jinja2")
+
+    def __init__(
+        self,
+        template,
+        values=None,
+        contact_block=None,
+        admin_base_url="http://localhost:6012",
+        logo_file_name=None,
+        redact_missing_personalisation=False,
+        date=None,
+        language="english",
+        include_notify_tag: bool = True,
+    ):
+        super().__init__(
+            template,
+            values=values,
+            contact_block=contact_block,
+            admin_base_url=admin_base_url,
+            logo_file_name=logo_file_name,
+            redact_missing_personalisation=redact_missing_personalisation,
+            date=date,
+            language=language,
+        )
+        self.include_notify_tag = include_notify_tag
+
+    @property
+    def render_params(self):
+        return super().render_params | {"include_notify_tag": self.include_notify_tag}
 
 
 def get_sms_fragment_count(character_count, non_gsm_characters):

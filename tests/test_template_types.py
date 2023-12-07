@@ -2801,3 +2801,18 @@ def test_letter_qr_codes_with_too_much_data(content, values, should_error):
         assert error.num_bytes == 700
     else:
         assert error is None
+
+
+@pytest.mark.parametrize(
+    "extra_template_kwargs, should_have_notify_tag",
+    (
+        ({}, True),
+        ({"include_notify_tag": True}, True),
+        ({"include_notify_tag": False}, False),
+    ),
+)
+def test_rendered_letter_template_for_print_can_toggle_notify_tag(extra_template_kwargs, should_have_notify_tag):
+    template = LetterPrintTemplate(
+        {"template_type": "letter", "subject": "subject", "content": "content"}, {}, **extra_template_kwargs
+    )
+    assert ("content: 'NOTIFY';" in str(template)) == should_have_notify_tag
