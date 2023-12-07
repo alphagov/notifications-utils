@@ -19,7 +19,7 @@ setup(
     author="Government Digital Service",
     description="Shared python code for GOV.UK Notify.",
     long_description=__doc__,
-    packages=find_packages(include=["notifications_utils"]),
+    packages=find_packages(exclude=("tests",)),
     include_package_data=True,
     install_requires=[
         "cachetools>=4.1.1",

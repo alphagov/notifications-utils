@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 73.2.1
+
+* Fix utils packaging to allow access to subpackages again.
+
 ## 73.2.0
 
 * Adds a `include_notify_tag` parameter to `LetterPrintTemplate` so that bilingual letters can disable the NOTIFY tag on the English pages of a letter.
