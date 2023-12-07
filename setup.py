@@ -19,14 +19,14 @@ setup(
     author="Government Digital Service",
     description="Shared python code for GOV.UK Notify.",
     long_description=__doc__,
-    packages=find_packages(),
+    packages=find_packages(include=["notifications_utils"]),
     include_package_data=True,
     install_requires=[
         "cachetools>=4.1.1",
         "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
         "requests>=2.25.0",
         "python-json-logger>=2.0.1",
-        "Flask>=1.1.1",
+        "Flask>=2.1.1",
         "orderedset>=2.0.3",
         "Jinja2>=2.11.3",
         "statsd>=3.3.0",
