@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 73.2.0
+
+* Adds a `include_notify_tag` parameter to `LetterPrintTemplate` so that bilingual letters can disable the NOTIFY tag on the English pages of a letter.
+
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
