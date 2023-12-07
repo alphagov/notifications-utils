@@ -30,94 +30,19 @@ from notifications_utils.template import (
 
 
 @pytest.mark.parametrize(
-    "template_class, expected_errors",
+    "template_class",
     (
-        (
-            Template,
-            (
-                "Can't instantiate abstract class Template with abstract method __str__",
-                (
-                    "Can't instantiate abstract class Template without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            Template,
-            (
-                "Can't instantiate abstract class Template with abstract method __str__",
-                (
-                    "Can't instantiate abstract class Template without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            BaseEmailTemplate,
-            (
-                "Can't instantiate abstract class BaseEmailTemplate with abstract method __str__",
-                (
-                    "Can't instantiate abstract class BaseEmailTemplate without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            BaseEmailTemplate,
-            (
-                "Can't instantiate abstract class BaseEmailTemplate with abstract method __str__",
-                (
-                    "Can't instantiate abstract class BaseEmailTemplate without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            BaseLetterTemplate,
-            (
-                "Can't instantiate abstract class BaseLetterTemplate with abstract method __str__",
-                (
-                    "Can't instantiate abstract class BaseLetterTemplate without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            BaseLetterTemplate,
-            (
-                "Can't instantiate abstract class BaseLetterTemplate with abstract method __str__",
-                (
-                    "Can't instantiate abstract class BaseLetterTemplate without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            BaseBroadcastTemplate,
-            (
-                "Can't instantiate abstract class BaseBroadcastTemplate with abstract method __str__",
-                (
-                    "Can't instantiate abstract class BaseBroadcastTemplate without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
-        (
-            BaseBroadcastTemplate,
-            (
-                "Can't instantiate abstract class BaseBroadcastTemplate with abstract method __str__",
-                (
-                    "Can't instantiate abstract class BaseBroadcastTemplate without an implementation "
-                    "for abstract method '__str__'"
-                ),
-            ),
-        ),
+        Template,
+        BaseEmailTemplate,
+        BaseLetterTemplate,
+        BaseBroadcastTemplate,
     ),
 )
-def test_abstract_classes_cant_be_instantiated(template_class, expected_errors):
+def test_abstract_classes_cant_be_instantiated(template_class):
     with pytest.raises(TypeError) as error:
         template_class({})
-    assert str(error.value) in expected_errors
+    assert f"Can't instantiate abstract class {template_class.__name__}" in str(error.value)
+    assert "__str__" in str(error.value)
 
 
 @pytest.mark.parametrize(
