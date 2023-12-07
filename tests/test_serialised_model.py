@@ -77,7 +77,7 @@ def test_cant_override_custom_property_from_dict():
             return "bar"
 
     with pytest.raises(AttributeError) as e:
-        assert Custom({"foo": "NOPE"}).foo == "bar"
+        Custom({"foo": "NOPE"})
 
     if sys.version_info < (3, 11):
         assert str(e.value) == "can't set attribute"
