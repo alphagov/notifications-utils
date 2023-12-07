@@ -15,6 +15,14 @@ More minor changes may optionally be recorded here too.
 
 * Add compatibility with Python 3.11 and 3.12
 
+## 73.1.2
+
+* Change how utils is packaged to exclude tests.
+
+## 73.1.1
+
+* SKIPPED VERSION - NO RELEASE.
+
 ## 73.1.0
 
 * Adds request logging to flask apps.
