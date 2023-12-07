@@ -3,6 +3,10 @@
 This is only used for recording changes for major version bumps.
 More minor changes may optionally be recorded here too.
 
+## 73.1.3
+
+* Add compatibility with Python 3.11 and 3.12
+
 ## 73.1.0
 
 * Adds request logging to flask apps.

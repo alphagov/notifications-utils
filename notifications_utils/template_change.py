@@ -1,4 +1,4 @@
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 
 from notifications_utils.insensitive_dict import InsensitiveDict
 

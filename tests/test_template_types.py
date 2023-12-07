@@ -1,6 +1,5 @@
 import datetime
 import os
-import sys
 from time import process_time
 from unittest import mock
 
@@ -8,7 +7,7 @@ import pytest
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
 from markupsafe import Markup
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 
 from notifications_utils.formatters import unlink_govuk_escaped
 from notifications_utils.template import (
@@ -31,54 +30,19 @@ from notifications_utils.template import (
 
 
 @pytest.mark.parametrize(
-    "template_class, expected_error",
+    "template_class",
     (
-        pytest.param(
-            Template,
-            ("Can't instantiate abstract class Template with abstract methods __str__"),
-            marks=pytest.mark.skipif(sys.version_info >= (3, 9), reason="‘methods’ will be singular"),
-        ),
-        pytest.param(
-            Template,
-            ("Can't instantiate abstract class Template with abstract method __str__"),
-            marks=pytest.mark.skipif(sys.version_info < (3, 9), reason="‘method’ will be pluralised"),
-        ),
-        pytest.param(
-            BaseEmailTemplate,
-            ("Can't instantiate abstract class BaseEmailTemplate with abstract methods __str__"),
-            marks=pytest.mark.skipif(sys.version_info >= (3, 9), reason="‘methods’ will be singular"),
-        ),
-        pytest.param(
-            BaseEmailTemplate,
-            ("Can't instantiate abstract class BaseEmailTemplate with abstract method __str__"),
-            marks=pytest.mark.skipif(sys.version_info < (3, 9), reason="‘method’ will be pluralised"),
-        ),
-        pytest.param(
-            BaseLetterTemplate,
-            ("Can't instantiate abstract class BaseLetterTemplate with abstract methods __str__"),
-            marks=pytest.mark.skipif(sys.version_info >= (3, 9), reason="‘methods’ will be singular"),
-        ),
-        pytest.param(
-            BaseLetterTemplate,
-            ("Can't instantiate abstract class BaseLetterTemplate with abstract method __str__"),
-            marks=pytest.mark.skipif(sys.version_info < (3, 9), reason="‘method’ will be pluralised"),
-        ),
-        pytest.param(
-            BaseBroadcastTemplate,
-            ("Can't instantiate abstract class BaseBroadcastTemplate with abstract methods __str__"),
-            marks=pytest.mark.skipif(sys.version_info >= (3, 9), reason="‘methods’ will be singular"),
-        ),
-        pytest.param(
-            BaseBroadcastTemplate,
-            ("Can't instantiate abstract class BaseBroadcastTemplate with abstract method __str__"),
-            marks=pytest.mark.skipif(sys.version_info < (3, 9), reason="‘method’ will be pluralised"),
-        ),
+        Template,
+        BaseEmailTemplate,
+        BaseLetterTemplate,
+        BaseBroadcastTemplate,
     ),
 )
-def test_abstract_classes_cant_be_instantiated(template_class, expected_error):
+def test_abstract_classes_cant_be_instantiated(template_class):
     with pytest.raises(TypeError) as error:
         template_class({})
-    assert str(error.value) == expected_error
+    assert f"Can't instantiate abstract class {template_class.__name__}" in str(error.value)
+    assert "__str__" in str(error.value)
 
 
 @pytest.mark.parametrize(

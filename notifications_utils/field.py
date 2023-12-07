@@ -1,7 +1,7 @@
 import re
 
 from markupsafe import Markup
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 
 from notifications_utils.formatters import (
     escape_html,
