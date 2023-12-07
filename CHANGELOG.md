@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 73.2.1
+
+* Fix utils packaging to allow access to subpackages again.
+
 ## 73.2.0
 
 * Adds a `include_notify_tag` parameter to `LetterPrintTemplate` so that bilingual letters can disable the NOTIFY tag on the English pages of a letter.
@@ -10,6 +14,14 @@ More minor changes may optionally be recorded here too.
 ## 73.1.3
 
 * Add compatibility with Python 3.11 and 3.12
+
+## 73.1.2
+
+* Change how utils is packaged to exclude tests.
+
+## 73.1.1
+
+* SKIPPED VERSION - NO RELEASE.
 
 ## 73.1.0
 
