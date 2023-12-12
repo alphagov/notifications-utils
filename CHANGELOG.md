@@ -15,9 +15,6 @@ Removes Emergency-Alerts-related code
 
 * Adds a `include_notify_tag` parameter to `LetterPrintTemplate` so that bilingual letters can disable the NOTIFY tag on the English pages of a letter.
 
-This is only used for recording changes for major version bumps.
-More minor changes may optionally be recorded here too.
-
 ## 73.1.3
 
 * Add compatibility with Python 3.11 and 3.12
