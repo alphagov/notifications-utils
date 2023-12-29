@@ -24,13 +24,15 @@ class AntivirusClient:
         self.api_host = api_host
         self.auth_token = auth_token
 
+        self.request_session = requests.session()
+
     def init_app(self, app):
         self.api_host = app.config["ANTIVIRUS_API_HOST"]
         self.auth_token = app.config["ANTIVIRUS_API_KEY"]
 
     def scan(self, document_stream):
         try:
-            response = requests.post(
+            response = self.request_session.post(
                 f"{self.api_host}/scan",
                 headers={
                     "Authorization": f"Bearer {self.auth_token}",
