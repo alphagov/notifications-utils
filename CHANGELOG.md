@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 74.1.0
+
+* remove the geojson dependency (another emergency alerts module)
+* reuse a single session for all antivirus/zendesk requests to get http keepalive advantages
+
 ## 74.0.0
 
 Removes Emergency-Alerts-related code
