@@ -5,6 +5,7 @@ import time
 from unittest import mock
 
 import pytest
+from freezegun import freeze_time
 
 from notifications_utils import logging
 from notifications_utils.testing.comparisons import RestrictedAny
@@ -21,7 +22,7 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
 
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
-    assert type(handlers[0].formatter) == builtin_logging.Formatter
+    assert type(handlers[0].formatter) == logging.Formatter
     assert not (tmpdir / "foo").exists()
 
 
@@ -87,6 +88,38 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug_on_ecs(tmpdir)
     assert type(handlers[0].formatter) == logging.JSONFormatter
 
     assert not (tmpdir / "foo.json").exists()
+
+
+@pytest.mark.parametrize(
+    "frozen_time,logged_time",
+    [
+        ("2023-10-31 00:00:01.12345678", "2023-10-31T00:00:01.123456"),
+        ("2020-01-15 01:01:02.999999999", "2020-01-15T01:01:02.999999"),
+        ("2020-11-18 12:12:12.000000", "2020-11-18T12:12:12.000000"),
+    ],
+)
+def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
+    with freeze_time(frozen_time):
+
+        class App:
+            config = {
+                # make a tempfile called foo
+                "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
+                "NOTIFY_APP_NAME": "bar",
+                "NOTIFY_LOG_LEVEL": "INFO",
+                "NOTIFY_RUNTIME_PLATFORM": "ecs",
+            }
+            debug = False
+
+        app = App()
+
+        handlers = logging.get_handlers(app, extra_filters=[])
+
+        record = builtin_logging.LogRecord(
+            name="log thing", level="info", pathname="path", lineno=123, msg="message to log", exc_info=None, args=None
+        )
+        record.service_id = 1234
+        assert json.loads(handlers[0].format(record))["time"] == logged_time
 
 
 def test_base_json_formatter_contains_service_id(tmpdir):

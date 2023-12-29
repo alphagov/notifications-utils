@@ -113,7 +113,7 @@ def ensure_log_path_exists(path):
 
 def get_handlers(app, extra_filters: Sequence[logging.Filter]):
     handlers = []
-    standard_formatter = logging.Formatter(LOG_FORMAT, TIME_FORMAT)
+    standard_formatter = Formatter(LOG_FORMAT, TIME_FORMAT)
     json_formatter = JSONFormatter(LOG_FORMAT, TIME_FORMAT)
 
     stream_handler = logging.StreamHandler(sys.stdout)
@@ -210,7 +210,27 @@ class UserIdFilter(logging.Filter):
         return record
 
 
-class JSONFormatter(BaseJSONFormatter):
+class _MicrosecondAddingFormatterMixin:
+    """
+    Appends a `.` and then a 6-digit number of microseconds to whatever
+    the superclass' `.formatTime(...)` returns.
+    """
+
+    # This is necessary because  supplying a `datefmt` causes the base
+    # `formatTime` implementation to completely bypass any code that
+    # would be able to add milliseconds (let alone microseconds" to the
+    # formatted time.
+
+    def formatTime(self, record, *args, **kwargs):
+        formatted = super().formatTime(record, *args, **kwargs)
+        return f"{formatted}.{int((record.created - int(record.created)) * 1e6):06}"
+
+
+class Formatter(_MicrosecondAddingFormatterMixin, logging.Formatter):
+    pass
+
+
+class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
     def process_log_record(self, log_record):
         rename_map = {
             "asctime": "time",
