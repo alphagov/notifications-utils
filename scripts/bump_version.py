@@ -5,8 +5,15 @@ import hashlib
 import subprocess
 from pathlib import Path
 
-from notifications_utils.version import __version__
 from notifications_utils.version_tools import color
+
+version_file_path = "notifications_utils/version.py"
+
+globals = {}
+with open(version_file_path) as f:
+    version_contents = f.read()
+    exec(version_contents, globals)
+old_version = globals["__version__"]
 
 version_parts = ("major", "minor", "patch")
 
@@ -14,7 +21,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("version_part", choices=version_parts)
 version_part = parser.parse_args().version_part
 
-current_major, current_minor, current_patch = map(int, __version__.split("."))
+current_major, current_minor, current_patch = map(int, old_version.split("."))
+
+print(f"current version {old_version=}")
 
 new_major, new_minor, new_patch = {
     "major": (current_major + 1, 0, 0),
@@ -40,13 +49,13 @@ output = f"""
 __version__ = "{new_major}.{new_minor}.{new_patch}"  # {package_contents_hash}
 """.lstrip()
 
-with Path("notifications_utils/version.py").open("w") as version_file:
+with Path(version_file_path).open("w") as version_file:
     version_file.write(output)
 
 print("")
 print(
     f"{color.BOLD}{color.GREEN}"
-    f"Changed version from {__version__} to {new_major}.{new_minor}.{new_patch}"
+    f"Changed version from {old_version} to {new_major}.{new_minor}.{new_patch}"
     f"{color.END} ✅"
 )
 print("")
