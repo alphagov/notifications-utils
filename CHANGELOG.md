@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.2.0
+
+* Change logging's date formatting to include microseconds
+
 ## 74.1.0
 
 * remove the geojson dependency (another emergency alerts module)
