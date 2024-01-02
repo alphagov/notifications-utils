@@ -38,7 +38,6 @@ setup(
         "pypdf>=3.9.0",
         "itsdangerous>=1.1.0",
         "govuk-bank-holidays>=0.10,<1.0",
-        "geojson>=2.5.0",
         "boto3>=1.19.4",
         "segno>=1.5.2,<2.0.0",
     ],
