@@ -35,6 +35,7 @@ def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     mocker.patch.object(redis_client.redis_store, "get", return_value=100)
     mocker.patch.object(redis_client.redis_store, "set")
     mocker.patch.object(redis_client.redis_store, "incr")
+    mocker.patch.object(redis_client.redis_store, "decrby")
     mocker.patch.object(redis_client.redis_store, "delete")
     mocker.patch.object(redis_client.redis_store, "pipeline", return_value=mocked_redis_pipeline)
 
@@ -52,6 +53,7 @@ def failing_redis_client(mocked_redis_client, delete_mock):
     mocked_redis_client.redis_store.get.side_effect = Exception("get failed")
     mocked_redis_client.redis_store.set.side_effect = Exception("set failed")
     mocked_redis_client.redis_store.incr.side_effect = Exception("incr failed")
+    mocked_redis_client.redis_store.decrby.side_effect = Exception("decrby failed")
     mocked_redis_client.redis_store.pipeline.side_effect = Exception("pipeline failed")
     mocked_redis_client.redis_store.delete.side_effect = Exception("delete failed")
     delete_mock.side_effect = Exception("delete by pattern failed")
@@ -63,6 +65,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_r
         assert failing_redis_client.get("get_key") is None
         assert failing_redis_client.set("set_key", "set_value") is None
         assert failing_redis_client.incr("incr_key") is None
+        assert failing_redis_client.decrby("decrby_key", 5) is None
         assert failing_redis_client.exceeded_rate_limit("rate_limit_key", 100, 100) is False
         assert failing_redis_client.delete("delete_key") is None
         assert failing_redis_client.delete("a", "b", "c") is None
@@ -72,6 +75,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_r
         "Redis error performing get on get_key",
         "Redis error performing set on set_key",
         "Redis error performing incr on incr_key",
+        "Redis error performing decrby on decrby_key",
         "Redis error performing rate-limit-pipeline on rate_limit_key",
         "Redis error performing delete on delete_key",
         "Redis error performing delete on a, b, c",
@@ -96,6 +100,10 @@ def test_should_raise_exception_if_raise_set_to_true(
     assert str(e.value) == "incr failed"
 
     with pytest.raises(Exception) as e:
+        failing_redis_client.decrby("test", 7, raise_exception=True)
+    assert str(e.value) == "decrby failed"
+
+    with pytest.raises(Exception) as e:
         failing_redis_client.exceeded_rate_limit("test", 100, 200, raise_exception=True)
     assert str(e.value) == "pipeline failed"
 
@@ -114,6 +122,7 @@ def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     assert mocked_redis_client.get("get_key") is None
     assert mocked_redis_client.set("set_key", "set_value") is None
     assert mocked_redis_client.incr("incr_key") is None
+    assert mocked_redis_client.decrby("decrby_key", 5) is None
     assert mocked_redis_client.exceeded_rate_limit("rate_limit_key", 100, 100) is False
     assert mocked_redis_client.delete("delete_key") is None
     assert mocked_redis_client.delete_by_pattern("pattern") == 0
@@ -249,3 +258,9 @@ def test_redis_stub_lock_function_signatures_match():
         lock_sig = inspect.signature(lock_methods[fn_name])
         stub_sig = inspect.signature(stub_methods[fn_name])
         assert lock_sig.parameters == stub_sig.parameters
+
+
+def test_decrby(mocked_redis_client):
+    key = "hash-key"
+    mocked_redis_client.decrby(key, 10)
+    mocked_redis_client.redis_store.decrby.assert_called_with(key, 10)
