@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.4.0
+
+* Reverts the 'single session' change from 74.1.0, which may be causing us some connection errors.
+
 ## 74.3.0
 
 * Add `decrby` method to the RedisClient
