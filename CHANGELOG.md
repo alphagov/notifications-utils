@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.3.0
+
+* Add `decrby` method to the RedisClient
+
 ## 74.2.0
 
 * Change logging's date formatting to include microseconds
