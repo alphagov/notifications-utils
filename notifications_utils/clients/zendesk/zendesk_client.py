@@ -58,13 +58,12 @@ class ZendeskClient:
 
     def __init__(self):
         self.api_key = None
-        self.request_session = requests.session()
 
     def init_app(self, app, *args, **kwargs):
         self.api_key = app.config.get("ZENDESK_API_KEY")
 
     def send_ticket_to_zendesk(self, ticket):
-        response = self.request_session.post(
+        response = requests.post(
             self.ZENDESK_TICKET_URL, json=ticket.request_data, auth=(f"{self.NOTIFY_ZENDESK_EMAIL}/token", self.api_key)
         )
 
@@ -91,7 +90,7 @@ class ZendeskClient:
 
         upload_url = self.ZENDESK_UPLOAD_FILE_URL + "?" + urlencode(query_params)
 
-        response = self.request_session.post(
+        response = requests.post(
             upload_url,
             headers={"Content-Type": attachment.content_type},
             data=attachment.filedata,
@@ -137,7 +136,7 @@ class ZendeskClient:
             data["ticket"]["status"] = status.value
 
         update_url = self.ZENDESK_UPDATE_TICKET_URL.format(ticket_id=ticket_id)
-        response = self.request_session.put(
+        response = requests.put(
             update_url,
             json=data,
             auth=(f"{self.NOTIFY_ZENDESK_EMAIL}/token", self.api_key),
