@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 74.5.0
+
+* Include remote_addr in request logs
+* NotifyRequest: handle trace ids when not handed X-B3-TraceId by paas
+
 ## 74.4.0
 
 * Reverts the 'single session' change from 74.1.0, which may be causing us some connection errors.
