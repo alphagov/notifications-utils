@@ -21,6 +21,7 @@ params, ids = zip(
     # this unicode char is not decomposable
     (("😬", "?"), "undecomposable unicode char (grimace emoji)"),
     (("↉", "?"), "vulgar fraction (↉) that we do not try decomposing"),
+    strict=True,
 )
 
 
@@ -43,6 +44,7 @@ params, ids = zip(
     (("ë", "ë", "e"), "non-gsm Welsh char (e with dots)"),
     (("Ò", "Ò", "O"), "non-gsm Welsh char (capital O with grave accent)"),
     (("í", "í", "i"), "non-gsm Welsh char (i with accent)"),
+    strict=True,
 )
 
 
