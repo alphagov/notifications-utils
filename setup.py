@@ -28,7 +28,7 @@ setup(
         "python-json-logger>=2.0.1",
         "Flask>=2.1.1",
         "ordered-set>=4.1.0",
-        "Jinja2>=2.11.3",
+        "Jinja2>=3.1.3",
         "statsd>=3.3.0",
         "Flask-Redis>=0.4.0",
         "pyyaml>=5.3.1",
