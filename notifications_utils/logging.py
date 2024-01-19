@@ -149,6 +149,7 @@ def configure_handler(handler, app, formatter, *, extra_filters: Sequence[loggin
     handler.setFormatter(formatter)
     handler.addFilter(AppNameFilter(app.config["NOTIFY_APP_NAME"]))
     handler.addFilter(RequestIdFilter())
+    handler.addFilter(SpanIdFilter())
     handler.addFilter(ServiceIdFilter())
     handler.addFilter(UserIdFilter())
 
@@ -180,6 +181,22 @@ class RequestIdFilter(logging.Filter):
 
     def filter(self, record):
         record.request_id = self.request_id
+
+        return record
+
+
+class SpanIdFilter(logging.Filter):
+    @property
+    def span_id(self):
+        if has_request_context() and hasattr(request, "span_id"):
+            return request.span_id
+        elif has_app_context() and "span_id" in g:
+            return g.span_id
+        else:
+            return "no-span-id"
+
+    def filter(self, record):
+        record.span_id = self.span_id
 
         return record
 

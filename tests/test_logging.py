@@ -57,11 +57,11 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ec
     assert len(handlers) == 2
     assert type(handlers[0]) == builtin_logging.StreamHandler
     assert type(handlers[0].formatter) == logging.JSONFormatter
-    assert len(handlers[0].filters) == 5
+    assert len(handlers[0].filters) == 6
 
     assert type(handlers[1]) == builtin_logging_handlers.WatchedFileHandler
     assert type(handlers[1].formatter) == logging.JSONFormatter
-    assert len(handlers[1].filters) == 5
+    assert len(handlers[1].filters) == 6
 
     dir_contents = tmpdir.listdir()
     assert len(dir_contents) == 1
