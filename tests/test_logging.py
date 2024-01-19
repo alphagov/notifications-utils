@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 from freezegun import freeze_time
 
-from notifications_utils import logging
+from notifications_utils import logging, request_helper
 from notifications_utils.testing.comparisons import RestrictedAny
 
 
@@ -133,18 +133,22 @@ def test_base_json_formatter_contains_service_id(tmpdir):
 
 
 @pytest.mark.parametrize(
-    "status_code,expected_after_level",
+    "status_code,expected_after_level,with_request_helper",
     (
-        (200, builtin_logging.INFO),
-        (201, builtin_logging.INFO),
-        (400, builtin_logging.INFO),
-        (503, builtin_logging.WARNING),
+        (200, builtin_logging.INFO, False),
+        (200, builtin_logging.INFO, True),
+        (200, builtin_logging.INFO, False),
+        (201, builtin_logging.INFO, False),
+        (400, builtin_logging.INFO, False),
+        (503, builtin_logging.WARNING, False),
+        (503, builtin_logging.WARNING, True),
     ),
 )
 def test_app_request_logs_level_by_status_code(
     app_with_mocked_logger,
     status_code,
     expected_after_level,
+    with_request_helper,
 ):
     app = app_with_mocked_logger
     mock_req_logger = mock.Mock(
@@ -153,6 +157,8 @@ def test_app_request_logs_level_by_status_code(
     )
     app.logger.getChild.side_effect = lambda name: mock_req_logger if name == "request" else mock.DEFAULT
 
+    if with_request_helper:
+        request_helper.init_app(app)
     logging.init_app(app)
 
     @app.route("/")
@@ -160,7 +166,7 @@ def test_app_request_logs_level_by_status_code(
         time.sleep(0.05)
         return "foo", status_code
 
-    app.test_client().get("/")
+    app.test_client().get("/", headers={"x-b3-parentspanid": "deadbeef"})
 
     assert (
         mock.call(
@@ -171,6 +177,7 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -178,6 +185,7 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -193,6 +201,7 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
                 "status": status_code,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -202,6 +211,7 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
                 "status": status_code,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -237,6 +247,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -244,6 +255,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -259,6 +271,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -268,6 +281,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -298,6 +312,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": None,
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -305,6 +320,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": None,
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -320,6 +336,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": None,
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "status": 404,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -329,6 +346,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "method": "GET",
                 "endpoint": None,
                 "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
                 "status": 404,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),

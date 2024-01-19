@@ -25,6 +25,7 @@ def _common_request_extra_log_context():
         "url": request.url,
         "endpoint": request.endpoint,
         "remote_addr": request.remote_addr,
+        "parent_span_id": getattr(request, "parent_span_id", None),
         # pid and is available on LogRecord by default, as `process` but I don't see
         # a straightforward way of selectively including it only in certain log messages -
         # it is designed to be included when the formatter is being configured. This is
