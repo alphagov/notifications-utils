@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 74.6.0
+
+* Include parent_span_id in request logs
+* Include span_id in all logs when available
+
 ## 74.5.0
 
 * Include remote_addr in request logs
