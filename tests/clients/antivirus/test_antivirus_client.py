@@ -3,6 +3,7 @@ import io
 import pytest
 import requests
 
+from notifications_utils import request_helper
 from notifications_utils.clients.antivirus.antivirus_client import (
     AntivirusClient,
     AntivirusError,
@@ -10,47 +11,65 @@ from notifications_utils.clients.antivirus.antivirus_client import (
 
 
 @pytest.fixture(scope="function")
-def antivirus(app, mocker):
+def app_antivirus_client(app, mocker):
     client = AntivirusClient()
     app.config["ANTIVIRUS_API_HOST"] = "https://antivirus"
     app.config["ANTIVIRUS_API_KEY"] = "test-antivirus-key"
     client.init_app(app)
-    return client
+    return app, client
 
 
-def test_scan_document(antivirus, rmock):
-    document = io.BytesIO(b"filecontents")
-    rmock.request(
-        "POST",
-        "https://antivirus/scan",
-        json={"ok": True},
-        request_headers={
-            "Authorization": "Bearer test-antivirus-key",
-        },
-        status_code=200,
-    )
+@pytest.mark.parametrize(
+    "with_request_helper",
+    (
+        False,
+        True,
+    ),
+)
+def test_scan_document(app_antivirus_client, rmock, mocker, with_request_helper):
+    app, antivirus_client = app_antivirus_client
 
-    resp = antivirus.scan(document)
+    if with_request_helper:
+        mock_gorh = mocker.patch("notifications_utils.request_helper.NotifyRequest.get_onwards_request_headers")
+        mock_gorh.return_value = {"some-onwards": "request-headers"}
+        request_helper.init_app(app)
+
+    with app.test_request_context():
+        document = io.BytesIO(b"filecontents")
+        rmock.request(
+            "POST",
+            "https://antivirus/scan",
+            json={"ok": True},
+            request_headers={
+                "Authorization": "Bearer test-antivirus-key",
+                **({"some-onwards": "request-headers"} if with_request_helper else {}),
+            },
+            status_code=200,
+        )
+
+        resp = antivirus_client.scan(document)
 
     assert resp
     assert "filecontents" in rmock.last_request.text
     assert document.tell() == 0
 
 
-def test_should_raise_for_status(antivirus, rmock):
+def test_should_raise_for_status(app_antivirus_client, rmock):
+    app, antivirus_client = app_antivirus_client
     with pytest.raises(AntivirusError) as excinfo:
         rmock.request("POST", "https://antivirus/scan", json={"error": "Antivirus error"}, status_code=400)
 
-        antivirus.scan(io.BytesIO(b"document"))
+        antivirus_client.scan(io.BytesIO(b"document"))
 
     assert excinfo.value.message == "Antivirus error"
     assert excinfo.value.status_code == 400
 
 
-def test_should_raise_for_connection_errors(antivirus, rmock):
+def test_should_raise_for_connection_errors(app_antivirus_client, rmock):
+    app, antivirus_client = app_antivirus_client
     with pytest.raises(AntivirusError) as excinfo:
         rmock.request("POST", "https://antivirus/scan", exc=requests.exceptions.ConnectTimeout)
-        antivirus.scan(io.BytesIO(b"document"))
+        antivirus_client.scan(io.BytesIO(b"document"))
 
     assert excinfo.value.message == "connection error"
     assert excinfo.value.status_code == 503
