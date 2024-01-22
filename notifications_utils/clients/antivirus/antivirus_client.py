@@ -1,5 +1,6 @@
 import requests
-from flask import current_app
+from flask import current_app, request
+from flask.ctx import has_request_context
 
 
 class AntivirusError(Exception):
@@ -29,12 +30,14 @@ class AntivirusClient:
         self.auth_token = app.config["ANTIVIRUS_API_KEY"]
 
     def scan(self, document_stream):
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        if has_request_context() and hasattr(request, "get_onwards_request_headers"):
+            headers.update(request.get_onwards_request_headers())
+
         try:
             response = requests.post(
                 f"{self.api_host}/scan",
-                headers={
-                    "Authorization": f"Bearer {self.auth_token}",
-                },
+                headers=headers,
                 files={"document": document_stream},
             )
 
