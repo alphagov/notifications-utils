@@ -177,6 +177,8 @@ _span_id_related_params = (
         "Steak, kidney, liver, mashed",
         # expected_parent_span_id
         "Muttoning",
+        # expect_span_random_call_self
+        False,
         # expected_onwards_req_headers
         {
             "X-B3-SpanId": _GENERATED_SPAN_HEX,
@@ -193,12 +195,15 @@ _span_id_related_params = (
         # extra_req_headers
         (),
         # expected_span_id
-        None,
+        f"self-{_GENERATED_SPAN_HEX}",
         # expected_parent_span_id
         None,
+        # expect_span_random_call_self
+        True,
         # expected_onwards_req_headers
         {
             "X-B3-SpanId": _GENERATED_SPAN_HEX,
+            "X-B3-ParentSpanId": f"self-{_GENERATED_SPAN_HEX}",
         },
         # expected_resp_headers
         {},
@@ -220,6 +225,8 @@ _span_id_related_params = (
         "huge-pork-kidney",
         # expected_parent_span_id
         None,
+        # expect_span_random_call_self
+        False,
         # expected_onwards_req_headers
         {
             "X-B3-ParentSpanId": "huge-pork-kidney",
@@ -255,6 +262,8 @@ _span_id_related_params = (
         "colossal-edifice",
         # expected_parent_span_id
         "Plage and Pestilence",
+        # expect_span_random_call_self
+        False,
         # expected_onwards_req_headers
         {
             "Potato-Preservative": "colossal-edifice",
@@ -279,6 +288,7 @@ _param_combinations = tuple(
         expect_trace_random_call,
         expected_span_id,
         expected_parent_span_id,
+        expect_span_random_call_self,  # whether to expect a random call caused by request generating its own span_id
         # expected_onwards_req_headers
         dict(
             chain(
@@ -306,6 +316,7 @@ _param_combinations = tuple(
         s_extra_req_headers,
         expected_span_id,
         expected_parent_span_id,
+        expect_span_random_call_self,
         s_expected_onwards_req_headers,
         s_expected_resp_headers,
     ) in product(
@@ -323,6 +334,7 @@ _param_combinations = tuple(
         "expect_trace_random_call",
         "expected_span_id",
         "expected_parent_span_id",
+        "expect_span_random_call_self",
         "expected_onwards_req_headers",
         "expected_resp_headers",
     ),
@@ -340,6 +352,7 @@ def test_request_header(
     expect_trace_random_call,
     expected_span_id,
     expected_parent_span_id,
+    expect_span_random_call_self,
     expected_onwards_req_headers,
     expected_resp_headers,  # unused here
 ):
@@ -357,7 +370,7 @@ def test_request_header(
         assert request.get_onwards_request_headers() == expected_onwards_req_headers
 
     assert traceid_random_mock.randrange.mock_calls == [] if not expect_trace_random_call else [mock.call(1 << 128)]
-    assert spanid_random_mock.randrange.mock_calls == [mock.call(1 << 64)]
+    assert spanid_random_mock.randrange.mock_calls == [mock.call(1 << 64)] * (2 if expect_span_random_call_self else 1)
 
 
 @mock.patch.object(request_helper.NotifyRequest, "_traceid_random", autospec=True)
@@ -374,14 +387,15 @@ def test_request_header_zero_padded(
 
     with app.test_request_context():
         assert request.request_id == request.trace_id == "0000000000000000000000000000beef"
-        assert request.span_id is None
+        assert request.span_id == "self-000000000000000a"
         assert request.get_onwards_request_headers() == {
             "X-B3-TraceId": "0000000000000000000000000000beef",
             "X-B3-SpanId": "000000000000000a",
+            "X-B3-ParentSpanId": "self-000000000000000a",
         }
 
     assert traceid_random_mock.randrange.mock_calls == [mock.call(1 << 128)]
-    assert spanid_random_mock.randrange.mock_calls == [mock.call(1 << 64)]
+    assert spanid_random_mock.randrange.mock_calls == [mock.call(1 << 64), mock.call(1 << 64)]
 
 
 @pytest.mark.parametrize(
@@ -392,6 +406,7 @@ def test_request_header_zero_padded(
         "expect_trace_random_call",
         "expected_span_id",
         "expected_parent_span_id",
+        "expect_span_random_call_self",
         "expected_onwards_req_headers",
         "expected_resp_headers",
     ),
@@ -409,6 +424,7 @@ def test_response_headers_regular_response(
     expect_trace_random_call,
     expected_span_id,  # unused here
     expected_parent_span_id,  # unused here
+    expect_span_random_call_self,
     expected_onwards_req_headers,  # unused here
     expected_resp_headers,
 ):
@@ -425,7 +441,7 @@ def test_response_headers_regular_response(
         assert dict(response.headers) == AnySupersetOf(expected_resp_headers)
 
     assert traceid_random_mock.randrange.mock_calls == [] if not expect_trace_random_call else [mock.call(1 << 128)]
-    assert spanid_random_mock.randrange.mock_calls == []
+    assert spanid_random_mock.randrange.mock_calls == [] if not expect_span_random_call_self else [mock.call(1 << 64)]
 
 
 @pytest.mark.parametrize(
@@ -436,6 +452,7 @@ def test_response_headers_regular_response(
         "expect_trace_random_call",
         "expected_span_id",
         "expected_parent_span_id",
+        "expect_span_random_call_self",
         "expected_onwards_req_headers",
         "expected_resp_headers",
     ),
@@ -453,6 +470,7 @@ def test_response_headers_error_response(
     expect_trace_random_call,
     expected_span_id,  # unused here
     expected_parent_span_id,  # unused here
+    expect_span_random_call_self,
     expected_onwards_req_headers,  # unused here
     expected_resp_headers,
 ):
@@ -474,4 +492,4 @@ def test_response_headers_error_response(
         assert dict(response.headers) == AnySupersetOf(expected_resp_headers)
 
     assert traceid_random_mock.randrange.mock_calls == [] if not expect_trace_random_call else [mock.call(1 << 128)]
-    assert spanid_random_mock.randrange.mock_calls == []
+    assert spanid_random_mock.randrange.mock_calls == [] if not expect_span_random_call_self else [mock.call(1 << 64)]

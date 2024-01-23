@@ -21,7 +21,8 @@ class NotifyRequest(Request):
     @property
     def trace_id(self):
         """
-        The "trace id" (in zipkin terms) assigned to this request, if present (None otherwise)
+        The "trace id" (in zipkin terms) assigned to this request. If not present, will
+        generate its own.
         """
         if not hasattr(self, "_trace_id"):
             self._trace_id = (
@@ -38,18 +39,18 @@ class NotifyRequest(Request):
     @property
     def span_id(self):
         """
-        The "span id" (in zipkin terms) set in this request's header, if present (None otherwise)
+        The "span id" (in zipkin terms) set in this request's header. If not present, will
+        generate its own prefixed with "self-".
         """
         if not hasattr(self, "_span_id"):
-            # note how we don't generate an id of our own. not being supplied a span id implies that we are running in
-            # an environment with no span-id-aware request router, and thus would have no intermediary to prevent the
-            # propagation of our span id all the way through all our onwards requests much like trace id. and the point
-            # of span id is to assign identifiers to each individual request.
-            self._span_id = self._get_first_header(
-                chain(
-                    (current_app.config["NOTIFY_SPAN_ID_HEADER"],),
-                    current_app.config["NOTIFY_SPAN_ID_ALT_HEADERS"],
+            self._span_id = (
+                self._get_first_header(
+                    chain(
+                        (current_app.config["NOTIFY_SPAN_ID_HEADER"],),
+                        current_app.config["NOTIFY_SPAN_ID_ALT_HEADERS"],
+                    )
                 )
+                or f"self-{self._get_new_span_id()}"
             )
         return self._span_id
 
