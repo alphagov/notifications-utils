@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 74.8.0
+
+* NotifyRequest: generate own span_id if none provided in headers
+
+## 74.7.0
+
+* Include onwards request headers in AntivirusClient requests
+
 ## 74.6.0
 
 * Include parent_span_id in request logs
