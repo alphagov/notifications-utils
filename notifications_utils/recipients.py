@@ -164,7 +164,7 @@ class RecipientCSV:
 
             output_dict = {}
 
-            for column_name, column_value in zip(column_headers, row):
+            for column_name, column_value in zip(column_headers, row, strict=True):
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
                 if InsensitiveDict.make_key(column_name) in self.recipient_column_headers_as_column_keys:
