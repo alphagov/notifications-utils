@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.9.0
+
+* logging: also attach handlers etc. to celery.worker and celery.redirected
+
 ## 74.8.1
 
 * Always hide barcodes when printing a letter - not only when adding a NOTIFY tag
