@@ -89,7 +89,12 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
 
     handlers = get_handlers(app, extra_filters=extra_filters)
     loglevel = logging.getLevelName(app.config["NOTIFY_LOG_LEVEL"])
-    loggers = [app.logger, logging.getLogger("utils")]
+    loggers = [
+        app.logger,
+        logging.getLogger("utils"),
+        logging.getLogger("celery.worker"),
+        logging.getLogger("celery.redirected"),  # stdout/stderr
+    ]
     for logger_instance, handler in product(loggers, handlers):
         logger_instance.addHandler(handler)
         logger_instance.setLevel(loglevel)
