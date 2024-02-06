@@ -1,6 +1,7 @@
 {% include 'letter_pdf/_head.jinja2' %}
 {% include 'letter_pdf/_main_css.jinja2' %}
 {% if include_notify_tag %}
-{% include 'letter_pdf/_print_only_css.jinja2' %}
+{% include 'letter_pdf/_print_only_add_tag_css.jinja2' %}
 {% endif %}
+{% include 'letter_pdf/_print_only_hide_barcodes_css.jinja2' %}
 {% include 'letter_pdf/_body.jinja2' %}
