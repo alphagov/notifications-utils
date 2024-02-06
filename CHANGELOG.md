@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.8.1
+
+* Always hide barcodes when printing a letter - not only when adding a NOTIFY tag
+
 ## 74.8.0
 
 * NotifyRequest: generate own span_id if none provided in headers
