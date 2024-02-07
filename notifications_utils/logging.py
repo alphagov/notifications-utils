@@ -101,6 +101,9 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     logging.getLogger("boto3").setLevel(logging.WARNING)
     logging.getLogger("s3transfer").setLevel(logging.WARNING)
 
+    # prevent (potentially sensitive) task args being logged
+    logging.getLogger("celery.worker.strategy").setLevel(logging.WARNING)
+
     request_loglevel = logging.getLevelName(app.config["NOTIFY_REQUEST_LOG_LEVEL"])
     app.logger.getChild("request").setLevel(request_loglevel)
 
