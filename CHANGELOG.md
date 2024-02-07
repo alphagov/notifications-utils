@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.9.1
+
+* logging: set celery.worker.strategy logging to WARNING to prevent sensitive information being logged
+
 ## 74.9.0
 
 * logging: also attach handlers etc. to celery.worker and celery.redirected
