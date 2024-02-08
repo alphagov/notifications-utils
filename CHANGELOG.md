@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 74.11.0
+
+* Add option to ignore list of web paths from request logging. Defaults to /_status and /metrics.
+* Add new fields to web request log messages (user_agent, host, path)
+
 ## 74.9.1
 
 * logging: set celery.worker.strategy logging to WARNING to prevent sensitive information being logged
