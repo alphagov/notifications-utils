@@ -23,6 +23,8 @@ class SanitiseText:
         "\u00A0": " ",  # NON BREAKING WHITE SPACE (U+200B)
         "\u202F": " ",  # narrow no break space
         "\t": " ",  # TAB
+        "Ł": "L",  # LATIN CAPITAL LETTER L WITH STROKE (U+0141)
+        "ł": "l",  # LATIN SMALL LETTER L WITH STROKE (U+0142)
     }
 
     @classmethod
