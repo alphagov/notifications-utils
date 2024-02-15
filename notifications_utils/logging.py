@@ -25,6 +25,9 @@ def _common_request_extra_log_context():
         "url": request.url,
         "endpoint": request.endpoint,
         "remote_addr": request.remote_addr,
+        "user_agent": request.user_agent.string,
+        "host": request.host.split(":", 1)[0],
+        "path": request.path,
         "parent_span_id": getattr(request, "parent_span_id", None),
         # pid and is available on LogRecord by default, as `process` but I don't see
         # a straightforward way of selectively including it only in certain log messages -
@@ -40,6 +43,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_PATH", "./log/application.log")
     app.config.setdefault("NOTIFY_RUNTIME_PLATFORM", None)
+    app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault(
         "NOTIFY_REQUEST_LOG_LEVEL",
         "CRITICAL" if app.config["NOTIFY_RUNTIME_PLATFORM"] == "paas" else "NOTSET",
@@ -62,6 +66,17 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
 
     @app.after_request
     def after_request(response):
+        log_level = logging.INFO
+
+        # Failures are logged at a higher level
+        if response.status_code // 100 == 5:
+            log_level = logging.WARNING
+
+        # We do not want to log the NOTIFY_LOG_DEBUG_PATH_LIST set at INFO level.
+        # For example status checks and metrics endpoints.
+        if request.path in app.config["NOTIFY_LOG_DEBUG_PATH_LIST"] and not (500 <= response.status_code < 600):
+            log_level = logging.DEBUG
+
         context = {
             "status": response.status_code,
             "request_time": (
@@ -72,11 +87,12 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             **_common_request_extra_log_context(),
         }
         current_app.logger.getChild("request").log(
-            logging.WARNING if response.status_code // 100 == 5 else logging.INFO,
+            log_level,
             "%(method)s %(url)s %(status)s took %(request_time)ss",
             context,
             extra=context,
         )
+
         return response
 
     logging.getLogger().addHandler(logging.NullHandler())

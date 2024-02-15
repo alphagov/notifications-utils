@@ -8,7 +8,7 @@ import pytest
 from freezegun import freeze_time
 
 from notifications_utils import logging, request_helper
-from notifications_utils.testing.comparisons import RestrictedAny
+from notifications_utils.testing.comparisons import AnyStringMatching, RestrictedAny
 
 
 def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
@@ -176,6 +176,9 @@ def test_app_request_logs_level_by_status_code(
                 "url": "http://localhost/",
                 "method": "GET",
                 "endpoint": "some_route",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": "deadbeef" if with_request_helper else None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -184,6 +187,9 @@ def test_app_request_logs_level_by_status_code(
                 "url": "http://localhost/",
                 "method": "GET",
                 "endpoint": "some_route",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": "deadbeef" if with_request_helper else None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -198,6 +204,9 @@ def test_app_request_logs_level_by_status_code(
             "%(method)s %(url)s %(status)s took %(request_time)ss",
             {
                 "url": "http://localhost/",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
@@ -208,6 +217,9 @@ def test_app_request_logs_level_by_status_code(
             },
             extra={
                 "url": "http://localhost/",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "method": "GET",
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
@@ -246,6 +258,9 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "url": "http://localhost/",
                 "method": "GET",
                 "endpoint": "some_route",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -254,6 +269,9 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "url": "http://localhost/",
                 "method": "GET",
                 "endpoint": "some_route",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -270,6 +288,9 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "url": "http://localhost/",
                 "method": "GET",
                 "endpoint": "some_route",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "status": 500,
@@ -280,10 +301,147 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "url": "http://localhost/",
                 "method": "GET",
                 "endpoint": "some_route",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    )
+
+
+def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
+    app = app_with_mocked_logger
+    mock_req_logger = mock.Mock(
+        spec=builtin_logging.Logger("flask.app.request"),
+        handlers=[],
+    )
+    status_fail = False
+
+    @app.route("/_status")
+    def status():
+        if status_fail:
+            return "FAIL", 500
+        return "OK", 200
+
+    @app.route("/metrics")
+    def metrics():
+        return "OK", 200
+
+    app.logger.getChild.side_effect = lambda name: mock_req_logger if name == "request" else mock.DEFAULT
+
+    logging.init_app(app)
+
+    app.test_client().get("/_status")
+
+    print(mock_req_logger.log.call_args_list)
+
+    assert (
+        mock.call(
+            builtin_logging.DEBUG,
+            "%(method)s %(url)s %(status)s took %(request_time)ss",
+            {
+                "url": "http://localhost/_status",
+                "method": "GET",
+                "endpoint": "status",
+                "host": "localhost",
+                "path": "/_status",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/_status",
+                "method": "GET",
+                "endpoint": "status",
+                "host": "localhost",
+                "path": "/_status",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    )
+
+    app.test_client().get("/metrics")
+
+    assert (
+        mock.call(
+            builtin_logging.DEBUG,
+            "%(method)s %(url)s %(status)s took %(request_time)ss",
+            {
+                "url": "http://localhost/metrics",
+                "method": "GET",
+                "endpoint": "metrics",
+                "host": "localhost",
+                "path": "/metrics",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/metrics",
+                "method": "GET",
+                "endpoint": "metrics",
+                "host": "localhost",
+                "path": "/metrics",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    )
+
+    status_fail = True
+    app.test_client().get("/_status")
+
+    assert (
+        mock.call(
+            builtin_logging.WARNING,
+            "%(method)s %(url)s %(status)s took %(request_time)ss",
+            {
+                "url": "http://localhost/_status",
+                "method": "GET",
+                "endpoint": "status",
+                "host": "localhost",
+                "path": "/_status",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 500,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/_status",
+                "method": "GET",
+                "endpoint": "status",
+                "host": "localhost",
+                "path": "/_status",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 500,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -311,6 +469,9 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "url": "http://localhost/foo",
                 "method": "GET",
                 "endpoint": None,
+                "host": "localhost",
+                "path": "/foo",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -319,6 +480,9 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "url": "http://localhost/foo",
                 "method": "GET",
                 "endpoint": None,
+                "host": "localhost",
+                "path": "/foo",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
@@ -335,6 +499,9 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "url": "http://localhost/foo",
                 "method": "GET",
                 "endpoint": None,
+                "host": "localhost",
+                "path": "/foo",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "status": 404,
@@ -345,6 +512,9 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "url": "http://localhost/foo",
                 "method": "GET",
                 "endpoint": None,
+                "host": "localhost",
+                "path": "/foo",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": None,
                 "status": 404,
