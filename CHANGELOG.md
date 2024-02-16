@@ -1,5 +1,10 @@
 # CHANGELOG
 
+
+## 74.12.0
+
+* Remove celery.* structured logging for now. It can return when we have more certainty over what values it will log or can rule out that it is ever given sensitive values.
+
 ## 74.11.0
 
 * Add option to ignore list of web paths from request logging. Defaults to /_status and /metrics.
