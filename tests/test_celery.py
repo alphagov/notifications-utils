@@ -69,12 +69,15 @@ def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplo
 def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog):
     statsd_mock = celery_app.statsd_client.incr
 
-    with caplog.at_level(logging.ERROR):
+    with freeze_time() as frozen, caplog.at_level(logging.INFO):
+        async_task()
+        frozen.tick(5)
+
         async_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
 
     statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.failure")
 
-    assert f"Celery task {async_task.name} (queue: test-queue) failed" in caplog.messages
+    assert f"Celery task {async_task.name} (queue: test-queue) failed after 5.000" in caplog.messages
 
 
 def test_failure_queue_when_applied_synchronously(celery_app, celery_task, caplog):
