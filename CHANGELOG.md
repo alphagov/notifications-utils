@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 74.12.1
+
+* email template: use the new crown and associated styling
 
 ## 74.12.0
 
