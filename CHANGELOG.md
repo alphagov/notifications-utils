@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.12.2
+
+* Fix use of hyphen in phone number validation error
+
 ## 74.12.1
 
 * email template: use the new crown and associated styling

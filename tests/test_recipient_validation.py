@@ -71,7 +71,7 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "This does not look like a UK mobile number - double check the mobile number you entered",
+                "This does not look like a UK mobile number – double check the mobile number you entered",
                 (
                     "08081 570364",
                     "+44 8081 570364",

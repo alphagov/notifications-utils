@@ -559,7 +559,7 @@ def validate_uk_phone_number(number):
 
     if not number.startswith("7"):
         raise InvalidPhoneError(
-            "This does not look like a UK mobile number - double check the mobile number you entered"
+            "This does not look like a UK mobile number – double check the mobile number you entered"
         )
 
     if len(number) > 10:
