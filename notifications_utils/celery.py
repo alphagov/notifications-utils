@@ -53,7 +53,7 @@ def make_task(app):
                 elapsed_time = time.monotonic() - self.start
 
                 app.logger.exception(
-                    "Celery task %s (queue: %s) failed after %s",
+                    "Celery task %s (queue: %s) failed after %.4f",
                     self.name,
                     self.queue_name,
                     elapsed_time,
