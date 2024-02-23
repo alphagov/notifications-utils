@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 74.12.3
+
+* Add structured time_taken log to celery logs
+
 ## 74.12.2
 
 * Fix use of hyphen in phone number validation error
@@ -7,6 +11,10 @@
 ## 74.12.1
 
 * email template: use the new crown and associated styling
+
+## 74.13.0
+
+* add time taken structured log to celery task complete/error log lines
 
 ## 74.12.0
 
