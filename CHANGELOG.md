@@ -12,10 +12,6 @@
 
 * email template: use the new crown and associated styling
 
-## 74.13.0
-
-* add time taken structured log to celery task complete/error log lines
-
 ## 74.12.0
 
 * Remove celery.* structured logging for now. It can return when we have more certainty over what values it will log or can rule out that it is ever given sensitive values.
