@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 75.0.0
+
+* BREAKING CHANGE: notifications_utils/clients/encryption/encryption_client has been removed. It
+  has been replaced with notifications_utils/clients/signing/signing_client. This is because
+  the encyrption_client was not using encryption. It was just signing the contents of the string.
+
 ## 74.12.3
 
 * Add structured time_taken log to celery logs
