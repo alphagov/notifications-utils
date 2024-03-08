@@ -9,12 +9,14 @@ from typing import Sequence
 
 from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
-from pythonjsonlogger.jsonlogger import JsonFormatter as BaseJSONFormatter
 
-LOG_FORMAT = (
-    "%(asctime)s %(app_name)s %(name)s %(levelname)s " '%(request_id)s "%(message)s" [in %(pathname)s:%(lineno)d]'
+from .formatting import (
+    LOG_FORMAT,
+    TIME_FORMAT,
+    BaseJSONFormatter,  # noqa
+    Formatter,
+    JSONFormatter,
 )
-TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 logger = logging.getLogger(__name__)
 
@@ -246,37 +248,3 @@ class UserIdFilter(logging.Filter):
     def filter(self, record):
         record.user_id = self.user_id
         return record
-
-
-class _MicrosecondAddingFormatterMixin:
-    """
-    Appends a `.` and then a 6-digit number of microseconds to whatever
-    the superclass' `.formatTime(...)` returns.
-    """
-
-    # This is necessary because  supplying a `datefmt` causes the base
-    # `formatTime` implementation to completely bypass any code that
-    # would be able to add milliseconds (let alone microseconds" to the
-    # formatted time.
-
-    def formatTime(self, record, *args, **kwargs):
-        formatted = super().formatTime(record, *args, **kwargs)
-        return f"{formatted}.{int((record.created - int(record.created)) * 1e6):06}"
-
-
-class Formatter(_MicrosecondAddingFormatterMixin, logging.Formatter):
-    pass
-
-
-class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
-    def process_log_record(self, log_record):
-        rename_map = {
-            "asctime": "time",
-            "request_id": "requestId",
-            "app_name": "application",
-            "service_id": "service_id",
-        }
-        for key, newkey in rename_map.items():
-            log_record[newkey] = log_record.pop(key)
-        log_record["logType"] = "application"
-        return log_record
