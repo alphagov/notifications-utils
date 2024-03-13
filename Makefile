@@ -16,6 +16,10 @@ test: ## Run tests
 	pytest -n auto
 	python setup.py sdist
 
+.PHONY: watch-tests
+watch-tests: ## Automatically rerun tests
+	ptw --runner "pytest --testmon -n auto"
+
 clean:
 	rm -rf cache venv
 
