@@ -97,9 +97,10 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
 
         return response
 
+    app.logger.handlers.clear()
+    logging.getLogger().handlers.clear()
+    # avoid lastResort handler coming into play
     logging.getLogger().addHandler(logging.NullHandler())
-
-    del app.logger.handlers[:]
 
     if app.config["NOTIFY_RUNTIME_PLATFORM"] != "ecs":
         # TODO: ecs-migration: check if we still need this function after we migrate to ecs
