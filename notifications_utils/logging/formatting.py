@@ -38,6 +38,6 @@ class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
             "service_id": "service_id",
         }
         for key, newkey in rename_map.items():
-            log_record[newkey] = log_record.pop(key)
+            log_record[newkey] = log_record.pop(key, None)
         log_record["logType"] = "application"
         return log_record
