@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 75.1.0
+
+* Split `logging.formatting` submodule out of `logging` module. All components should remain
+  accessible via the `logging` module, so this shouldn't affect existing code.
+* Introduce `gunicorn_defaults` module.
+
 ## 75.0.0
 
 * BREAKING CHANGE: notifications_utils/clients/encryption/encryption_client has been removed. It
