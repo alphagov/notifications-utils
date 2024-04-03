@@ -1,6 +1,5 @@
 import json
 import logging as builtin_logging
-import logging.handlers as builtin_logging_handlers
 import time
 from unittest import mock
 
@@ -26,56 +25,13 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
     assert not (tmpdir / "foo").exists()
 
 
-@pytest.mark.parametrize(
-    "platform",
-    [
-        "local",
-        "paas",
-        "something-else",
-    ],
-)
-def test_get_handlers_sets_up_logging_appropriately_without_debug_when_not_on_ecs(tmpdir, platform):
-    class TestFilter(builtin_logging.Filter):
-        def filter(self, record):
-            record.arbitrary_info = "some-extra-info"
-            return record
-
+def test_get_handlers_sets_up_logging_appropriately_without_debug(tmpdir):
     class App:
         config = {
             # make a tempfile called foo
             "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
             "NOTIFY_APP_NAME": "bar",
             "NOTIFY_LOG_LEVEL": "ERROR",
-            "NOTIFY_RUNTIME_PLATFORM": platform,
-        }
-        debug = False
-
-    app = App()
-
-    handlers = logging.get_handlers(app, extra_filters=[TestFilter()])
-
-    assert len(handlers) == 2
-    assert type(handlers[0]) == builtin_logging.StreamHandler
-    assert type(handlers[0].formatter) == logging.JSONFormatter
-    assert len(handlers[0].filters) == 6
-
-    assert type(handlers[1]) == builtin_logging_handlers.WatchedFileHandler
-    assert type(handlers[1].formatter) == logging.JSONFormatter
-    assert len(handlers[1].filters) == 6
-
-    dir_contents = tmpdir.listdir()
-    assert len(dir_contents) == 1
-    assert dir_contents[0].basename == "foo.json"
-
-
-def test_get_handlers_sets_up_logging_appropriately_without_debug_on_ecs(tmpdir):
-    class App:
-        config = {
-            # make a tempfile called foo
-            "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
-            "NOTIFY_APP_NAME": "bar",
-            "NOTIFY_LOG_LEVEL": "ERROR",
-            "NOTIFY_RUNTIME_PLATFORM": "ecs",
         }
         debug = False
 
@@ -107,7 +63,6 @@ def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
                 "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
                 "NOTIFY_APP_NAME": "bar",
                 "NOTIFY_LOG_LEVEL": "INFO",
-                "NOTIFY_RUNTIME_PLATFORM": "ecs",
             }
             debug = False
 
@@ -542,28 +497,6 @@ def test_app_request_logger_level_set(app_with_mocked_logger, level_name, expect
     app.logger.getChild.side_effect = lambda name: mock_req_logger if name == "request" else mock.DEFAULT
 
     app.config["NOTIFY_REQUEST_LOG_LEVEL"] = level_name
-    logging.init_app(app)
-
-    assert mock_req_logger.setLevel.call_args_list[-1] == mock.call(expected_level)
-
-
-@pytest.mark.parametrize(
-    "rtplatform,expected_level",
-    (
-        ("ecs", builtin_logging.NOTSET),
-        ("local", builtin_logging.NOTSET),
-        ("paas", builtin_logging.CRITICAL),
-    ),
-)
-def test_app_request_logger_level_defaults(app_with_mocked_logger, rtplatform, expected_level):
-    app = app_with_mocked_logger
-    mock_req_logger = mock.Mock(
-        spec=builtin_logging.Logger("flask.app.request"),
-        handlers=[],
-    )
-    app.logger.getChild.side_effect = lambda name: mock_req_logger if name == "request" else mock.DEFAULT
-
-    app.config["NOTIFY_RUNTIME_PLATFORM"] = rtplatform
     logging.init_app(app)
 
     assert mock_req_logger.setLevel.call_args_list[-1] == mock.call(expected_level)
