@@ -43,7 +43,6 @@ def _common_request_extra_log_context():
 def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = tuple()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
     app.config.setdefault("NOTIFY_APP_NAME", "none")
-    app.config.setdefault("NOTIFY_LOG_PATH", "./log/application.log")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
 

@@ -10,9 +10,9 @@ from notifications_utils import logging, request_helper
 from notifications_utils.testing.comparisons import AnyStringMatching, RestrictedAny
 
 
-def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
+def test_get_handlers_sets_up_logging_appropriately_with_debug():
     class App:
-        config = {"NOTIFY_LOG_PATH": str(tmpdir / "foo"), "NOTIFY_APP_NAME": "bar", "NOTIFY_LOG_LEVEL": "ERROR"}
+        config = {"NOTIFY_APP_NAME": "bar", "NOTIFY_LOG_LEVEL": "ERROR"}
         debug = True
 
     app = App()
@@ -22,14 +22,11 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug(tmpdir):
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
     assert type(handlers[0].formatter) == logging.Formatter
-    assert not (tmpdir / "foo").exists()
 
 
-def test_get_handlers_sets_up_logging_appropriately_without_debug(tmpdir):
+def test_get_handlers_sets_up_logging_appropriately_without_debug():
     class App:
         config = {
-            # make a tempfile called foo
-            "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
             "NOTIFY_APP_NAME": "bar",
             "NOTIFY_LOG_LEVEL": "ERROR",
         }
@@ -42,8 +39,6 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug(tmpdir):
     assert len(handlers) == 1
     assert type(handlers[0]) == builtin_logging.StreamHandler
     assert type(handlers[0].formatter) == logging.JSONFormatter
-
-    assert not (tmpdir / "foo.json").exists()
 
 
 @pytest.mark.parametrize(
@@ -59,8 +54,6 @@ def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
 
         class App:
             config = {
-                # make a tempfile called foo
-                "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
                 "NOTIFY_APP_NAME": "bar",
                 "NOTIFY_LOG_LEVEL": "INFO",
             }

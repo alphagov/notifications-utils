@@ -49,11 +49,7 @@ def app_with_mocked_logger(mocker, tmpdir):
         "flask.sansio.app.create_logger",
         return_value=mocker.Mock(spec=logging.Logger("flask.app"), handlers=[]),
     )
-    yield from _create_app(
-        extra_config={
-            "NOTIFY_LOG_PATH": str(tmpdir / "foo"),
-        }
-    )
+    yield from _create_app()
 
 
 @pytest.fixture(scope="session")
