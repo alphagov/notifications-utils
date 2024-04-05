@@ -69,7 +69,6 @@ def set_gunicorn_defaults(globals_dict: dict):
         on_exit=on_exit,
         on_starting=on_starting,
         post_fork=post_fork,
-        statsd_host="{}:8125".format(os.getenv("STATSD_HOST", "127.0.0.1")),
         worker_abort=worker_abort,
         worker_int=worker_int,
     )
