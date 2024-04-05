@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 75.1.1
+
+* Don't set `statsd_host` in `set_gunicorn_defaults` - not all apps have statsd.
+
 ## 75.1.0
 
 * Split `logging.formatting` submodule out of `logging` module. All components should remain
