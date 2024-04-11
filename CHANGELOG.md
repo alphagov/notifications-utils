@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 75.2.0
+
+* Add `InsensitiveSet` class (behaves like a normal set, but with uniqueness determined by normalised values)
+
 ## 75.1.1
 
 * Don't set `statsd_host` in `set_gunicorn_defaults` - not all apps have statsd.
