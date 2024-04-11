@@ -1,8 +1,9 @@
 from functools import partial
 
 import pytest
+from ordered_set import OrderedSet
 
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 from notifications_utils.recipients import Cell, Row
 
 
@@ -91,3 +92,21 @@ def test_maintains_insertion_order():
     assert d.keys() == ["b", "a", "c"]
     d["BB"] = None
     assert d.keys() == ["b", "a", "c", "bb"]
+
+
+def test_insensitive_set():
+    assert InsensitiveSet(
+        [
+            "foo",
+            "F o o ",
+            "F_O_O",
+            "B_A_R",
+            "B a r",
+            "bar",
+        ]
+    ) == OrderedSet(
+        [
+            "F_O_O",
+            "bar",
+        ]
+    )

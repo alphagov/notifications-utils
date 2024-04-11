@@ -58,3 +58,8 @@ class InsensitiveDict(dict):
         if original_key is None:
             return None
         return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
+
+
+class InsensitiveSet(OrderedSet):
+    def __init__(self, iterable):
+        return super().__init__(InsensitiveDict.from_keys(iterable).values())
