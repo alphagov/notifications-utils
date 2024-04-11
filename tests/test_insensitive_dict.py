@@ -106,7 +106,19 @@ def test_insensitive_set():
         ]
     ) == OrderedSet(
         [
-            "F_O_O",
-            "bar",
+            "foo",
+            "B_A_R",
         ]
     )
+
+
+@pytest.mark.parametrize(
+    "extra_args, expected_dict",
+    (
+        ({}, {"foo": 3}),
+        ({"overwrite_duplicates": True}, {"foo": 3}),
+        ({"overwrite_duplicates": False}, {"foo": 1}),
+    ),
+)
+def test_overwrite_duplicates(extra_args, expected_dict):
+    assert InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}, **extra_args) == expected_dict
