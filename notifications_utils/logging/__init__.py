@@ -43,13 +43,8 @@ def _common_request_extra_log_context():
 def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = tuple()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
     app.config.setdefault("NOTIFY_APP_NAME", "none")
-    app.config.setdefault("NOTIFY_LOG_PATH", "./log/application.log")
-    app.config.setdefault("NOTIFY_RUNTIME_PLATFORM", None)
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
-    app.config.setdefault(
-        "NOTIFY_REQUEST_LOG_LEVEL",
-        "CRITICAL" if app.config["NOTIFY_RUNTIME_PLATFORM"] == "paas" else "NOTSET",
-    )
+    app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
 
     @app.before_request
     def before_request():
@@ -102,10 +97,6 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     # avoid lastResort handler coming into play
     logging.getLogger().addHandler(logging.NullHandler())
 
-    if app.config["NOTIFY_RUNTIME_PLATFORM"] != "ecs":
-        # TODO: ecs-migration: check if we still need this function after we migrate to ecs
-        ensure_log_path_exists(app.config["NOTIFY_LOG_PATH"])
-
     handlers = get_handlers(app, extra_filters=extra_filters)
     loglevel = logging.getLevelName(app.config["NOTIFY_LOG_LEVEL"])
     loggers = [
@@ -156,13 +147,6 @@ def get_handlers(app, extra_filters: Sequence[logging.Filter]):
 
     # stream json to stdout in all cases
     handlers.append(configure_handler(stream_handler, app, json_formatter, extra_filters=extra_filters))
-
-    # TODO: ecs-migration: delete this when we migrate to ecs
-    # only write json to file if we're not running on ECS
-    if app.config["NOTIFY_RUNTIME_PLATFORM"] != "ecs":
-        # machine readable json to both file and stdout
-        file_handler = logging.handlers.WatchedFileHandler(filename=f"{app.config['NOTIFY_LOG_PATH']}.json")
-        handlers.append(configure_handler(file_handler, app, json_formatter, extra_filters=extra_filters))
 
     return handlers
 

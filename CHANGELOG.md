@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 76.0.0
+
+* Remove use of `NOTIFY_RUNTIME_PLATFORM` and `NOTIFY_LOG_PATH` flask config parameters, which no longer did anything. Technically this only affects users if the consumed the paramter themselves and relied on utils code setting default values for them.
+
 ## 75.2.0
 
 * Add `InsensitiveSet` class (behaves like a normal set, but with uniqueness determined by normalised values)
