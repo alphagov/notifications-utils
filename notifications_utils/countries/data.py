@@ -26,6 +26,7 @@ def find_canonical(item, graph, key):
 _graph = _load_data("location-autocomplete-graph.json")
 
 UK = "United Kingdom"
+GIBRALTAR_POSTCODE = "GX111AA"
 
 ENDED_COUNTRIES = _load_data("ended-countries.json")
 ADDITIONAL_SYNONYMS = list(_load_data("synonyms.json").items())

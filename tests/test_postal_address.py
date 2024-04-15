@@ -51,6 +51,15 @@ def test_raw_address():
         """,
             Country("Germany"),
         ),
+        (
+            """
+        Firstname Lastname
+        123 Calle de ejemplo
+        Gibraltar
+        GX11 1AA
+        """,
+            Country("Gibraltar"),
+        ),
     ),
 )
 def test_country(address, expected_country):
@@ -215,6 +224,15 @@ def test_has_too_many_lines(address, too_many_lines_expected):
         """,
             None,
         ),
+        (
+            """
+        Firstname Lastname
+        123 Calle de ejemplo
+        Gibraltar
+        GX11 1AA
+        """,
+            None,
+        ),
     ),
 )
 def test_postcode(address, expected_postcode):
@@ -313,6 +331,15 @@ def test_has_invalid_characters(address, expected_result):
         """,
             True,
         ),
+        (
+            """
+        Firstname Lastname
+        123 Calle de ejemplo
+        Gibraltar
+        GX11 1AA
+        """,
+            True,
+        ),
     ),
 )
 def test_international(address, expected_international):
@@ -351,6 +378,14 @@ def test_international(address, expected_international):
         """,
             ("123 Example Straße\n" "Germany"),
             ("123 Example Straße, Germany"),
+        ),
+        (
+            """
+            123 Calle de ejemplo
+            GX11 1AA
+            """,
+            ("123 Calle de ejemplo\nGibraltar"),
+            ("123 Calle de ejemplo, Gibraltar"),
         ),
     ),
 )
@@ -395,6 +430,15 @@ def test_normalised(address, expected_normalised, expected_as_single_line):
         Côte d'Ivoire
         """,
             Postage.REST_OF_WORLD,
+        ),
+        (
+            """
+        Firstname Lastname
+        123 Calle de ejemplo
+        Gibraltar
+        GX11 1AA
+        """,
+            Postage.EUROPE,
         ),
     ),
 )

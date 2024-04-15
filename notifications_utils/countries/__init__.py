@@ -1,12 +1,14 @@
 from functools import lru_cache
 
 from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.formatters import remove_whitespace
 from notifications_utils.sanitise_text import SanitiseASCII
 
 from .data import (
     ADDITIONAL_SYNONYMS,
     COUNTRIES_AND_TERRITORIES,
     EUROPEAN_ISLANDS,
+    GIBRALTAR_POSTCODE,
     ROYAL_MAIL_EUROPEAN,
     UK,
     UK_ISLANDS,
@@ -35,6 +37,10 @@ class CountryMapping(InsensitiveDict):
             # postcode, so let’s do a little optimisation, skip the
             # expensive string manipulation to normalise the key and say
             # that there’s no matching country
+            if remove_whitespace(key).upper() == GIBRALTAR_POSTCODE:
+                # The one exception is Gibraltar, which has a single UK-style
+                # postcode but is charged as international by Royal Mail
+                return True
             return False
         return super().__contains__(key)
 
