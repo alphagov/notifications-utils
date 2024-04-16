@@ -47,7 +47,7 @@ class AntivirusClient:
             error = AntivirusError.from_exception(e)
             current_app.logger.warning("Notify Antivirus API request failed with error: %s", error.message)
 
-            raise error
+            raise error from e
         finally:
             document_stream.seek(0)
 

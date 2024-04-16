@@ -4,7 +4,6 @@ from ordered_set import OrderedSet
 
 
 class InsensitiveDict(dict):
-
     """
     `InsensitiveDict` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.

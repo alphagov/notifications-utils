@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 
 class SerialisedModel(ABC):
-
     """
     A SerialisedModel takes a dictionary, typically created by
     serialising a database object. It then takes the value of specified
@@ -32,7 +31,6 @@ class SerialisedModel(ABC):
 
 
 class SerialisedModelCollection(ABC):
-
     """
     A SerialisedModelCollection takes a list of dictionaries, typically
     created by serialising database objects. When iterated over it
