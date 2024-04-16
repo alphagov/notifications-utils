@@ -48,7 +48,6 @@ class Placeholder:
 
 
 class Field:
-
     """
     An instance of Field represents a string of text which may contain
     placeholders.
