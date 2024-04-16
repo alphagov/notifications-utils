@@ -228,9 +228,12 @@ def normalise_postcode(postcode):
 
 
 def _is_a_real_uk_postcode(postcode):
+    normalised = normalise_postcode(postcode)
+    if normalised == "GX111AA":
+        return False
     # GIR0AA is Girobank
     pattern = re.compile(r"([A-Z]{1,2}[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{2})|(GIR0AA)")
-    return bool(pattern.fullmatch(normalise_postcode(postcode)))
+    return bool(pattern.fullmatch(normalised))
 
 
 def format_postcode_for_printing(postcode):

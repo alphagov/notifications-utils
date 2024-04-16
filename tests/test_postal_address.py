@@ -651,6 +651,9 @@ def test_normalise_postcode(postcode, normalised_postcode):
         # Giro Bank valid postcode and invalid postcode
         ("GIR0AA", True),
         ("GIR0AB", False),
+        # Gibraltar’s one postcode is not valid because it’s in the
+        # Europe postal zone
+        ("GX111AA", False),
     ],
 )
 def test_if_postcode_is_a_real_uk_postcode(postcode, result):
