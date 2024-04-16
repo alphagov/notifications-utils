@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 76.0.2
+
+* linting changes
+
 ## 76.0.1
 
 * Reject Gibraltar’s postcode (`GX11 1AA) when validating postal addresses
