@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 76.1.0
+
+* Remove `check_proxy_header_before_request` from request_helper.py since this was only used when apps
+  were deployed on the PaaS.
+
 ## 76.0.2
 
 * linting changes
