@@ -1,7 +1,7 @@
 import re
 from functools import lru_cache
 from types import MappingProxyType
-from typing.re import Pattern
+from typing import Pattern
 
 
 class RestrictedAny:
