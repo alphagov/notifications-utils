@@ -22,7 +22,7 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
-from notifications_utils.postal_address import (
+from notifications_utils.recipient_validation.postal_address import (
     address_line_7_key,
     address_lines_1_to_6_and_postcode_keys,
     address_lines_1_to_7_keys,
@@ -430,7 +430,7 @@ class Row(InsensitiveDict):
 
     @property
     def as_postal_address(self):
-        from notifications_utils.postal_address import PostalAddress
+        from notifications_utils.recipient_validation.postal_address import PostalAddress
 
         return PostalAddress.from_personalisation(
             self.recipient_and_personalisation,
