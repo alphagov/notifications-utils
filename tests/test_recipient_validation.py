@@ -1,8 +1,7 @@
 import pytest
 
+from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError
 from notifications_utils.recipients import (
-    InvalidEmailError,
-    InvalidPhoneError,
     allowed_to_send_to,
     format_phone_number_human_readable,
     format_recipient,

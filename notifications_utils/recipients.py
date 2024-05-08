@@ -22,6 +22,7 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
+from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
 from notifications_utils.recipient_validation.postal_address import (
     address_line_7_key,
     address_lines_1_to_6_and_postcode_keys,
@@ -330,7 +331,7 @@ class RecipientCSV:
                     validate_email_address(value)
                 if self.template_type == "sms":
                     validate_phone_number(value, international=self.allow_international_sms)
-            except (InvalidEmailError, InvalidPhoneError) as error:
+            except InvalidRecipientError as error:
                 return str(error)
 
         if InsensitiveDict.make_key(key) not in self.placeholders_as_column_keys:
@@ -468,19 +469,6 @@ class Cell:
     @property
     def recipient_error(self):
         return self.error not in {None, self.missing_field_error}
-
-
-class InvalidEmailError(Exception):
-    def __init__(self, message=None):
-        super().__init__(message or "Not a valid email address")
-
-
-class InvalidPhoneError(InvalidEmailError):
-    pass
-
-
-class InvalidAddressError(InvalidEmailError):
-    pass
 
 
 def normalise_phone_number(number):
