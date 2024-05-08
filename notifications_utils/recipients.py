@@ -1,5 +1,4 @@
 import csv
-import re
 import sys
 from contextlib import suppress
 from functools import lru_cache
@@ -14,6 +13,10 @@ from notifications_utils.formatters import (
     strip_and_remove_obscure_whitespace,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.recipient_validation.email_address import (
+    validate_and_format_email_address,
+    validate_email_address,
+)
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
 from notifications_utils.recipient_validation.phone_number import (
     validate_and_format_phone_number,
@@ -26,7 +29,6 @@ from notifications_utils.recipient_validation.postal_address import (
 )
 from notifications_utils.template import BaseLetterTemplate, Template
 
-from . import EMAIL_REGEX_PATTERN, hostname_part, tld_part
 from .qr_code import QrCodeTooLong
 
 first_column_headings = {
@@ -463,57 +465,6 @@ class Cell:
     @property
     def recipient_error(self):
         return self.error not in {None, self.missing_field_error}
-
-
-def validate_email_address(email_address):  # noqa (C901 too complex)
-    # almost exactly the same as by https://github.com/wtforms/wtforms/blob/master/wtforms/validators.py,
-    # with minor tweaks for SES compatibility - to avoid complications we are a lot stricter with the local part
-    # than neccessary - we don't allow any double quotes or semicolons to prevent SES Technical Failures
-    email_address = strip_and_remove_obscure_whitespace(email_address)
-    match = re.match(EMAIL_REGEX_PATTERN, email_address)
-
-    # not an email
-    if not match:
-        raise InvalidEmailError
-
-    if len(email_address) > 320:
-        raise InvalidEmailError
-
-    # don't allow consecutive periods in either part
-    if ".." in email_address:
-        raise InvalidEmailError
-
-    hostname = match.group(1)
-
-    # idna = "Internationalized domain name" - this encode/decode cycle converts unicode into its accurate ascii
-    # representation as the web uses. '例え.テスト'.encode('idna') == b'xn--r8jz45g.xn--zckzah'
-    try:
-        hostname = hostname.encode("idna").decode("ascii")
-    except UnicodeError as e:
-        raise InvalidEmailError from e
-
-    parts = hostname.split(".")
-
-    if len(hostname) > 253 or len(parts) < 2:
-        raise InvalidEmailError
-
-    for part in parts:
-        if not part or len(part) > 63 or not hostname_part.match(part):
-            raise InvalidEmailError
-
-    # if the part after the last . is not a valid TLD then bail out
-    if not tld_part.match(parts[-1]):
-        raise InvalidEmailError
-
-    return email_address
-
-
-def format_email_address(email_address):
-    return strip_and_remove_obscure_whitespace(email_address.lower())
-
-
-def validate_and_format_email_address(email_address):
-    return format_email_address(validate_email_address(email_address))
 
 
 @lru_cache(maxsize=32, typed=False)
