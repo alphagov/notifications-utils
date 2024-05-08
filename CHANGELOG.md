@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 78.0.0
+
+* BREAKING CHANGE: recipient validation code has all been moved into separate files in a shared folder. Functionality is unchanged.
+  - Email address validation can be found in `notifications_utils.recipient_validation.email_address`
+  - Phone number validation can be found in `notifications_utils.recipient_validation.phone_number`
+  - Postal address validation can be found in `notifications_utils.recipient_validation.postal_address`
+* BREAKING CHANGE: InvalidPhoneError and InvalidAddressError no longer extend InvalidEmailError.
+  - if you wish to handle all recipient validation errors, please use `notifications_utils.recipient_validation.errors.InvalidRecipientError`
+
 ## 77.2.1
 
 * Change redis delete behaviour to error, rather than end up with stale data, if Redis is unavailable.
