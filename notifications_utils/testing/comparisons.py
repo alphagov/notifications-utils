@@ -1,7 +1,7 @@
 import re
 from functools import lru_cache
+from re import Pattern
 from types import MappingProxyType
-from typing import Pattern
 
 
 class RestrictedAny:
@@ -70,7 +70,7 @@ class AnyStringMatching(RestrictedAny):
         self._regex = (
             args[0] if len(args) == 1 and isinstance(args[0], Pattern) else self._cached_re_compile(*args, **kwargs)
         )
-        super().__init__(lambda other: isinstance(other, (str, bytes)) and bool(self._regex.match(other)))
+        super().__init__(lambda other: isinstance(other, str | bytes) and bool(self._regex.match(other)))
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._regex})"

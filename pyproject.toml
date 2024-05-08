@@ -15,6 +15,7 @@ lint.select = [
     "C90",  # mccabe cyclomatic complexity
     "G",  # flake8-logging-format
     "T20", # flake8-print
+    "UP",  # pyupgrade
 ]
 lint.ignore = []
 exclude = [

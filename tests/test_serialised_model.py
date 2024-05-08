@@ -79,12 +79,9 @@ def test_cant_override_custom_property_from_dict():
     with pytest.raises(AttributeError) as e:
         Custom({"foo": "NOPE"})
 
-    if sys.version_info < (3, 11):
-        assert str(e.value) == "can't set attribute"
-    else:
-        assert str(e.value) == (
-            "property 'foo' of 'test_cant_override_custom_property_from_dict.<locals>.Custom' object has no setter"
-        )
+    assert str(e.value) == (
+        "property 'foo' of 'test_cant_override_custom_property_from_dict.<locals>.Custom' object has no setter"
+    )
 
 
 @pytest.mark.parametrize(

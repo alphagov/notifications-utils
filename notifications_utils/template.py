@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import lru_cache
 from html import unescape
 from os import path
-from typing import Literal, Optional
+from typing import Literal
 
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
@@ -656,7 +656,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     def postal_address(self):
         return PostalAddress.from_personalisation(InsensitiveDict(self.values))
 
-    def has_qr_code_with_too_much_data(self) -> Optional[QrCodeTooLong]:
+    def has_qr_code_with_too_much_data(self) -> QrCodeTooLong | None:
         content = self._personalised_content if self.values else self.content
         try:
             Take(content).then(notify_letter_qrcode_validator)
