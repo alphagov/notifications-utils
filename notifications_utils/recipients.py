@@ -13,15 +13,8 @@ from notifications_utils.formatters import (
     strip_and_remove_obscure_whitespace,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
-from notifications_utils.recipient_validation.email_address import (
-    validate_and_format_email_address,
-    validate_email_address,
-)
+from notifications_utils.recipient_validation import email_address, phone_number
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
-from notifications_utils.recipient_validation.phone_number import (
-    validate_and_format_phone_number,
-    validate_phone_number,
-)
 from notifications_utils.recipient_validation.postal_address import (
     address_line_7_key,
     address_lines_1_to_6_and_postcode_keys,
@@ -324,9 +317,9 @@ class RecipientCSV:
                     return Cell.missing_field_error
             try:
                 if self.template_type == "email":
-                    validate_email_address(value)
+                    email_address.validate_email_address(value)
                 if self.template_type == "sms":
-                    validate_phone_number(value, international=self.allow_international_sms)
+                    phone_number.validate_phone_number(value, international=self.allow_international_sms)
             except InvalidRecipientError as error:
                 return str(error)
 
@@ -472,9 +465,9 @@ def format_recipient(recipient):
     if not isinstance(recipient, str):
         return ""
     with suppress(InvalidPhoneError):
-        return validate_and_format_phone_number(recipient, international=True)
+        return phone_number.validate_and_format_phone_number(recipient, international=True)
     with suppress(InvalidEmailError):
-        return validate_and_format_email_address(recipient)
+        return email_address.validate_and_format_email_address(recipient)
     return recipient
 
 
