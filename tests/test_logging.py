@@ -287,8 +287,6 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
 
     app.test_client().get("/_status")
 
-    print(mock_req_logger.log.call_args_list)
-
     assert (
         mock.call(
             builtin_logging.DEBUG,

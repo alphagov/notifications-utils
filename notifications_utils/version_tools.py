@@ -26,7 +26,7 @@ def upgrade_version():
 
     write_version_to_requirements_file(newest_version)
 
-    print(
+    print(  # noqa: T201
         f"{color.GREEN}✅ {color.BOLD}notifications-utils bumped to {newest_version}{color.END}\n\n"
         f"{color.YELLOW}{color.UNDERLINE}Now run:{color.END}\n\n"
         f"  make freeze-requirements\n"
