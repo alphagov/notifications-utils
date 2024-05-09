@@ -318,14 +318,14 @@ def test_content_of_preheader_in_html_emails(
             HTMLEmailTemplate,
             "email",
             {},
-            ("the quick brown fox\n" "\n" "jumped over the lazy dog\n"),
+            ("the quick brown fox\n\njumped over the lazy dog\n"),
             "notifications_utils.template.notify_email_markdown",
         ],
         [
             LetterPreviewTemplate,
             "letter",
             {},
-            ("the quick brown fox\n" "\n" "jumped over the lazy dog\n"),
+            ("the quick brown fox\n\njumped over the lazy dog\n"),
             "notifications_utils.template.notify_letter_preview_markdown",
         ],
     ],
@@ -341,7 +341,7 @@ def test_markdown_in_templates(
         str(
             template_class(
                 {
-                    "content": ("the quick ((colour)) ((animal))\n" "\n" "jumped over the lazy dog"),
+                    "content": ("the quick ((colour)) ((animal))\n\njumped over the lazy dog"),
                     "subject": "animal story",
                     "template_type": template_type,
                 },
@@ -628,15 +628,15 @@ def test_sms_preview_adds_newlines(nl2br):
 @pytest.mark.parametrize(
     "content",
     [
-        ("one newline\n" "two newlines\n" "\n" "end"),  # Unix-style
-        ("one newline\r\n" "two newlines\r\n" "\r\n" "end"),  # Windows-style
-        ("one newline\r" "two newlines\r" "\r" "end"),  # Mac Classic style
-        ("\t\t\n\r one newline\n" "two newlines\r" "\r\n" "end\n\n  \r \n \t "),  # A mess
+        ("one newline\ntwo newlines\n\nend"),  # Unix-style
+        ("one newline\r\ntwo newlines\r\n\r\nend"),  # Windows-style
+        ("one newline\rtwo newlines\r\rend"),  # Mac Classic style
+        ("\t\t\n\r one newline\ntwo newlines\r\r\nend\n\n  \r \n \t "),  # A mess
     ],
 )
 def test_sms_message_normalises_newlines(content):
     assert repr(str(SMSMessageTemplate({"content": content, "template_type": "sms"}))) == repr(
-        "one newline\n" "two newlines\n" "\n" "end"
+        "one newline\ntwo newlines\n\nend"
     )
 
 
@@ -1776,7 +1776,7 @@ def test_email_preview_shows_recipient_address(
                 "addressline6": None,
                 "postcode": "N1 4Wq",
             },
-            ("<ul>" "<li>line 1</li>" "<li>line 2</li>" "<li>N1 4WQ</li>" "</ul>"),
+            ("<ul><li>line 1</li><li>line 2</li><li>N1 4WQ</li></ul>"),
         ),
         (
             {
@@ -1785,7 +1785,7 @@ def test_email_preview_shows_recipient_address(
                 "addressline3": "\t     ,",
                 "postcode": "N1 4WQ",
             },
-            ("<ul>" "<li>line 1</li>" "<li>line 2</li>" "<li>N1 4WQ</li>" "</ul>"),
+            ("<ul><li>line 1</li><li>line 2</li><li>N1 4WQ</li></ul>"),
         ),
         (
             {
@@ -1794,7 +1794,7 @@ def test_email_preview_shows_recipient_address(
                 "postcode": "SW1A 1AA",  # ignored in favour of line 7
                 "addressline7": "N1 4WQ",
             },
-            ("<ul>" "<li>line 1</li>" "<li>line 2</li>" "<li>N1 4WQ</li>" "</ul>"),
+            ("<ul><li>line 1</li><li>line 2</li><li>N1 4WQ</li></ul>"),
         ),
         (
             {
@@ -1802,7 +1802,7 @@ def test_email_preview_shows_recipient_address(
                 "addressline2": "line 2",
                 "addressline7": "N1 4WQ",  # means postcode isn’t needed
             },
-            ("<ul>" "<li>line 1</li>" "<li>line 2</li>" "<li>N1 4WQ</li>" "</ul>"),
+            ("<ul><li>line 1</li><li>line 2</li><li>N1 4WQ</li></ul>"),
         ),
     ],
 )
@@ -1825,16 +1825,16 @@ def test_letter_address_format(template_class, address, expected):
     "markdown, expected",
     [
         (
-            ("Here is a list of bullets:\n" "\n" "* one\n" "* two\n" "* three\n" "\n" "New paragraph"),
-            ("<ul>\n" "<li>one</li>\n" "<li>two</li>\n" "<li>three</li>\n" "</ul>\n" "<p>New paragraph</p>\n"),
+            ("Here is a list of bullets:\n\n* one\n* two\n* three\n\nNew paragraph"),
+            ("<ul>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ul>\n<p>New paragraph</p>\n"),
         ),
         (
-            ("# List title:\n" "\n" "* one\n" "* two\n" "* three\n"),
-            ("<h2>List title:</h2>\n" "<ul>\n" "<li>one</li>\n" "<li>two</li>\n" "<li>three</li>\n" "</ul>\n"),
+            ("# List title:\n\n* one\n* two\n* three\n"),
+            ("<h2>List title:</h2>\n<ul>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ul>\n"),
         ),
         (
-            ("Here’s an ordered list:\n" "\n" "1. one\n" "2. two\n" "3. three\n"),
-            ("<p>Here’s an ordered list:</p><ol>\n" "<li>one</li>\n" "<li>two</li>\n" "<li>three</li>\n" "</ol>"),
+            ("Here’s an ordered list:\n\n1. one\n2. two\n3. three\n"),
+            ("<p>Here’s an ordered list:</p><ol>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ol>"),
         ),
     ],
 )
@@ -1941,14 +1941,14 @@ def test_message_too_long_for_an_email_message_within_limits(template_class, tem
 
 
 @pytest.mark.parametrize(
-    ("content," "expected_preview_markup,"),
+    ("content,expected_preview_markup,"),
     [
         (
             "a\n\n\nb",
-            ("<p>a</p>" "<p>b</p>"),
+            ("<p>a</p><p>b</p>"),
         ),
         (
-            ("a\n" "\n" "* one\n" "* two\n" "* three\n" "and a half\n" "\n" "\n" "\n" "\n" "foo"),
+            ("a\n\n* one\n* two\n* three\nand a half\n\n\n\n\nfoo"),
             (
                 "<p>a</p><ul>\n"
                 "<li>one</li>\n"
@@ -2253,7 +2253,7 @@ def test_image_not_present_if_no_logo(template_class):
 @pytest.mark.parametrize(
     "content",
     (
-        ("The     quick brown fox.\n" "\n\n\n\n" "Jumps over the lazy dog.   \n" "Single linebreak above."),
+        ("The     quick brown fox.\n\n\n\n\nJumps over the lazy dog.   \nSingle linebreak above."),
         (
             "\n   \n"
             "The quick brown fox.  \n\n"
@@ -2267,9 +2267,9 @@ def test_image_not_present_if_no_logo(template_class):
     (
         (
             SMSBodyPreviewTemplate,
-            ("The quick brown fox.\n" "\n" "Jumps over the lazy dog.\n" "Single linebreak above."),
+            ("The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above."),
         ),
-        (SMSMessageTemplate, ("The quick brown fox.\n" "\n" "Jumps over the lazy dog.\n" "Single linebreak above.")),
+        (SMSMessageTemplate, ("The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above.")),
         (
             SMSPreviewTemplate,
             (
@@ -2289,9 +2289,7 @@ def test_text_messages_collapse_consecutive_whitespace(
     template = template_class({"content": content, "template_type": "sms"})
     assert str(template) == expected
     assert (
-        template.content_count
-        == 70
-        == len("The quick brown fox.\n" "\n" "Jumps over the lazy dog.\n" "Single linebreak above.")
+        template.content_count == 70 == len("The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above.")
     )
 
 

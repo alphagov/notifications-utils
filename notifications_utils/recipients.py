@@ -85,7 +85,7 @@ class RecipientCSV:
     @template.setter
     def template(self, value):
         if not isinstance(value, Template):
-            raise TypeError("template must be an instance of " "notifications_utils.template.Template")
+            raise TypeError("template must be an instance of notifications_utils.template.Template")
         self._template = value
         self.template_type = self._template.template_type
         self.recipient_column_headers = first_column_headings[self.template_type]

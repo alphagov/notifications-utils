@@ -73,7 +73,7 @@ class Template(ABC):
             raise TypeError("Values must be a dict")
         if template.get("template_type") != self.template_type:
             raise TypeError(
-                f"Cannot initialise {self.__class__.__name__} " f'with {template.get("template_type")} template_type'
+                f'Cannot initialise {self.__class__.__name__} with {template.get("template_type")} template_type'
             )
         self.id = template.get("id", None)
         self.name = template.get("name", None)

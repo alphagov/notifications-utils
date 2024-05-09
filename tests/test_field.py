@@ -216,7 +216,7 @@ def test_handling_of_missing_values(content, values, expected):
         99.99999,
         "off",
         "exclude",
-        "no" "any random string",
+        "noany random string",
         "false",
         False,
         [],

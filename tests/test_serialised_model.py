@@ -55,7 +55,7 @@ def test_cant_be_instatiated_with_abstract_properties():
 
     if sys.version_info >= (3, 12):
         assert str(e.value) == (
-            "Can't instantiate abstract class CustomCollection without an implementation " "for abstract method 'model'"
+            "Can't instantiate abstract class CustomCollection without an implementation for abstract method 'model'"
         )
     else:
         assert str(e.value) == "Can't instantiate abstract class CustomCollection with abstract method model"

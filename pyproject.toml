@@ -17,6 +17,7 @@ lint.select = [
     "T20", # flake8-print
     "UP",  # pyupgrade
     "C4",  # flake8-comprehensions
+    "ISC",  # flake8-implicit-str-concat
 ]
 lint.ignore = []
 exclude = [

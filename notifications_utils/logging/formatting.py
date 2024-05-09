@@ -3,9 +3,7 @@ import logging
 
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseJSONFormatter
 
-LOG_FORMAT = (
-    "%(asctime)s %(app_name)s %(name)s %(levelname)s " '%(request_id)s "%(message)s" [in %(pathname)s:%(lineno)d]'
-)
+LOG_FORMAT = '%(asctime)s %(app_name)s %(name)s %(levelname)s %(request_id)s "%(message)s" [in %(pathname)s:%(lineno)d]'
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 

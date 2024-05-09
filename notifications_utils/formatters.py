@@ -21,7 +21,7 @@ OBSCURE_ZERO_WIDTH_WHITESPACE = (
     "\u2029"  # paragraph separator
 )
 
-OBSCURE_FULL_WIDTH_WHITESPACE = "\u00A0" "\u202F"  # non breaking space  # narrow no break space
+OBSCURE_FULL_WIDTH_WHITESPACE = "\u00A0\u202F"  # non breaking space  # narrow no break space
 
 ALL_WHITESPACE = string.whitespace + OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE
 
@@ -150,7 +150,7 @@ def sms_encode(content):
 """
 Re-implements html._charref but makes trailing semicolons non-optional
 """
-_charref = re.compile(r"&(#[0-9]+;" r"|#[xX][0-9a-fA-F]+;" r"|[^\t\n\f <&#;]{1,32};)")
+_charref = re.compile(r"&(#[0-9]+;|#[xX][0-9a-fA-F]+;|[^\t\n\f <&#;]{1,32};)")
 
 
 def unescape_strict(s):
@@ -221,7 +221,7 @@ def make_quotes_smart(value):
 def replace_hyphens_with_en_dashes(value):
     return re.sub(
         hyphens_surrounded_by_spaces,
-        (" " "\u2013" " "),  # space  # en dash  # space
+        (" \u2013 "),  # space  # en dash  # space
         value,
     )
 

@@ -334,12 +334,12 @@ def test_international(address, expected_international):
 
         S W1 A 1 AA
         """,
-            ("123 Example St.\n" "City of Town\n" "SW1A 1AA"),
+            ("123 Example St.\nCity of Town\nSW1A 1AA"),
             ("123 Example St., City of Town, SW1A 1AA"),
         ),
         (
-            ("123 Example St. \t  ,    \n" ", , ,  ,   ,     ,        ,\n" "City of Town, Region,\n" "SW1A 1AA,,\n"),
-            ("123 Example St.\n" "City of Town, Region\n" "SW1A 1AA"),
+            ("123 Example St. \t  ,    \n, , ,  ,   ,     ,        ,\nCity of Town, Region,\nSW1A 1AA,,\n"),
+            ("123 Example St.\nCity of Town, Region\nSW1A 1AA"),
             ("123 Example St., City of Town, Region, SW1A 1AA"),
         ),
         (
@@ -349,7 +349,7 @@ def test_international(address, expected_international):
 
 
         """,
-            ("123 Example Straße\n" "Germany"),
+            ("123 Example Straße\nGermany"),
             ("123 Example Straße, Germany"),
         ),
     ),
@@ -439,7 +439,7 @@ def test_postage(address, expected_postage):
 )
 def test_from_personalisation(personalisation):
     assert PostalAddress.from_personalisation(personalisation).normalised == (
-        "123 Example Street\n" "City of Town\n" "SW1A 1AA"
+        "123 Example Street\nCity of Town\nSW1A 1AA"
     )
 
 
@@ -451,7 +451,7 @@ def test_from_personalisation_handles_int():
         "address_line_4": "SW1A1AA",
     }
     assert PostalAddress.from_personalisation(personalisation).normalised == (
-        "123\n" "Example Street\n" "City of Town\n" "SW1A 1AA"
+        "123\nExample Street\nCity of Town\nSW1A 1AA"
     )
 
 
