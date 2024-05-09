@@ -3,6 +3,7 @@ import pathlib
 import requests
 
 requirements_file = pathlib.Path("requirements.in")
+pyproject_file = pathlib.Path("pyproject.toml")
 repo_name = "alphagov/notifications-utils"
 
 
@@ -76,3 +77,9 @@ def get_relevant_changelog_lines(current_version, newest_version):
 
 def get_file_contents_from_github(branch_or_tag, path):
     return requests.get(f"https://raw.githubusercontent.com/{repo_name}/{branch_or_tag}/{path}").text
+
+
+def copy_pyproject_toml():
+    local_utils_version = get_app_version()
+    remote_contents = get_file_contents_from_github(local_utils_version, "pyproject.toml")
+    pyproject_file.write_text(remote_contents)
