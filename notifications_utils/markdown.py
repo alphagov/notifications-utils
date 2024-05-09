@@ -39,25 +39,21 @@ mistune.InlineGrammar.url = re.compile(r"""^(https?:\/\/[^\s<]+[^<.,:"')\]\s])""
 
 mistune.InlineLexer.default_rules = list(
     OrderedSet(mistune.InlineLexer.default_rules)
-    - set(
-        (
-            "emphasis",
-            "double_emphasis",
-            "strikethrough",
-            "code",
-        )
-    )
+    - {
+        "emphasis",
+        "double_emphasis",
+        "strikethrough",
+        "code",
+    }
 )
 mistune.InlineLexer.inline_html_rules = list(
     set(mistune.InlineLexer.inline_html_rules)
-    - set(
-        (
-            "emphasis",
-            "double_emphasis",
-            "strikethrough",
-            "code",
-        )
-    )
+    - {
+        "emphasis",
+        "double_emphasis",
+        "strikethrough",
+        "code",
+    }
 )
 
 

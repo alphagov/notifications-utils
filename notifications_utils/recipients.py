@@ -246,14 +246,14 @@ class RecipientCSV:
 
     @property
     def missing_column_headers(self):
-        return set(
+        return {
             key
             for key in self.placeholders
             if (
                 InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys
                 and not self.is_address_column(key)
             )
-        )
+        }
 
     @property
     def duplicate_recipient_column_headers(self):

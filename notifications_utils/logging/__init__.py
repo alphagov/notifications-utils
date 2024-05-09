@@ -40,7 +40,7 @@ def _common_request_extra_log_context():
     }
 
 
-def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = tuple()):
+def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = ()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})

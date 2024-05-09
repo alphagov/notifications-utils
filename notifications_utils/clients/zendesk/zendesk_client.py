@@ -41,7 +41,7 @@ class NotifySupportTicketComment:
     body: str
 
     # A list of file-like objects to attach to the comment
-    attachments: typing.Sequence[NotifySupportTicketAttachment] = tuple()
+    attachments: typing.Sequence[NotifySupportTicketAttachment] = ()
 
     # Whether the comment is public or internal
     public: bool = True

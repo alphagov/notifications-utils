@@ -116,7 +116,7 @@ class Template(ABC):
             placeholders = InsensitiveDict.from_keys(self.placeholders)
             self._values = InsensitiveDict(value).as_dict_with_keys(
                 self.placeholders
-                | set(key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys())
+                | {key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
             )
 
     @property
@@ -130,7 +130,7 @@ class Template(ABC):
 
     @property
     def missing_data(self):
-        return list(placeholder for placeholder in self.placeholders if self.values.get(placeholder) is None)
+        return [placeholder for placeholder in self.placeholders if self.values.get(placeholder) is None]
 
     @property
     def additional_data(self):
