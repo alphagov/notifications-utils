@@ -480,20 +480,17 @@ def test_escaping_govuk_in_email_templates(template_content, expected):
     )
 
 
-def test_stripping_of_unsupported_characters_in_email_templates():
-    template_content = "line one\u2028line two"
-    expected = "line oneline two"
-    assert expected in str(
-        PlainTextEmailTemplate(
-            {
-                "content": template_content,
-                "subject": "",
-                "template_type": "email",
-            }
-        )
-    )
-    assert expected in str(
-        HTMLEmailTemplate(
+@pytest.mark.parametrize(
+    "template_content",
+    (
+        "line one\u2028line two",
+        "line one\u3164line two",
+    ),
+)
+@pytest.mark.parametrize("template_class", (PlainTextEmailTemplate, HTMLEmailTemplate))
+def test_stripping_of_unsupported_characters_in_email_templates(template_content, template_class):
+    assert "line oneline two" in str(
+        template_class(
             {
                 "content": template_content,
                 "subject": "",
