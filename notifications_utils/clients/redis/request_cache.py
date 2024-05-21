@@ -68,12 +68,13 @@ class RequestCache:
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
-                try:
-                    api_response = client_method(*args, **kwargs)
-                finally:
-                    redis_key = self._make_key(key_format, client_method, args, kwargs)
-                    self.redis_client.delete(redis_key)
-                return api_response
+                # It is important to attempt the redis deletion first and raise an exception
+                # if it is unsuccessful. If we didn't, then we risk having a successful API
+                # call that updates the database, but redis left with stale data. Stale data
+                # is worse then failing the users requests
+                redis_key = self._make_key(key_format, client_method, args, kwargs)
+                self.redis_client.delete(redis_key, raise_exception=True)
+                return client_method(*args, **kwargs)
 
             return new_client_method
 
@@ -83,12 +84,13 @@ class RequestCache:
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
-                try:
-                    api_response = client_method(*args, **kwargs)
-                finally:
-                    redis_key = self._make_key(key_format, client_method, args, kwargs)
-                    self.redis_client.delete_by_pattern(redis_key)
-                return api_response
+                # It is important to attempt the redis deletion first and raise an exception
+                # if it is unsuccessful. If we didn't, then we risk having a successful API
+                # call that updates the database, but redis left with stale data. Stale data
+                # is worse then failing the users requests
+                redis_key = self._make_key(key_format, client_method, args, kwargs)
+                self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
+                return client_method(*args, **kwargs)
 
             return new_client_method
 
