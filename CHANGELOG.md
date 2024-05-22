@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 77.2.1
+
+* Change redis delete behaviour to error, rather than end up with stale data, if Redis is unavailable.
+
 ## 77.2.0
 
 * `NotifyTask`: include pid and other structured fields in completion log messages
