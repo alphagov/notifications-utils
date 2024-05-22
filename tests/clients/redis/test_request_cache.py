@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 
@@ -182,7 +182,8 @@ def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
 
     assert foo(*args) == "bar"
 
-    mock_redis_delete.assert_called_once_with(expected_cache_key, raise_exception=True)
+    expected_call = call(expected_cache_key, raise_exception=True)
+    mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
 def test_doesnt_update_api_if_redis_delete_fails(mocker, mocked_redis_client, cache):
@@ -211,7 +212,8 @@ def test_delete_by_pattern(mocker, mocked_redis_client, cache):
 
     assert foo(1, 2, 3) == "bar"
 
-    mock_redis_delete.assert_called_once_with("1-2-3-???", raise_exception=True)
+    expected_call = call("1-2-3-???", raise_exception=True)
+    mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
 def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocker, mocked_redis_client, cache):

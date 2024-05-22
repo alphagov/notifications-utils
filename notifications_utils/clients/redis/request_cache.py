@@ -68,13 +68,23 @@ class RequestCache:
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                redis_key = self._make_key(key_format, client_method, args, kwargs)
+
                 # It is important to attempt the redis deletion first and raise an exception
                 # if it is unsuccessful. If we didn't, then we risk having a successful API
                 # call that updates the database, but redis left with stale data. Stale data
                 # is worse then failing the users requests
-                redis_key = self._make_key(key_format, client_method, args, kwargs)
                 self.redis_client.delete(redis_key, raise_exception=True)
-                return client_method(*args, **kwargs)
+
+                api_response = client_method(*args, **kwargs)
+
+                # We also attempt another redis deletion after the API. This is to deal with
+                # the race condition where another request repopulates redis with the old data
+                # before the database has been updated. We want to raise an exception if the call
+                # to redis here fails because that will hopefully prompt the user that something
+                # went wrong and they should retry their action (hopefully resolving the problem).
+                self.redis_client.delete(redis_key, raise_exception=True)
+                return api_response
 
             return new_client_method
 
@@ -84,13 +94,13 @@ class RequestCache:
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
-                # It is important to attempt the redis deletion first and raise an exception
-                # if it is unsuccessful. If we didn't, then we risk having a successful API
-                # call that updates the database, but redis left with stale data. Stale data
-                # is worse then failing the users requests
+                # See equivalent comments above for why we attempt the redis delete before and
+                # after the API call
                 redis_key = self._make_key(key_format, client_method, args, kwargs)
                 self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
-                return client_method(*args, **kwargs)
+                api_response = client_method(*args, **kwargs)
+                self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
+                return api_response
 
             return new_client_method
 
