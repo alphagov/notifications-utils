@@ -82,4 +82,6 @@ def get_file_contents_from_github(branch_or_tag, path):
 def copy_pyproject_toml():
     local_utils_version = get_app_version()
     remote_contents = get_file_contents_from_github(local_utils_version, "pyproject.toml")
-    pyproject_file.write_text(remote_contents)
+    pyproject_file.write_text(
+        f"# This file is automatically copied from notifications-utils@{local_utils_version}\n\n{remote_contents}"
+    )
