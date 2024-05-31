@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 77.0.0
+
+* Breaking change to the Zendesk Client. The `ticket_categories` argument has been replaced with a `notify_task_type` argument, and it now populates
+  a different Zendesk form.
+
 ## 76.1.0
 
 * Remove `check_proxy_header_before_request` from request_helper.py since this was only used when apps
