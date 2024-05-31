@@ -171,7 +171,7 @@ class NotifySupportTicket:
     NOTIFY_GROUP_ID = 360000036529
     # Organization: GDS
     NOTIFY_ORG_ID = 21891972
-    NOTIFY_TICKET_FORM_ID = 1900000284794
+    NOTIFY_TICKET_FORM_ID = 14226867890588
 
     def __init__(
         self,
@@ -183,7 +183,7 @@ class NotifySupportTicket:
         user_email=None,
         requester_sees_message_content=True,
         notify_ticket_type: Optional[NotifyTicketType] = None,
-        ticket_categories=None,
+        notify_task_type=None,
         org_id=None,
         org_type=None,
         service_id=None,
@@ -198,7 +198,7 @@ class NotifySupportTicket:
         self.user_email = user_email
         self.requester_sees_message_content = requester_sees_message_content
         self.notify_ticket_type = notify_ticket_type
-        self.ticket_categories = ticket_categories or []
+        self.notify_task_type = notify_task_type
         self.org_id = org_id
         self.org_type = org_type
         self.service_id = service_id
@@ -236,14 +236,14 @@ class NotifySupportTicket:
     def _get_custom_fields(self):
         org_type_tag = f"notify_org_type_{self.org_type}" if self.org_type else None
         custom_fields = [
-            {"id": "360022836500", "value": self.ticket_categories},  # Notify Ticket category field
+            {"id": "14229641690396", "value": self.notify_task_type},  # Notify Task type field
             {"id": "360022943959", "value": self.org_id},  # Notify Organisation ID field
             {"id": "360022943979", "value": org_type_tag},  # Notify Organisation type field
             {"id": "1900000745014", "value": self.service_id},  # Notify Service ID field
         ]
 
         if self.notify_ticket_type:
-            # Notify Ticket type field
+            # Notify Responder field
             custom_fields.append({"id": "1900000744994", "value": self.notify_ticket_type.value})
 
         return custom_fields

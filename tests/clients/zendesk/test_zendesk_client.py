@@ -123,7 +123,7 @@ def test_notify_support_ticket_request_data(p1_arg, expected_tags, expected_prio
             "tags": expected_tags,
             "type": "question",
             "custom_fields": [
-                {"id": "360022836500", "value": []},
+                {"id": "14229641690396", "value": None},
                 {"id": "360022943959", "value": None},
                 {"id": "360022943979", "value": None},
                 {"id": "1900000745014", "value": None},
@@ -149,21 +149,21 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
 
 
 @pytest.mark.parametrize(
-    "custom_fields, tech_ticket_tag, categories, org_id, org_type, service_id",
+    "custom_fields, tech_ticket_tag, notify_task_type, org_id, org_type, service_id",
     [
-        ({"notify_ticket_type": NotifyTicketType.TECHNICAL}, "notify_ticket_type_technical", [], None, None, None),
+        ({"notify_ticket_type": NotifyTicketType.TECHNICAL}, "notify_ticket_type_technical", None, None, None, None),
         (
             {"notify_ticket_type": NotifyTicketType.NON_TECHNICAL},
             "notify_ticket_type_non_technical",
-            [],
+            None,
             None,
             None,
             None,
         ),
         (
-            {"ticket_categories": ["notify_billing", "notify_bug"]},
+            {"notify_task_type": "notify_task_email_branding"},
             None,
-            ["notify_billing", "notify_bug"],
+            "notify_task_email_branding",
             None,
             None,
             None,
@@ -171,7 +171,7 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
         (
             {"org_id": "1234", "org_type": "local"},
             None,
-            [],
+            None,
             "1234",
             "notify_org_type_local",
             None,
@@ -179,7 +179,7 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
         (
             {"service_id": "abcd", "org_type": "nhs"},
             None,
-            [],
+            None,
             None,
             "notify_org_type_nhs",
             "abcd",
@@ -189,7 +189,7 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
 def test_notify_support_ticket_request_data_custom_fields(
     custom_fields,
     tech_ticket_tag,
-    categories,
+    notify_task_type,
     org_id,
     org_type,
     service_id,
@@ -200,7 +200,9 @@ def test_notify_support_ticket_request_data_custom_fields(
         assert {"id": "1900000744994", "value": tech_ticket_tag} in notify_ticket_form.request_data["ticket"][
             "custom_fields"
         ]
-    assert {"id": "360022836500", "value": categories} in notify_ticket_form.request_data["ticket"]["custom_fields"]
+    assert {"id": "14229641690396", "value": notify_task_type} in notify_ticket_form.request_data["ticket"][
+        "custom_fields"
+    ]
     assert {"id": "360022943959", "value": org_id} in notify_ticket_form.request_data["ticket"]["custom_fields"]
     assert {"id": "360022943979", "value": org_type} in notify_ticket_form.request_data["ticket"]["custom_fields"]
     assert {"id": "1900000745014", "value": service_id} in notify_ticket_form.request_data["ticket"]["custom_fields"]
@@ -231,7 +233,7 @@ def test_notify_support_ticket_with_html_body():
             "tags": ["govuk_notify_support"],
             "type": "task",
             "custom_fields": [
-                {"id": "360022836500", "value": []},
+                {"id": "14229641690396", "value": None},
                 {"id": "360022943959", "value": None},
                 {"id": "360022943979", "value": None},
                 {"id": "1900000745014", "value": None},
