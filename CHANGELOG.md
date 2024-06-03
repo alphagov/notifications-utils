@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 77.1.1
+
+* Fix how `version_tools.copy_pyproject_toml` discovers the current version of notifications-utils
+
 ## 77.1.0
 
 * Add `version_tools.copy_pyproject_toml` to share linter config between apps
