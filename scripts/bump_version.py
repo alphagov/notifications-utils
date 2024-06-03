@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# ruff: noqa: T201
 
 import argparse
 import hashlib
@@ -20,7 +21,6 @@ version_parts = ("major", "minor", "patch")
 parser = argparse.ArgumentParser()
 parser.add_argument("version_part", choices=version_parts)
 version_part = parser.parse_args().version_part
-
 current_major, current_minor, current_patch = map(int, old_version.split("."))
 
 print(f"current version {old_version=}")

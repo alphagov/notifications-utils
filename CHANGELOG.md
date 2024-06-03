@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 77.1.0
+
+* Add `version_tools.copy_pyproject_toml` to share linter config between apps
+
 ## 77.0.0
 
 * Breaking change to the Zendesk Client. The `ticket_categories` argument has been replaced with a `notify_task_type` argument, and it now populates
