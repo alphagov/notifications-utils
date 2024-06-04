@@ -3,6 +3,7 @@ import pathlib
 import requests
 
 requirements_file = pathlib.Path("requirements.in")
+frozen_requirements_file = pathlib.Path("requirements.txt")
 pyproject_file = pathlib.Path("pyproject.toml")
 repo_name = "alphagov/notifications-utils"
 
@@ -44,7 +45,7 @@ def get_remote_version():
 
 
 def get_app_version():
-    return next(line.split("@")[-1] for line in requirements_file.read_text().split("\n") if repo_name in line)
+    return next(line.split("@")[-1] for line in frozen_requirements_file.read_text().split("\n") if repo_name in line)
 
 
 def write_version_to_requirements_file(version):
