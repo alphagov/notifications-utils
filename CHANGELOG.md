@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 77.2.0
+
+* `NotifyTask`: include pid and other structured fields in completion log messages
+
 ## 77.1.1
 
 * Fix how `version_tools.copy_pyproject_toml` discovers the current version of notifications-utils
