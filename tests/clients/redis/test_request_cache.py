@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, call
+
 import pytest
 
 from notifications_utils.clients.redis import RequestCache
@@ -180,23 +182,22 @@ def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
 
     assert foo(*args) == "bar"
 
-    mock_redis_delete.assert_called_once_with(expected_cache_key)
+    expected_call = call(expected_cache_key, raise_exception=True)
+    mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
-def test_delete_even_if_call_raises(mocker, mocked_redis_client, cache):
-    mock_redis_delete = mocker.patch.object(
-        mocked_redis_client,
-        "delete",
-    )
+def test_doesnt_update_api_if_redis_delete_fails(mocker, mocked_redis_client, cache):
+    mocker.patch.object(mocked_redis_client, "delete", side_effect=RuntimeError("API update failed"))
+    fake_api_call = MagicMock()
 
     @cache.delete("bar")
     def foo():
-        raise RuntimeError
+        return fake_api_call()
 
     with pytest.raises(RuntimeError):
         foo()
 
-    mock_redis_delete.assert_called_once_with("bar")
+    fake_api_call.assert_not_called()
 
 
 def test_delete_by_pattern(mocker, mocked_redis_client, cache):
@@ -211,20 +212,19 @@ def test_delete_by_pattern(mocker, mocked_redis_client, cache):
 
     assert foo(1, 2, 3) == "bar"
 
-    mock_redis_delete.assert_called_once_with("1-2-3-???")
+    expected_call = call("1-2-3-???", raise_exception=True)
+    mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
-def test_delete_by_pattern_even_if_call_raises(mocker, mocked_redis_client, cache):
-    mock_redis_delete = mocker.patch.object(
-        mocked_redis_client,
-        "delete_by_pattern",
-    )
+def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocker, mocked_redis_client, cache):
+    mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
+    fake_api_call = MagicMock()
 
     @cache.delete_by_pattern("bar-???")
     def foo():
-        raise RuntimeError
+        return fake_api_call()
 
     with pytest.raises(RuntimeError):
         foo()
 
-    mock_redis_delete.assert_called_once_with("bar-???")
+    fake_api_call.assert_not_called()

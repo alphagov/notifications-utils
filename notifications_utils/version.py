@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = "77.2.0"  # dbe1d856722af4ad0303161298e2aba3
+__version__ = "77.2.1"  # 096378d793de4f0d83045dda5032c767
