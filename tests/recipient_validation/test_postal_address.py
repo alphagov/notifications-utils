@@ -3,7 +3,7 @@ import pytest
 from notifications_utils.countries import Country
 from notifications_utils.countries.data import Postage
 from notifications_utils.insensitive_dict import InsensitiveDict
-from notifications_utils.postal_address import (
+from notifications_utils.recipient_validation.postal_address import (
     PostalAddress,
     _is_a_real_uk_postcode,
     format_postcode_for_printing,
@@ -630,7 +630,7 @@ def test_normalise_postcode(postcode, normalised_postcode):
         ("N5 1AA", True),
         ("SO14 6WB", True),
         ("so14 6wb", True),
-        ("so14\u00A06wb", True),
+        ("so14\u00a06wb", True),
         # invalida / incomplete postcodes
         ("N5", False),
         ("SO144 6WB", False),
@@ -661,7 +661,7 @@ def test_if_postcode_is_a_real_uk_postcode(postcode, result):
 
 
 def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(mocker):
-    normalise_postcode_mock = mocker.patch("notifications_utils.postal_address.normalise_postcode")
+    normalise_postcode_mock = mocker.patch("notifications_utils.recipient_validation.postal_address.normalise_postcode")
     normalise_postcode_mock.return_value = "SW11AA"
     assert _is_a_real_uk_postcode("sw1  1aa") is True
 
@@ -675,7 +675,7 @@ def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(m
         ("N5     3EF", "N5 3EF"),
         ("N53EF   ", "N5 3EF"),
         ("n53Ef", "N5 3EF"),
-        ("n5 \u00A0 \t 3Ef", "N5 3EF"),
+        ("n5 \u00a0 \t 3Ef", "N5 3EF"),
         ("SO146WB", "SO14 6WB"),
         ("GIR0AA", "GIR 0AA"),
         ("BF11AA", "BF1 1AA"),
