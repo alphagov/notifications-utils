@@ -635,6 +635,7 @@ def test_normalise_postcode(postcode, normalised_postcode):
         ("N5", False),
         ("SO144 6WB", False),
         ("SO14 6WBA", False),
+        ("NF1 1AA", False),
         ("", False),
         ("Bad postcode", False),
         # British Forces Post Office numbers are not postcodes
