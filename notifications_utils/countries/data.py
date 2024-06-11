@@ -32,6 +32,7 @@ ADDITIONAL_SYNONYMS = list(_load_data("synonyms.json").items())
 WELSH_NAMES = list(_load_data("welsh-names.json").items())
 _UK_ISLANDS_LIST = _load_data("uk-islands.txt")
 _EUROPEAN_ISLANDS_LIST = _load_data("european-islands.txt")
+UK_POSTCODE_ZONES = _load_data("uk-postcode-zones.txt")
 
 CURRENT_AND_ENDED_COUNTRIES_AND_TERRITORIES = [
     find_canonical(item, _graph, item["names"]["en-GB"]) for item in _graph.values()
