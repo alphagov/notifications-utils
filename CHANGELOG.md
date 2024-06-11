@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 78.1.0
+
+* Restrict postcodes to valid UK postcode zones
+
 ## 78.0.0
 
 * BREAKING CHANGE: recipient validation code has all been moved into separate files in a shared folder. Functionality is unchanged.
