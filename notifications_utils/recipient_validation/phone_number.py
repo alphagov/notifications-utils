@@ -151,3 +151,51 @@ def format_phone_number_human_readable(phone_number):
             else phonenumbers.PhoneNumberFormat.NATIONAL
         ),
     )
+
+
+class UKLandline:
+    @staticmethod
+    def raise_if_phone_number_contains_invalid_characters(number: str) -> None:
+        chars = set(number)
+        if chars - {*ALL_WHITESPACE + "()-+" + "0123456789"}:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER)
+
+    @staticmethod
+    def validate_mobile_or_uk_landline(phone_number: str, *, allow_international: bool) -> phonenumbers.PhoneNumber:
+        """
+        Validate a phone number and return the PhoneNumber object
+
+        Tries best effort validation, and has some extra logic to make the validation closer to our existing validation
+        including:
+
+        * Being stricter with rogue alphanumeric characters. (eg don't allow https://en.wikipedia.org/wiki/Phoneword)
+        * Additional parsing steps to check if there was a + or leading 0 stripped off the beginning of the number that
+          changes whether it is parsed as international or not.
+        * Convert error codes to match existing Notify error codes
+        """
+        # notify's old validation code is stricter than phonenumbers in not allowing letters etc, so need to catch some
+        # of those cases separately before we parse with the phonenumbers library
+        UKLandline.raise_if_phone_number_contains_invalid_characters(phone_number)
+
+        try:
+            # parse number as GB - if there's no country code, try and parse it as a UK number
+            number = phonenumbers.parse(phone_number, "GB")
+        except phonenumbers.NumberParseException as e:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER) from e
+
+        if not allow_international and str(number.country_code) != UK_PREFIX:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+
+        if str(number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
+
+        if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
+            raise InvalidPhoneError.from_phonenumbers_validationresult(reason)
+
+        if not phonenumbers.is_valid_number(number):
+            # is_possible just checks the length of a number for that country/region. is_valid checks if it's
+            # a valid sequence of numbers. This doesn't cover "is this number registered to an MNO".
+            # For example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
+
+        return number
