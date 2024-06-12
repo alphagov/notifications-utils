@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 78.2.0
+
+* Bumped minimum versions of select subdependencies
+
 ## 78.1.0
 
 * Restrict postcodes to valid UK postcode zones
