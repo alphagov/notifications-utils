@@ -33,6 +33,14 @@ class InvalidPhoneError(InvalidRecipientError):
         Codes.UNSUPPORTED_COUNTRY_CODE: "Country code not found - double check the mobile number you entered",
     }
 
+    LEGACY_V2_API_ERROR_MESSAGES = ERROR_MESSAGES | {
+        Codes.TOO_LONG: "Too many digits",
+        Codes.TOO_SHORT: "Not enough digits",
+        Codes.NOT_A_UK_MOBILE: "Not a UK mobile number",
+        Codes.UNKNOWN_CHARACTER: "Must not contain letters or symbols",
+        Codes.UNSUPPORTED_COUNTRY_CODE: "Not a valid country prefix",
+    }
+
     def __init__(self, *, code: Codes = Codes.INVALID_NUMBER):
         """
         Create an InvalidPhoneError. The code must be present in InvalidPhoneError.ERROR_MESSAGES or this will raise a
@@ -40,6 +48,9 @@ class InvalidPhoneError(InvalidRecipientError):
         """
         self.code = code
         super().__init__(message=self.ERROR_MESSAGES[code])
+
+    def get_legacy_v2_api_error_message(self):
+        return self.LEGACY_V2_API_ERROR_MESSAGES[self.code]
 
 
 class InvalidAddressError(InvalidRecipientError):
