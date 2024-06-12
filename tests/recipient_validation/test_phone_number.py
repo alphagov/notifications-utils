@@ -75,7 +75,7 @@ invalid_uk_mobile_phone_numbers = sum(
         [(phone_number, error) for phone_number in group]
         for error, group in [
             (
-                "Mobile number is too long",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG],
                 (
                     "712345678910",
                     "0712345678910",
@@ -85,7 +85,7 @@ invalid_uk_mobile_phone_numbers = sum(
                 ),
             ),
             (
-                "Mobile number is too short",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
                 (
                     "0712345678",
                     "004471234567",
@@ -94,11 +94,11 @@ invalid_uk_mobile_phone_numbers = sum(
                 ),
             ),
             (
-                "This does not look like a UK mobile number – double check the mobile number you entered",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE],
                 valid_uk_landlines + invalid_uk_landlines,
             ),
             (
-                "Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER],
                 (
                     "07890x32109",
                     "07123 456789...",
@@ -124,10 +124,13 @@ invalid_mobile_phone_numbers = list(
         invalid_uk_mobile_phone_numbers,
     )
 ) + [
-    ("80000000000", "Country code not found - double check the mobile number you entered"),
-    ("1234567", "Mobile number is too short"),
-    ("+682 1234", "Mobile number is too short"),  # Cook Islands phone numbers can be 5 digits
-    ("+12345 12345 12345 6", "Mobile number is too long"),
+    ("80000000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
+    ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT]),
+    (
+        "+682 1234",
+        InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+    ),  # Cook Islands phone numbers can be 5 digits
+    ("+12345 12345 12345 6", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
 ]
 
 
@@ -261,7 +264,7 @@ def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
 def test_get_international_info_raises(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
         get_international_phone_info(phone_number)
-    assert str(error.value) == "Country code not found - double check the mobile number you entered"
+    assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
