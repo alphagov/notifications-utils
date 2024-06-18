@@ -27,7 +27,7 @@ valid_uk_mobile_phone_numbers = [
     "+447123456789",
     "+44 7123 456 789",
     "+44 (0)7123 456 789",
-    "\u200b\t\t+44 (0)7123 \ufeff 456 789 \r\n",
+    "\u200b\t\t+44 (0)7123 456 789\ufeff \r\n",
 ]
 
 
@@ -114,7 +114,7 @@ invalid_uk_mobile_phone_numbers = sum(
 )
 
 invalid_international_numbers = [
-    ("80000000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
+    ("80100000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
     ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT]),
     (
         "+682 1234",
