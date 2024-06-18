@@ -31,16 +31,18 @@ valid_uk_mobile_phone_numbers = [
 
 
 valid_international_phone_numbers = [
-    "71234567890",  # Russia
+    "+7 (8) (495) 123-45-67",  # russia
+    "007 (8) (495) 123-45-67",  # russia
+    "784951234567",  # Russia but without a + or 00 so it looks like it could be a uk phone number
     "1-202-555-0104",  # USA
     "+12025550104",  # USA
     "0012025550104",  # USA
     "+0012025550104",  # USA
-    "23051234567",  # Mauritius,
-    "+682 12345",  # Cook islands
-    "+3312345678",
-    "003312345678",
-    "1-2345-12345-12345",  # 15 digits
+    "230 5 2512345",  # Mauritius
+    "+682 50 123",  # Cook islands
+    "+33122334455",  # France
+    "0033122334455",  # France
+    "+43 676 111 222 333 4",  # Austrian 13 digit phone numbers
 ]
 
 
@@ -54,7 +56,7 @@ valid_uk_landlines = [
     "016064 1234",  # brampton (one digit shorter than normal)
     "020 7946 0991",  # london
     "030 1234 5678",  # non-geographic
-    "0500 123 4567",  # corporate numbering and voip services
+    "0550 123 4567",  # corporate numbering and voip services
     "0800 123 4567",  # freephone
     "0800 123 456",  # shorter freephone
     "0800 11 11",  # shortest freephone
@@ -94,10 +96,6 @@ invalid_uk_mobile_phone_numbers = sum(
                 ),
             ),
             (
-                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE],
-                valid_uk_landlines + invalid_uk_landlines,
-            ),
-            (
                 InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER],
                 (
                     "07890x32109",
@@ -114,16 +112,7 @@ invalid_uk_mobile_phone_numbers = sum(
     [],
 )
 
-
-invalid_mobile_phone_numbers = list(
-    filter(
-        lambda number: number[0]
-        not in {
-            "712345678910",  # Could be Russia
-        },
-        invalid_uk_mobile_phone_numbers,
-    )
-) + [
+invalid_international_numbers = [
     ("80000000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
     ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT]),
     (
@@ -132,6 +121,25 @@ invalid_mobile_phone_numbers = list(
     ),  # Cook Islands phone numbers can be 5 digits
     ("+12345 12345 12345 6", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
 ]
+
+
+# NOTE: includes landlines
+invalid_mobile_phone_numbers = (
+    list(
+        filter(
+            lambda number: number[0]
+            not in {
+                "712345678910",  # Could be Russia
+            },
+            invalid_uk_mobile_phone_numbers,
+        )
+    )
+    + invalid_international_numbers
+    + [
+        (num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE])
+        for num in valid_uk_landlines + invalid_uk_landlines
+    ]
+)
 
 
 @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
