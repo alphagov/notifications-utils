@@ -1,4 +1,5 @@
 from collections import namedtuple
+from contextlib import suppress
 
 import phonenumbers
 from flask import current_app
@@ -190,7 +191,12 @@ class UKLandline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
-            raise InvalidPhoneError.from_phonenumbers_validationresult(reason)
+            if allow_international and (
+                forced_international_number := UKLandline._validate_forced_international_number(phone_number)
+            ):
+                number = forced_international_number
+            else:
+                raise InvalidPhoneError.from_phonenumbers_validationresult(reason)
 
         if not phonenumbers.is_valid_number(number):
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
@@ -199,3 +205,18 @@ class UKLandline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
         return number
+
+    @staticmethod
+    def _validate_forced_international_number(phone_number: str) -> phonenumbers.PhoneNumber | None:
+        """
+        phonenumbers assumes a number without a + or 00 at beginning is always a local number. Given that we know excel
+        sometimes strips these, if it doesn't parse as a UK number, lets try forcing it to be recognised as an
+        international number
+        """
+        with suppress(phonenumbers.NumberParseException):
+            forced_international_number = phonenumbers.parse(f"+{phone_number}")
+
+            if phonenumbers.is_possible_number(forced_international_number):
+                return forced_international_number
+
+        return None
