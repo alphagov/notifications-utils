@@ -9,9 +9,6 @@ from typing import Type  # noqa: UP035
 
 from flask import current_app
 from flask_redis import FlaskRedis
-
-# expose redis exceptions so that they can be caught
-from redis.exceptions import RedisError  # noqa: F401
 from redis.lock import Lock
 from redis.typing import Number
 
