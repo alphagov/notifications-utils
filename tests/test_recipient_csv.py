@@ -35,7 +35,7 @@ def _sample_template(template_type, content="foo"):
 
 
 def _index_rows(rows):
-    return set(row.index for row in rows)
+    return {row.index for row in rows}
 
 
 @pytest.mark.parametrize(
@@ -496,7 +496,7 @@ def test_get_recipient_respects_order(file_contents, template, expected_recipien
 @pytest.mark.parametrize(
     "file_contents,template_type,expected,expected_missing",
     [
-        ("", "sms", [], set(["phone number", "name"])),
+        ("", "sms", [], {"phone number", "name"}),
         (
             """
                 phone number,name
@@ -530,7 +530,7 @@ def test_get_recipient_respects_order(file_contents, template, expected_recipien
             """,
             "email",
             ["email address", "colour"],
-            set(["name"]),
+            {"name"},
         ),
         (
             """
@@ -1018,7 +1018,7 @@ def test_multiple_sms_recipient_columns(international_sms):
         allow_international_sms=international_sms,
     )
     assert recipients.column_headers == ["phone number", "phone_number", "foo"]
-    assert recipients.column_headers_as_column_keys == dict(phonenumber="", foo="").keys()
+    assert recipients.column_headers_as_column_keys == {"phonenumber": "", "foo": ""}.keys()
     assert recipients.rows[0].get("phone number").data == ("07900 900333")
     assert recipients.rows[0].get("phone_number").data == ("07900 900333")
     assert recipients.rows[0].get("phone number").error is None
@@ -1042,7 +1042,7 @@ def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     if column_name != "phone number":
         expected_column_headers.append(column_name)
     assert recipients.column_headers == expected_column_headers
-    assert recipients.column_headers_as_column_keys == dict(phonenumber="", names="").keys()
+    assert recipients.column_headers_as_column_keys == {"phonenumber": "", "names": ""}.keys()
     # A piece of weirdness uncovered: since rows are created before spaces in column names are normalised, when
     # there are duplicate recipient columns and there is data for only one of the columns, if the columns have the same
     # spacing, phone number data will be a list of this one phone number and None, while if the spacing style differs
@@ -1166,17 +1166,15 @@ def test_address_validation_speed():
     # a second – if it starts to get slow, something is inefficient
     number_of_lines = 1000
     uk_addresses_with_valid_postcodes = "\n".join(
-        (
-            "{n} Example Street, London, {a}{b} {c}{d}{e}".format(
-                n=randrange(1000),
-                a=choice(["n", "e", "sw", "se", "w"]),
-                b=choice(range(1, 10)),
-                c=choice(range(1, 10)),
-                d=choice("ABDefgHJLNPqrstUWxyZ"),
-                e=choice("ABDefgHJLNPqrstUWxyZ"),
-            )
-            for i in range(number_of_lines)
+        "{n} Example Street, London, {a}{b} {c}{d}{e}".format(
+            n=randrange(1000),
+            a=choice(["n", "e", "sw", "se", "w"]),
+            b=choice(range(1, 10)),
+            c=choice(range(1, 10)),
+            d=choice("ABDefgHJLNPqrstUWxyZ"),
+            e=choice("ABDefgHJLNPqrstUWxyZ"),
         )
+        for i in range(number_of_lines)
     )
     recipients = RecipientCSV(
         "address line 1, address line 2, address line 3\n" + (uk_addresses_with_valid_postcodes),
@@ -1189,14 +1187,8 @@ def test_address_validation_speed():
 
 def test_email_validation_speed():
     email_addresses = "\n".join(
-        (
-            "{a}{b}@example-{n}.com,Example,Thursday".format(
-                n=randrange(1000),
-                a=choice(string.ascii_letters),
-                b=choice(string.ascii_letters),
-            )
-            for i in range(1000)
-        )
+        f"{choice(string.ascii_letters)}{choice(string.ascii_letters)}@example-{randrange(1000)}.com,Example,Thursday"
+        for i in range(1000)
     )
     recipients = RecipientCSV(
         "email address,name,day\n" + email_addresses,

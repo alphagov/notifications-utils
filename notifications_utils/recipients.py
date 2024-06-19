@@ -4,7 +4,7 @@ from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
 from itertools import islice
-from typing import Optional, cast
+from typing import cast
 
 from ordered_set import OrderedSet
 
@@ -85,7 +85,7 @@ class RecipientCSV:
     @template.setter
     def template(self, value):
         if not isinstance(value, Template):
-            raise TypeError("template must be an instance of " "notifications_utils.template.Template")
+            raise TypeError("template must be an instance of notifications_utils.template.Template")
         self._template = value
         self.template_type = self._template.template_type
         self.recipient_column_headers = first_column_headings[self.template_type]
@@ -246,14 +246,14 @@ class RecipientCSV:
 
     @property
     def missing_column_headers(self):
-        return set(
+        return {
             key
             for key in self.placeholders
             if (
                 InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys
                 and not self.is_address_column(key)
             )
-        )
+        }
 
     @property
     def duplicate_recipient_column_headers(self):
@@ -264,11 +264,9 @@ class RecipientCSV:
         ]
 
         return OrderedSet(
-            (
-                column_header
-                for column_header in self._raw_column_headers
-                if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
-            )
+            column_header
+            for column_header in self._raw_column_headers
+            if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
         )
 
     def is_address_column(self, key):
@@ -369,7 +367,7 @@ class Row(InsensitiveDict):
             else:
                 self.message_too_long = template.is_message_too_long()
             self.message_empty = template.is_message_empty()
-            self.qr_code_too_long: Optional[QrCodeTooLong] = self._has_qr_code_with_too_much_data()
+            self.qr_code_too_long: QrCodeTooLong | None = self._has_qr_code_with_too_much_data()
 
         super().__init__({key: Cell(key, value, error_fn, self.placeholders) for key, value in row_dict.items()})
 
@@ -395,7 +393,7 @@ class Row(InsensitiveDict):
     def has_bad_postal_address(self):
         return self.template_type == "letter" and not self.as_postal_address.valid
 
-    def _has_qr_code_with_too_much_data(self) -> Optional[QrCodeTooLong]:
+    def _has_qr_code_with_too_much_data(self) -> QrCodeTooLong | None:
         if not self._template:
             return None
 

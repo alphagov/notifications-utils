@@ -2,10 +2,10 @@ import logging
 import logging.handlers
 import sys
 import time
+from collections.abc import Sequence
 from itertools import product
 from os import getpid
 from pathlib import Path
-from typing import Sequence
 
 from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
@@ -40,7 +40,7 @@ def _common_request_extra_log_context():
     }
 
 
-def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = tuple()):
+def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = ()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})

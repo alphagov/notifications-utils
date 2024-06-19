@@ -4,7 +4,7 @@ from datetime import datetime
 from functools import lru_cache
 from html import unescape
 from os import path
-from typing import Literal, Optional
+from typing import Literal
 
 from jinja2 import Environment, FileSystemLoader
 from markupsafe import Markup
@@ -73,7 +73,7 @@ class Template(ABC):
             raise TypeError("Values must be a dict")
         if template.get("template_type") != self.template_type:
             raise TypeError(
-                f"Cannot initialise {self.__class__.__name__} " f'with {template.get("template_type")} template_type'
+                f'Cannot initialise {self.__class__.__name__} with {template.get("template_type")} template_type'
             )
         self.id = template.get("id", None)
         self.name = template.get("name", None)
@@ -116,7 +116,7 @@ class Template(ABC):
             placeholders = InsensitiveDict.from_keys(self.placeholders)
             self._values = InsensitiveDict(value).as_dict_with_keys(
                 self.placeholders
-                | set(key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys())
+                | {key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
             )
 
     @property
@@ -130,7 +130,7 @@ class Template(ABC):
 
     @property
     def missing_data(self):
-        return list(placeholder for placeholder in self.placeholders if self.values.get(placeholder) is None)
+        return [placeholder for placeholder in self.placeholders if self.values.get(placeholder) is None]
 
     @property
     def additional_data(self):
@@ -656,7 +656,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     def postal_address(self):
         return PostalAddress.from_personalisation(InsensitiveDict(self.values))
 
-    def has_qr_code_with_too_much_data(self) -> Optional[QrCodeTooLong]:
+    def has_qr_code_with_too_much_data(self) -> QrCodeTooLong | None:
         content = self._personalised_content if self.values else self.content
         try:
             Take(content).then(notify_letter_qrcode_validator)

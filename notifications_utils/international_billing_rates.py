@@ -23,4 +23,4 @@ from pathlib import Path
 import yaml
 
 INTERNATIONAL_BILLING_RATES = yaml.safe_load((Path(__file__).parent / "international_billing_rates.yml").read_text())
-COUNTRY_PREFIXES = list(reversed(sorted(INTERNATIONAL_BILLING_RATES.keys(), key=len)))
+COUNTRY_PREFIXES = sorted(INTERNATIONAL_BILLING_RATES.keys(), key=len, reverse=True)

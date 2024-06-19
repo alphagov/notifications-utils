@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 79.0.0
+
+* Switches on Pyupgrade and a bunch of other more opinionated linting rules
+
 ## 78.2.0
 
 * Bumped minimum versions of select subdependencies

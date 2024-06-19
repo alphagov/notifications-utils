@@ -112,7 +112,7 @@ class NotifyRequest(Request):
         )
 
 
-class ResponseHeaderMiddleware(object):
+class ResponseHeaderMiddleware:
     def __init__(self, app, trace_id_header, span_id_header):
         self.app = app
         self.trace_id_header = trace_id_header

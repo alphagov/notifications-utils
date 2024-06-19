@@ -41,7 +41,6 @@ class NotifyStatsClient(StatsClientBase):
                 self._sock.sendto(data.encode("ascii"), (host, self._port))
         except Exception as e:
             current_app.logger.warning("Error sending statsd metric: %s", e)
-            pass
 
 
 class StatsdClient:

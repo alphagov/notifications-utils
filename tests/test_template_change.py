@@ -33,8 +33,8 @@ def test_checking_for_difference_between_templates(old_template, new_template, s
             set(),
         ),
         (ConcreteTemplate({"content": "((1)) ((2)) ((3))"}), ConcreteTemplate({"content": "((1))"}), set()),
-        (ConcreteTemplate({"content": "((1))"}), ConcreteTemplate({"content": "((1)) ((2)) ((3))"}), set(["2", "3"])),
-        (ConcreteTemplate({"content": "((a))"}), ConcreteTemplate({"content": "((A)) ((B)) ((C))"}), set(["B", "C"])),
+        (ConcreteTemplate({"content": "((1))"}), ConcreteTemplate({"content": "((1)) ((2)) ((3))"}), {"2", "3"}),
+        (ConcreteTemplate({"content": "((a))"}), ConcreteTemplate({"content": "((A)) ((B)) ((C))"}), {"B", "C"}),
     ],
 )
 def test_placeholders_added(old_template, new_template, placeholders_added):
@@ -51,8 +51,8 @@ def test_placeholders_added(old_template, new_template, placeholders_added):
             set(),
         ),
         (ConcreteTemplate({"content": "((1))"}), ConcreteTemplate({"content": "((1)) ((2)) ((3))"}), set()),
-        (ConcreteTemplate({"content": "((1)) ((2)) ((3))"}), ConcreteTemplate({"content": "((1))"}), set(["2", "3"])),
-        (ConcreteTemplate({"content": "((a)) ((b)) ((c))"}), ConcreteTemplate({"content": "((A))"}), set(["b", "c"])),
+        (ConcreteTemplate({"content": "((1)) ((2)) ((3))"}), ConcreteTemplate({"content": "((1))"}), {"2", "3"}),
+        (ConcreteTemplate({"content": "((a)) ((b)) ((c))"}), ConcreteTemplate({"content": "((A))"}), {"b", "c"}),
     ],
 )
 def test_placeholders_removed(old_template, new_template, placeholders_removed):

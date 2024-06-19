@@ -252,7 +252,7 @@ def test_level_3_header(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<p>a</p>" '<div class="page-break">&nbsp;</div>' "<p>b</p>")],
+        [notify_letter_preview_markdown, ('<p>a</p><div class="page-break">&nbsp;</div><p>b</p>')],
         [
             notify_email_markdown,
             (
@@ -474,8 +474,8 @@ def test_autolink(markdown_function, link, expected):
             notify_email_markdown,
             (
                 '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                + "variable called `thing`"
-                + "</p>"
+                "variable called `thing`"
+                "</p>"
             ),
         ],
         [
@@ -496,8 +496,8 @@ def test_codespan(markdown_function, expected):
             notify_email_markdown,
             (
                 '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                + "something **important**"
-                + "</p>"
+                "something **important**"
+                "</p>"
             ),
         ],
         [
@@ -519,8 +519,8 @@ def test_double_emphasis(markdown_function, expected):
             "something *important*",
             (
                 '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                + "something *important*"
-                + "</p>"
+                "something *important*"
+                "</p>"
             ),
         ],
         [

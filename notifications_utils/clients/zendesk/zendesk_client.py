@@ -2,7 +2,6 @@ import dataclasses
 import datetime
 import enum
 import typing
-from typing import Optional
 from urllib.parse import urlencode
 
 import requests
@@ -42,7 +41,7 @@ class NotifySupportTicketComment:
     body: str
 
     # A list of file-like objects to attach to the comment
-    attachments: typing.Sequence[NotifySupportTicketAttachment] = tuple()
+    attachments: typing.Sequence[NotifySupportTicketAttachment] = ()
 
     # Whether the comment is public or internal
     public: bool = True
@@ -112,9 +111,9 @@ class ZendeskClient:
     def update_ticket(
         self,
         ticket_id: int,
-        comment: Optional[NotifySupportTicketComment] = None,
-        due_at: Optional[datetime.datetime] = None,
-        status: Optional[NotifySupportTicketStatus] = None,
+        comment: NotifySupportTicketComment | None = None,
+        due_at: datetime.datetime | None = None,
+        status: NotifySupportTicketStatus | None = None,
     ):
         data = {"ticket": {}}
 
@@ -182,7 +181,7 @@ class NotifySupportTicket:
         user_name=None,
         user_email=None,
         requester_sees_message_content=True,
-        notify_ticket_type: Optional[NotifyTicketType] = None,
+        notify_ticket_type: NotifyTicketType | None = None,
         notify_task_type=None,
         org_id=None,
         org_type=None,

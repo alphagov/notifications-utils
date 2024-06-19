@@ -23,45 +23,37 @@ mistune.BlockGrammar.list_block = re.compile(
     r"^( *)([•*-]|\d+\.)[\s\S]+?"
     r"(?:"
     r"\n+(?=\1?(?:[-*_] *){3,}(?:\n+|$))"  # hrule
-    r"|\n+(?=%s)"  # def links
-    r"|\n+(?=%s)"  # def footnotes
+    rf"|\n+(?={mistune._pure_pattern(mistune.BlockGrammar.def_links)})"  # def links
+    rf"|\n+(?={mistune._pure_pattern(mistune.BlockGrammar.def_footnotes)})"  # def footnotes
     r"|\n{2,}"
     r"(?! )"
     r"(?!\1(?:[•*-]|\d+\.) )\n*"
     r"|"
     r"\s*$)"
-    % (
-        mistune._pure_pattern(mistune.BlockGrammar.def_links),
-        mistune._pure_pattern(mistune.BlockGrammar.def_footnotes),
-    )
 )
 mistune.BlockGrammar.list_item = re.compile(
-    r"^(( *)(?:[•*-]|\d+\.)[^\n]*" r"(?:\n(?!\2(?:[•*-]|\d+\.))[^\n]*)*)", flags=re.M
+    r"^(( *)(?:[•*-]|\d+\.)[^\n]*(?:\n(?!\2(?:[•*-]|\d+\.))[^\n]*)*)", flags=re.M
 )
 mistune.BlockGrammar.list_bullet = re.compile(r"^ *(?:[•*-]|\d+\.)")
 mistune.InlineGrammar.url = re.compile(r"""^(https?:\/\/[^\s<]+[^<.,:"')\]\s])""")
 
 mistune.InlineLexer.default_rules = list(
     OrderedSet(mistune.InlineLexer.default_rules)
-    - set(
-        (
-            "emphasis",
-            "double_emphasis",
-            "strikethrough",
-            "code",
-        )
-    )
+    - {
+        "emphasis",
+        "double_emphasis",
+        "strikethrough",
+        "code",
+    }
 )
 mistune.InlineLexer.inline_html_rules = list(
     set(mistune.InlineLexer.inline_html_rules)
-    - set(
-        (
-            "emphasis",
-            "double_emphasis",
-            "strikethrough",
-            "code",
-        )
-    )
+    - {
+        "emphasis",
+        "double_emphasis",
+        "strikethrough",
+        "code",
+    }
 )
 
 

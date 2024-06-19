@@ -26,7 +26,7 @@ def test_request_id_is_set_on_error_response(app):
 
     @app.route("/")
     def error_route():
-        raise Exception()
+        raise Exception
 
     with app.app_context():
         response = client.get("/", headers={"X-B3-TraceId": "generated", "X-B3-SpanId": "generated"})
@@ -483,7 +483,7 @@ def test_response_headers_error_response(
 
     @app.route("/")
     def error_route():
-        raise Exception()
+        raise Exception
 
     with app.app_context():
         response = client.get("/", headers=extra_req_headers)

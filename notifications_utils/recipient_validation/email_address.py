@@ -12,7 +12,7 @@ from notifications_utils.recipient_validation.errors import InvalidEmailError
 hostname_part = re.compile(r"^(xn|[a-z0-9]+)(-?-[a-z0-9]+)*$", re.IGNORECASE)
 tld_part = re.compile(r"^([a-z]{2,63}|xn--([a-z0-9]+-)*[a-z0-9]+)$", re.IGNORECASE)
 VALID_LOCAL_CHARS = r"a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\-"
-EMAIL_REGEX_PATTERN = r"^[{}]+@([^.@][^@\s]+)$".format(VALID_LOCAL_CHARS)
+EMAIL_REGEX_PATTERN = rf"^[{VALID_LOCAL_CHARS}]+@([^.@][^@\s]+)$"
 
 
 def validate_email_address(email_address):  # noqa (C901 too complex)
