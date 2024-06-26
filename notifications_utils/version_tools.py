@@ -8,6 +8,7 @@ repo_name = "alphagov/notifications-utils"
 config_files = {
     "pyproject.toml",
     "requirements_for_test_common.txt",
+    ".pre-commit-config.yaml",
 }
 
 
