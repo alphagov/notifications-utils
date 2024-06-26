@@ -28,7 +28,7 @@ setup(
         "requests>=2.32.0",
         "python-json-logger>=2.0.7",
         "Flask>=3.0.0",
-        "gunicorn>=20.0.0",
+        "gunicorn[eventlet]>=21.2.0",
         "ordered-set>=4.1.0",
         "Jinja2>=3.1.4",
         "statsd>=4.0.1",
@@ -40,7 +40,7 @@ setup(
         "pypdf>=3.13.0",
         "itsdangerous>=2.1.2",
         "govuk-bank-holidays>=0.14",
-        "boto3>=1.34.100",
+        "boto3[crt]>=1.34.100",
         "segno>=1.5.2,<2.0.0",
     ],
 )
