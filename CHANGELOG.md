@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 80.0.0
+
+* Copies additional config files from utils into repos
+* Renames `version_tools.copy_pyproject_yaml` to `version_tools.copy_config`
+
 ## 79.0.1
 
 * Update the `send_ticket_to_zendesk` method of the ZendeskClient to return the ID of the ticket that was created.
