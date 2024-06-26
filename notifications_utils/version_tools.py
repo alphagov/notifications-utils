@@ -80,7 +80,7 @@ def get_file_contents_from_github(branch_or_tag, path):
     return requests.get(f"https://raw.githubusercontent.com/{repo_name}/{branch_or_tag}/{path}").text
 
 
-def copy_pyproject_toml():
+def copy_config():
     local_utils_version = get_app_version()
     remote_contents = get_file_contents_from_github(local_utils_version, "pyproject.toml")
     pyproject_file.write_text(
