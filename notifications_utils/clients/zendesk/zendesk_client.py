@@ -80,6 +80,8 @@ class ZendeskClient:
 
         current_app.logger.info("Zendesk create ticket %s succeeded", ticket_id)
 
+        return ticket_id
+
     def _is_user_suspended(self, response):
         requester_error = response["details"].get("requester")
         return requester_error and ("suspended" in requester_error[0]["description"])
