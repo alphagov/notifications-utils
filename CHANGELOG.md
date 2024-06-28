@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 79.0.1
+
+* Update the `send_ticket_to_zendesk` method of the ZendeskClient to return the ID of the ticket that was created.
+
 ## 79.0.0
 
 * Switches on Pyupgrade and a bunch of other more opinionated linting rules
