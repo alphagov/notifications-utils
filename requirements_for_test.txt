@@ -1,19 +1,5 @@
 -e .
+-r requirements_for_test_common.txt
 
-flask>=3.0.0 # we use 2.3.2 in some places but we need >=3 for the logger tests
 celery==5.3.6
-beautifulsoup4==4.11.1
-pytest==7.2.0
-pytest-mock==3.9.0
-pytest-xdist==3.0.2
-requests-mock==1.10.0
-freezegun==1.2.2
-flake8-bugbear==22.10.27
-flake8-print==5.0.0
-pytest-profiling==1.7.0
-pytest-testmon==2.1.0
-pytest-watch==4.2.0
 redis>=4.3.4  # Earlier versions of redis miss features the tests need
-snakeviz==2.1.1
-black==24.4.0  # Also update `.pre-commit-config.yaml` if this changes
-ruff==0.3.7  # Also update `.pre-commit-config.yaml` if this changes
