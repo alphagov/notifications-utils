@@ -18,16 +18,16 @@ from notifications_utils.recipients import (
 )
 
 valid_uk_mobile_phone_numbers = [
-    "7123456789",
-    "07123456789",
-    "07123 456789",
-    "07123-456-789",
-    "00447123456789",
-    "00 44 7123456789",
-    "+447123456789",
-    "+44 7123 456 789",
-    "+44 (0)7123 456 789",
-    "\u200b\t\t+44 (0)7123 456 789\ufeff \r\n",
+    "7723456789",
+    "07723456789",
+    "07723 456789",
+    "07723-456-789",
+    "00447723456789",
+    "00 44 7723456789",
+    "+447723456789",
+    "+44 7723 456 789",
+    "+44 (0)7723 456 789",
+    "\u200b\t\t+44 (0)7723 456 789\ufeff \r\n",
 ]
 
 
@@ -80,29 +80,29 @@ invalid_uk_mobile_phone_numbers = sum(
             (
                 InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG],
                 (
-                    "712345678910",
-                    "0712345678910",
-                    "0044712345678910",
-                    "0044712345678910",
-                    "+44 (0)7123 456 789 10",
+                    "772345678910",
+                    "0772345678910",
+                    "0044772345678910",
+                    "0044772345678910",
+                    "+44 (0)7723 456 789 10",
                 ),
             ),
             (
                 InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
                 (
-                    "0712345678",
-                    "004471234567",
-                    "00447123456",
-                    "+44 (0)7123 456 78",
+                    "0772345678",
+                    "004477234567",
+                    "00447723456",
+                    "+44 (0)7723 456 78",
                 ),
             ),
             (
                 InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER],
                 (
                     "07890x32109",
-                    "07123 456789...",
-                    "07123 ☟☜⬇⬆☞☝",
-                    "07123☟☜⬇⬆☞☝",
+                    "07723 456789...",
+                    "07723 ☟☜⬇⬆☞☝",
+                    "07723☟☜⬇⬆☞☝",
                     '07";DROP TABLE;"',
                     "+44 07ab cde fgh",
                     "ALPHANUM3R1C",
@@ -130,7 +130,7 @@ invalid_mobile_phone_numbers = (
         filter(
             lambda number: number[0]
             not in {
-                "712345678910",  # Could be Russia
+                "772345678910",  # Could be Russia
             },
             invalid_uk_mobile_phone_numbers,
         )
@@ -145,7 +145,7 @@ invalid_mobile_phone_numbers = (
 
 international_phone_info_fixtures = [
     (
-        "07900900123",
+        "07723456789",
         international_phone_info(
             international=False,
             crown_dependency=False,
@@ -154,16 +154,7 @@ international_phone_info_fixtures = [
         ),
     ),
     (
-        "07700900123",
-        international_phone_info(
-            international=False,
-            crown_dependency=False,
-            country_prefix="44",  # Number in TV range
-            billable_units=1,
-        ),
-    ),
-    (
-        "07700800123",
+        "07797800123",
         international_phone_info(
             international=True,
             crown_dependency=True,
@@ -190,7 +181,7 @@ international_phone_info_fixtures = [
         ),
     ),
     (
-        "1664000000000",
+        "16644913789",
         international_phone_info(
             international=True,
             crown_dependency=False,
@@ -199,7 +190,7 @@ international_phone_info_fixtures = [
         ),
     ),
     (
-        "71234567890",
+        "77234567890",
         international_phone_info(
             international=True,
             crown_dependency=False,
@@ -217,7 +208,7 @@ international_phone_info_fixtures = [
         ),
     ),
     (
-        "+23051234567",
+        "+23052512345",
         international_phone_info(
             international=True,
             crown_dependency=False,
@@ -301,18 +292,18 @@ def test_phone_number_accepts_valid_international_values(phone_number):
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_valid_uk_phone_number_can_be_formatted_consistently(phone_number):
-    assert validate_and_format_phone_number(phone_number) == "447123456789"
+    assert validate_and_format_phone_number(phone_number) == "447723456789"
 
 
 @pytest.mark.parametrize(
     "phone_number, expected_formatted",
     [
-        ("71234567890", "71234567890"),
+        ("77234567890", "77234567890"),
         ("1-202-555-0104", "12025550104"),
         ("+12025550104", "12025550104"),
         ("0012025550104", "12025550104"),
         ("+0012025550104", "12025550104"),
-        ("23051234567", "23051234567"),
+        ("23052512345", "23052512345"),
     ],
 )
 def test_valid_international_phone_number_can_be_formatted_consistently(phone_number, expected_formatted):
@@ -342,7 +333,7 @@ def test_phone_number_rejects_invalid_international_values(phone_number, error_m
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_validates_against_guestlist_of_phone_numbers(phone_number):
-    assert allowed_to_send_to(phone_number, ["07123456789", "07700900460", "test@example.com"])
+    assert allowed_to_send_to(phone_number, ["07723456789", "07700900460", "test@example.com"])
     assert not allowed_to_send_to(phone_number, ["07700900460", "07700900461", "test@example.com"])
 
 
@@ -444,8 +435,8 @@ class TestPhoneNumbeClass:
         "number, expected",
         [
             ("48123654789", False),  # Poland alpha: Yes
-            ("1-403-123-5687", True),  # Canada alpha: No
-            ("40123548897", False),  # Romania alpha: REG
+            ("1-403-555-0104", True),  # Canada alpha: No
+            ("40 21 201 7200", False),  # Romania alpha: REG
             ("+60123451345", True),  # Malaysia alpha: NO
         ],
     )
@@ -454,17 +445,17 @@ class TestPhoneNumbeClass:
 
     @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
     def test_get_normalised_format_works_for_uk_mobiles(self, phone_number):
-        assert PhoneNumber(phone_number, allow_international=True).get_normalised_format() == "447123456789"
+        assert PhoneNumber(phone_number, allow_international=True).get_normalised_format() == "447723456789"
 
     @pytest.mark.parametrize(
         "phone_number, expected_formatted",
         [
-            ("71234567890", "71234567890"),
+            ("74991231212", "74991231212"),
             ("1-202-555-0104", "12025550104"),
             ("+12025550104", "12025550104"),
             ("0012025550104", "12025550104"),
             ("+0012025550104", "12025550104"),
-            ("23051234567", "23051234567"),
+            ("23052512345", "23052512345"),
         ],
     )
     def test_get_normalised_format_works_for_international_numbers(self, phone_number, expected_formatted):
@@ -473,15 +464,15 @@ class TestPhoneNumbeClass:
     @pytest.mark.parametrize(
         "phone_number, expected_formatted",
         [
-            ("07900900123", "07900 900123"),  # UK
-            ("+44(0)7900900123", "07900 900123"),  # UK
-            ("447900900123", "07900 900123"),  # UK
+            ("07723456789", "07723 456789"),  # UK
+            ("+44(0)7723456789", "07723 456789"),  # UK
+            ("447723456789", "07723 456789"),  # UK
             ("20-12-1234-1234", "+20 12 12341234"),  # Egypt
             ("00201212341234", "+20 12 12341234"),  # Egypt
-            ("1664 0000000", "+1 664-000-0000"),  # Montserrat
+            ("1664 491 3789", "+1 664-491-3789"),  # Montserrat
             ("7 499 1231212", "+7 499 123-12-12"),  # Moscow (Russia)
             ("1-202-555-0104", "+1 202-555-0104"),  # Washington DC (USA)
-            ("+23051234567", "+230 5123 4567"),  # Mauritius
+            ("+23052512345", "+230 5251 2345"),  # Mauritius
             ("33(0)1 12345678", "+33 1 12 34 56 78"),  # Paris (France)
         ],
     )
