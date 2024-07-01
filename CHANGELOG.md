@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 80.0.0
+
+* BREAKING CHANGE: The constructor for `notification_utils.recipient_validation.errors.InvalidPhoneError`
+  - When raising InvalidPhoneError, instead of supplying a custom message, you must create an error by supplying a code from the `InvalidPhoneError.Codes` enum
+* `InvalidPhoneError.code` will contain this machine-readable code for an exception if you need to examine it later
+* `InvalidPhoneError.get_legacy_v2_api_error_message` returns a historical error message for use on the public v2 api
+
 ## 79.0.1
 
 * Update the `send_ticket_to_zendesk` method of the ZendeskClient to return the ID of the ticket that was created.

@@ -16,7 +16,7 @@ from notifications_utils.recipients import (
     format_recipient,
 )
 
-valid_uk_phone_numbers = [
+valid_uk_mobile_phone_numbers = [
     "7123456789",
     "07123456789",
     "07123 456789",
@@ -44,15 +44,38 @@ valid_international_phone_numbers = [
 ]
 
 
-valid_phone_numbers = valid_uk_phone_numbers + valid_international_phone_numbers
+valid_mobile_phone_numbers = valid_uk_mobile_phone_numbers + valid_international_phone_numbers
 
+valid_uk_landlines = [
+    "0117 496 0860",  # regular uk landline
+    "0044 117 496 0860",
+    "44 117 496 0860",
+    "+44 117 496 0860",
+    "016064 1234",  # brampton (one digit shorter than normal)
+    "020 7946 0991",  # london
+    "030 1234 5678",  # non-geographic
+    "0500 123 4567",  # corporate numbering and voip services
+    "0800 123 4567",  # freephone
+    "0800 123 456",  # shorter freephone
+    "0800 11 11",  # shortest freephone
+    "0845 46 46",  # short premium
+    "0900 123 4567",  # premium
+]
 
-invalid_uk_phone_numbers = sum(
+invalid_uk_landlines = [
+    "0400 123 4567",  # not in use
+    "0600 123 4567",  # not in use
+    "0300 46 46",  # short but not 01x or 08x
+    "0800 11 12",  # short but not 01x or 08x
+    "0845 46 31",  # short but not 01x or 08x
+]
+
+invalid_uk_mobile_phone_numbers = sum(
     [
         [(phone_number, error) for phone_number in group]
         for error, group in [
             (
-                "Mobile number is too long",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG],
                 (
                     "712345678910",
                     "0712345678910",
@@ -62,7 +85,7 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "Mobile number is too short",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
                 (
                     "0712345678",
                     "004471234567",
@@ -71,18 +94,11 @@ invalid_uk_phone_numbers = sum(
                 ),
             ),
             (
-                "This does not look like a UK mobile number – double check the mobile number you entered",
-                (
-                    "08081 570364",
-                    "+44 8081 570364",
-                    "0117 496 0860",
-                    "+44 117 496 0860",
-                    "020 7946 0991",
-                    "+44 20 7946 0991",
-                ),
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE],
+                valid_uk_landlines + invalid_uk_landlines,
             ),
             (
-                "Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -",
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER],
                 (
                     "07890x32109",
                     "07123 456789...",
@@ -99,19 +115,22 @@ invalid_uk_phone_numbers = sum(
 )
 
 
-invalid_phone_numbers = list(
+invalid_mobile_phone_numbers = list(
     filter(
         lambda number: number[0]
         not in {
             "712345678910",  # Could be Russia
         },
-        invalid_uk_phone_numbers,
+        invalid_uk_mobile_phone_numbers,
     )
 ) + [
-    ("800000000000", "Country code not found - double check the mobile number you entered"),
-    ("1234567", "Mobile number is too short"),
-    ("+682 1234", "Mobile number is too short"),  # Cook Islands phone numbers can be 5 digits
-    ("+12345 12345 12345 6", "Mobile number is too long"),
+    ("80000000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
+    ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT]),
+    (
+        "+682 1234",
+        InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+    ),  # Cook Islands phone numbers can be 5 digits
+    ("+12345 12345 12345 6", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
 ]
 
 
@@ -120,7 +139,7 @@ def test_detect_international_phone_numbers(phone_number):
     assert is_uk_phone_number(phone_number) is False
 
 
-@pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
+@pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_detect_uk_phone_numbers(phone_number):
     assert is_uk_phone_number(phone_number) is True
 
@@ -245,10 +264,10 @@ def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
 def test_get_international_info_raises(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
         get_international_phone_info(phone_number)
-    assert str(error.value) == "Country code not found - double check the mobile number you entered"
+    assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]
 
 
-@pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
+@pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 @pytest.mark.parametrize(
     "extra_args",
     [
@@ -263,7 +282,7 @@ def test_phone_number_accepts_valid_values(extra_args, phone_number):
         pytest.fail("Unexpected InvalidPhoneError")
 
 
-@pytest.mark.parametrize("phone_number", valid_phone_numbers)
+@pytest.mark.parametrize("phone_number", valid_mobile_phone_numbers)
 def test_phone_number_accepts_valid_international_values(phone_number):
     try:
         validate_phone_number(phone_number, international=True)
@@ -271,7 +290,7 @@ def test_phone_number_accepts_valid_international_values(phone_number):
         pytest.fail("Unexpected InvalidPhoneError")
 
 
-@pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
+@pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_valid_uk_phone_number_can_be_formatted_consistently(phone_number):
     assert validate_and_format_phone_number(phone_number) == "447123456789"
 
@@ -291,7 +310,7 @@ def test_valid_international_phone_number_can_be_formatted_consistently(phone_nu
     assert validate_and_format_phone_number(phone_number, international=True) == expected_formatted
 
 
-@pytest.mark.parametrize("phone_number, error_message", invalid_uk_phone_numbers)
+@pytest.mark.parametrize("phone_number, error_message", invalid_uk_mobile_phone_numbers)
 @pytest.mark.parametrize(
     "extra_args",
     [
@@ -305,14 +324,14 @@ def test_phone_number_rejects_invalid_values(extra_args, phone_number, error_mes
     assert error_message == str(e.value)
 
 
-@pytest.mark.parametrize("phone_number, error_message", invalid_phone_numbers)
+@pytest.mark.parametrize("phone_number, error_message", invalid_mobile_phone_numbers)
 def test_phone_number_rejects_invalid_international_values(phone_number, error_message):
     with pytest.raises(InvalidPhoneError) as e:
         validate_phone_number(phone_number, international=True)
     assert error_message == str(e.value)
 
 
-@pytest.mark.parametrize("phone_number", valid_uk_phone_numbers)
+@pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_validates_against_guestlist_of_phone_numbers(phone_number):
     assert allowed_to_send_to(phone_number, ["07123456789", "07700900460", "test@example.com"])
     assert not allowed_to_send_to(phone_number, ["07700900460", "07700900461", "test@example.com"])
