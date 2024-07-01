@@ -166,7 +166,6 @@ class PhoneNumber:
         self.raw_input = phone_number
         self.allow_international = allow_international
         self.number = self.validate_phone_number(phone_number)
-        self.prefix = str(self.number.country_code)
 
     @staticmethod
     def _raise_if_phone_number_contains_invalid_characters(number: str) -> None:
@@ -233,16 +232,35 @@ class PhoneNumber:
 
         return None
 
+    @property
+    def prefix(self):
+        """
+        Returns the international dialing code for looking up data in our international_billing_rates.yml file
+
+        in our billing rates yml file, countries in the North American Numbering Plan (+1) may fall under
+        US/Canada/Dominican Republic (just +1) or they may have their own specific area code within the plan, eg
+        Montserrat with numbers like "+1 664 xxx xxxx". This means we need to check the area code first to see if
+        it's a regular area code or a full country code.
+        """
+        if self.number.country_code == 1:
+            country_and_area_code = phonenumbers.format_number(self.number, phonenumbers.PhoneNumberFormat.E164)[1:5]
+            if country_and_area_code in INTERNATIONAL_BILLING_RATES:
+                return country_and_area_code
+        return str(self.number.country_code)
+
     def is_uk_phone_number(self):
         """
-        Returns if the number's country code is +44 - note, this includes any regions that also use the +44 country code
-        such as isle of man/jersey/guernsey. You can distinguish these with `number._is_a_crown_dependency_number`
+        Returns if the number starts with +44. Note, this includes international numbers for crown dependencies such as
+        jersey/guernsey.
+
+        # TODO: check if we still need this - looking at api, this might be able to be removed entirely since it's
+        # always used in conjunction with should_use_numeric_sender
         """
         return self.number.country_code == 44
 
     def get_international_phone_info(self):
         return international_phone_info(
-            international=not self.is_uk_phone_number(),
+            international=phonenumbers.region_code_for_number(self.number) != "GB",
             crown_dependency=self._is_a_crown_dependency_number(),
             country_prefix=self.prefix,
             billable_units=INTERNATIONAL_BILLING_RATES[self.prefix]["billable_units"],
@@ -268,12 +286,9 @@ class PhoneNumber:
         Returns a normalised phone number including international country code suitable to send to providers
         """
         formatted = phonenumbers.format_number(self.number, phonenumbers.PhoneNumberFormat.E164)
+        # strip the plus and just pass numbers to our suppliers.
         # TODO: If our suppliers let us send the plus, then we should do so, for consistency/accuracy.
-        if self.is_uk_phone_number():
-            # if it's a UK number we strip the + and just send eg "447700900100"
-            return formatted[1:]
-        else:
-            return formatted
+        return formatted[1:]
 
     def get_human_readable_format(self):
         # comparable to `format_phone_number_human_readable`
