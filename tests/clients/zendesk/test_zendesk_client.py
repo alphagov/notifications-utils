@@ -42,13 +42,14 @@ def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, rmock, caplo
 
     with caplog.at_level(logging.INFO):
         ticket = NotifySupportTicket("subject", "message", "incident")
-        zendesk_client.send_ticket_to_zendesk(ticket)
+        response = zendesk_client.send_ticket_to_zendesk(ticket)
 
     assert rmock.last_request.headers["Authorization"][:6] == "Basic "
     b64_auth = rmock.last_request.headers["Authorization"][6:]
     assert b64decode(b64_auth.encode()).decode() == "zd-api-notify@digital.cabinet-office.gov.uk/token:testkey"
     assert rmock.last_request.json() == ticket.request_data
     assert "Zendesk create ticket 12345 succeeded" in caplog.messages
+    assert response == 12345
 
 
 def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, rmock, caplog):
@@ -74,12 +75,13 @@ def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk
         },
     )
     ticket = NotifySupportTicket("subject", "message", "incident")
-    zendesk_client.send_ticket_to_zendesk(ticket)
+    response = zendesk_client.send_ticket_to_zendesk(ticket)
 
     assert caplog.messages == [
         "Zendesk create ticket failed because user is suspended "
         "'{'requester': [{'description': 'Requester: Joe Bloggs is suspended.'}]}'"
     ]
+    assert response is None
 
 
 @pytest.mark.parametrize(
