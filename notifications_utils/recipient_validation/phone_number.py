@@ -232,3 +232,56 @@ class PhoneNumber:
                 return forced_international_number
 
         return None
+
+    def is_uk_phone_number(self):
+        """
+        Returns if the number's country code is +44 - note, this includes any regions that also use the +44 country code
+        such as isle of man/jersey/guernsey. You can distinguish these with `number._is_a_crown_dependency_number`
+        """
+        return self.number.country_code == 44
+
+    def get_international_phone_info(self):
+        return international_phone_info(
+            international=not self.is_uk_phone_number(),
+            crown_dependency=self._is_a_crown_dependency_number(),
+            country_prefix=self.prefix,
+            billable_units=INTERNATIONAL_BILLING_RATES[self.prefix]["billable_units"],
+        )
+
+    def _is_a_crown_dependency_number(self):
+        """
+        Returns True for phone numbers from Jersey, Guernsey, Isle of Man, etc
+        """
+        return self.is_uk_phone_number() and phonenumbers.region_code_for_number(self.number) != "GB"
+
+    def should_use_numeric_sender(self):
+        """
+        Some countries need a specific sender to be used rather than whatever the service has specified
+        """
+        return INTERNATIONAL_BILLING_RATES[self.prefix]["attributes"]["alpha"] == "NO"
+
+    def get_normalised_format(self):
+        return str(self)
+
+    def __str__(self):
+        """
+        Returns a normalised phone number including international country code suitable to send to providers
+        """
+        formatted = phonenumbers.format_number(self.number, phonenumbers.PhoneNumberFormat.E164)
+        # TODO: If our suppliers let us send the plus, then we should do so, for consistency/accuracy.
+        if self.is_uk_phone_number():
+            # if it's a UK number we strip the + and just send eg "447700900100"
+            return formatted[1:]
+        else:
+            return formatted
+
+    def get_human_readable_format(self):
+        # comparable to `format_phone_number_human_readable`
+        return phonenumbers.format_number(
+            self.number,
+            (
+                phonenumbers.PhoneNumberFormat.INTERNATIONAL
+                if self.number.country_code != 44
+                else phonenumbers.PhoneNumberFormat.NATIONAL
+            ),
+        )
