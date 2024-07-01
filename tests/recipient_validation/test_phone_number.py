@@ -2,7 +2,7 @@ import pytest
 
 from notifications_utils.recipient_validation.errors import InvalidPhoneError
 from notifications_utils.recipient_validation.phone_number import (
-    UKLandline,
+    PhoneNumber,
     format_phone_number_human_readable,
     get_international_phone_info,
     international_phone_info,
@@ -402,19 +402,19 @@ def test_format_phone_number_human_readable_doenst_throw():
     assert format_phone_number_human_readable("ALPHANUM3R1C") == "ALPHANUM3R1C"
 
 
-class TestUKLandlineValidation:
+class TestPhoneNumbeClass:
 
     @pytest.mark.parametrize("phone_number, error_message", invalid_uk_mobile_phone_numbers)
     def test_rejects_invalid_uk_mobile_phone_numbers(self, phone_number, error_message):
         # problem is `invalid_uk_mobile_phone_numbers` also includes valid uk landlines
         with pytest.raises(InvalidPhoneError):
-            UKLandline.validate_mobile_or_uk_landline(phone_number, allow_international=False)
+            PhoneNumber(phone_number, allow_international=False)
         # assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
 
     @pytest.mark.parametrize("phone_number", invalid_uk_landlines)
     def test_rejects_invalid_uk_landlines(self, phone_number):
         with pytest.raises(InvalidPhoneError) as e:
-            UKLandline.validate_mobile_or_uk_landline(phone_number, allow_international=False)
+            PhoneNumber(phone_number, allow_international=False)
         assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
 
     @pytest.mark.parametrize(
@@ -422,16 +422,16 @@ class TestUKLandlineValidation:
     )
     def test_rejects_invalid_international_phone_numbers(self, phone_number, error_message):
         with pytest.raises(InvalidPhoneError):
-            UKLandline.validate_mobile_or_uk_landline(phone_number, allow_international=True)
+            PhoneNumber(phone_number, allow_international=True)
 
     @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
     def test_allows_valid_uk_mobile_phone_numbers(self, phone_number):
-        UKLandline.validate_mobile_or_uk_landline(phone_number, allow_international=False)
+        PhoneNumber(phone_number, allow_international=False)
 
     @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
     def test_allows_valid_international_phone_numbers(self, phone_number):
-        UKLandline.validate_mobile_or_uk_landline(phone_number, allow_international=True)
+        PhoneNumber(phone_number, allow_international=True)
 
     @pytest.mark.parametrize("phone_number", valid_uk_landlines)
     def test_allows_valid_uk_landlines(self, phone_number):
-        UKLandline.validate_mobile_or_uk_landline(phone_number, allow_international=True)
+        PhoneNumber(phone_number, allow_international=True)

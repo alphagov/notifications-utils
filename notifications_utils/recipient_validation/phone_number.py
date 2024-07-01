@@ -154,15 +154,27 @@ def format_phone_number_human_readable(phone_number):
     )
 
 
-class UKLandline:
+class PhoneNumber:
+    """
+    A class that contains phone number validation.
+
+    Supports mobile and landline numbers. When creating an object you must specify whether you are expecting
+    international phone numbers to be allowed or not.
+    """
+
+    def __init__(self, phone_number: str, *, allow_international: bool) -> None:
+        self.raw_input = phone_number
+        self.allow_international = allow_international
+        self.number = self.validate_phone_number(phone_number)
+        self.prefix = str(self.number.country_code)
+
     @staticmethod
-    def raise_if_phone_number_contains_invalid_characters(number: str) -> None:
+    def _raise_if_phone_number_contains_invalid_characters(number: str) -> None:
         chars = set(number)
         if chars - {*ALL_WHITESPACE + "()-+" + "0123456789"}:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER)
 
-    @staticmethod
-    def validate_mobile_or_uk_landline(phone_number: str, *, allow_international: bool) -> phonenumbers.PhoneNumber:
+    def validate_phone_number(self, phone_number: str) -> phonenumbers.PhoneNumber:
         """
         Validate a phone number and return the PhoneNumber object
 
@@ -176,7 +188,7 @@ class UKLandline:
         """
         # notify's old validation code is stricter than phonenumbers in not allowing letters etc, so need to catch some
         # of those cases separately before we parse with the phonenumbers library
-        UKLandline.raise_if_phone_number_contains_invalid_characters(phone_number)
+        self._raise_if_phone_number_contains_invalid_characters(phone_number)
 
         try:
             # parse number as GB - if there's no country code, try and parse it as a UK number
@@ -184,15 +196,15 @@ class UKLandline:
         except phonenumbers.NumberParseException as e:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER) from e
 
-        if not allow_international and str(number.country_code) != UK_PREFIX:
+        if not self.allow_international and str(number.country_code) != UK_PREFIX:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
         if str(number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
-            if allow_international and (
-                forced_international_number := UKLandline._validate_forced_international_number(phone_number)
+            if self.allow_international and (
+                forced_international_number := self._validate_forced_international_number(phone_number)
             ):
                 number = forced_international_number
             else:
