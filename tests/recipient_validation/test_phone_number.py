@@ -143,6 +143,91 @@ invalid_mobile_phone_numbers = (
 )
 
 
+international_phone_info_fixtures = [
+    (
+        "07900900123",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",  # UK
+            billable_units=1,
+        ),
+    ),
+    (
+        "07700900123",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",  # Number in TV range
+            billable_units=1,
+        ),
+    ),
+    (
+        "07700800123",
+        international_phone_info(
+            international=True,
+            crown_dependency=True,
+            country_prefix="44",  # UK Crown dependency, so prefix same as UK
+            billable_units=1,
+        ),
+    ),
+    (
+        "20-12-1234-1234",
+        international_phone_info(
+            international=True,
+            crown_dependency=False,
+            country_prefix="20",  # Egypt
+            billable_units=3,
+        ),
+    ),
+    (
+        "00201212341234",
+        international_phone_info(
+            international=True,
+            crown_dependency=False,
+            country_prefix="20",  # Egypt
+            billable_units=3,
+        ),
+    ),
+    (
+        "1664000000000",
+        international_phone_info(
+            international=True,
+            crown_dependency=False,
+            country_prefix="1664",  # Montserrat
+            billable_units=3,
+        ),
+    ),
+    (
+        "71234567890",
+        international_phone_info(
+            international=True,
+            crown_dependency=False,
+            country_prefix="7",  # Russia
+            billable_units=4,
+        ),
+    ),
+    (
+        "1-202-555-0104",
+        international_phone_info(
+            international=True,
+            crown_dependency=False,
+            country_prefix="1",  # USA
+            billable_units=1,
+        ),
+    ),
+    (
+        "+23051234567",
+        international_phone_info(
+            international=True,
+            crown_dependency=False,
+            country_prefix="230",  # Mauritius
+            billable_units=2,
+        ),
+    ),
+]
+
+
 @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
 def test_detect_international_phone_numbers(phone_number):
     assert is_uk_phone_number(phone_number) is False
@@ -153,92 +238,7 @@ def test_detect_uk_phone_numbers(phone_number):
     assert is_uk_phone_number(phone_number) is True
 
 
-@pytest.mark.parametrize(
-    "phone_number, expected_info",
-    [
-        (
-            "07900900123",
-            international_phone_info(
-                international=False,
-                crown_dependency=False,
-                country_prefix="44",  # UK
-                billable_units=1,
-            ),
-        ),
-        (
-            "07700900123",
-            international_phone_info(
-                international=False,
-                crown_dependency=False,
-                country_prefix="44",  # Number in TV range
-                billable_units=1,
-            ),
-        ),
-        (
-            "07700800123",
-            international_phone_info(
-                international=True,
-                crown_dependency=True,
-                country_prefix="44",  # UK Crown dependency, so prefix same as UK
-                billable_units=1,
-            ),
-        ),
-        (
-            "20-12-1234-1234",
-            international_phone_info(
-                international=True,
-                crown_dependency=False,
-                country_prefix="20",  # Egypt
-                billable_units=3,
-            ),
-        ),
-        (
-            "00201212341234",
-            international_phone_info(
-                international=True,
-                crown_dependency=False,
-                country_prefix="20",  # Egypt
-                billable_units=3,
-            ),
-        ),
-        (
-            "1664000000000",
-            international_phone_info(
-                international=True,
-                crown_dependency=False,
-                country_prefix="1664",  # Montserrat
-                billable_units=3,
-            ),
-        ),
-        (
-            "71234567890",
-            international_phone_info(
-                international=True,
-                crown_dependency=False,
-                country_prefix="7",  # Russia
-                billable_units=4,
-            ),
-        ),
-        (
-            "1-202-555-0104",
-            international_phone_info(
-                international=True,
-                crown_dependency=False,
-                country_prefix="1",  # USA
-                billable_units=1,
-            ),
-        ),
-        (
-            "+23051234567",
-            international_phone_info(
-                international=True,
-                crown_dependency=False,
-                country_prefix="230",  # Mauritius
-                billable_units=2,
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("phone_number, expected_info", international_phone_info_fixtures)
 def test_get_international_info(phone_number, expected_info):
     assert get_international_phone_info(phone_number) == expected_info
 
@@ -426,12 +426,64 @@ class TestPhoneNumbeClass:
 
     @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
     def test_allows_valid_uk_mobile_phone_numbers(self, phone_number):
-        PhoneNumber(phone_number, allow_international=False)
+        assert PhoneNumber(phone_number, allow_international=False).is_uk_phone_number() is True
 
     @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
     def test_allows_valid_international_phone_numbers(self, phone_number):
-        PhoneNumber(phone_number, allow_international=True)
+        assert PhoneNumber(phone_number, allow_international=True).is_uk_phone_number() is False
 
     @pytest.mark.parametrize("phone_number", valid_uk_landlines)
     def test_allows_valid_uk_landlines(self, phone_number):
-        PhoneNumber(phone_number, allow_international=True)
+        assert PhoneNumber(phone_number, allow_international=True).is_uk_phone_number() is True
+
+    @pytest.mark.parametrize("phone_number, expected_info", international_phone_info_fixtures)
+    def test_get_international_phone_info(self, phone_number, expected_info):
+        assert PhoneNumber(phone_number, allow_international=True).get_international_phone_info() == expected_info
+
+    @pytest.mark.parametrize(
+        "number, expected",
+        [
+            ("48123654789", False),  # Poland alpha: Yes
+            ("1-403-123-5687", True),  # Canada alpha: No
+            ("40123548897", False),  # Romania alpha: REG
+            ("+60123451345", True),  # Malaysia alpha: NO
+        ],
+    )
+    def test_should_use_numeric_sender(self, number, expected):
+        assert PhoneNumber(number, allow_international=True).should_use_numeric_sender() == expected
+
+    @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
+    def test_get_normalised_format_works_for_uk_mobiles(self, phone_number):
+        assert PhoneNumber(phone_number, allow_international=True).get_normalised_format() == "447123456789"
+
+    @pytest.mark.parametrize(
+        "phone_number, expected_formatted",
+        [
+            ("71234567890", "71234567890"),
+            ("1-202-555-0104", "12025550104"),
+            ("+12025550104", "12025550104"),
+            ("0012025550104", "12025550104"),
+            ("+0012025550104", "12025550104"),
+            ("23051234567", "23051234567"),
+        ],
+    )
+    def test_get_normalised_format_works_for_international_numbers(self, phone_number, expected_formatted):
+        assert PhoneNumber(phone_number, allow_international=True).get_normalised_format() == expected_formatted
+
+    @pytest.mark.parametrize(
+        "phone_number, expected_formatted",
+        [
+            ("07900900123", "07900 900123"),  # UK
+            ("+44(0)7900900123", "07900 900123"),  # UK
+            ("447900900123", "07900 900123"),  # UK
+            ("20-12-1234-1234", "+20 12 12341234"),  # Egypt
+            ("00201212341234", "+20 12 12341234"),  # Egypt
+            ("1664 0000000", "+1 664-000-0000"),  # Montserrat
+            ("7 499 1231212", "+7 499 123-12-12"),  # Moscow (Russia)
+            ("1-202-555-0104", "+1 202-555-0104"),  # Washington DC (USA)
+            ("+23051234567", "+230 5123 4567"),  # Mauritius
+            ("33(0)1 12345678", "+33 1 12 34 56 78"),  # Paris (France)
+        ],
+    )
+    def test_get_human_readable_format(self, phone_number, expected_formatted):
+        assert PhoneNumber(phone_number, allow_international=True).get_human_readable_format() == expected_formatted
