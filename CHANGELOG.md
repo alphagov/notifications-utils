@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 80.0.1
+
+* Reduces minimum required Gunicorn version for compatibility
+
 ## 80.0.0
 
 * Copies additional config files from utils into repos
