@@ -165,7 +165,11 @@ class PhoneNumber:
     def __init__(self, phone_number: str, *, allow_international: bool) -> None:
         self.raw_input = phone_number
         self.allow_international = allow_international
-        self.number = self.validate_phone_number(phone_number)
+        try:
+            self.number = self.validate_phone_number(phone_number)
+        except InvalidPhoneError:
+            phone_number = self._aggressively_normalise_number(phone_number)
+            self.number = self.validate_phone_number(phone_number)
 
     @staticmethod
     def _raise_if_phone_number_contains_invalid_characters(number: str) -> None:
@@ -202,9 +206,7 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
-            if normalised_number := self._validate_aggressively_normalised_number(phone_number):
-                number = normalised_number
-            elif self.allow_international and (
+            if self.allow_international and (
                 forced_international_number := self._validate_forced_international_number(phone_number)
             ):
                 number = forced_international_number
@@ -220,7 +222,7 @@ class PhoneNumber:
         return number
 
     @staticmethod
-    def _validate_aggressively_normalised_number(phone_number: str) -> phonenumbers.PhoneNumber | None:
+    def _aggressively_normalise_number(phone_number: str) -> str:
         """
         We often (up to ~3% of the time) see numbers which are not technically valid, but are close-enough-to-valid
         that we want to give our users benefit of the doubt.
@@ -235,18 +237,7 @@ class PhoneNumber:
         "+07700900100" (a leading plus but no country code)
         "0+44(0)7700900100" (a mix of all of the above)
         """
-        with suppress(phonenumbers.NumberParseException):
-            # phonenumbers assumes a number without a + or 00 at beginning is always a local number. Given that we
-            # know excel sometimes strips these, if it doesn't parse as a UK number, lets try forcing it to be
-            # recognised as an international number
-            normalised_phone_number = phone_number.replace("+", "").lstrip("0")
-
-            number = phonenumbers.parse(normalised_phone_number, "GB")
-
-            if phonenumbers.is_possible_number(number):
-                return number
-
-        return None
+        return phone_number.replace("+", "").lstrip("0")
 
     @staticmethod
     def _validate_forced_international_number(phone_number: str) -> phonenumbers.PhoneNumber | None:
