@@ -485,3 +485,61 @@ class TestPhoneNumbeClass:
     )
     def test_get_human_readable_format(self, phone_number, expected_formatted):
         assert PhoneNumber(phone_number, allow_international=True).get_human_readable_format() == expected_formatted
+
+    # TODO: when we've removed the old style validation, we can just roll these in to our regular test fixtures
+    # eg valid_uk_landline, invalid_uk_mobile_number, valid_international_number
+    @pytest.mark.parametrize(
+        "phone_number, expected_normalised_number",
+        [
+            # probably UK numbers
+            ("+07044123456", "447044123456"),
+            ("0+44(0)7779123456", "447779123456"),
+            ("0+447988123456", "447988123456"),
+            ("00447911123456", "447911123456"),
+            ("04407379123456", "447379123456"),
+            ("0447300123456", "447300123456"),
+            ("000007392123456", "447392123456"),
+            ("0007465123456", "447465123456"),
+            ("007341123456", "447341123456"),
+            # could be a UK landline, could be a US number. We assume UK landlines
+            ("001708123456", "441708123456"),
+            ("+01158123456", "441158123456"),
+            ("+01323123456", "441323123456"),
+            ("+03332123456", "443332123456"),
+            # probably german
+            ("+04915161123456", "4915161123456"),
+        ],
+    )
+    def test_validate_normalised_succeeds(self, phone_number, expected_normalised_number):
+        normalised_number = PhoneNumber(phone_number, allow_international=True)
+        assert str(normalised_number) == expected_normalised_number
+
+    # TODO: decide if all these tests are useful to have.
+    # they represent real (but obfuscated/anonymised) phone numbers that notify has sent to recently that
+    # validated with the old code, but not with the new phonenumbers code
+    @pytest.mark.parametrize(
+        "phone_number, expected_error_code",
+        [
+            ("(07417)4123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("(06)25123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("+00263 71123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("+0065951123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("00129123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("003570123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("0038097123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("00407833123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("0041903123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("005915209123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("00617584123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("0064 495123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("00667123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("0092363123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+            ("009677337123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("047354123456", InvalidPhoneError.Codes.TOO_LONG),
+            ("0049 160 123456", InvalidPhoneError.Codes.INVALID_NUMBER),
+        ],
+    )
+    def test_validate_normalised_fails(self, phone_number, expected_error_code):
+        with pytest.raises(InvalidPhoneError) as exc:
+            PhoneNumber(phone_number, allow_international=True)
+        assert exc.value.code == expected_error_code
