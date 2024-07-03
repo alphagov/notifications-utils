@@ -202,7 +202,9 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
-            if self.allow_international and (
+            if normalised_number := self._validate_aggressively_normalised_number(phone_number):
+                number = normalised_number
+            elif self.allow_international and (
                 forced_international_number := self._validate_forced_international_number(phone_number)
             ):
                 number = forced_international_number
@@ -216,6 +218,35 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
         return number
+
+    @staticmethod
+    def _validate_aggressively_normalised_number(phone_number: str) -> phonenumbers.PhoneNumber | None:
+        """
+        We often (up to ~3% of the time) see numbers which are not technically valid, but are close-enough-to-valid
+        that we want to give our users benefit of the doubt.
+
+        We don't want to do this for every number, because if someone passes in a valid international number that
+        like "+1 (500) 555-1234" then we don't want to remove the + sign as we may then confuse it with a UK landline
+
+        This includes numbers like:
+
+        "0+447700900100" (a stray leading 0)
+        "000007700900100" (five leading zeros)
+        "+07700900100" (a leading plus but no country code)
+        "0+44(0)7700900100" (a mix of all of the above)
+        """
+        with suppress(phonenumbers.NumberParseException):
+            # phonenumbers assumes a number without a + or 00 at beginning is always a local number. Given that we
+            # know excel sometimes strips these, if it doesn't parse as a UK number, lets try forcing it to be
+            # recognised as an international number
+            normalised_phone_number = phone_number.replace("+", "").lstrip("0")
+
+            number = phonenumbers.parse(normalised_phone_number, "GB")
+
+            if phonenumbers.is_possible_number(number):
+                return number
+
+        return None
 
     @staticmethod
     def _validate_forced_international_number(phone_number: str) -> phonenumbers.PhoneNumber | None:

@@ -409,7 +409,14 @@ class TestPhoneNumbeClass:
         assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
 
     @pytest.mark.parametrize(
-        "phone_number, error_message", invalid_uk_mobile_phone_numbers + invalid_international_numbers
+        "phone_number, error_message",
+        invalid_uk_mobile_phone_numbers
+        + invalid_international_numbers
+        + [
+            # french number - but 87 isn't a valid start of a phone number in france as defined by libphonenumber
+            # eg https://github.com/google/libphonenumber/blob/master/resources/metadata/33/ranges.csv
+            ("0033877123456", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]),
+        ],
     )
     def test_rejects_invalid_international_phone_numbers(self, phone_number, error_message):
         with pytest.raises(InvalidPhoneError):
