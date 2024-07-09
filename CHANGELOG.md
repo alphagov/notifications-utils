@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 81.1.0
+* introduce new validation class - `PhoneNumber`, that we will use for services that want to send sms
+to landline (and in the future this new code can be extended for all phone number validation)
+* in this new class, we use `phonenumbers` library for validating phone numbers, instead of our custom valdiation code
+
+
 ## 81.0.0
 
 * BREAKING CHANGE: The constructor for `notification_utils.recipient_validation.errors.InvalidPhoneError`
