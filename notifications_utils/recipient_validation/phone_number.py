@@ -168,7 +168,7 @@ class PhoneNumber:
         try:
             self.number = self.validate_phone_number(phone_number)
         except InvalidPhoneError:
-            phone_number = self._aggressively_normalise_number(phone_number)
+            phone_number = self._thoroughly_normalise_number(phone_number)
             self.number = self.validate_phone_number(phone_number)
 
     @staticmethod
@@ -211,7 +211,7 @@ class PhoneNumber:
             ):
                 number = forced_international_number
             else:
-                raise InvalidPhoneError.from_phonenumbers_validationresult(reason)
+                raise InvalidPhoneError.from_phonenumbers_validation_result(reason)
 
         if not phonenumbers.is_valid_number(number):
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
@@ -222,7 +222,7 @@ class PhoneNumber:
         return number
 
     @staticmethod
-    def _aggressively_normalise_number(phone_number: str) -> str:
+    def _thoroughly_normalise_number(phone_number: str) -> str:
         """
         We often (up to ~3% of the time) see numbers which are not technically valid, but are close-enough-to-valid
         that we want to give our users benefit of the doubt.

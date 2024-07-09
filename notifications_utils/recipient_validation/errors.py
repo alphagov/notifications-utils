@@ -28,7 +28,7 @@ class InvalidPhoneError(InvalidRecipientError):
         # this catches numbers with the right length but wrong digits
         # for example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom,
         # or a 9 digit UK number that does not start "01" or "0800".
-        Codes.INVALID_NUMBER: "TODO: CONTENT! Number is not valid – double check the mobile number you entered",
+        Codes.INVALID_NUMBER: "Number is not valid – double check the phone number you entered",  # TODO: CONTENT!
         Codes.TOO_LONG: "Mobile number is too long",
         Codes.TOO_SHORT: "Mobile number is too short",
         Codes.NOT_A_UK_MOBILE: (
@@ -55,7 +55,7 @@ class InvalidPhoneError(InvalidRecipientError):
         super().__init__(message=self.ERROR_MESSAGES[code])
 
     @classmethod
-    def from_phonenumbers_validationresult(cls, reason: phonenumbers.ValidationResult) -> str:
+    def from_phonenumbers_validation_result(cls, reason: phonenumbers.ValidationResult) -> str:
         match reason:
             case phonenumbers.ValidationResult.TOO_LONG:
                 code = cls.Codes.TOO_LONG
