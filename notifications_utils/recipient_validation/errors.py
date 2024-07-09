@@ -1,5 +1,7 @@
 from enum import StrEnum, auto
 
+import phonenumbers
+
 
 class InvalidRecipientError(Exception):
     message = "Not a valid recipient address"
@@ -23,7 +25,10 @@ class InvalidPhoneError(InvalidRecipientError):
 
     # TODO: Move this somewhere else maybe? Maybe not?
     ERROR_MESSAGES = {
-        Codes.INVALID_NUMBER: "Not a valid phone number",
+        # this catches numbers with the right length but wrong digits
+        # for example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom,
+        # or a 9 digit UK number that does not start "01" or "0800".
+        Codes.INVALID_NUMBER: "Number is not valid – double check the phone number you entered",  # TODO: CONTENT!
         Codes.TOO_LONG: "Mobile number is too long",
         Codes.TOO_SHORT: "Mobile number is too short",
         Codes.NOT_A_UK_MOBILE: (
@@ -48,6 +53,26 @@ class InvalidPhoneError(InvalidRecipientError):
         """
         self.code = code
         super().__init__(message=self.ERROR_MESSAGES[code])
+
+    @classmethod
+    def from_phonenumbers_validation_result(cls, reason: phonenumbers.ValidationResult) -> str:
+        match reason:
+            case phonenumbers.ValidationResult.TOO_LONG:
+                code = cls.Codes.TOO_LONG
+            # is_possible_local_only implies a number without an area code. Lets just call it too short.
+            case phonenumbers.ValidationResult.TOO_SHORT | phonenumbers.ValidationResult.IS_POSSIBLE_LOCAL_ONLY:
+                code = cls.Codes.TOO_SHORT
+            case phonenumbers.ValidationResult.INVALID_COUNTRY_CODE:
+                code = cls.Codes.UNSUPPORTED_COUNTRY_CODE
+            case phonenumbers.ValidationResult.IS_POSSIBLE:
+                raise ValueError("Cannot create InvalidPhoneNumber for ValidationResult.IS_POSSIBLE")
+            case phonenumbers.ValidationResult.INVALID_LENGTH:
+                code = cls.Codes.INVALID_NUMBER
+
+            case _:
+                code = cls.Codes.INVALID_NUMBER
+
+        return cls(code=code)
 
     def get_legacy_v2_api_error_message(self):
         return self.LEGACY_V2_API_ERROR_MESSAGES[self.code]
