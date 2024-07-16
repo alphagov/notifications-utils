@@ -543,3 +543,11 @@ class TestPhoneNumberClass:
         with pytest.raises(InvalidPhoneError) as exc:
             PhoneNumber(phone_number, allow_international=True)
         assert exc.value.code == expected_error_code
+
+    @pytest.mark.parametrize(
+        "phone_number, expected_valid_number",
+        [("07700900010", "447700900010"), ("447700900020", "447700900020"), ("+447700900030", "447700900030")],
+    )
+    def test_tv_number_passes(self, phone_number, expected_valid_number):
+        number = PhoneNumber(phone_number, allow_international=True)
+        assert expected_valid_number == str(number)

@@ -1,3 +1,4 @@
+import re
 from collections import namedtuple
 from contextlib import suppress
 
@@ -217,9 +218,23 @@ class PhoneNumber:
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
             # a valid sequence of numbers. This doesn't cover "is this number registered to an MNO".
             # For example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom
-            raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
+            if self._is_tv_number(number):
+                return number
+            else:
+                raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
         return number
+
+    @staticmethod
+    def _is_tv_number(phone_number) -> bool:
+        """
+        The phonenumbers library does not consider TV numbers (fake numbers OFCOM reserves use in TV, film etc)
+        valid. This method checks whether a normalised phone number that has failed the library's validation is
+        in fact a valid TV number
+        """
+        phone_number_as_string = str(phone_number.national_number)
+        if re.match("7700[900000-900999]", phone_number_as_string):
+            return True
 
     @staticmethod
     def _thoroughly_normalise_number(phone_number: str) -> str:
