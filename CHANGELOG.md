@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 82.0.0
+
+* Change `PostalAddress` to add `has_no_fixed_abode_address` method. No fixed abode addresses are now considered invalid.
+
 ## 81.1.1
 *  Adds condition to validation to allow TV Numbers (https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama/) for UK mobiles
 
