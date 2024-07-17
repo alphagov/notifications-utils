@@ -147,6 +147,19 @@ class PostalAddress:
         )
 
     @property
+    def has_no_fixed_abode_address(self):
+        """
+        We don't want users to sent to no fixed abode addresses, so validate that
+        - no lines just consist of "NFA" (case insensitive)
+        - the address does not contain "no fixed abode" or "no fixed address" (case insensitive)
+        """
+        if any(line.lower() == "nfa" for line in self.normalised_lines):
+            return True
+        if re.search(r"no fixed (abode|address)", self.normalised, re.IGNORECASE):
+            return True
+        return False
+
+    @property
     def has_invalid_country_for_bfpo_address(self):
         """We don't want users to specify the country if they provide a BFPO number. Some BFPO numbers may resolve
         to non-UK addresses, but this will be handled as part of the BFPO delivery."""
@@ -220,6 +233,7 @@ class PostalAddress:
             and not self.has_too_many_lines
             and not self.has_invalid_characters
             and not (self.international and self.is_bfpo_address)
+            and not self.has_no_fixed_abode_address
         )
 
 
