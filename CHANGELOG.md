@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 81.1.1
+*  Adds condition to validation to allow TV Numbers (https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama/) for UK mobiles
+
 ## 81.1.0
 * introduce new validation class - `PhoneNumber`, that we will use for services that want to send sms
 to landline (and in the future this new code can be extended for all phone number validation)
