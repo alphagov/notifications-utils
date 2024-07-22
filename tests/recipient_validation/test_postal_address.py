@@ -276,6 +276,75 @@ def test_has_invalid_characters(address, expected_result):
 
 
 @pytest.mark.parametrize(
+    "address, expected_result",
+    [
+        (
+            "",
+            False,
+        ),
+        (
+            """
+        123 Example Street
+        NFA NFA2024
+        SW1 A 1 AA
+        """,
+            False,
+        ),
+        (
+            """
+        User with no Fixed Address,
+        London
+        SW1 A 1 AA
+        """,
+            True,
+        ),
+        (
+            """
+        A Person
+        NFA
+        SW1A 1AA
+        """,
+            True,
+        ),
+        (
+            """
+        A Person
+        NFA,
+        SW1A 1AA
+        """,
+            True,
+        ),
+        (
+            """
+        A Person
+        no fixed Abode
+        SW1A 1AA
+        """,
+            True,
+        ),
+        (
+            """
+        A Person
+        NO FIXED ADDRESS
+        SW1A 1AA
+        """,
+            True,
+        ),
+        (
+            """
+        nfa
+        Berlin
+        Deutschland
+        """,
+            True,
+        ),
+    ],
+)
+def test_has_no_fixed_abode_address(address, expected_result):
+    assert PostalAddress(address).has_no_fixed_abode_address is expected_result
+
+
+@pytest.mark.parametrize(
     "address, expected_international",
     (
         (
@@ -749,6 +818,15 @@ def test_format_postcode_for_printing(postcode, postcode_with_space):
         ),
         (
             """
+            House
+            No fixed abode
+            France
+        """,
+            False,
+            False,
+        ),
+        (
+            """
             No postcode or country
             Service can’t send internationally
             3
@@ -839,6 +917,12 @@ def test_valid_last_line_too_short_too_long(address):
 def test_valid_with_invalid_characters():
     address = "Valid\nExcept\n[For one character\nBhutan\n"
     assert PostalAddress(address, allow_international_letters=True).valid is False
+
+
+def test_valid_with_nfa_address():
+    postal_address = PostalAddress("User\nNo fixed abode\nSW1 1AA")
+    assert postal_address.valid is False
+    assert postal_address.has_valid_last_line is True
 
 
 @pytest.mark.parametrize(
