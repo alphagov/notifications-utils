@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 82.1.0
+*  Adds new logging fields to request logging. Namely environment_name, request_size and response_size
+
 ## 82.0.0
 
 * Change `PostalAddress` to add `has_no_fixed_abode_address` method. No fixed abode addresses are now considered invalid.

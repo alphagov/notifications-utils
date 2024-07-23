@@ -25,6 +25,8 @@ def _common_request_extra_log_context():
     return {
         "method": request.method,
         "url": request.url,
+        "environment": current_app.config["NOTIFY_ENVIRONMENT"] if "NOTIFY_ENVIRONMENT" in current_app.config else "",
+        "request_size": len(request.data),
         "endpoint": request.endpoint,
         "remote_addr": request.remote_addr,
         "user_agent": request.user_agent.string,
@@ -81,6 +83,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                 if hasattr(request, "before_request_real_time")
                 else None
             ),
+            "response_size": response.calculate_content_length(),
             **_common_request_extra_log_context(),
         }
         current_app.logger.getChild("request").log(
