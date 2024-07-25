@@ -16,6 +16,17 @@ from notifications_utils.recipient_validation.errors import InvalidPhoneError
 
 UK_PREFIX = "44"
 
+ALLOW_LIST = {
+    phonenumbers.PhoneNumberType.FIXED_LINE,
+    phonenumbers.PhoneNumberType.MOBILE,
+    phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE,  # ambiguous case where a number could be either landline/mobile
+    phonenumbers.PhoneNumberType.UAN,
+    phonenumbers.PhoneNumberType.PERSONAL_NUMBER,
+}
+
+DENY_LIST = [
+    phonenumbers.PhoneNumberType.PREMIUM_RATE,
+]
 
 international_phone_info = namedtuple(
     "PhoneNumber",
@@ -220,8 +231,7 @@ class PhoneNumber:
                 number = forced_international_number
             else:
                 raise InvalidPhoneError.from_phonenumbers_validation_result(reason)
-
-        if not phonenumbers.is_valid_number(number):
+        if not (phonenumbers.is_valid_number(number) & self._is_allowed_phone_number_type(number)):
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
             # a valid sequence of numbers. This doesn't cover "is this number registered to an MNO".
             # For example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom
@@ -231,6 +241,14 @@ class PhoneNumber:
                 raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
         return number
+
+    @staticmethod
+    def _is_allowed_phone_number_type(phone_number: phonenumbers.PhoneNumber) -> bool:
+        if phonenumbers.number_type(phone_number) in DENY_LIST:
+            return False
+        if phonenumbers.number_type(phone_number) in ALLOW_LIST:
+            return True
+        return False
 
     @staticmethod
     def _is_tv_number(phone_number) -> bool:
