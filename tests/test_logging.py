@@ -613,6 +613,105 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger):
     )
 
 
+def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
+    app = app_with_mocked_logger
+
+    app.config["MAX_CONTENT_LENGTH"] = 3 * 1024 * 1024
+    mock_req_logger = mock.Mock(
+        spec=builtin_logging.Logger("flask.app.request"),
+        handlers=[],
+    )
+    app.logger.getChild.side_effect = lambda name: mock_req_logger if name == "request" else mock.DEFAULT
+
+    @app.route("/post", methods=["POST"])
+    def post():
+        from flask import request
+
+        # need to access data to trigger data too large error
+        _ = request.data
+        return "OK", 200
+
+    logging.init_app(app)
+
+    file_content = b"a" * (3 * 1024 * 1024 + 1)
+    response = app.test_client().post("/post", data=file_content)
+    assert response.status_code == 413
+
+    assert (
+        mock.call(
+            builtin_logging.DEBUG,
+            "Received request %(method)s %(url)s",
+            {
+                "url": "http://localhost/post",
+                "method": "POST",
+                "endpoint": "post",
+                "environment": "",
+                "request_size": (3 * 1024 * 1024 + 1),
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/post",
+                "method": "POST",
+                "endpoint": "post",
+                "environment": "",
+                "request_size": 3145729,
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    )
+
+    assert (
+        mock.call(
+            builtin_logging.INFO,
+            "%(method)s %(url)s %(status)s took %(request_time)ss",
+            {
+                "url": "http://localhost/post",
+                "method": "POST",
+                "endpoint": "post",
+                "environment": "",
+                "request_size": (3 * 1024 * 1024 + 1),
+                "response_size": RestrictedAny(lambda x: x > 0),
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 413,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/post",
+                "method": "POST",
+                "endpoint": "post",
+                "environment": "",
+                "request_size": 3145729,
+                "response_size": RestrictedAny(lambda x: x > 0),
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 413,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    )
+
+
 @pytest.mark.parametrize(
     "level_name,expected_level",
     (
