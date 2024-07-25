@@ -26,7 +26,7 @@ def _common_request_extra_log_context():
         "method": request.method,
         "url": request.url,
         "environment": current_app.config["NOTIFY_ENVIRONMENT"] if "NOTIFY_ENVIRONMENT" in current_app.config else "",
-        "request_size": len(request.data),
+        "request_size": request.content_length if request.content_length is not None else 0,
         "endpoint": request.endpoint,
         "remote_addr": request.remote_addr,
         "user_agent": request.user_agent.string,

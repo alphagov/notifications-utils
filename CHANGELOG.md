@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 82.1.1
+*  Fix the way we log the request_size. Accessing the data at this point can trigger a validation error early and cause a 500 error
+
 ## 82.1.0
 *  Adds new logging fields to request logging. Namely environment_name, request_size and response_size
 
