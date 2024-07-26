@@ -2439,3 +2439,61 @@ def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hid
     )
     assert ("content: 'NOTIFY';" in str(template)) == should_have_notify_tag
     assert "#mdi,\n  #barcode,\n  #qrcode {\n    display: none;\n  }" in str(template).strip()
+
+
+@pytest.mark.parametrize(
+    "template_class, expected_content",
+    (
+        (
+            EmailPreviewTemplate,
+            (
+                '<hr style="border: 0; height: 1px; background: #B1B4B6; Margin: 30px 0 30px 0;">'
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                '<a style="word-wrap: break-word; color: #1D70B8;" href="https://www.example.com">'
+                "Unsubscribe from these emails"
+                "</a>"
+                "</p>\n"
+            ),
+        ),
+        (
+            HTMLEmailTemplate,
+            (
+                '<hr style="border: 0; height: 1px; background: #B1B4B6; Margin: 30px 0 30px 0;">'
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                '<a style="word-wrap: break-word; color: #1D70B8;" href="https://www.example.com">'
+                "Unsubscribe from these emails"
+                "</a>"
+                "</p>\n"
+            ),
+        ),
+        (
+            PlainTextEmailTemplate,
+            (
+                "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
+                "\n"
+                "Unsubscribe from these emails: https://www.example.com\n"
+            ),
+        ),
+    ),
+)
+def test_unsubscribe_link_is_rendered(
+    template_class,
+    expected_content,
+):
+    assert expected_content in (
+        str(
+            template_class(
+                {"content": "Hello world", "subject": "subject", "template_type": "email"},
+                {},
+                unsubscribe_link="https://www.example.com",
+            )
+        )
+    )
+    assert expected_content not in (
+        str(
+            template_class(
+                {"content": "Hello world", "subject": "subject", "template_type": "email"},
+                {},
+            )
+        )
+    )

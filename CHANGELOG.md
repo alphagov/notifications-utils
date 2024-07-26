@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 82.2.0
+
+* Add `unsubscribe_link` argument to email templates
 
 ## 82.1.2
 

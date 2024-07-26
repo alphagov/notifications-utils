@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = "82.1.2"  # 277b159c4272d04e2cca81ea7a754fc9
+__version__ = "82.2.0"  # dec63cb8da7dab6a8ff9993e711d3c96
