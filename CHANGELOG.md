@@ -1,5 +1,10 @@
 # CHANGELOG
 
+
+## 82.1.2
+
+* Write updated version number to `requirements.txt` if no `requirements.in` file found
+
 ## 82.1.1
 *  Fix the way we log the request_size. Accessing the data at this point can trigger a validation error early and cause a 500 error
 

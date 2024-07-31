@@ -58,11 +58,16 @@ def write_version_to_requirements_file(version):
             return f"notifications-utils @ git+https://github.com/{repo_name}.git@{version}\n"
         return line
 
+    if requirements_file.exists():
+        requirements_file_to_modify = requirements_file
+    else:
+        requirements_file_to_modify = frozen_requirements_file
+
     new_requirements_file_contents = "".join(
-        replace_line(line) for line in requirements_file.read_text().splitlines(True)
+        replace_line(line) for line in requirements_file_to_modify.read_text().splitlines(True)
     )
 
-    requirements_file.write_text(new_requirements_file_contents)
+    requirements_file_to_modify.write_text(new_requirements_file_contents)
 
 
 def get_relevant_changelog_lines(current_version, newest_version):
