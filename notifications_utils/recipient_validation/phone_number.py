@@ -171,6 +171,20 @@ class PhoneNumber:
         except InvalidPhoneError:
             phone_number = self._thoroughly_normalise_number(phone_number)
             self.number = self.validate_phone_number(phone_number)
+        self._raise_if_service_cannot_send_to_international_but_tries_to(phone_number)
+
+    def _raise_if_service_cannot_send_to_international_but_tries_to(self, phone_number):
+        number = self._try_parse_number(phone_number)
+        if not self.allow_international and str(number.country_code) != UK_PREFIX:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+
+    @staticmethod
+    def _try_parse_number(phone_number):
+        try:
+            # parse number as GB - if there's no country code, try and parse it as a UK number
+            return phonenumbers.parse(phone_number, "GB")
+        except phonenumbers.NumberParseException as e:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER) from e
 
     @staticmethod
     def _raise_if_phone_number_contains_invalid_characters(number: str) -> None:
@@ -194,14 +208,7 @@ class PhoneNumber:
         # of those cases separately before we parse with the phonenumbers library
         self._raise_if_phone_number_contains_invalid_characters(phone_number)
 
-        try:
-            # parse number as GB - if there's no country code, try and parse it as a UK number
-            number = phonenumbers.parse(phone_number, "GB")
-        except phonenumbers.NumberParseException as e:
-            raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER) from e
-
-        if not self.allow_international and str(number.country_code) != UK_PREFIX:
-            raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+        number = self._try_parse_number(phone_number)
 
         if str(number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)

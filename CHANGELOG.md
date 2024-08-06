@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 82.2.1
+
+* Add fix to recipient_validation/phone_number.py to raise correct error if a service tries to send to an international number without that permission
+
 ## 82.2.0
 
 * Add `unsubscribe_link` argument to email templates

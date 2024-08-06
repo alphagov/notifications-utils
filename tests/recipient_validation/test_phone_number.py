@@ -551,3 +551,18 @@ class TestPhoneNumberClass:
     def test_tv_number_passes(self, phone_number, expected_valid_number):
         number = PhoneNumber(phone_number, allow_international=True)
         assert expected_valid_number == str(number)
+
+    @pytest.mark.parametrize(
+        "phone_number, expected_error_code",
+        [
+            ("+14158961600", InvalidPhoneError.Codes.NOT_A_UK_MOBILE),
+            ("+3225484211", InvalidPhoneError.Codes.NOT_A_UK_MOBILE),
+            ("+1 202-483-3000", InvalidPhoneError.Codes.NOT_A_UK_MOBILE),
+            ("+7 495 308-78-41", InvalidPhoneError.Codes.NOT_A_UK_MOBILE),
+            ("+74953087842", InvalidPhoneError.Codes.NOT_A_UK_MOBILE),
+        ],
+    )
+    def test_international_does_not_normalise_to_uk_number(self, phone_number, expected_error_code):
+        with pytest.raises(InvalidPhoneError) as exc:
+            PhoneNumber(phone_number, allow_international=False)
+        assert exc.value.code == expected_error_code
