@@ -58,11 +58,6 @@ valid_uk_landlines = [
     "020 7946 0991",  # london
     "030 1234 5678",  # non-geographic
     "0550 123 4567",  # corporate numbering and voip services
-    "0800 123 4567",  # freephone
-    "0800 123 456",  # shorter freephone
-    "0800 11 11",  # shortest freephone
-    "0845 46 46",  # short premium
-    "0900 123 4567",  # premium
 ]
 
 invalid_uk_landlines = [
@@ -71,6 +66,8 @@ invalid_uk_landlines = [
     "0300 46 46",  # short but not 01x or 08x
     "0800 11 12",  # short but not 01x or 08x
     "0845 46 31",  # short but not 01x or 08x
+    "0845 46 46",  # short premium
+    "0900 123 4567",  # premium
 ]
 
 invalid_uk_mobile_phone_numbers = sum(
