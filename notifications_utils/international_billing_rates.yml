@@ -1371,6 +1371,19 @@
   billable_units: 2
   names:
   - Comoros
+'291':
+  attributes:
+    alpha: 'YES'
+    comment: null
+    dlr: 'YES'
+    generic_sender: null
+    numeric: 'YES'
+    sc: null
+    sender_and_registration_info: null
+    text_restrictions: null
+  billable_units: 4
+  names:
+  - Eritrea
 '297':
   attributes:
     alpha: null
@@ -2204,6 +2217,19 @@
   billable_units: 3
   names:
   - Palau
+'681':
+  attributes:
+    alpha: 'YES'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: null
+    numeric: 'YES'
+    sc: null
+    sender_and_registration_info: null
+    text_restrictions: null
+  billable_units: 4
+  names:
+  - Wallis and Futuna
 '682':
   attributes:
     alpha: null
@@ -2217,6 +2243,19 @@
   billable_units: 3
   names:
   - Cook Islands
+'683':
+  attributes:
+    alpha: 'YES'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: null
+    numeric: 'YES'
+    sc: null
+    sender_and_registration_info: null
+    text_restrictions: null
+  billable_units: 4
+  names:
+  - Niue
 '685':
   attributes:
     alpha: null
@@ -2230,6 +2269,19 @@
   billable_units: 3
   names:
   - Samoa
+'686':
+  attributes:
+    alpha: 'YES'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: null
+    numeric: 'YES'
+    sc: null
+    sender_and_registration_info: null
+    text_restrictions: null
+  billable_units: 4
+  names:
+  - Kiribati
 '687':
   attributes:
     alpha: 'YES'
@@ -2256,6 +2308,19 @@
   billable_units: 2
   names:
   - French Polynesia
+'690':
+  attributes:
+    alpha: 'YES'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: null
+    numeric: 'YES'
+    sc: null
+    sender_and_registration_info: null
+    text_restrictions: null
+  billable_units: 4
+  names:
+  - Tokelau
 '691':
   attributes:
     alpha: null

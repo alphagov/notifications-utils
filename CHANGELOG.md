@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 82.4.0
+
+* Add support for sending SMS to more international numbers. Sending to Eritrea, Wallis and Futuna, Niue, Kiribati, and Tokelau is now supported.
+
 ## 82.3.0
 * Extends the validation logic for the `PhoneNumber` class to disallow premium rate numbers
 
