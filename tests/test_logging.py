@@ -20,8 +20,8 @@ def test_get_handlers_sets_up_logging_appropriately_with_debug():
     handlers = logging.get_handlers(app, extra_filters=[])
 
     assert len(handlers) == 1
-    assert type(handlers[0]) == builtin_logging.StreamHandler
-    assert type(handlers[0].formatter) == logging.Formatter
+    assert type(handlers[0]) is builtin_logging.StreamHandler
+    assert type(handlers[0].formatter) is logging.Formatter
 
 
 def test_get_handlers_sets_up_logging_appropriately_without_debug():
@@ -37,8 +37,8 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug():
     handlers = logging.get_handlers(app, extra_filters=[])
 
     assert len(handlers) == 1
-    assert type(handlers[0]) == builtin_logging.StreamHandler
-    assert type(handlers[0].formatter) == logging.JSONFormatter
+    assert type(handlers[0]) is builtin_logging.StreamHandler
+    assert type(handlers[0].formatter) is logging.JSONFormatter
 
 
 @pytest.mark.parametrize(
