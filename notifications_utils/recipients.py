@@ -15,6 +15,7 @@ from notifications_utils.formatters import (
 from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.recipient_validation import email_address, phone_number
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
+from notifications_utils.recipient_validation.phone_number import PhoneNumber
 from notifications_utils.recipient_validation.postal_address import (
     address_line_7_key,
     address_lines_1_to_6_and_postcode_keys,
@@ -46,6 +47,7 @@ class RecipientCSV:
         remaining_messages=sys.maxsize,
         allow_international_sms=False,
         allow_international_letters=False,
+        allow_sms_to_uk_landline=False,
         should_validate=True,
     ):
         self.file_data = strip_all_whitespace(file_data, extra_characters=",")
@@ -55,6 +57,7 @@ class RecipientCSV:
         self.template = template
         self.allow_international_sms = allow_international_sms
         self.allow_international_letters = allow_international_letters
+        self.allow_sms_to_uk_landline = allow_sms_to_uk_landline
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
         self.should_validate = should_validate
@@ -317,7 +320,10 @@ class RecipientCSV:
                 if self.template_type == "email":
                     email_address.validate_email_address(value)
                 if self.template_type == "sms":
-                    phone_number.validate_phone_number(value, international=self.allow_international_sms)
+                    if self.allow_sms_to_uk_landline:
+                        PhoneNumber(value, allow_international=self.allow_international_sms)
+                    else:
+                        phone_number.validate_phone_number(value, international=self.allow_international_sms)
             except InvalidRecipientError as error:
                 return str(error)
 

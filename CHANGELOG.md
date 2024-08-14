@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 82.5.0
+
+* Add support for validation of UK landlines for services with sms_to_uk_landlines enabled using CSV flow
+
 ## 82.4.0
 
 * Add support for sending SMS to more international numbers. Sending to Eritrea, Wallis and Futuna, Niue, Kiribati, and Tokelau is now supported.
