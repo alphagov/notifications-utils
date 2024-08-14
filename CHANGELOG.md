@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 82.7.0
+
+* Bump versions of common test dependencies (run `make bootstrap` to copy these into your app)
+
 # 82.6.1
 
 * Adds validation check to `PhoneNumber` so that it returns the expected error message `TOO_SHORT` if an empty string is passed. This has caused issues with users of the v2 API getting inconsistent error messages
