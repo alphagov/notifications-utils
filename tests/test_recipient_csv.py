@@ -737,6 +737,39 @@ def test_international_recipients(file_contents, rows_with_bad_recipients):
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
 
 
+@pytest.mark.parametrize(
+    "file_contents,rows_with_bad_recipients",
+    [
+        (
+            """
+            phone number
+            800000000000
+            1234
+            +447900123
+        """,
+            {0, 1, 2},
+        ),
+        (
+            """
+            phone number
+            +441709510122
+            020 3002 4300
+            44117 925 1001
+
+        """,
+            set(),
+        ),
+    ],
+)
+def test_sms_to_uk_landlines(file_contents, rows_with_bad_recipients):
+    recipients = RecipientCSV(
+        file_contents,
+        template=_sample_template("sms"),
+        allow_sms_to_uk_landline=True,
+    )
+    assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
+
+
 def test_errors_when_too_many_rows():
     recipients = RecipientCSV(
         "email address\n" + ("a@b.com\n" * 101),
