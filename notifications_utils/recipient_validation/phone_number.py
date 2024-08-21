@@ -16,6 +16,12 @@ from notifications_utils.recipient_validation.errors import InvalidPhoneError
 
 UK_PREFIX = "44"
 
+LANDLINE_CODES = {
+    phonenumbers.PhoneNumberType.FIXED_LINE,
+    phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE,
+    phonenumbers.PhoneNumberType.UAN,
+}
+
 ALLOW_LIST = {
     phonenumbers.PhoneNumberType.FIXED_LINE,
     phonenumbers.PhoneNumberType.MOBILE,
@@ -174,19 +180,29 @@ class PhoneNumber:
     international phone numbers to be allowed or not.
     """
 
-    def __init__(self, phone_number: str, *, allow_international: bool) -> None:
+    def __init__(self, phone_number: str, *, allow_international: bool, allow_landline: bool = False) -> None:
         self.raw_input = phone_number
         self.allow_international = allow_international
+        self.allow_landline = allow_landline
         try:
             self.number = self.validate_phone_number(phone_number)
         except InvalidPhoneError:
             phone_number = self._thoroughly_normalise_number(phone_number)
             self.number = self.validate_phone_number(phone_number)
+        self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(phone_number)
         self._raise_if_service_cannot_send_to_international_but_tries_to(phone_number)
 
     def _raise_if_service_cannot_send_to_international_but_tries_to(self, phone_number):
         number = self._try_parse_number(phone_number)
         if not self.allow_international and str(number.country_code) != UK_PREFIX:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+
+    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, phone_number):
+        phone_number = self._try_parse_number(phone_number)
+        if phone_number.country_code != 44:
+            return
+        is_landline = phonenumbers.number_type(phone_number) in LANDLINE_CODES
+        if not self.allow_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     @staticmethod

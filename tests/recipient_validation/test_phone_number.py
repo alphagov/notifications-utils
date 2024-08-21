@@ -410,7 +410,7 @@ class TestPhoneNumberClass:
     @pytest.mark.parametrize("phone_number", invalid_uk_landlines)
     def test_rejects_invalid_uk_landlines(self, phone_number):
         with pytest.raises(InvalidPhoneError) as e:
-            PhoneNumber(phone_number, allow_international=False)
+            PhoneNumber(phone_number, allow_international=False, allow_landline=True)
         assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
 
     @pytest.mark.parametrize(
@@ -437,7 +437,13 @@ class TestPhoneNumberClass:
 
     @pytest.mark.parametrize("phone_number", valid_uk_landlines)
     def test_allows_valid_uk_landlines(self, phone_number):
-        assert PhoneNumber(phone_number, allow_international=True).is_uk_phone_number() is True
+        assert PhoneNumber(phone_number, allow_international=True, allow_landline=True).is_uk_phone_number() is True
+
+    @pytest.mark.parametrize("phone_number", valid_uk_landlines)
+    def test_rejects_valid_uk_landlines_if_allow_landline_is_false(self, phone_number):
+        with pytest.raises(InvalidPhoneError) as exc:
+            PhoneNumber(phone_number, allow_international=True, allow_landline=False)
+        assert exc.value.code == InvalidPhoneError.Codes.NOT_A_UK_MOBILE
 
     @pytest.mark.parametrize("phone_number, expected_info", international_phone_info_fixtures)
     def test_get_international_phone_info(self, phone_number, expected_info):
@@ -516,7 +522,7 @@ class TestPhoneNumberClass:
         ],
     )
     def test_validate_normalised_succeeds(self, phone_number, expected_normalised_number):
-        normalised_number = PhoneNumber(phone_number, allow_international=True)
+        normalised_number = PhoneNumber(phone_number, allow_international=True, allow_landline=True)
         assert str(normalised_number) == expected_normalised_number
 
     # TODO: decide if all these tests are useful to have.
@@ -569,7 +575,7 @@ class TestPhoneNumberClass:
     )
     def test_international_does_not_normalise_to_uk_number(self, phone_number, expected_error_code):
         with pytest.raises(InvalidPhoneError) as exc:
-            PhoneNumber(phone_number, allow_international=False)
+            PhoneNumber(phone_number, allow_international=False, allow_landline=True)
         assert exc.value.code == expected_error_code
 
     # We discovered a bug with the phone_numbers library causing some valid JE numbers

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 85.0.0
+
+* BREAKING CHANGE: The `Phonenumber` class now accepts a flag `allow_landline`, which defaults to False. This changes the previous default behaviour, allowing landlines.
+
 ## 84.3.0
 
 * Reverts 84.1.0
