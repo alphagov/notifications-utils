@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 82.6.0
+
+* Add LazyLocalGetter class for lazily-initialized context-local resources
+
 ## 82.5.0
 
 * Add support for validation of UK landlines for services with sms_to_uk_landlines enabled using CSV flow
