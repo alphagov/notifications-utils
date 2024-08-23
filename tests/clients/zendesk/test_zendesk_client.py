@@ -18,13 +18,7 @@ from notifications_utils.clients.zendesk.zendesk_client import (
 
 @pytest.fixture(scope="function")
 def zendesk_client(app):
-    client = ZendeskClient()
-
-    app.config["ZENDESK_API_KEY"] = "testkey"
-
-    client.init_app(app)
-
-    return client
+    return ZendeskClient(api_key="testkey")
 
 
 def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, rmock, caplog):
