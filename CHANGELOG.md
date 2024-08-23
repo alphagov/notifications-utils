@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 84.0.1
+
+* Remove GIR 0AA from valid postcodes
+
 ## 84.0.0
 
 * `AntivirusClient` and `ZendeskClient` have returned to their behaviour as of 82.x.x to allow the 83.0.1 fix to go out to apps without the required changes.
