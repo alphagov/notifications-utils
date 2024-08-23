@@ -1,8 +1,13 @@
 # CHANGELOG
 
+## 83.0.0
+
+* `AntivirusClient` and `ZendeskClient` are no longer thread-safe because they now use persistent requests sessions. Thread-local instances should be used in place of any global instances in any situations where threading is liable to be used
+* `AntivirusClient` and `ZendeskClient` have had their `init_app(...)` methods removed as this is an awkward pattern to use for initializing thread-local instances. It is recommended to use `LazyLocalGetter` to construct new instances on-demand, passing configuration parameters via the constructor arguments in a `factory` function.
+
 ## 82.6.0
 
-* Add LazyLocalGetter class for lazily-initialized context-local resources
+* Add `LazyLocalGetter` class for lazily-initialized context-local resources
 
 ## 82.5.0
 
