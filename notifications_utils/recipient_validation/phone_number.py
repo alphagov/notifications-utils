@@ -203,6 +203,11 @@ class PhoneNumber:
         if chars - {*ALL_WHITESPACE + "()-+" + "0123456789"}:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER)
 
+    @staticmethod
+    def _raise_if_phone_number_is_empty(number: str) -> None:
+        if number == "":
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
+
     def validate_phone_number(self, phone_number: str) -> phonenumbers.PhoneNumber:
         """
         Validate a phone number and return the PhoneNumber object
@@ -215,6 +220,9 @@ class PhoneNumber:
           changes whether it is parsed as international or not.
         * Convert error codes to match existing Notify error codes
         """
+
+        self._raise_if_phone_number_is_empty(phone_number)
+
         # notify's old validation code is stricter than phonenumbers in not allowing letters etc, so need to catch some
         # of those cases separately before we parse with the phonenumbers library
         self._raise_if_phone_number_contains_invalid_characters(phone_number)

@@ -563,3 +563,11 @@ class TestPhoneNumberClass:
         with pytest.raises(InvalidPhoneError) as exc:
             PhoneNumber(phone_number, allow_international=False)
         assert exc.value.code == expected_error_code
+
+
+def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
+    phone_number = ""
+    error_message = InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
+    with pytest.raises(InvalidPhoneError) as e:
+        PhoneNumber(phone_number=phone_number, allow_international=True)
+    assert str(error_message) == str(e.value)
