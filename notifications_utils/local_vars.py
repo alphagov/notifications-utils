@@ -32,3 +32,30 @@ class LazyLocalGetter(Generic[T]):
 
     def clear(self) -> None:
         self.context_var.set(None)
+
+
+class LazyLocalGetterResetter:
+    """
+    Holds a list of LazyLocalGetter instances and allows them to be reset
+    to their "original" state in a single call.
+
+    In reality this is only ever used for resetting between tests
+    """
+    _getters: list[LazyLocalGetter]
+
+    def __init__(self):
+        self._getters = []
+
+    def register(self, getter: LazyLocalGetter) -> None:
+        """
+        Adds the supplied getter to the list of instances to reset, making
+        a note of its current `factory` to be restored on reset.
+        """
+        self._getters.append(getter)
+
+    def reset(self) -> None:
+        """
+        Resets the registered LazyLocalGetters.
+        """
+        for getter in self._getters:
+            getter.clear()
