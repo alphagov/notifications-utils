@@ -174,36 +174,43 @@ def format_phone_number_human_readable(phone_number):
 
 class PhoneNumber:
     """
-    A class that contains phone number validation.
+    A class that parses and performs validation checks on phonenumbers against service permissions
 
-    Supports mobile and landline numbers. When creating an object you must specify whether you are expecting
-    international phone numbers to be allowed or not.
+    Can be instantiated for all Phone Numbers other than premium numbers. Instansiation checks that the number
+    you are trying to send to is possible, validate checks the number against a services permissions passed to it
+    to ensure it can send.
+
+    Examples:
+        number = PhoneNumber("07910777555")
+        number.validate(allow_international_number = False, allow_uk_landline = False)
     """
 
-    def __init__(self, phone_number: str, *, allow_international: bool, allow_landline: bool = False) -> None:
-        self.raw_input = phone_number
-        self.allow_international = allow_international
-        self.allow_landline = allow_landline
+    def __init__(self, phone_number: str) -> None:
         try:
-            self.number = self.validate_phone_number(phone_number)
+            self.number = self.parse_phone_number(phone_number)
         except InvalidPhoneError:
             phone_number = self._thoroughly_normalise_number(phone_number)
-            self.number = self.validate_phone_number(phone_number)
-        self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(phone_number)
-        self._raise_if_service_cannot_send_to_international_but_tries_to(phone_number)
+            self.number = self.parse_phone_number(phone_number)
+        self._phone_number = phone_number
 
-    def _raise_if_service_cannot_send_to_international_but_tries_to(self, phone_number):
-        number = self._try_parse_number(phone_number)
-        if not self.allow_international and str(number.country_code) != UK_PREFIX:
+    def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
+        number = self._try_parse_number(self._phone_number)
+        if not allow_international and str(number.country_code) != UK_PREFIX:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
-    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, phone_number):
-        phone_number = self._try_parse_number(phone_number)
-        if phone_number.country_code != 44:
+    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(
+        self, allow_uk_landline: bool = False, allow_international_number: bool = False
+    ):
+        phone_number = self._try_parse_number(self._phone_number)
+        if phone_number.country_code != int(UK_PREFIX):
             return
         is_landline = phonenumbers.number_type(phone_number) in LANDLINE_CODES
-        if not self.allow_landline and is_landline:
+        if not allow_uk_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+
+    def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
+        self._raise_if_service_cannot_send_to_international_but_tries_to(allow_international=allow_international_number)
+        self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
 
     @staticmethod
     def _try_parse_number(phone_number):
@@ -214,21 +221,22 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER) from e
 
     @staticmethod
+    def _raise_if_phone_number_is_empty(number: str) -> None:
+        if number == "" or number is None:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
+
+    @staticmethod
     def _raise_if_phone_number_contains_invalid_characters(number: str) -> None:
         chars = set(number)
         if chars - {*ALL_WHITESPACE + "()-+" + "0123456789"}:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER)
 
-    @staticmethod
-    def _raise_if_phone_number_is_empty(number: str) -> None:
-        if number == "":
-            raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
-
-    def validate_phone_number(self, phone_number: str) -> phonenumbers.PhoneNumber:
+    def parse_phone_number(self, phone_number: str) -> phonenumbers.PhoneNumber:
         """
-        Validate a phone number and return the PhoneNumber object
+        Parse a phone number and return the PhoneNumber object
 
-        Tries best effort validation, and has some extra logic to make the validation closer to our existing validation
+        Tries best effort parsing of a number (without any consideration for a services permissions), and has some extra
+        logic to make the validation closer to our existing validation
         including:
 
         * Being stricter with rogue alphanumeric characters. (eg don't allow https://en.wikipedia.org/wiki/Phoneword)
@@ -236,12 +244,10 @@ class PhoneNumber:
           changes whether it is parsed as international or not.
         * Convert error codes to match existing Notify error codes
         """
-
-        self._raise_if_phone_number_is_empty(phone_number)
-
         # notify's old validation code is stricter than phonenumbers in not allowing letters etc, so need to catch some
         # of those cases separately before we parse with the phonenumbers library
         self._raise_if_phone_number_contains_invalid_characters(phone_number)
+        self._raise_if_phone_number_is_empty(phone_number)
 
         number = self._try_parse_number(phone_number)
 
@@ -249,9 +255,7 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
-            if self.allow_international and (
-                forced_international_number := self._validate_forced_international_number(phone_number)
-            ):
+            if forced_international_number := self._validate_forced_international_number(phone_number):
                 number = forced_international_number
             else:
                 raise InvalidPhoneError.from_phonenumbers_validation_result(reason)

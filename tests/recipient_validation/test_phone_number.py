@@ -404,13 +404,13 @@ class TestPhoneNumberClass:
     def test_rejects_invalid_uk_mobile_phone_numbers(self, phone_number, error_message):
         # problem is `invalid_uk_mobile_phone_numbers` also includes valid uk landlines
         with pytest.raises(InvalidPhoneError):
-            PhoneNumber(phone_number, allow_international=False)
+            PhoneNumber(phone_number)
         # assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
 
     @pytest.mark.parametrize("phone_number", invalid_uk_landlines)
     def test_rejects_invalid_uk_landlines(self, phone_number):
         with pytest.raises(InvalidPhoneError) as e:
-            PhoneNumber(phone_number, allow_international=False, allow_landline=True)
+            PhoneNumber(phone_number)
         assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
 
     @pytest.mark.parametrize(
@@ -425,29 +425,30 @@ class TestPhoneNumberClass:
     )
     def test_rejects_invalid_international_phone_numbers(self, phone_number, error_message):
         with pytest.raises(InvalidPhoneError):
-            PhoneNumber(phone_number, allow_international=True)
+            PhoneNumber(phone_number)
 
     @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
     def test_allows_valid_uk_mobile_phone_numbers(self, phone_number):
-        assert PhoneNumber(phone_number, allow_international=False).is_uk_phone_number() is True
+        assert PhoneNumber(phone_number).is_uk_phone_number() is True
 
     @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
     def test_allows_valid_international_phone_numbers(self, phone_number):
-        assert PhoneNumber(phone_number, allow_international=True).is_uk_phone_number() is False
+        assert PhoneNumber(phone_number).is_uk_phone_number() is False
 
     @pytest.mark.parametrize("phone_number", valid_uk_landlines)
     def test_allows_valid_uk_landlines(self, phone_number):
-        assert PhoneNumber(phone_number, allow_international=True, allow_landline=True).is_uk_phone_number() is True
+        assert PhoneNumber(phone_number).is_uk_phone_number() is True
 
     @pytest.mark.parametrize("phone_number", valid_uk_landlines)
     def test_rejects_valid_uk_landlines_if_allow_landline_is_false(self, phone_number):
         with pytest.raises(InvalidPhoneError) as exc:
-            PhoneNumber(phone_number, allow_international=True, allow_landline=False)
+            number = PhoneNumber(phone_number)
+            number.validate(allow_international_number=True, allow_uk_landline=False)
         assert exc.value.code == InvalidPhoneError.Codes.NOT_A_UK_MOBILE
 
     @pytest.mark.parametrize("phone_number, expected_info", international_phone_info_fixtures)
     def test_get_international_phone_info(self, phone_number, expected_info):
-        assert PhoneNumber(phone_number, allow_international=True).get_international_phone_info() == expected_info
+        assert PhoneNumber(phone_number).get_international_phone_info() == expected_info
 
     @pytest.mark.parametrize(
         "number, expected",
@@ -459,11 +460,11 @@ class TestPhoneNumberClass:
         ],
     )
     def test_should_use_numeric_sender(self, number, expected):
-        assert PhoneNumber(number, allow_international=True).should_use_numeric_sender() == expected
+        assert PhoneNumber(number).should_use_numeric_sender() == expected
 
     @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
     def test_get_normalised_format_works_for_uk_mobiles(self, phone_number):
-        assert PhoneNumber(phone_number, allow_international=True).get_normalised_format() == "447723456789"
+        assert PhoneNumber(phone_number).get_normalised_format() == "447723456789"
 
     @pytest.mark.parametrize(
         "phone_number, expected_formatted",
@@ -477,7 +478,7 @@ class TestPhoneNumberClass:
         ],
     )
     def test_get_normalised_format_works_for_international_numbers(self, phone_number, expected_formatted):
-        assert PhoneNumber(phone_number, allow_international=True).get_normalised_format() == expected_formatted
+        assert str(PhoneNumber(phone_number)) == expected_formatted
 
     @pytest.mark.parametrize(
         "phone_number, expected_formatted",
@@ -495,7 +496,7 @@ class TestPhoneNumberClass:
         ],
     )
     def test_get_human_readable_format(self, phone_number, expected_formatted):
-        assert PhoneNumber(phone_number, allow_international=True).get_human_readable_format() == expected_formatted
+        assert PhoneNumber(phone_number).get_human_readable_format() == expected_formatted
 
     # TODO: when we've removed the old style validation, we can just roll these in to our regular test fixtures
     # eg valid_uk_landline, invalid_uk_mobile_number, valid_international_number
@@ -522,7 +523,7 @@ class TestPhoneNumberClass:
         ],
     )
     def test_validate_normalised_succeeds(self, phone_number, expected_normalised_number):
-        normalised_number = PhoneNumber(phone_number, allow_international=True, allow_landline=True)
+        normalised_number = PhoneNumber(phone_number)
         assert str(normalised_number) == expected_normalised_number
 
     # TODO: decide if all these tests are useful to have.
@@ -552,7 +553,7 @@ class TestPhoneNumberClass:
     )
     def test_validate_normalised_fails(self, phone_number, expected_error_code):
         with pytest.raises(InvalidPhoneError) as exc:
-            PhoneNumber(phone_number, allow_international=True)
+            PhoneNumber(phone_number)
         assert exc.value.code == expected_error_code
 
     @pytest.mark.parametrize(
@@ -560,7 +561,7 @@ class TestPhoneNumberClass:
         [("07700900010", "447700900010"), ("447700900020", "447700900020"), ("+447700900030", "447700900030")],
     )
     def test_tv_number_passes(self, phone_number, expected_valid_number):
-        number = PhoneNumber(phone_number, allow_international=True)
+        number = PhoneNumber(phone_number)
         assert expected_valid_number == str(number)
 
     @pytest.mark.parametrize(
@@ -575,8 +576,23 @@ class TestPhoneNumberClass:
     )
     def test_international_does_not_normalise_to_uk_number(self, phone_number, expected_error_code):
         with pytest.raises(InvalidPhoneError) as exc:
-            PhoneNumber(phone_number, allow_international=False, allow_landline=True)
+            number = PhoneNumber(phone_number)
+            number.validate(allow_international_number=False, allow_uk_landline=True)
         assert exc.value.code == expected_error_code
+
+    @pytest.mark.parametrize(
+        "phone_number", valid_uk_mobile_phone_numbers + valid_international_phone_numbers + valid_channel_island_numbers
+    )
+    def test_all_valid_numbers_parse_regardless_of_service_permissions(self, phone_number):
+        """
+        The PhoneNumber class should parse all numbers on instantiation regardless of permissions if they're
+        a possible phone number. Checking whether a user or service can send that number should only be handled
+        by the validate_phone_number method.
+        """
+        try:
+            PhoneNumber(phone_number)
+        except InvalidPhoneError:
+            pytest.fail("Unexpected InvalidPhoneError")
 
     # We discovered a bug with the phone_numbers library causing some valid JE numbers
     # to evaluate as invalid. Realiably sending to Crown Dependencies is very important
@@ -584,7 +600,8 @@ class TestPhoneNumberClass:
     @pytest.mark.parametrize("phone_number", valid_channel_island_numbers)
     def test_channel_island_numbers_are_valid(self, phone_number):
         try:
-            PhoneNumber(phone_number, allow_international=True)
+            number = PhoneNumber(phone_number)
+            number.validate(allow_international_number=True, allow_uk_landline=False)
         except InvalidPhoneError:
             pytest.fail("Unexpected InvalidPhoneError")
 
@@ -593,5 +610,6 @@ def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
     phone_number = ""
     error_message = InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
     with pytest.raises(InvalidPhoneError) as e:
-        PhoneNumber(phone_number=phone_number, allow_international=True)
+        number = PhoneNumber(phone_number=phone_number)
+        number.validate(allow_international_number=True, allow_uk_landline=False)
     assert str(error_message) == str(e.value)
