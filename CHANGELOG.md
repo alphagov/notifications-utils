@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 84.3.0
+
+* Adds `asset_fingerprinter.AssetFingerprinter` to replace the versions duplicated across our frontend apps
+
 ## 84.2.0
 
 * The Zendesk client takes a new optional argument, `user_created_at` which populates a new field on the Notify Zendesk form if provided.
