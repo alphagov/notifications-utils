@@ -1,4 +1,5 @@
 import hashlib
+import pathlib
 
 
 class AssetFingerprinter:
@@ -37,9 +38,7 @@ class AssetFingerprinter:
         return hashlib.md5(self.get_asset_file_contents(asset_file_path)).hexdigest()
 
     def get_asset_file_contents(self, asset_file_path):
-        with open(asset_file_path, "rb") as asset_file:
-            contents = asset_file.read()
-        return contents
+        return pathlib.Path(asset_file_path).read_bytes()
 
 
 asset_fingerprinter = AssetFingerprinter()
