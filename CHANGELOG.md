@@ -1,12 +1,16 @@
 # CHANGELOG
 
+## 82.7.0
+
+* Add `expected_type` mechanism to `LazyLocalGetter`
+
 # 82.6.1
 
 * Adds validation check to `PhoneNumber` so that it returns the expected error message `TOO_SHORT` if an empty string is passed. This has caused issues with users of the v2 API getting inconsistent error messages
 
 ## 82.6.0
 
-* Add LazyLocalGetter class for lazily-initialized context-local resources
+* Add `LazyLocalGetter` class for lazily-initialized context-local resources
 
 ## 82.5.0
 
