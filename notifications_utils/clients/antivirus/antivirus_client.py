@@ -21,16 +21,13 @@ class AntivirusError(Exception):
 
 
 class AntivirusClient:
-    """
-    A client for the antivirus API
-
-    This class is not thread-safe.
-    """
-
     def __init__(self, api_host=None, auth_token=None):
         self.api_host = api_host
         self.auth_token = auth_token
-        self.requests_session = requests.Session()
+
+    def init_app(self, app):
+        self.api_host = app.config["ANTIVIRUS_API_HOST"]
+        self.auth_token = app.config["ANTIVIRUS_API_KEY"]
 
     def scan(self, document_stream):
         headers = {"Authorization": f"Bearer {self.auth_token}"}
@@ -38,7 +35,7 @@ class AntivirusClient:
             headers.update(request.get_onwards_request_headers())
 
         try:
-            response = self.requests_session.post(
+            response = requests.post(
                 f"{self.api_host}/scan",
                 headers=headers,
                 files={"document": document_stream},

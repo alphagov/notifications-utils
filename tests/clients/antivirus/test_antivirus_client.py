@@ -12,10 +12,10 @@ from notifications_utils.clients.antivirus.antivirus_client import (
 
 @pytest.fixture(scope="function")
 def app_antivirus_client(app, mocker):
-    client = AntivirusClient(
-        api_host="https://antivirus",
-        auth_token="test-antivirus-key",
-    )
+    client = AntivirusClient()
+    app.config["ANTIVIRUS_API_HOST"] = "https://antivirus"
+    app.config["ANTIVIRUS_API_KEY"] = "test-antivirus-key"
+    client.init_app(app)
     return app, client
 
 
