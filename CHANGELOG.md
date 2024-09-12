@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 83.0.1
+
+* Updates phone_numbers to 8.13.45 to apply a fix to the metadata for phone numbers that was discovered causing a subset of valid Jersey numbers to be incorrectly invalidated
+
 ## 83.0.0
 
 * `AntivirusClient` and `ZendeskClient` are no longer thread-safe because they now use persistent requests sessions. Thread-local instances should be used in place of any global instances in any situations where threading is liable to be used
