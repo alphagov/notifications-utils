@@ -46,6 +46,14 @@ valid_international_phone_numbers = [
     "+43 676 111 222 333 4",  # Austrian 13 digit phone numbers
 ]
 
+# placeholder to be removed when the old validation code is removed
+# categorising these numbers as international numbers will cause old checks
+# for uk numbers to fail
+valid_channel_island_numbers = [
+    "+447797292290",  # Jersey
+    "+447797333214",  # Jersey
+]
+
 
 valid_mobile_phone_numbers = valid_uk_mobile_phone_numbers + valid_international_phone_numbers
 
@@ -563,6 +571,16 @@ class TestPhoneNumberClass:
         with pytest.raises(InvalidPhoneError) as exc:
             PhoneNumber(phone_number, allow_international=False)
         assert exc.value.code == expected_error_code
+
+    # We discovered a bug with the phone_numbers library causing some valid JE numbers
+    # to evaluate as invalid. Realiably sending to Crown Dependencies is very important
+    # this test serves to alert us if a known failing edge case arises again.
+    @pytest.mark.parametrize("phone_number", valid_channel_island_numbers)
+    def test_channel_island_numbers_are_valid(self, phone_number):
+        try:
+            PhoneNumber(phone_number, allow_international=True)
+        except InvalidPhoneError:
+            pytest.fail("Unexpected InvalidPhoneError")
 
 
 def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
