@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 84.1.0
+
+* Bump versions of common test dependencies (run `make bootstrap` to copy these into your app)
+
 ## 84.0.0
 
 * `AntivirusClient` and `ZendeskClient` have returned to their behaviour as of 82.x.x to allow the 83.0.1 fix to go out to apps without the required changes.
