@@ -1,8 +1,25 @@
 # CHANGELOG
 
-## 82.7.0
+## 84.1.0
 
 * Bump versions of common test dependencies (run `make bootstrap` to copy these into your app)
+
+## 84.0.0
+
+* `AntivirusClient` and `ZendeskClient` have returned to their behaviour as of 82.x.x to allow the 83.0.1 fix to go out to apps without the required changes.
+
+# 83.0.1
+
+* Updates phone_numbers to 8.13.45 to apply a fix to the metadata for phone numbers that was discovered causing a subset of valid Jersey numbers to be incorrectly invalidated
+
+## 83.0.0
+
+* `AntivirusClient` and `ZendeskClient` are no longer thread-safe because they now use persistent requests sessions. Thread-local instances should be used in place of any global instances in any situations where threading is liable to be used
+* `AntivirusClient` and `ZendeskClient` have had their `init_app(...)` methods removed as this is an awkward pattern to use for initializing thread-local instances. It is recommended to use `LazyLocalGetter` to construct new instances on-demand, passing configuration parameters via the constructor arguments in a `factory` function.
+
+## 82.7.0
+
+* Add `expected_type` mechanism to `LazyLocalGetter`
 
 # 82.6.1
 
@@ -10,7 +27,7 @@
 
 ## 82.6.0
 
-* Add LazyLocalGetter class for lazily-initialized context-local resources
+* Add `LazyLocalGetter` class for lazily-initialized context-local resources
 
 ## 82.5.0
 
