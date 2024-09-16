@@ -243,8 +243,7 @@ def normalise_postcode(postcode):
 
 def _is_a_real_uk_postcode(postcode):
     normalised = normalise_postcode(postcode)
-    # GIR0AA is Girobank
-    pattern = re.compile(rf"(({'|'.join(UK_POSTCODE_ZONES)})[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{{2}})|(GIR0AA)")
+    pattern = re.compile(rf"(({'|'.join(UK_POSTCODE_ZONES)})[0-9][0-9A-Z]?[0-9][A-BD-HJLNP-UW-Z]{{2}})")
     return bool(pattern.fullmatch(normalised))
 
 

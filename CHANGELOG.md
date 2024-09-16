@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 84.1.1
+
+* Remove GIR 0AA from valid postcodes
+
 ## 84.1.0
 
 * Bump versions of common test dependencies (run `make bootstrap` to copy these into your app)

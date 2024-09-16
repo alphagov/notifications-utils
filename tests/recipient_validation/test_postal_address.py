@@ -718,9 +718,8 @@ def test_normalise_postcode(postcode, normalised_postcode):
         ("BF1 3AA", True),
         ("BF13AA", True),
         (" BF2 0FR ", True),
-        # Giro Bank valid postcode and invalid postcode
-        ("GIR0AA", True),
-        ("GIR0AB", False),
+        # Giro Bank’s vanity postcode is deprecated
+        ("GIR0AA", False),
         # Gibraltar’s one postcode is not valid because it’s in the
         # Europe postal zone
         ("GX111AA", False),
