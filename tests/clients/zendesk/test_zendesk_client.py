@@ -129,6 +129,7 @@ def test_notify_support_ticket_request_data(p1_arg, expected_tags, expected_prio
                 {"id": "360022943959", "value": None},
                 {"id": "360022943979", "value": None},
                 {"id": "1900000745014", "value": None},
+                {"id": "15925693889308", "value": None},
             ],
         }
     }
@@ -151,12 +152,21 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
 
 
 @pytest.mark.parametrize(
-    "custom_fields, tech_ticket_tag, notify_task_type, org_id, org_type, service_id",
+    "custom_fields, tech_ticket_tag, notify_task_type, org_id, org_type, service_id, user_created_at",
     [
-        ({"notify_ticket_type": NotifyTicketType.TECHNICAL}, "notify_ticket_type_technical", None, None, None, None),
+        (
+            {"notify_ticket_type": NotifyTicketType.TECHNICAL},
+            "notify_ticket_type_technical",
+            None,
+            None,
+            None,
+            None,
+            None,
+        ),
         (
             {"notify_ticket_type": NotifyTicketType.NON_TECHNICAL},
             "notify_ticket_type_non_technical",
+            None,
             None,
             None,
             None,
@@ -169,14 +179,16 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
             None,
             None,
             None,
+            None,
         ),
         (
-            {"org_id": "1234", "org_type": "local"},
+            {"org_id": "1234", "org_type": "local", "user_created_at": datetime.datetime(2024, 10, 10, 12, 36)},
             None,
             None,
             "1234",
             "notify_org_type_local",
             None,
+            "2024-10-10",
         ),
         (
             {"service_id": "abcd", "org_type": "nhs"},
@@ -185,6 +197,7 @@ def test_notify_support_ticket_request_data_with_user_name_and_email(name, zende
             None,
             "notify_org_type_nhs",
             "abcd",
+            None,
         ),
     ],
 )
@@ -195,6 +208,7 @@ def test_notify_support_ticket_request_data_custom_fields(
     org_id,
     org_type,
     service_id,
+    user_created_at,
 ):
     notify_ticket_form = NotifySupportTicket("subject", "message", "question", **custom_fields)
 
@@ -208,6 +222,9 @@ def test_notify_support_ticket_request_data_custom_fields(
     assert {"id": "360022943959", "value": org_id} in notify_ticket_form.request_data["ticket"]["custom_fields"]
     assert {"id": "360022943979", "value": org_type} in notify_ticket_form.request_data["ticket"]["custom_fields"]
     assert {"id": "1900000745014", "value": service_id} in notify_ticket_form.request_data["ticket"]["custom_fields"]
+    assert {"id": "15925693889308", "value": user_created_at} in notify_ticket_form.request_data["ticket"][
+        "custom_fields"
+    ]
 
 
 def test_notify_support_ticket_request_data_email_ccs():
@@ -239,9 +256,26 @@ def test_notify_support_ticket_with_html_body():
                 {"id": "360022943959", "value": None},
                 {"id": "360022943979", "value": None},
                 {"id": "1900000745014", "value": None},
+                {"id": "15925693889308", "value": None},
             ],
         }
     }
+
+
+@pytest.mark.parametrize(
+    "user_created_at, expected_value",
+    [
+        (None, None),
+        (datetime.datetime(2023, 11, 7, 8, 34, 54, tzinfo=datetime.UTC), "2023-11-07"),
+        (datetime.datetime(2023, 11, 7, 23, 34, 54, tzinfo=datetime.UTC), "2023-11-07"),
+        (datetime.datetime(2023, 6, 7, 23, 34, 54, tzinfo=datetime.UTC), "2023-06-08"),
+        (datetime.datetime(2023, 6, 7, 12, 34, 54, tzinfo=datetime.UTC), "2023-06-07"),
+    ],
+)
+def test_notify_support_ticket__format_user_created_at_value(user_created_at, expected_value):
+    notify_ticket_form = NotifySupportTicket("subject", "message", "task")
+
+    assert notify_ticket_form._format_user_created_at_value(user_created_at) == expected_value
 
 
 class TestZendeskClientUploadAttachment:

@@ -4,6 +4,7 @@ import enum
 import typing
 from urllib.parse import urlencode
 
+import pytz
 import requests
 from flask import current_app
 
@@ -190,6 +191,7 @@ class NotifySupportTicket:
         service_id=None,
         email_ccs=None,
         message_as_html=False,
+        user_created_at=None,
     ):
         self.subject = subject
         self.message = message
@@ -205,6 +207,7 @@ class NotifySupportTicket:
         self.service_id = service_id
         self.email_ccs = email_ccs
         self.message_as_html = message_as_html
+        self.user_created_at = user_created_at
 
     @property
     def request_data(self):
@@ -234,6 +237,20 @@ class NotifySupportTicket:
 
         return data
 
+    def _format_user_created_at_value(self, created_at_datetime: None | datetime.datetime) -> None | str:
+        """
+        If given a UTC datetime this returns the date as a string in the format of "YYYY-MM-DD" for use
+        with the Zendesk calendar picker
+        """
+        if created_at_datetime:
+            user_created_at_as_london_datetime = created_at_datetime.astimezone(pytz.timezone("Europe/London"))
+
+            formatted_date = user_created_at_as_london_datetime.strftime("%Y-%m-%d")
+
+            return formatted_date
+
+        return None
+
     def _get_custom_fields(self):
         org_type_tag = f"notify_org_type_{self.org_type}" if self.org_type else None
         custom_fields = [
@@ -241,6 +258,10 @@ class NotifySupportTicket:
             {"id": "360022943959", "value": self.org_id},  # Notify Organisation ID field
             {"id": "360022943979", "value": org_type_tag},  # Notify Organisation type field
             {"id": "1900000745014", "value": self.service_id},  # Notify Service ID field
+            {
+                "id": "15925693889308",
+                "value": self._format_user_created_at_value(self.user_created_at),
+            },  # Notify user account creation date field
         ]
 
         if self.notify_ticket_type:
