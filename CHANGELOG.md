@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 84.2.0
+
+* The Zendesk client takes a new optional argument, `user_created_at` which populates a new field on the Notify Zendesk form if provided.
+
 ## 84.1.1
 
 * Remove GIR 0AA from valid postcodes
