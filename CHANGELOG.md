@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 85.0.0
+
+* Removes `SerialisedModel.ALLOWED_PROPERTIES` in favour of annotations syntax
+
 ## 84.3.0
 
 * Reverts 84.1.0
