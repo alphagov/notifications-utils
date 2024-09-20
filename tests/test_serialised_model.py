@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 
 import pytest
 
@@ -36,14 +37,14 @@ def test_cant_be_instatiated_with_abstract_properties():
 
 def test_looks_up_from_dict():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo"}
+        foo: Any
 
     assert Custom({"foo": "bar"}).foo == "bar"
 
 
 def test_cant_override_custom_property_from_dict():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo"}
+        foo: Any
 
         @property
         def foo(self):
@@ -66,11 +67,9 @@ def test_cant_override_custom_property_from_dict():
 )
 def test_model_raises_for_unknown_attributes(json_response):
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = set()
+        pass
 
     model = Custom(json_response)
-
-    assert model.ALLOWED_PROPERTIES == set()
 
     with pytest.raises(AttributeError) as e:
         model.foo  # noqa
@@ -80,7 +79,7 @@ def test_model_raises_for_unknown_attributes(json_response):
 
 def test_model_raises_keyerror_if_item_missing_from_dict():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo"}
+        foo: Any
 
     with pytest.raises(KeyError) as e:
         Custom({}).foo  # noqa
@@ -97,7 +96,6 @@ def test_model_raises_keyerror_if_item_missing_from_dict():
 )
 def test_model_doesnt_swallow_attribute_errors(json_response):
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = set()
 
         @property
         def foo(self):
@@ -111,7 +109,9 @@ def test_model_doesnt_swallow_attribute_errors(json_response):
 
 def test_dynamic_properties_are_introspectable():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo", "bar", "baz"}
+        foo: Any
+        bar: Any
+        baz: Any
 
     instance = Custom({"foo": "", "bar": "", "baz": ""})
 
@@ -130,7 +130,7 @@ def test_empty_serialised_model_collection():
 
 def test_serialised_model_collection_returns_models_from_list():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"x"}
+        x: Any
 
     class CustomCollection(SerialisedModelCollection):
         model = Custom

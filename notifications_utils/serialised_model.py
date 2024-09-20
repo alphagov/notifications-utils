@@ -9,19 +9,19 @@ class SerialisedModel:
     that it can be interacted with like any other object. It is cleaner
     and safer than dealing with dictionaries directly because it
     guarantees that:
-    - all of the ALLOWED_PROPERTIES are present in the underlying
+    - all of the fields in its annotations are present in the underlying
       dictionary
     - any other abritrary properties of the underlying dictionary can’t
       be accessed
 
     If you are adding a new field to a model, you should ensure that
     all sources of the cache data are updated to return that new field,
-    then clear the cache, before adding that field to the
-    ALLOWED_PROPERTIES list.
+    then clear the cache, before adding that field to the class’s
+    annotations.
     """
 
     def __init__(self, _dict):
-        for property in self.ALLOWED_PROPERTIES:
+        for property in getattr(self, "__annotations__", {}):
             setattr(self, property, _dict[property])
 
 
