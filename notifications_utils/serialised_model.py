@@ -24,8 +24,13 @@ class SerialisedModel:
     annotations.
     """
 
+    def __new__(cls, *args, **kwargs):
+        for parent in cls.__mro__:
+            cls.__annotations__ = getattr(parent, "__annotations__", {}) | cls.__annotations__
+        return super().__new__(cls)
+
     def __init__(self, _dict):
-        for property, type_ in getattr(self, "__annotations__", {}).items():
+        for property, type_ in self.__annotations__.items():
             value = self.coerce_value_to_type(_dict[property], type_)
             setattr(self, property, value)
 

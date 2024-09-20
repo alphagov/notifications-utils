@@ -121,6 +121,24 @@ def test_dynamic_properties_are_introspectable():
         assert field in dir(instance)
 
 
+def test_attribute_inheritence():
+    class Parent1(SerialisedModel):
+        foo: str
+
+    class Parent2(SerialisedModel):
+        bar: str
+
+    class Child(Parent1, Parent2):
+        __sort_attribute__ = "foo"
+        baz: str
+
+    instance = Child({"foo": 1, "bar": 2, "baz": 3})
+
+    assert instance.foo == "1"
+    assert instance.bar == "2"
+    assert instance.baz == "3"
+
+
 def test_none_values_are_not_coerced():
     class Custom(SerialisedModel):
         foo: str
