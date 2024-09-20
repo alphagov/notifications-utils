@@ -204,7 +204,7 @@ class PhoneNumber:
         if not allow_uk_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
-    def validate_phone_number(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
+    def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
         self._raise_if_service_cannot_send_to_international_but_tries_to(allow_international=allow_international_number)
         self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
 
