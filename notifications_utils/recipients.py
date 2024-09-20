@@ -321,9 +321,16 @@ class RecipientCSV:
                     email_address.validate_email_address(value)
                 if self.template_type == "sms":
                     if self.allow_sms_to_uk_landline:
-                        PhoneNumber(value, allow_international=self.allow_international_sms)
+                        number = PhoneNumber(value)
+                        number.validate(
+                            allow_international_number=self.allow_international_sms,
+                            allow_uk_landline=self.allow_sms_to_uk_landline,
+                        )
                     else:
-                        phone_number.validate_phone_number(value, international=self.allow_international_sms)
+                        phone_number.validate_phone_number(
+                            value,
+                            international=self.allow_international_sms,
+                        )
             except InvalidRecipientError as error:
                 return str(error)
 
