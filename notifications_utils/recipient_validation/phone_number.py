@@ -227,8 +227,6 @@ class PhoneNumber:
         if chars - {*ALL_WHITESPACE + "()-+" + "0123456789"}:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER)
 
-    # split into private method "parse_phone_number" and have a public method
-    # "validate_phone_number_against_service_permissions" that can be called to check against service permissions
     def parse_phone_number(self, phone_number: str) -> phonenumbers.PhoneNumber:
         """
         Parse a phone number and return the PhoneNumber object
