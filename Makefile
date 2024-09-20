@@ -43,3 +43,9 @@ version-minor: reset-version ## Update the minor version number
 .PHONY: version-patch
 version-patch: reset-version ## Update the patch version number
 	./scripts/bump_version.py patch
+
+.PHONY: freeze-requirements-for-test
+freeze-requirements-for-test: ## Pin all test requirements including sub dependencies into requirements_for_test.txt
+	pip install --upgrade pip-tools
+	pip-compile requirements_for_test.in setup.py --output-file requirements_for_test.txt
+	pip-sync requirements_for_test.txt
