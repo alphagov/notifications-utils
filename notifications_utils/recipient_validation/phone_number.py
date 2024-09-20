@@ -174,10 +174,15 @@ def format_phone_number_human_readable(phone_number):
 
 class PhoneNumber:
     """
-    A class that contains phone number validation.
+    A class that parses and performs validation checks on phonenumbers against service permissions
 
-    Supports mobile and landline numbers. When creating an object you must specify whether you are expecting
-    international phone numbers to be allowed or not.
+    Can be instantiated for all Phone Numbers other than premium numbers. Instansiation checks that the number
+    you are trying to send to is possible, validate checks the number against a services permissions passed to it
+    to ensure it can send.
+
+    Examples:
+        number = PhoneNumber("07910777555")
+        number.validate(allow_international_number = False, allow_uk_landline = False)
     """
 
     def __init__(self, phone_number: str) -> None:
