@@ -1,5 +1,6 @@
 import pathlib
 from importlib import resources as importlib_resources
+from importlib.metadata import version
 
 import requests
 
@@ -55,7 +56,7 @@ def get_remote_version():
 
 
 def get_app_version():
-    return next(line.split("@")[-1] for line in frozen_requirements_file.read_text().split("\n") if repo_name in line)
+    return version("notifications_utils")
 
 
 def write_version_to_requirements_file(version):
