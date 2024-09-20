@@ -231,9 +231,10 @@ class PhoneNumber:
     # "validate_phone_number_against_service_permissions" that can be called to check against service permissions
     def parse_phone_number(self, phone_number: str) -> phonenumbers.PhoneNumber:
         """
-        Validate a phone number and return the PhoneNumber object
+        Parse a phone number and return the PhoneNumber object
 
-        Tries best effort validation, and has some extra logic to make the validation closer to our existing validation
+        Tries best effort parsing of a number (without any consideration for a services permissions), and has some extra
+        logic to make the validation closer to our existing validation
         including:
 
         * Being stricter with rogue alphanumeric characters. (eg don't allow https://en.wikipedia.org/wiki/Phoneword)
