@@ -218,7 +218,7 @@ class PhoneNumber:
 
     @staticmethod
     def _raise_if_phone_number_is_empty(number: str) -> None:
-        if number == "":
+        if number == "" or number is None:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
 
     @staticmethod
