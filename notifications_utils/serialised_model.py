@@ -1,4 +1,8 @@
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
+from typing import Any
+
+from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
 
 
 class SerialisedModel:
@@ -21,8 +25,19 @@ class SerialisedModel:
     """
 
     def __init__(self, _dict):
-        for property in getattr(self, "__annotations__", {}):
-            setattr(self, property, _dict[property])
+        for property, type_ in getattr(self, "__annotations__", {}).items():
+            value = self.coerce_value_to_type(_dict[property], type_)
+            setattr(self, property, value)
+
+    @staticmethod
+    def coerce_value_to_type(value, type_):
+        if type_ is Any or value is None:
+            return value
+
+        if issubclass(type_, datetime):
+            return utc_string_to_aware_gmt_datetime(value).astimezone(UTC)
+
+        return type_(value)
 
 
 class SerialisedModelCollection(ABC):

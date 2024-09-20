@@ -1,5 +1,7 @@
 import sys
+from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID
 
 import pytest
 
@@ -115,7 +117,54 @@ def test_dynamic_properties_are_introspectable():
 
     instance = Custom({"foo": "", "bar": "", "baz": ""})
 
-    assert dir(instance)[-3:] == ["bar", "baz", "foo"]
+    for field in ("bar", "baz", "foo"):
+        assert field in dir(instance)
+
+
+def test_none_values_are_not_coerced():
+    class Custom(SerialisedModel):
+        foo: str
+        bar: int
+
+    instance = Custom({"foo": None, "bar": None})
+
+    assert instance.foo is None
+    assert instance.bar is None
+
+
+def test_types_are_coerced():
+    class Custom(SerialisedModel):
+        id: UUID
+        year: str
+        version: int
+        rate: float
+        created_at: datetime
+
+    instance = Custom(
+        {
+            "id": "bf777b2c-2bbd-487f-a09f-62ad46a9f92b",
+            "year": 2024,
+            "version": "9",
+            "rate": "1.234",
+            "created_at": "2024-03-02T01:00:00.000000Z",
+        }
+    )
+
+    assert instance.id == UUID("bf777b2c-2bbd-487f-a09f-62ad46a9f92b")
+    assert instance.year == "2024"
+    assert instance.version == 9
+    assert instance.rate == 1.234
+    assert instance.created_at == datetime(2024, 3, 2, 1, 0, tzinfo=UTC)
+
+
+def test_raises_if_coercion_fails():
+    class Custom(SerialisedModel):
+        version: int
+
+    with pytest.raises(ValueError) as e:
+        Custom({"version": "twelvty"})
+
+    assert str(e.value) == "invalid literal for int() with base 10: 'twelvty'"
 
 
 def test_empty_serialised_model_collection():
