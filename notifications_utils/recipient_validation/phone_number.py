@@ -198,7 +198,7 @@ class PhoneNumber:
         self, allow_uk_landline: bool = False, allow_international_number: bool = False
     ):
         phone_number = self._try_parse_number(self._phone_number)
-        if phone_number.country_code != 44:
+        if phone_number.country_code != UK_PREFIX:
             return
         is_landline = phonenumbers.number_type(phone_number) in LANDLINE_CODES
         if not allow_uk_landline and is_landline:
