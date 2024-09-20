@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class SerialisedModel(ABC):
+class SerialisedModel:
     """
     A SerialisedModel takes a dictionary, typically created by
     serialising a database object. It then takes the value of specified
@@ -19,11 +19,6 @@ class SerialisedModel(ABC):
     then clear the cache, before adding that field to the
     ALLOWED_PROPERTIES list.
     """
-
-    @property
-    @abstractmethod
-    def ALLOWED_PROPERTIES(self):
-        pass
 
     def __init__(self, _dict):
         for property in self.ALLOWED_PROPERTIES:

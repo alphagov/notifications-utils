@@ -9,35 +9,8 @@ from notifications_utils.serialised_model import (
 
 
 def test_cant_be_instatiated_with_abstract_properties():
-    class Custom(SerialisedModel):
-        pass
-
     class CustomCollection(SerialisedModelCollection):
         pass
-
-    with pytest.raises(TypeError) as e:
-        SerialisedModel()
-
-    if sys.version_info >= (3, 12):
-        assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModel without an implementation "
-            "for abstract method 'ALLOWED_PROPERTIES'"
-        )
-    else:
-        assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModel with abstract method ALLOWED_PROPERTIES"
-        )
-
-    with pytest.raises(TypeError) as e:
-        Custom()
-
-    if sys.version_info >= (3, 12):
-        assert str(e.value) == (
-            "Can't instantiate abstract class Custom without an implementation "
-            "for abstract method 'ALLOWED_PROPERTIES'"
-        )
-    else:
-        assert str(e.value) == "Can't instantiate abstract class Custom with abstract method ALLOWED_PROPERTIES"
 
     with pytest.raises(TypeError) as e:
         SerialisedModelCollection()
