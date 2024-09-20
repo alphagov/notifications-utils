@@ -1,7 +1,11 @@
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
+from typing import Any
+
+from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
 
 
-class SerialisedModel(ABC):
+class SerialisedModel:
     """
     A SerialisedModel takes a dictionary, typically created by
     serialising a database object. It then takes the value of specified
@@ -9,25 +13,36 @@ class SerialisedModel(ABC):
     that it can be interacted with like any other object. It is cleaner
     and safer than dealing with dictionaries directly because it
     guarantees that:
-    - all of the ALLOWED_PROPERTIES are present in the underlying
+    - all of the fields in its annotations are present in the underlying
       dictionary
     - any other abritrary properties of the underlying dictionary can’t
       be accessed
 
     If you are adding a new field to a model, you should ensure that
     all sources of the cache data are updated to return that new field,
-    then clear the cache, before adding that field to the
-    ALLOWED_PROPERTIES list.
+    then clear the cache, before adding that field to the class’s
+    annotations.
     """
 
-    @property
-    @abstractmethod
-    def ALLOWED_PROPERTIES(self):
-        pass
+    def __new__(cls, *args, **kwargs):
+        for parent in cls.__mro__:
+            cls.__annotations__ = getattr(parent, "__annotations__", {}) | cls.__annotations__
+        return super().__new__(cls)
 
     def __init__(self, _dict):
-        for property in self.ALLOWED_PROPERTIES:
-            setattr(self, property, _dict[property])
+        for property, type_ in self.__annotations__.items():
+            value = self.coerce_value_to_type(_dict[property], type_)
+            setattr(self, property, value)
+
+    @staticmethod
+    def coerce_value_to_type(value, type_):
+        if type_ is Any or value is None:
+            return value
+
+        if issubclass(type_, datetime):
+            return utc_string_to_aware_gmt_datetime(value).astimezone(UTC)
+
+        return type_(value)
 
 
 class SerialisedModelCollection(ABC):
