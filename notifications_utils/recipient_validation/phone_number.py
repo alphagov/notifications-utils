@@ -186,7 +186,6 @@ class PhoneNumber:
         except InvalidPhoneError:
             phone_number = self._thoroughly_normalise_number(phone_number)
             self.number = self.parse_phone_number(phone_number)
-        # remove permissions checks below from init and rewrite these as public methods
         self._phone_number = phone_number
 
     def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
