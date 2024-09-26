@@ -3,7 +3,6 @@ from collections import namedtuple
 from contextlib import suppress
 
 import phonenumbers
-from flask import current_app
 
 from notifications_utils.formatters import (
     ALL_WHITESPACE,
@@ -43,44 +42,6 @@ international_phone_info = namedtuple(
         "billable_units",
     ],
 )
-
-
-def normalise_phone_number(number):
-    for character in ALL_WHITESPACE + "()-+":
-        number = number.replace(character, "")
-
-    try:
-        list(map(int, number))
-    except ValueError as e:
-        raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER) from e
-
-    return number.lstrip("0")
-
-
-def is_uk_phone_number(number):
-    if number.startswith("0") and not number.startswith("00"):
-        return True
-
-    number = normalise_phone_number(number)
-
-    if number.startswith(UK_PREFIX) or (number.startswith("7") and len(number) < 11):
-        return True
-
-    return False
-
-
-def get_international_phone_info(number):
-    number = validate_phone_number(number, international=True)
-    prefix = get_international_prefix(number)
-    crown_dependency = _is_a_crown_dependency_number(number)
-
-    return international_phone_info(
-        international=(prefix != UK_PREFIX or crown_dependency),
-        crown_dependency=crown_dependency,
-        country_prefix=prefix,
-        billable_units=get_billable_units_for_prefix(prefix),
-    )
-
 
 CROWN_DEPENDENCY_RANGES = ["7781", "7839", "7911", "7509", "7797", "7937", "7700", "7829", "7624", "7524", "7924"]
 
