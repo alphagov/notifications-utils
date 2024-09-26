@@ -65,6 +65,7 @@ def use_numeric_sender(number):
     prefix = get_international_prefix(normalise_phone_number(number))
     return INTERNATIONAL_BILLING_RATES[prefix]["attributes"]["alpha"] == "NO"
 
+
 class PhoneNumber:
     """
     A class that parses and performs validation checks on phonenumbers against service permissions
