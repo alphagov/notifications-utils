@@ -55,7 +55,7 @@ class TestAssetFingerprint:
         js_hash = asset_fingerprinter.get_asset_fingerprint("application.js")
         assert js_hash != css_hash
 
-    def test_hash_gets_cached(self, mocker):
+    def test_gets_fingerprint_from_cache(self, mocker):
         get_file_content_mock = mocker.patch.object(AssetFingerprinter, "get_asset_file_contents")
         get_file_content_mock.return_value = b"""
             body {
