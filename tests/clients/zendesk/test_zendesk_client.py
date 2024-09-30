@@ -17,14 +17,8 @@ from notifications_utils.clients.zendesk.zendesk_client import (
 
 
 @pytest.fixture(scope="function")
-def zendesk_client(app):
-    client = ZendeskClient()
-
-    app.config["ZENDESK_API_KEY"] = "testkey"
-
-    client.init_app(app)
-
-    return client
+def zendesk_client():
+    return ZendeskClient(api_key="testkey")
 
 
 def test_zendesk_client_send_ticket_to_zendesk(zendesk_client, app, rmock, caplog):
@@ -63,7 +57,7 @@ def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, rmock,
     assert "Zendesk create ticket request failed with 401 '{'foo': 'bar'}'" in caplog.messages
 
 
-def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk_client, rmock, caplog):
+def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk_client, app, rmock, caplog):
     rmock.request(
         "POST",
         ZendeskClient.ZENDESK_TICKET_URL,
