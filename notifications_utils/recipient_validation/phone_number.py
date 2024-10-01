@@ -46,26 +46,6 @@ international_phone_info = namedtuple(
 CROWN_DEPENDENCY_RANGES = ["7781", "7839", "7911", "7509", "7797", "7937", "7700", "7829", "7624", "7524", "7924"]
 
 
-def _is_a_crown_dependency_number(number):
-    num_in_crown_dependency_range = number[2:6] in CROWN_DEPENDENCY_RANGES
-    num_in_tv_range = number[2:9] == "7700900"
-
-    return num_in_crown_dependency_range and not num_in_tv_range
-
-
-def get_international_prefix(number):
-    return next((prefix for prefix in COUNTRY_PREFIXES if number.startswith(prefix)), None)
-
-
-def get_billable_units_for_prefix(prefix):
-    return INTERNATIONAL_BILLING_RATES[prefix]["billable_units"]
-
-
-def use_numeric_sender(number):
-    prefix = get_international_prefix(normalise_phone_number(number))
-    return INTERNATIONAL_BILLING_RATES[prefix]["attributes"]["alpha"] == "NO"
-
-
 class PhoneNumber:
     """
     A class that parses and performs validation checks on phonenumbers against service permissions
