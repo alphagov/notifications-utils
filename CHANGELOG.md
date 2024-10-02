@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 86.1.0
+
+* Add `EventletTimeoutMiddleware`
+
 # 86.0.0
 
 * BREAKING CHANGE: The `Phonenumber` class now accepts a flag `allow_landline`, which defaults to False. This changes the previous default behaviour, allowing landlines.
