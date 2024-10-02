@@ -36,9 +36,9 @@ def test_country_codes():
 @pytest.mark.parametrize(
     "number, expected",
     [
-        ("48123654789", False),  # Poland alpha: Yes
-        ("1-403-123-5687", True),  # Canada alpha: No
-        ("40123548897", False),  # Romania alpha: REG
+        ("48122014001", False),  # Poland alpha: Yes
+        ("1-416-869-3457", True),  # Canada alpha: No
+        ("40213120301", False),  # Romania alpha: REG
         ("+60123451345", True),
     ],
 )  # Malaysia alpha: NO
