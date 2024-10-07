@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 86.2.0
+
+* Adds `asset_fingerprinter.AssetFingerprinter` to replace the versions duplicated across our frontend apps
+
 ## 86.1.0
 
 * Add `EventletTimeoutMiddleware`
