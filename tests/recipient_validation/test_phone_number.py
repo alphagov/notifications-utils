@@ -311,7 +311,7 @@ def test_valid_uk_phone_number_can_be_formatted_consistently(phone_number):
 )
 def test_valid_international_phone_number_can_be_formatted_consistently(phone_number, expected_formatted):
     number = PhoneNumber(phone_number)
-    assert number.get_human_readable_format() == expected_formatted
+    assert number.get_normalised_format() == expected_formatted
 
 
 @pytest.mark.parametrize("phone_number, error_message", invalid_uk_mobile_phone_numbers)
