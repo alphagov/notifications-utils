@@ -1,4 +1,7 @@
 import sys
+from datetime import UTC, datetime
+from typing import Any
+from uuid import UUID
 
 import pytest
 
@@ -9,35 +12,8 @@ from notifications_utils.serialised_model import (
 
 
 def test_cant_be_instatiated_with_abstract_properties():
-    class Custom(SerialisedModel):
-        pass
-
     class CustomCollection(SerialisedModelCollection):
         pass
-
-    with pytest.raises(TypeError) as e:
-        SerialisedModel()
-
-    if sys.version_info >= (3, 12):
-        assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModel without an implementation "
-            "for abstract method 'ALLOWED_PROPERTIES'"
-        )
-    else:
-        assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModel with abstract method ALLOWED_PROPERTIES"
-        )
-
-    with pytest.raises(TypeError) as e:
-        Custom()
-
-    if sys.version_info >= (3, 12):
-        assert str(e.value) == (
-            "Can't instantiate abstract class Custom without an implementation "
-            "for abstract method 'ALLOWED_PROPERTIES'"
-        )
-    else:
-        assert str(e.value) == "Can't instantiate abstract class Custom with abstract method ALLOWED_PROPERTIES"
 
     with pytest.raises(TypeError) as e:
         SerialisedModelCollection()
@@ -63,14 +39,14 @@ def test_cant_be_instatiated_with_abstract_properties():
 
 def test_looks_up_from_dict():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo"}
+        foo: Any
 
     assert Custom({"foo": "bar"}).foo == "bar"
 
 
 def test_cant_override_custom_property_from_dict():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo"}
+        foo: Any
 
         @property
         def foo(self):
@@ -93,11 +69,9 @@ def test_cant_override_custom_property_from_dict():
 )
 def test_model_raises_for_unknown_attributes(json_response):
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = set()
+        pass
 
     model = Custom(json_response)
-
-    assert model.ALLOWED_PROPERTIES == set()
 
     with pytest.raises(AttributeError) as e:
         model.foo  # noqa
@@ -107,7 +81,7 @@ def test_model_raises_for_unknown_attributes(json_response):
 
 def test_model_raises_keyerror_if_item_missing_from_dict():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo"}
+        foo: Any
 
     with pytest.raises(KeyError) as e:
         Custom({}).foo  # noqa
@@ -124,7 +98,6 @@ def test_model_raises_keyerror_if_item_missing_from_dict():
 )
 def test_model_doesnt_swallow_attribute_errors(json_response):
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = set()
 
         @property
         def foo(self):
@@ -138,11 +111,78 @@ def test_model_doesnt_swallow_attribute_errors(json_response):
 
 def test_dynamic_properties_are_introspectable():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"foo", "bar", "baz"}
+        foo: Any
+        bar: Any
+        baz: Any
 
     instance = Custom({"foo": "", "bar": "", "baz": ""})
 
-    assert dir(instance)[-3:] == ["bar", "baz", "foo"]
+    for field in ("bar", "baz", "foo"):
+        assert field in dir(instance)
+
+
+def test_attribute_inheritence():
+    class Parent1(SerialisedModel):
+        foo: str
+
+    class Parent2(SerialisedModel):
+        bar: str
+
+    class Child(Parent1, Parent2):
+        __sort_attribute__ = "foo"
+        baz: str
+
+    instance = Child({"foo": 1, "bar": 2, "baz": 3})
+
+    assert instance.foo == "1"
+    assert instance.bar == "2"
+    assert instance.baz == "3"
+
+
+def test_none_values_are_not_coerced():
+    class Custom(SerialisedModel):
+        foo: str
+        bar: int
+
+    instance = Custom({"foo": None, "bar": None})
+
+    assert instance.foo is None
+    assert instance.bar is None
+
+
+def test_types_are_coerced():
+    class Custom(SerialisedModel):
+        id: UUID
+        year: str
+        version: int
+        rate: float
+        created_at: datetime
+
+    instance = Custom(
+        {
+            "id": "bf777b2c-2bbd-487f-a09f-62ad46a9f92b",
+            "year": 2024,
+            "version": "9",
+            "rate": "1.234",
+            "created_at": "2024-03-02T01:00:00.000000Z",
+        }
+    )
+
+    assert instance.id == UUID("bf777b2c-2bbd-487f-a09f-62ad46a9f92b")
+    assert instance.year == "2024"
+    assert instance.version == 9
+    assert instance.rate == 1.234
+    assert instance.created_at == datetime(2024, 3, 2, 1, 0, tzinfo=UTC)
+
+
+def test_raises_if_coercion_fails():
+    class Custom(SerialisedModel):
+        version: int
+
+    with pytest.raises(ValueError) as e:
+        Custom({"version": "twelvty"})
+
+    assert str(e.value) == "invalid literal for int() with base 10: 'twelvty'"
 
 
 def test_empty_serialised_model_collection():
@@ -157,7 +197,7 @@ def test_empty_serialised_model_collection():
 
 def test_serialised_model_collection_returns_models_from_list():
     class Custom(SerialisedModel):
-        ALLOWED_PROPERTIES = {"x"}
+        x: Any
 
     class CustomCollection(SerialisedModelCollection):
         model = Custom

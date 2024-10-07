@@ -1,8 +1,24 @@
 # CHANGELOG
 
-## 84.3.0
+## 86.2.0
 
 * Adds `asset_fingerprinter.AssetFingerprinter` to replace the versions duplicated across our frontend apps
+
+## 86.1.0
+
+* Add `EventletTimeoutMiddleware`
+
+# 86.0.0
+
+* BREAKING CHANGE: The `Phonenumber` class now accepts a flag `allow_landline`, which defaults to False. This changes the previous default behaviour, allowing landlines.
+
+## 85.0.0
+
+* Removes `SerialisedModel.ALLOWED_PROPERTIES` in favour of annotations syntax
+
+## 84.3.0
+
+* Reverts 84.1.0
 
 ## 84.2.0
 
