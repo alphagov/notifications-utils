@@ -133,6 +133,7 @@ class PhoneNumber:
                 number = forced_international_number
             else:
                 raise InvalidPhoneError.from_phonenumbers_validation_result(reason)
+
         if not (phonenumbers.is_valid_number(number) & self._is_allowed_phone_number_type(number)):
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
             # a valid sequence of numbers. This doesn't cover "is this number registered to an MNO".
@@ -140,7 +141,12 @@ class PhoneNumber:
             if self._is_tv_number(number):
                 return number
             else:
-                raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
+                if phonenumbers.number_type(number) == phonenumbers.PhoneNumberType.UNKNOWN:
+                    raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
+                elif not self._is_allowed_phone_number_type(number):
+                    raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+                else:
+                    raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
         return number
 
