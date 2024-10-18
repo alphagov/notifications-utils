@@ -238,6 +238,24 @@ def test_get_international_info(phone_number, expected_info):
 @pytest.mark.parametrize(
     "phone_number",
     [
+        "abcd",
+        "079OO900123",
+        pytest.param("", marks=pytest.mark.xfail),
+        pytest.param("12345", marks=pytest.mark.xfail),
+        pytest.param("+12345", marks=pytest.mark.xfail),
+        pytest.param("1-2-3-4-5", marks=pytest.mark.xfail),
+        pytest.param("1 2 3 4 5", marks=pytest.mark.xfail),
+        pytest.param("(1)2345", marks=pytest.mark.xfail),
+    ],
+)
+def test_instantiating_phonenumber_raises_if_unparseable_characters(phone_number):
+    with pytest.raises(InvalidPhoneError) as error:
+        PhoneNumber(phone_number)
+    assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER]
+
+@pytest.mark.parametrize(
+    "phone_number",
+    [
         "+21 4321 0987", # region north africa +21 alone isn't a valid country code
         "00997 1234 7890",
         "801234-7890",
