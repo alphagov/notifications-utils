@@ -80,11 +80,20 @@ class PhoneNumber:
             return
         is_landline = phonenumbers.number_type(phone_number) in LANDLINE_CODES
         if not allow_uk_landline and is_landline:
-            raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
         self._raise_if_service_cannot_send_to_international_but_tries_to(allow_international=allow_international_number)
-        self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
+        try:
+            self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
+        except InvalidPhoneError:
+            if self.number.country_code == int(UK_PREFIX):
+                self._phone_number = "+"+str(self.get_normalised_format())[2:]
+                self.number = self.parse_phone_number(self._phone_number)
+            self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
+
+
+
 
     @staticmethod
     def _try_parse_number(phone_number):
@@ -144,7 +153,7 @@ class PhoneNumber:
                 if phonenumbers.number_type(number) == phonenumbers.PhoneNumberType.UNKNOWN:
                     raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
                 elif not self._is_allowed_phone_number_type(number):
-                    raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+                    raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
                 else:
                     raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
