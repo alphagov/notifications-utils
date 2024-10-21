@@ -131,14 +131,8 @@ invalid_mobile_phone_numbers = (
         )
     )
     + invalid_international_numbers
-    + [
-        (num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER])
-        for num in invalid_uk_landlines
-    ]
-        + [
-        (num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE])
-        for num in valid_uk_landlines
-    ]
+    + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]) for num in invalid_uk_landlines]
+    + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE]) for num in valid_uk_landlines]
 )
 
 
@@ -235,6 +229,7 @@ def test_get_international_info(phone_number, expected_info):
     number = PhoneNumber(phone_number)
     assert number.get_international_phone_info() == expected_info
 
+
 @pytest.mark.parametrize(
     "phone_number",
     [
@@ -253,10 +248,11 @@ def test_instantiating_phonenumber_raises_if_unparseable_characters(phone_number
         PhoneNumber(phone_number)
     assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER]
 
+
 @pytest.mark.parametrize(
     "phone_number",
     [
-        "+21 4321 0987", # region north africa +21 alone isn't a valid country code
+        "+21 4321 0987",  # region north africa +21 alone isn't a valid country code
         "00997 1234 7890",
         "801234-7890",
         "(8-0)-1234-7890",
