@@ -708,7 +708,6 @@ def test_bad_or_missing_data(
 @pytest.mark.parametrize(
     "file_contents,rows_with_bad_recipients",
     [
-
         (
             """
             phone number, country
