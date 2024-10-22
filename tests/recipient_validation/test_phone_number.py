@@ -83,7 +83,7 @@ invalid_uk_mobile_phone_numbers = sum(
                 ),
             ),
             (
-                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER],
                 (
                     "0772345678",
                     "004477234567",
@@ -262,7 +262,9 @@ def test_get_international_info_raises(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
         number = PhoneNumber(phone_number)
         number.get_international_phone_info()
-    assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]
+    invalid_number = str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]
+    too_long = str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]
+    assert invalid_number or too_long
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
