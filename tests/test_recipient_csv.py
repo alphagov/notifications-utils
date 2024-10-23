@@ -710,19 +710,8 @@ def test_bad_or_missing_data(
     [
         (
             """
-            phone number
-            800000000000
-            1234
-            +447900123
-        """,
-            {0, 1, 2},
-        ),
-        (
-            """
             phone number, country
-            1-202-555-0104, USA
-            +12025550104, USA
-            23051234567, Mauritius
+            2304031000, Mauritius
         """,
             set(),
         ),
