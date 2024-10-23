@@ -49,6 +49,12 @@ class NotifySupportTicketComment:
 
 
 class ZendeskClient:
+    """
+    A client for the Zendesk API
+
+    This class is not thread-safe.
+    """
+
     # the account used to authenticate with. If no requester is provided, the ticket will come from this account.
     NOTIFY_ZENDESK_EMAIL = "zd-api-notify@digital.cabinet-office.gov.uk"
 
@@ -56,14 +62,12 @@ class ZendeskClient:
     ZENDESK_UPDATE_TICKET_URL = "https://govuk.zendesk.com/api/v2/tickets/{ticket_id}"
     ZENDESK_UPLOAD_FILE_URL = "https://govuk.zendesk.com/api/v2/uploads.json"
 
-    def __init__(self):
-        self.api_key = None
-
-    def init_app(self, app, *args, **kwargs):
-        self.api_key = app.config.get("ZENDESK_API_KEY")
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.requests_session = requests.Session()
 
     def send_ticket_to_zendesk(self, ticket):
-        response = requests.post(
+        response = self.requests_session.post(
             self.ZENDESK_TICKET_URL, json=ticket.request_data, auth=(f"{self.NOTIFY_ZENDESK_EMAIL}/token", self.api_key)
         )
 
@@ -92,7 +96,7 @@ class ZendeskClient:
 
         upload_url = self.ZENDESK_UPLOAD_FILE_URL + "?" + urlencode(query_params)
 
-        response = requests.post(
+        response = self.requests_session.post(
             upload_url,
             headers={"Content-Type": attachment.content_type},
             data=attachment.filedata,
@@ -138,7 +142,7 @@ class ZendeskClient:
             data["ticket"]["status"] = status.value
 
         update_url = self.ZENDESK_UPDATE_TICKET_URL.format(ticket_id=ticket_id)
-        response = requests.put(
+        response = self.requests_session.put(
             update_url,
             json=data,
             auth=(f"{self.NOTIFY_ZENDESK_EMAIL}/token", self.api_key),

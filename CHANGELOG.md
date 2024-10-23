@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 87.0.0
+
+* Reintroduce changes to `AntivirusClient` and `ZendeskClient` from 83.0.0
+
 ## 86.2.0
 
 * Adds `asset_fingerprinter.AssetFingerprinter` to replace the versions duplicated across our frontend apps
