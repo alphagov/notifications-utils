@@ -83,7 +83,8 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                 if hasattr(request, "before_request_real_time")
                 else None
             ),
-            "response_size": response.calculate_content_length(),
+            "response_size": None if response.is_streamed else response.calculate_content_length(),
+            "response_streamed": response.is_streamed,
             **_common_request_extra_log_context(),
         }
         current_app.logger.getChild("request").log(
