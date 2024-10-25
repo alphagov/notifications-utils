@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 88.0.0
+
+* Removes `template.EmailPreviewTemplate` (only used in admin app)
+
 ## 87.0.0
 
 * Reintroduce changes to `AntivirusClient` and `ZendeskClient` from 83.0.0
