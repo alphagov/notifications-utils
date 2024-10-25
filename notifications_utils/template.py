@@ -562,54 +562,6 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         )
 
 
-class EmailPreviewTemplate(BaseEmailTemplate):
-    jinja_template = template_env.get_template("email_preview_template.jinja2")
-
-    def __init__(
-        self,
-        template,
-        values=None,
-        from_name=None,
-        reply_to=None,
-        show_recipient=True,
-        redact_missing_personalisation=False,
-        **kwargs,
-    ):
-        super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation, **kwargs)
-        self.from_name = from_name
-        self.reply_to = reply_to
-        self.show_recipient = show_recipient
-
-    def __str__(self):
-        return Markup(
-            self.jinja_template.render(
-                {
-                    "body": self.html_body,
-                    "subject": self.subject,
-                    "from_name": escape_html(self.from_name),
-                    "reply_to": self.reply_to,
-                    "recipient": Field("((email address))", self.values, with_brackets=False),
-                    "show_recipient": self.show_recipient,
-                }
-            )
-        )
-
-    @property
-    def subject(self):
-        return (
-            Take(
-                Field(
-                    self._subject,
-                    self.values,
-                    html="escape",
-                    redact_missing_personalisation=self.redact_missing_personalisation,
-                )
-            )
-            .then(do_nice_typography)
-            .then(normalise_whitespace)
-        )
-
-
 class BaseLetterTemplate(SubjectMixin, Template):
     template_type = "letter"
     max_page_count = LETTER_MAX_PAGE_COUNT
