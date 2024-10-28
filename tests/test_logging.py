@@ -1,5 +1,6 @@
 import json
 import logging as builtin_logging
+import re
 import time
 from unittest import mock
 
@@ -115,9 +116,9 @@ def test_app_request_logs_level_by_status_code(
     @app.route("/")
     def some_route():
         time.sleep(0.05)
-        return iter("foo") if stream_response else "foo", status_code
+        return iter("foobar") if stream_response else "foobar", status_code
 
-    app.test_client().get("/", headers={"x-b3-parentspanid": "deadbeef"})
+    test_response = app.test_client().get("/", headers={"x-b3-parentspanid": "deadbeef"})
 
     assert (
         mock.call(
@@ -165,7 +166,7 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "environment": "foo",
                 "request_size": 0,
-                "response_size": None if stream_response else 3,
+                "response_size": None if stream_response else 6,
                 "response_streamed": stream_response,
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
@@ -182,7 +183,7 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "environment": "foo",
                 "request_size": 0,
-                "response_size": None if stream_response else 3,
+                "response_size": None if stream_response else 6,
                 "response_streamed": stream_response,
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
@@ -194,6 +195,62 @@ def test_app_request_logs_level_by_status_code(
         )
         in mock_req_logger.log.call_args_list
     )
+
+    assert (
+        mock.call(
+            mock.ANY,
+            AnyStringMatching(r".*streaming response.*", flags=re.I),
+            mock.ANY,
+            extra=mock.ANY,
+        )
+        not in mock_req_logger.log.call_args_list
+    )
+
+    time.sleep(0.05)
+
+    # context manager ensures streamed response is closed
+    with test_response:
+        assert test_response.get_data(as_text=True) == "foobar"
+
+    assert (
+        mock.call(
+            expected_after_level,
+            "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
+            {
+                "url": "http://localhost/",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "GET",
+                "environment": "foo",
+                "request_size": 0,
+                "response_streamed": True,
+                "endpoint": "some_route",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
+                "status": status_code,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "GET",
+                "environment": "foo",
+                "request_size": 0,
+                "response_streamed": True,
+                "endpoint": "some_route",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
+                "status": status_code,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    ) == stream_response
 
 
 def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
@@ -556,7 +613,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
 
     logging.init_app(app)
 
-    app.test_client().post("/post", data="foo=bar")
+    test_response = app.test_client().post("/post", data="foo=bar")
 
     assert (
         mock.call(
@@ -633,6 +690,60 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
         )
         in mock_req_logger.log.call_args_list
     )
+
+    assert (
+        mock.call(
+            builtin_logging.INFO,
+            AnyStringMatching(r".*streaming response.*", flags=re.I),
+            mock.ANY,
+            extra=mock.ANY,
+        )
+        not in mock_req_logger.log.call_args_list
+    )
+
+    # context manager ensures streamed response is closed
+    with test_response:
+        assert test_response.get_data(as_text=True) == "OK"
+
+    assert (
+        mock.call(
+            builtin_logging.INFO,
+            "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
+            {
+                "url": "http://localhost/post",
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "POST",
+                "environment": "",
+                "request_size": 7,
+                "response_streamed": True,
+                "endpoint": "post",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/post",
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "POST",
+                "environment": "",
+                "request_size": 7,
+                "response_streamed": True,
+                "endpoint": "post",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    ) == stream_response
 
 
 def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
