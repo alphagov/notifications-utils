@@ -83,7 +83,7 @@ invalid_uk_mobile_phone_numbers = sum(
                 ),
             ),
             (
-                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER],
                 (
                     "0772345678",
                     "004477234567",
@@ -109,11 +109,11 @@ invalid_uk_mobile_phone_numbers = sum(
 )
 
 invalid_international_numbers = [
-    ("80100000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
-    ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT]),
+    ("80100000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
+    ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]),
     (
         "+682 1234",
-        InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+        InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER],
     ),  # Cook Islands phone numbers can be 5 digits
     ("+12345 12345 12345 6", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
 ]
@@ -131,10 +131,8 @@ invalid_mobile_phone_numbers = (
         )
     )
     + invalid_international_numbers
-    + [
-        (num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE])
-        for num in valid_uk_landlines + invalid_uk_landlines
-    ]
+    + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]) for num in invalid_uk_landlines]
+    + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE]) for num in valid_uk_landlines]
 )
 
 
