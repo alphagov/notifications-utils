@@ -4,7 +4,7 @@ from notifications_utils.international_billing_rates import (
     COUNTRY_PREFIXES,
     INTERNATIONAL_BILLING_RATES,
 )
-from notifications_utils.recipient_validation.phone_number import use_numeric_sender
+from notifications_utils.recipient_validation.phone_number import PhoneNumber
 
 
 def test_international_billing_rates_exists():
@@ -43,4 +43,6 @@ def test_country_codes():
     ],
 )  # Malaysia alpha: NO
 def test_use_numeric_sender(number, expected):
-    assert use_numeric_sender(number) == expected
+    number = PhoneNumber(number)
+    assert number.should_use_numeric_sender() == expected
+    # assert use_numeric_sender(number) == expected
