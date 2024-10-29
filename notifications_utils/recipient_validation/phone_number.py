@@ -84,7 +84,17 @@ class PhoneNumber:
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
         self._raise_if_service_cannot_send_to_international_but_tries_to(allow_international=allow_international_number)
-        self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
+        try:
+            self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
+        except InvalidPhoneError:
+            if self.number.country_code == int(UK_PREFIX):
+                self._phone_number = "+" + str(self.get_normalised_format())[2:]
+                try:
+                    self.number = self.parse_phone_number(self._phone_number)
+                except InvalidPhoneError:
+                    self._phone_number = "44" + self._phone_number[1:]
+                    self.number = self.parse_phone_number(self._phone_number)
+            self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
 
     @staticmethod
     def _try_parse_number(phone_number):
@@ -125,7 +135,7 @@ class PhoneNumber:
 
         number = self._try_parse_number(phone_number)
 
-        if str(number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
+        if str(number.country_code) not in COUNTRY_PREFIXES + ["44"]:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
@@ -133,6 +143,7 @@ class PhoneNumber:
                 number = forced_international_number
             else:
                 raise InvalidPhoneError.from_phonenumbers_validation_result(reason)
+
         if not (phonenumbers.is_valid_number(number) & self._is_allowed_phone_number_type(number)):
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
             # a valid sequence of numbers. This doesn't cover "is this number registered to an MNO".
