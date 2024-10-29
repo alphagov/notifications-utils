@@ -343,10 +343,10 @@ def test_validates_against_guestlist_of_international_phone_numbers(recipient_nu
         ("447900900123", "07900 900123"),  # UK
         ("20-12-1234-1234", "+20 12 12341234"),  # Egypt
         ("00201212341234", "+20 12 12341234"),  # Egypt
-        ("1664 0000000", "+1 664-000-0000"),  # Montserrat
+        ("16644918766", "+1 664-491-8766"),  # Montserrat
         ("7 499 1231212", "+7 499 123-12-12"),  # Moscow (Russia)
         ("1-202-555-0104", "+1 202-555-0104"),  # Washington DC (USA)
-        ("+23051234567", "+230 5123 4567"),  # Mauritius
+        ("+2304031001", "+230 403 1001"),  # Mauritius
         ("33(0)1 12345678", "+33 1 12 34 56 78"),  # Paris (France)
     ],
 )
@@ -366,7 +366,7 @@ def test_format_uk_and_international_phone_numbers(phone_number, expected_format
         ("foo", "foo"),
         ("TeSt@ExAmPl3.com", "test@exampl3.com"),
         ("+4407900 900 123", "447900900123"),
-        ("+1 800 555 5555", "18005555555"),
+        ("+1 928-282-4541", "19282824541"),
     ],
 )
 def test_format_recipient(recipient, expected_formatted):
