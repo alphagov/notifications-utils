@@ -18,7 +18,7 @@ from notifications_utils.recipients import (
     first_column_headings,
 )
 from notifications_utils.template import (
-    EmailPreviewTemplate,
+    HTMLEmailTemplate,
     LetterPreviewTemplate,
     SMSMessageTemplate,
 )
@@ -26,7 +26,7 @@ from notifications_utils.template import (
 
 def _sample_template(template_type, content="foo"):
     return {
-        "email": EmailPreviewTemplate({"content": content, "subject": "bar", "template_type": "email"}),
+        "email": HTMLEmailTemplate({"content": content, "subject": "bar", "template_type": "email"}),
         "sms": SMSMessageTemplate({"content": content, "template_type": "sms"}),
         "letter": LetterPreviewTemplate(
             {"content": content, "subject": "bar", "template_type": "letter"},

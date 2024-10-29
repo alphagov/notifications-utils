@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 88.0.0
+
+* Removes `template.EmailPreviewTemplate` (only used in admin app)
+
 ## 87.1.0
 
 * logging: don't calculate_content_length() for after_request logs of streaming responses - this caused attempted streaming responses to be eagerly consumed, negating the point of streaming responses. Instead emit the after_request log when status code and header is returned and a separate log message when a streaming response is closed.

@@ -14,7 +14,6 @@ from notifications_utils.template import (
     BaseEmailTemplate,
     BaseLetterTemplate,
     BaseSMSTemplate,
-    EmailPreviewTemplate,
     HTMLEmailTemplate,
     LetterPreviewTemplate,
     LetterPrintTemplate,
@@ -356,7 +355,6 @@ def test_markdown_in_templates(
     "template_class, template_type, extra_attributes",
     [
         (HTMLEmailTemplate, "email", 'style="word-wrap: break-word; color: #1D70B8;"'),
-        (EmailPreviewTemplate, "email", 'style="word-wrap: break-word; color: #1D70B8;"'),
         (SMSPreviewTemplate, "sms", 'class="govuk-link govuk-link--no-visited-state"'),
         pytest.param(SMSBodyPreviewTemplate, "sms", 'style="word-wrap: break-word;', marks=pytest.mark.xfail),
     ],
@@ -940,7 +938,6 @@ def test_sms_templates_have_no_subject(template_class, template_json):
 
 def test_subject_line_gets_applied_to_correct_template_types():
     for cls in [
-        EmailPreviewTemplate,
         HTMLEmailTemplate,
         PlainTextEmailTemplate,
         LetterPreviewTemplate,
@@ -957,7 +954,6 @@ def test_subject_line_gets_applied_to_correct_template_types():
 @pytest.mark.parametrize(
     "template_class, template_type, extra_args",
     (
-        (EmailPreviewTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
         (PlainTextEmailTemplate, "email", {}),
         (LetterPreviewTemplate, "letter", {}),
@@ -974,7 +970,6 @@ def test_subject_line_gets_replaced(template_class, template_type, extra_args):
 @pytest.mark.parametrize(
     "template_class, template_type, extra_args",
     (
-        (EmailPreviewTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
         (PlainTextEmailTemplate, "email", {}),
         (LetterPreviewTemplate, "letter", {}),
@@ -1238,16 +1233,6 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
             ],
         ),
         (
-            EmailPreviewTemplate,
-            "email",
-            {},
-            [
-                mock.call("content", {}, html="escape", markdown_lists=True, redact_missing_personalisation=False),
-                mock.call("subject", {}, html="escape", redact_missing_personalisation=False),
-                mock.call("((email address))", {}, with_brackets=False),
-            ],
-        ),
-        (
             SMSMessageTemplate,
             "sms",
             {},
@@ -1287,16 +1272,6 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
                     html="escape",
                 ),
                 mock.call("www.gov.uk", {}, html="escape", redact_missing_personalisation=False),
-            ],
-        ),
-        (
-            EmailPreviewTemplate,
-            "email",
-            {"redact_missing_personalisation": True},
-            [
-                mock.call("content", {}, html="escape", markdown_lists=True, redact_missing_personalisation=True),
-                mock.call("subject", {}, html="escape", redact_missing_personalisation=True),
-                mock.call("((email address))", {}, with_brackets=False),
             ],
         ),
         (
@@ -1388,21 +1363,6 @@ def test_templates_handle_html_and_redacting(
             ],
         ),
         (
-            EmailPreviewTemplate,
-            "email",
-            {},
-            [
-                mock.call(
-                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                    "content"
-                    "</p>"
-                ),
-                mock.call(Markup("subject")),
-                mock.call(Markup("subject")),
-                mock.call(Markup("subject")),
-            ],
-        ),
-        (
             SMSMessageTemplate,
             "sms",
             {},
@@ -1486,19 +1446,6 @@ def test_templates_remove_whitespace_before_punctuation(
                 mock.call(Markup("subject")),
             ],
         ),
-        (
-            EmailPreviewTemplate,
-            "email",
-            {},
-            [
-                mock.call(
-                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                    "content"
-                    "</p>"
-                ),
-                mock.call(Markup("subject")),
-            ],
-        ),
         (SMSMessageTemplate, "sms", {}, []),
         (SMSPreviewTemplate, "sms", {}, []),
         (SMSBodyPreviewTemplate, "sms", {}, []),
@@ -1548,7 +1495,6 @@ def test_templates_make_quotes_smart_and_dashes_en(
     (
         HTMLEmailTemplate,
         PlainTextEmailTemplate,
-        EmailPreviewTemplate,
     ),
 )
 def test_no_smart_quotes_in_email_addresses(template_class, content):
@@ -1614,12 +1560,6 @@ def test_smart_quotes_removed_from_long_template_in_under_a_second():
             ["subject", "content"],
         ),
         (
-            EmailPreviewTemplate(
-                {"content": "((content))", "subject": "((subject))", "template_type": "email"},
-            ),
-            ["subject", "content"],
-        ),
-        (
             LetterPreviewTemplate(
                 {"content": "((content))", "subject": "((subject))", "template_type": "letter"},
                 contact_block="((contact_block))",
@@ -1645,62 +1585,6 @@ def test_html_template_can_inject_personalisation_with_special_characters():
     assert (
         "This is something text with some very lovely &amp; HTML special character personalisation &lt;&gt;." in result
     )
-
-
-@pytest.mark.parametrize(
-    "extra_args",
-    [
-        {"from_name": "Example service"},
-        pytest.param({}, marks=pytest.mark.xfail),
-    ],
-)
-def test_email_preview_shows_from_name(extra_args):
-    template = EmailPreviewTemplate(
-        {"content": "content", "subject": "subject", "template_type": "email"}, **extra_args
-    )
-    assert '<th scope="row">From</th>' in str(template)
-    assert "Example service" in str(template)
-
-
-def test_email_preview_escapes_html_in_from_name():
-    template = EmailPreviewTemplate(
-        {"content": "content", "subject": "subject", "template_type": "email"}, from_name='<script>alert("")</script>'
-    )
-    assert "<script>" not in str(template)
-    assert '&lt;script&gt;alert("")&lt;/script&gt;' in str(template)
-
-
-@pytest.mark.parametrize(
-    "extra_args",
-    [
-        {"reply_to": "test@example.com"},
-        pytest.param({}, marks=pytest.mark.xfail),
-    ],
-)
-def test_email_preview_shows_reply_to_address(extra_args):
-    template = EmailPreviewTemplate(
-        {"content": "content", "subject": "subject", "template_type": "email"}, **extra_args
-    )
-    assert '<th scope="row">Reply&nbsp;to</th>' in str(template)
-    assert "test@example.com" in str(template)
-
-
-@pytest.mark.parametrize(
-    "template_values, expected_content",
-    [
-        ({}, "<span class='placeholder-no-brackets'>email address</span>"),
-        ({"email address": "test@example.com"}, "test@example.com"),
-    ],
-)
-def test_email_preview_shows_recipient_address(
-    template_values,
-    expected_content,
-):
-    template = EmailPreviewTemplate(
-        {"content": "content", "subject": "subject", "template_type": "email"},
-        template_values,
-    )
-    assert expected_content in str(template)
 
 
 @pytest.mark.parametrize(
@@ -1884,7 +1768,6 @@ def test_message_is_not_too_long_ignoring_prefix(template_class):
 @pytest.mark.parametrize(
     "template_class, template_type, kwargs",
     [
-        (EmailPreviewTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
         (PlainTextEmailTemplate, "email", {}),
         (LetterPreviewTemplate, "letter", {}),
@@ -1899,7 +1782,6 @@ def test_message_too_long_limit_bigger_or_nonexistent_for_non_sms_templates(temp
 @pytest.mark.parametrize(
     "template_class, template_type, kwargs",
     [
-        (EmailPreviewTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
         (PlainTextEmailTemplate, "email", {}),
     ],
@@ -1914,7 +1796,6 @@ def test_content_size_in_bytes_for_email_messages(template_class, template_type,
 @pytest.mark.parametrize(
     "template_class, template_type, kwargs",
     [
-        (EmailPreviewTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
         (PlainTextEmailTemplate, "email", {}),
     ],
@@ -1929,7 +1810,6 @@ def test_message_too_long_for_a_too_big_email_message(template_class, template_t
 @pytest.mark.parametrize(
     "template_class, template_type, kwargs",
     [
-        (EmailPreviewTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
         (PlainTextEmailTemplate, "email", {}),
     ],
@@ -1986,7 +1866,6 @@ def test_multiple_newlines_in_letters(
     [
         (PlainTextEmailTemplate, "email", {}),
         (HTMLEmailTemplate, "email", {}),
-        (EmailPreviewTemplate, "email", {}),
         (LetterPreviewTemplate, "letter", {}),
     ],
 )
@@ -2000,7 +1879,6 @@ def test_whitespace_in_subjects(template_class, template_type, subject, extra_ar
 @pytest.mark.parametrize(
     "template_class",
     [
-        EmailPreviewTemplate,
         HTMLEmailTemplate,
         PlainTextEmailTemplate,
     ],
@@ -2356,45 +2234,6 @@ def test_text_messages_collapse_consecutive_whitespace(
                 "</p>"
             ),
         ),
-        (
-            EmailPreviewTemplate,
-            {"template_type": "email", "subject": "foo", "content": "[Example](((var)))"},
-            (
-                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
-                'color: #0B0C0C;">'
-                '<a style="word-wrap: break-word; color: #1D70B8;" '
-                "href=\"<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>\">"
-                "Example"
-                "</a>"
-                "</p>"
-            ),
-        ),
-        (
-            EmailPreviewTemplate,
-            {"template_type": "email", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
-            (
-                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
-                'color: #0B0C0C;">'
-                '<a style="word-wrap: break-word; color: #1D70B8;" '
-                "href=\"https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>\">"
-                "Example"
-                "</a>"
-                "</p>"
-            ),
-        ),
-        (
-            EmailPreviewTemplate,
-            {"template_type": "email", "subject": "foo", "content": "[Example](pre((var))post)"},
-            (
-                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; '
-                'color: #0B0C0C;">'
-                '<a style="word-wrap: break-word; color: #1D70B8;" '
-                "href=\"pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post\">"
-                "Example"
-                "</a>"
-                "</p>"
-            ),
-        ),
     ),
 )
 def test_links_with_personalisation(template_class, template_data, expect_content):
@@ -2444,17 +2283,6 @@ def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hid
 @pytest.mark.parametrize(
     "template_class, expected_content",
     (
-        (
-            EmailPreviewTemplate,
-            (
-                '<hr style="border: 0; height: 1px; background: #B1B4B6; Margin: 30px 0 30px 0;">'
-                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                '<a style="word-wrap: break-word; color: #1D70B8;" href="https://www.example.com">'
-                "Unsubscribe from these emails"
-                "</a>"
-                "</p>\n"
-            ),
-        ),
         (
             HTMLEmailTemplate,
             (
