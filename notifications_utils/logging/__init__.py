@@ -3,6 +3,7 @@ import logging.handlers
 import sys
 import time
 from collections.abc import Sequence
+from functools import partial
 from itertools import product
 from os import getpid
 from pathlib import Path
@@ -40,6 +41,29 @@ def _common_request_extra_log_context():
         # existing parameter name to prevent LogRecord from complaining
         "process_": getpid(),
     }
+
+
+def _log_response_closed(
+    log_level,
+    response,
+    before_request_real_time,
+    common_request_extra_log_context,
+):
+    context = {
+        "status": response.status_code,
+        "request_time": (
+            (time.perf_counter() - before_request_real_time) if before_request_real_time is not None else None
+        ),
+        # response size not reliably available at this point :(
+        "response_streamed": True,
+        **common_request_extra_log_context,
+    }
+    current_app.logger.getChild("request").log(
+        log_level,
+        "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
+        context,
+        extra=context,
+    )
 
 
 def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = ()):
@@ -83,7 +107,8 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                 if hasattr(request, "before_request_real_time")
                 else None
             ),
-            "response_size": response.calculate_content_length(),
+            "response_size": None if response.is_streamed else response.calculate_content_length(),
+            "response_streamed": response.is_streamed,
             **_common_request_extra_log_context(),
         }
         current_app.logger.getChild("request").log(
@@ -92,6 +117,19 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             context,
             extra=context,
         )
+
+        if response.is_streamed:
+            response.call_on_close(
+                partial(
+                    _log_response_closed,
+                    log_level,
+                    response,
+                    getattr(request, "before_request_real_time", None),
+                    # call_on_close hook can't use `request` itself, so we need to "bake" this for
+                    # it now
+                    _common_request_extra_log_context(),
+                )
+            )
 
         return response
 

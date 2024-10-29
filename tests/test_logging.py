@@ -1,5 +1,6 @@
 import json
 import logging as builtin_logging
+import re
 import time
 from unittest import mock
 
@@ -92,11 +93,13 @@ def test_base_json_formatter_contains_service_id(tmpdir):
         (503, builtin_logging.WARNING, True),
     ),
 )
+@pytest.mark.parametrize("stream_response", (False, True))
 def test_app_request_logs_level_by_status_code(
     app_with_mocked_logger,
     status_code,
     expected_after_level,
     with_request_helper,
+    stream_response,
 ):
     app = app_with_mocked_logger
     app.config["NOTIFY_ENVIRONMENT"] = "foo"
@@ -113,9 +116,9 @@ def test_app_request_logs_level_by_status_code(
     @app.route("/")
     def some_route():
         time.sleep(0.05)
-        return "foo", status_code
+        return iter("foobar") if stream_response else "foobar", status_code
 
-    app.test_client().get("/", headers={"x-b3-parentspanid": "deadbeef"})
+    test_response = app.test_client().get("/", headers={"x-b3-parentspanid": "deadbeef"})
 
     assert (
         mock.call(
@@ -163,7 +166,8 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "environment": "foo",
                 "request_size": 0,
-                "response_size": 3,
+                "response_size": None if stream_response else 6,
+                "response_streamed": stream_response,
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": "deadbeef" if with_request_helper else None,
@@ -179,7 +183,8 @@ def test_app_request_logs_level_by_status_code(
                 "method": "GET",
                 "environment": "foo",
                 "request_size": 0,
-                "response_size": 3,
+                "response_size": None if stream_response else 6,
+                "response_streamed": stream_response,
                 "endpoint": "some_route",
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": "deadbeef" if with_request_helper else None,
@@ -190,6 +195,62 @@ def test_app_request_logs_level_by_status_code(
         )
         in mock_req_logger.log.call_args_list
     )
+
+    assert (
+        mock.call(
+            mock.ANY,
+            AnyStringMatching(r".*streaming response.*", flags=re.I),
+            mock.ANY,
+            extra=mock.ANY,
+        )
+        not in mock_req_logger.log.call_args_list
+    )
+
+    time.sleep(0.05)
+
+    # context manager ensures streamed response is closed
+    with test_response:
+        assert test_response.get_data(as_text=True) == "foobar"
+
+    assert (
+        mock.call(
+            expected_after_level,
+            "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
+            {
+                "url": "http://localhost/",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "GET",
+                "environment": "foo",
+                "request_size": 0,
+                "response_streamed": True,
+                "endpoint": "some_route",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
+                "status": status_code,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/",
+                "host": "localhost",
+                "path": "/",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "GET",
+                "environment": "foo",
+                "request_size": 0,
+                "response_streamed": True,
+                "endpoint": "some_route",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": "deadbeef" if with_request_helper else None,
+                "status": status_code,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    ) == stream_response
 
 
 def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
@@ -253,7 +314,9 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "endpoint": "some_route",
                 "environment": "",
                 "request_size": 0,
-                "response_size": RestrictedAny(lambda x: x > 10),
+                # flask default error handlers stream responses
+                "response_size": None,
+                "response_streamed": True,
                 "host": "localhost",
                 "path": "/",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -269,7 +332,9 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "endpoint": "some_route",
                 "environment": "",
                 "request_size": 0,
-                "response_size": RestrictedAny(lambda x: x > 10),
+                # flask default error handlers stream responses
+                "response_size": None,
+                "response_streamed": True,
                 "host": "localhost",
                 "path": "/",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -284,7 +349,8 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
     )
 
 
-def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
+@pytest.mark.parametrize("stream_response", (False, True))
+def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_response):
     app = app_with_mocked_logger
     app.config["NOTIFY_ENVIRONMENT"] = "bar"
     mock_req_logger = mock.Mock(
@@ -296,12 +362,12 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
     @app.route("/_status")
     def status():
         if status_fail:
-            return "FAIL", 500
-        return "OK", 200
+            return iter("FAIL") if stream_response else "FAIL", 500
+        return iter("OK") if stream_response else "OK", 200
 
     @app.route("/metrics")
     def metrics():
-        return "OK", 200
+        return iter("OK") if stream_response else "OK", 200
 
     app.logger.getChild.side_effect = lambda name: mock_req_logger if name == "request" else mock.DEFAULT
 
@@ -319,7 +385,8 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
                 "endpoint": "status",
                 "environment": "bar",
                 "request_size": 0,
-                "response_size": 2,
+                "response_size": None if stream_response else 2,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -335,7 +402,8 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
                 "endpoint": "status",
                 "environment": "bar",
                 "request_size": 0,
-                "response_size": 2,
+                "response_size": None if stream_response else 2,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -361,7 +429,8 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
                 "endpoint": "metrics",
                 "environment": "bar",
                 "request_size": 0,
-                "response_size": 2,
+                "response_size": None if stream_response else 2,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/metrics",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -377,7 +446,8 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
                 "endpoint": "metrics",
                 "environment": "bar",
                 "request_size": 0,
-                "response_size": 2,
+                "response_size": None if stream_response else 2,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/metrics",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -404,7 +474,8 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
                 "endpoint": "status",
                 "environment": "bar",
                 "request_size": 0,
-                "response_size": 4,
+                "response_size": None if stream_response else 4,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -420,7 +491,8 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger):
                 "endpoint": "status",
                 "environment": "bar",
                 "request_size": 0,
-                "response_size": 4,
+                "response_size": None if stream_response else 4,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -491,7 +563,9 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "endpoint": None,
                 "environment": "",
                 "request_size": 0,
-                "response_size": RestrictedAny(lambda x: x > 0),
+                # flask default error handlers stream responses
+                "response_size": None,
+                "response_streamed": True,
                 "host": "localhost",
                 "path": "/foo",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -507,7 +581,9 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "endpoint": None,
                 "environment": "",
                 "request_size": 0,
-                "response_size": RestrictedAny(lambda x: x > 0),
+                # flask default error handlers stream responses
+                "response_size": None,
+                "response_streamed": True,
                 "host": "localhost",
                 "path": "/foo",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -522,7 +598,8 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
     )
 
 
-def test_app_request_logs_responses_on_post(app_with_mocked_logger):
+@pytest.mark.parametrize("stream_response", (False, True))
+def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_response):
     app = app_with_mocked_logger
     mock_req_logger = mock.Mock(
         spec=builtin_logging.Logger("flask.app.request"),
@@ -532,11 +609,11 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger):
 
     @app.route("/post", methods=["POST"])
     def post():
-        return "OK", 200
+        return iter("OK") if stream_response else "OK", 200
 
     logging.init_app(app)
 
-    app.test_client().post("/post", data="foo=bar")
+    test_response = app.test_client().post("/post", data="foo=bar")
 
     assert (
         mock.call(
@@ -582,7 +659,8 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger):
                 "endpoint": "post",
                 "environment": "",
                 "request_size": 7,
-                "response_size": 2,
+                "response_size": None if stream_response else 2,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -598,7 +676,8 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger):
                 "endpoint": "post",
                 "environment": "",
                 "request_size": 7,
-                "response_size": 2,
+                "response_size": None if stream_response else 2,
+                "response_streamed": stream_response,
                 "host": "localhost",
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -611,6 +690,60 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger):
         )
         in mock_req_logger.log.call_args_list
     )
+
+    assert (
+        mock.call(
+            builtin_logging.INFO,
+            AnyStringMatching(r".*streaming response.*", flags=re.I),
+            mock.ANY,
+            extra=mock.ANY,
+        )
+        not in mock_req_logger.log.call_args_list
+    )
+
+    # context manager ensures streamed response is closed
+    with test_response:
+        assert test_response.get_data(as_text=True) == "OK"
+
+    assert (
+        mock.call(
+            builtin_logging.INFO,
+            "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
+            {
+                "url": "http://localhost/post",
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "POST",
+                "environment": "",
+                "request_size": 7,
+                "response_streamed": True,
+                "endpoint": "post",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+            extra={
+                "url": "http://localhost/post",
+                "host": "localhost",
+                "path": "/post",
+                "user_agent": AnyStringMatching("Werkzeug.*"),
+                "method": "POST",
+                "environment": "",
+                "request_size": 7,
+                "response_streamed": True,
+                "endpoint": "post",
+                "remote_addr": "127.0.0.1",
+                "parent_span_id": None,
+                "status": 200,
+                "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "process_": RestrictedAny(lambda value: isinstance(value, int)),
+            },
+        )
+        in mock_req_logger.log.call_args_list
+    ) == stream_response
 
 
 def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
@@ -681,7 +814,9 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "endpoint": "post",
                 "environment": "",
                 "request_size": (3 * 1024 * 1024 + 1),
-                "response_size": RestrictedAny(lambda x: x > 0),
+                # flask default error handlers stream responses
+                "response_size": None,
+                "response_streamed": True,
                 "host": "localhost",
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
@@ -697,7 +832,9 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "endpoint": "post",
                 "environment": "",
                 "request_size": 3145729,
-                "response_size": RestrictedAny(lambda x: x > 0),
+                # flask default error handlers stream responses
+                "response_size": None,
+                "response_streamed": True,
                 "host": "localhost",
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
