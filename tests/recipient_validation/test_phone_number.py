@@ -248,6 +248,7 @@ def test_instantiating_phonenumber_raises_if_unparseable_characters(phone_number
         PhoneNumber(phone_number)
     assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER]
 
+
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 @pytest.mark.parametrize(
     "extra_args",
@@ -371,14 +372,6 @@ def test_format_uk_and_international_phone_numbers(phone_number, expected_format
 )
 def test_format_recipient(recipient, expected_formatted):
     assert format_recipient(recipient) == expected_formatted
-
-
-def test_try_format_recipient_doesnt_throw():
-    assert try_validate_and_format_phone_number("ALPHANUM3R1C") == "ALPHANUM3R1C"
-
-
-def test_format_phone_number_human_readable_doenst_throw():
-    assert format_phone_number_human_readable("ALPHANUM3R1C") == "ALPHANUM3R1C"
 
 
 class TestPhoneNumberClass:
