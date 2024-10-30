@@ -127,9 +127,16 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                     log_level,
                     response,
                     getattr(request, "before_request_real_time", None),
-                    # call_on_close hook can't use `request` itself, so we need to "bake" this for
-                    # it now
-                    _common_request_extra_log_context(),
+                    # this is horrible, but call_on_close hook can't use `request` itself, meaning these filters
+                    # and _common_request_extra_log_context() won't work normally when that is called, meaning
+                    # we need to "pre-bake" their values now.
+                    {
+                        "request_id": RequestIdFilter().request_id,
+                        "service_id": ServiceIdFilter().service_id,
+                        "span_id": SpanIdFilter().span_id,
+                        "user_id": UserIdFilter().user_id,
+                        **_common_request_extra_log_context(),
+                    },
                 )
             )
 
