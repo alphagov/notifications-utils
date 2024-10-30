@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 88.0.1
+
+* logging: don't use current_app in _log_response_closed
+
 ## 88.0.0
 
 * Removes `template.EmailPreviewTemplate` (only used in admin app)

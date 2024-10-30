@@ -44,6 +44,7 @@ def _common_request_extra_log_context():
 
 
 def _log_response_closed(
+    logger,
     log_level,
     response,
     before_request_real_time,
@@ -58,7 +59,7 @@ def _log_response_closed(
         "response_streamed": True,
         **common_request_extra_log_context,
     }
-    current_app.logger.getChild("request").log(
+    logger.getChild("request").log(
         log_level,
         "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
         context,
@@ -122,6 +123,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             response.call_on_close(
                 partial(
                     _log_response_closed,
+                    current_app.logger,
                     log_level,
                     response,
                     getattr(request, "before_request_real_time", None),
