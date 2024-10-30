@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 88.1.0
+
+* logging: slightly redesign filters behaviour to allow log-call-supplied request_id, span_id, user_id, service_id to be used if they are not available by normal means. Supply these manually for the streaming-response-closed log message.
+
 ## 88.0.1
 
 * logging: don't use current_app in _log_response_closed
