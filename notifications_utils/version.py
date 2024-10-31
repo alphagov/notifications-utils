@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = "88.1.1"  # 5096672ad79b5b5bc5b35bbdef2f9d25
+__version__ = "89.0.0"  # 1c8b9aa47bc9566d8ec2b106b33e1c33

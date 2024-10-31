@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 89.0.0
+
+* BREAKING CHANGE: All standalone functions for validating, normalising and formatting phone numbers has been removed from notifications_utils/recipient_validation/phone_number.py, and are replaced and encapsualated entirely with a single `PhoneNumber` class. All code that relies on validation, normalisation or fomratting of a phone number must be re-written to use instances of `PhoneNumber` instead.
+
 ## 88.1.1
 
 * Bug fix: applies minor version bump of PhoneNumbers to v8.13.48 to apply a fix to the UG metadata which was causing validation to fail in error
