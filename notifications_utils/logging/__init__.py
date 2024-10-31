@@ -127,9 +127,16 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                     log_level,
                     response,
                     getattr(request, "before_request_real_time", None),
-                    # call_on_close hook can't use `request` itself, so we need to "bake" this for
-                    # it now
-                    _common_request_extra_log_context(),
+                    # this is horrible, but call_on_close hook can't use `request` itself, meaning these filters
+                    # and _common_request_extra_log_context() won't work normally when that is called, meaning
+                    # we need to "pre-bake" their values now.
+                    {
+                        "request_id": RequestIdFilter().request_id,
+                        "service_id": ServiceIdFilter().service_id,
+                        "span_id": SpanIdFilter().span_id,
+                        "user_id": UserIdFilter().user_id,
+                        **_common_request_extra_log_context(),
+                    },
                 )
             )
 
@@ -227,10 +234,10 @@ class RequestIdFilter(logging.Filter):
         elif has_app_context() and "request_id" in g:
             return g.request_id
         else:
-            return "no-request-id"
+            return None
 
     def filter(self, record):
-        record.request_id = self.request_id
+        record.request_id = self.request_id or getattr(record, "request_id", None) or "no-request-id"
 
         return record
 
@@ -243,10 +250,10 @@ class SpanIdFilter(logging.Filter):
         elif has_app_context() and "span_id" in g:
             return g.span_id
         else:
-            return "no-span-id"
+            return None
 
     def filter(self, record):
-        record.span_id = self.span_id
+        record.span_id = self.span_id or getattr(record, "span_id", None) or "no-span-id"
 
         return record
 
@@ -257,10 +264,10 @@ class ServiceIdFilter(logging.Filter):
         if has_app_context() and "service_id" in g:
             return g.service_id
         else:
-            return "no-service-id"
+            return None
 
     def filter(self, record):
-        record.service_id = self.service_id
+        record.service_id = self.service_id or getattr(record, "service_id", None) or "no-service-id"
 
         return record
 
@@ -274,5 +281,5 @@ class UserIdFilter(logging.Filter):
             return None
 
     def filter(self, record):
-        record.user_id = self.user_id
+        record.user_id = self.user_id or getattr(record, "user_id", None)
         return record
