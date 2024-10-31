@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 88.1.1
+
+* Bug fix: applies minor version bump of PhoneNumbers to v8.13.48 to apply a fix to the UG metadata which was causing validation to fail in error
+
 ## 88.1.0
 
 * logging: slightly redesign filters behaviour to allow log-call-supplied request_id, span_id, user_id, service_id to be used if they are not available by normal means. Supply these manually for the streaming-response-closed log message.
