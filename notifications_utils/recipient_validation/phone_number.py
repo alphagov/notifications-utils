@@ -68,17 +68,13 @@ class PhoneNumber:
         self._phone_number = phone_number
 
     def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
-        number = self._try_parse_number(self._phone_number)
-        if not allow_international and str(number.country_code) != UK_PREFIX:
+        if not allow_international and str(self.number.country_code) != UK_PREFIX:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
-    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(
-        self, allow_uk_landline: bool = False, allow_international_number: bool = False
-    ):
-        phone_number = self._try_parse_number(self._phone_number)
-        if phone_number.country_code != int(UK_PREFIX):
+    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, allow_uk_landline: bool = False):
+        if self.number.country_code != int(UK_PREFIX):
             return
-        is_landline = phonenumbers.number_type(phone_number) in LANDLINE_CODES
+        is_landline = phonenumbers.number_type(self.number) in LANDLINE_CODES
         if not allow_uk_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
