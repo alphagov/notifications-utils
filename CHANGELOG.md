@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 89.0.0
+
+* `requirements_for_test_common.txt` is now `requirements_for_test_common.in`. Apps should freeze this into a local requirements file for fully reproducible dependencies
+
 ## 88.1.1
 
 * Bug fix: applies minor version bump of PhoneNumbers to v8.13.48 to apply a fix to the UG metadata which was causing validation to fail in error
