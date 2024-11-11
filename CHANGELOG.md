@@ -1,5 +1,10 @@
 # CHANGELOG
 
+
+## 89.0.1
+
+* Raise an exception if we cant fetch remote github files in version_tools.py
+
 ## 89.0.0
 
 * `requirements_for_test_common.txt` is now `requirements_for_test_common.in`. Apps should freeze this into a local requirements file for fully reproducible dependencies
