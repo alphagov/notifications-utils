@@ -7,7 +7,7 @@ frozen_requirements_file = pathlib.Path("requirements.txt")
 repo_name = "alphagov/notifications-utils"
 config_files = {
     "pyproject.toml",
-    "requirements_for_test_common.txt",
+    "requirements_for_test_common.in",
     ".pre-commit-config.yaml",
 }
 
