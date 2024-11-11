@@ -88,7 +88,9 @@ def get_relevant_changelog_lines(current_version, newest_version):
 
 
 def get_file_contents_from_github(branch_or_tag, path):
-    return requests.get(f"https://raw.githubusercontent.com/{repo_name}/{branch_or_tag}/{path}").text
+    response = requests.get(f"https://raw.githubusercontent.com/{repo_name}/{branch_or_tag}/{path}")
+    response.raise_for_status()
+    return response.text
 
 
 def copy_config():
