@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 89.1.0
+
+* Change version_tools to a package that uses importlib to grab common reqs/config, rather than fetching common files from github. This repo's usage of those common files are now symlinks to the sources of truth found within notification_utils/version_tools/
 
 ## 89.0.1
 
