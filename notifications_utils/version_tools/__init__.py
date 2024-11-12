@@ -1,4 +1,6 @@
 import pathlib
+from importlib import resources as importlib_resources
+from importlib.metadata import version
 
 import requests
 
@@ -6,9 +8,12 @@ requirements_file = pathlib.Path("requirements.in")
 frozen_requirements_file = pathlib.Path("requirements.txt")
 repo_name = "alphagov/notifications-utils"
 config_files = {
-    "pyproject.toml",
-    "requirements_for_test_common.in",
-    ".pre-commit-config.yaml",
+    filename: importlib_resources.files("notifications_utils.version_tools").joinpath(filename).read_bytes()
+    for filename in (
+        "pyproject.toml",
+        "requirements_for_test_common.in",
+        ".pre-commit-config.yaml",
+    )
 }
 
 
@@ -51,7 +56,7 @@ def get_remote_version():
 
 
 def get_app_version():
-    return next(line.split("@")[-1] for line in frozen_requirements_file.read_text().split("\n") if repo_name in line)
+    return version("notifications_utils")
 
 
 def write_version_to_requirements_file(version):
@@ -95,8 +100,12 @@ def get_file_contents_from_github(branch_or_tag, path):
 
 def copy_config():
     local_utils_version = get_app_version()
-    for config_file in config_files:
-        remote_contents = get_file_contents_from_github(local_utils_version, config_file)
-        pathlib.Path(config_file).write_text(
-            f"# This file is automatically copied from notifications-utils@{local_utils_version}\n\n{remote_contents}"
-        )
+    for filename, file_bytes in config_files.items():
+        # writing as raw bytes because we want to remain as faithful to original as possible
+        with open(filename, "wb") as f:
+            f.write(
+                f"# This file was automatically copied from notifications-utils@{local_utils_version}\n\n".encode(
+                    "ascii"
+                )
+            )
+            f.write(file_bytes)

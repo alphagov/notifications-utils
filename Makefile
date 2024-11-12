@@ -13,6 +13,7 @@ freeze-requirements: ## Pin all test requirements including sub dependencies int
 .PHONY: bootstrap
 bootstrap: ## Build project
 	pip install -r requirements_for_test.txt
+	pip install -e .
 
 .PHONY: test
 test: ## Run tests
