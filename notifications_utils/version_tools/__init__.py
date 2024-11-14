@@ -1,4 +1,5 @@
 import pathlib
+from base64 import b64decode
 from importlib import resources as importlib_resources
 from importlib.metadata import version
 
@@ -92,10 +93,10 @@ def get_relevant_changelog_lines(current_version, newest_version):
     return "\n".join(new_changelog.split("\n")[header_lines : header_lines + lines_added])
 
 
-def get_file_contents_from_github(branch_or_tag, path):
-    response = requests.get(f"https://raw.githubusercontent.com/{repo_name}/{branch_or_tag}/{path}")
+def get_file_contents_from_github(branch_or_tag, path) -> str:
+    response = requests.get(f"https://api.github.com/repos/{repo_name}/contents/{path}?ref={branch_or_tag}")
     response.raise_for_status()
-    return response.text
+    return b64decode(response.json()["content"]).decode(encoding="utf-8")
 
 
 def copy_config():
