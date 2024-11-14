@@ -589,3 +589,17 @@ def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
         number = PhoneNumber(phone_number=phone_number)
         number.validate(allow_international_number=True, allow_uk_landline=False)
     assert str(error_message) == str(e.value)
+
+
+@pytest.mark.parametrize("valid_three_digit_number", ["123", "888"])
+def test_valid_three_digit_numbers_parse_if_is_service_contact_number_flag_set(valid_three_digit_number):
+    number = PhoneNumber(valid_three_digit_number, is_service_contact_number=True)
+    assert str(number.number.national_number) == valid_three_digit_number
+
+
+@pytest.mark.parametrize("invalid_three_digit_number", ["999", "112"])
+def test_invalid_three_digit_numbers_dont_parse_if_is_service_contact_number_flag_set(invalid_three_digit_number):
+    error_message = InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_EMERGENCY_NUMBER)
+    with pytest.raises(InvalidPhoneError) as e:
+        PhoneNumber(invalid_three_digit_number, is_service_contact_number=True)
+    assert str(error_message) == str(e.value)

@@ -15,6 +15,11 @@ from notifications_utils.recipient_validation.errors import InvalidPhoneError
 
 UK_PREFIX = "44"
 
+EMERGENCY_THREE_DIGIT_NUMBERS = [
+    "999",
+    "112",
+]
+
 LANDLINE_CODES = {
     phonenumbers.PhoneNumberType.FIXED_LINE,
     phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE,
@@ -59,7 +64,8 @@ class PhoneNumber:
         number.validate(allow_international_number = False, allow_uk_landline = False)
     """
 
-    def __init__(self, phone_number: str) -> None:
+    def __init__(self, phone_number: str, is_service_contact_number: bool = False) -> None:
+        self.is_service_contact_number = is_service_contact_number
         try:
             self.number = self.parse_phone_number(phone_number)
         except InvalidPhoneError:
@@ -120,6 +126,10 @@ class PhoneNumber:
         self._raise_if_phone_number_is_empty(phone_number)
 
         number = self._try_parse_number(phone_number)
+        if self.is_service_contact_number and len(str(number.national_number)) == 3:
+            if str(number.national_number) in EMERGENCY_THREE_DIGIT_NUMBERS:
+                raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_EMERGENCY_NUMBER)
+            return number
 
         if str(number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
