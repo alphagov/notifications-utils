@@ -1,8 +1,20 @@
 # CHANGELOG
 
-## 89.0.0
+## 90.0.0
 
 * BREAKING CHANGE: All standalone functions for validating, normalising and formatting phone numbers has been removed from notifications_utils/recipient_validation/phone_number.py, and are replaced and encapsualated entirely with a single `PhoneNumber` class. All code that relies on validation, normalisation or fomratting of a phone number must be re-written to use instances of `PhoneNumber` instead.
+
+## 89.1.0
+
+* Change version_tools to a package that uses importlib to grab common reqs/config, rather than fetching common files from github. This repo's usage of those common files are now symlinks to the sources of truth found within notification_utils/version_tools/
+
+## 89.0.1
+
+* Raise an exception if we cant fetch remote github files in version_tools.py
+
+## 89.0.0
+
+* `requirements_for_test_common.txt` is now `requirements_for_test_common.in`. Apps should freeze this into a local requirements file for fully reproducible dependencies
 
 ## 88.1.1
 

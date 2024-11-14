@@ -1,0 +1,4 @@
+-r requirements_for_test_common.in
+
+celery==5.3.6
+redis>=4.3.4  # Earlier versions of redis miss features the tests need
