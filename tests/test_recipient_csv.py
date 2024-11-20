@@ -686,6 +686,16 @@ def test_recipient_column(content, file_contents, template_type):
             set(),
             set(),
         ),
+        (
+            """
+                ,,,,,,,,,Phone number
+                ,,,,,,,,,07700900100
+                ,,,,,,,,,07700900100
+            """,
+            "sms",
+            set(),
+            set(),
+        ),
     ],
 )
 @pytest.mark.parametrize(
