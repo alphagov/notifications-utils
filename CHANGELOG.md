@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+## 90.0.0
+
+* Allow leading empty columns in CSV files
+* Change second argument of `formatters.strip_all_whitespace` (this argument is not used in other apps)
+
 ## 89.2.0
 
 * Use github API rather than fetching from their CDN in version_tools

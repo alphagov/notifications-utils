@@ -291,10 +291,12 @@ def remove_smart_quotes_from_email_addresses(value):
     )
 
 
-def strip_all_whitespace(value, extra_characters=""):
-    # Removes from the beginning and end of the string all whitespace characters and `extra_characters`
-    if value is not None and hasattr(value, "strip"):
-        return value.strip(ALL_WHITESPACE + extra_characters)
+def strip_all_whitespace(value, extra_trailing_characters=""):
+    # Removes:
+    # - all whitespace characters from beginning and end of the string
+    # - and also any `extra_trailing_characters` from just the end of the string
+    if value is not None and hasattr(value, "lstrip") and hasattr(value, "rstrip"):
+        return value.lstrip(ALL_WHITESPACE).rstrip(ALL_WHITESPACE + extra_trailing_characters)
     return value
 
 

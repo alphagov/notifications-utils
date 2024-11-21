@@ -50,7 +50,7 @@ class RecipientCSV:
         allow_sms_to_uk_landline=False,
         should_validate=True,
     ):
-        self.file_data = strip_all_whitespace(file_data, extra_characters=",")
+        self.file_data = strip_all_whitespace(file_data, extra_trailing_characters=",")
         self.max_errors_shown = max_errors_shown
         self.max_initial_rows_shown = max_initial_rows_shown
         self.guestlist = guestlist
