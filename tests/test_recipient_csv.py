@@ -359,9 +359,12 @@ def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(mocker, template
 
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     mock_strip_and_remove_obscure_whitespace = mocker.patch(
-        "notifications_utils.recipients.strip_and_remove_obscure_whitespace"
+        "notifications_utils.recipients.strip_and_remove_obscure_whitespace",
+        side_effect=lambda value: {"07700900123": "07700900123", "example": "example"}.get(value),
     )
-    mock_insert_or_append_to_dict = mocker.patch("notifications_utils.recipients.insert_or_append_to_dict")
+    mock_insert_or_append_to_dict = mocker.patch(
+        "notifications_utils.recipients.insert_or_append_to_dict",
+    )
 
     big_csv = RecipientCSV(
         "phonenumber,name\n" + ("07700900123,example\n" * 123),
@@ -732,7 +735,7 @@ def test_bad_or_missing_data(
             phone number, country
             1-202-555-0104, USA
             +12025550104, USA
-            23051234567, Mauritius
+            +2304031000, Mauritius
         """,
             set(),
         ),

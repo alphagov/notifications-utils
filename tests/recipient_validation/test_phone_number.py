@@ -1,17 +1,7 @@
 import pytest
 
 from notifications_utils.recipient_validation.errors import InvalidPhoneError
-from notifications_utils.recipient_validation.phone_number import (
-    PhoneNumber,
-    format_phone_number_human_readable,
-    get_international_phone_info,
-    international_phone_info,
-    is_uk_phone_number,
-    normalise_phone_number,
-    try_validate_and_format_phone_number,
-    validate_and_format_phone_number,
-    validate_phone_number,
-)
+from notifications_utils.recipient_validation.phone_number import PhoneNumber, international_phone_info
 from notifications_utils.recipients import (
     allowed_to_send_to,
     format_recipient,
@@ -93,7 +83,7 @@ invalid_uk_mobile_phone_numbers = sum(
                 ),
             ),
             (
-                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+                InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER],
                 (
                     "0772345678",
                     "004477234567",
@@ -119,11 +109,11 @@ invalid_uk_mobile_phone_numbers = sum(
 )
 
 invalid_international_numbers = [
-    ("80100000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]),
-    ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT]),
+    ("80100000000", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
+    ("1234567", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]),
     (
         "+682 1234",
-        InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_SHORT],
+        InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER],
     ),  # Cook Islands phone numbers can be 5 digits
     ("+12345 12345 12345 6", InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.TOO_LONG]),
 ]
@@ -141,10 +131,8 @@ invalid_mobile_phone_numbers = (
         )
     )
     + invalid_international_numbers
-    + [
-        (num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE])
-        for num in valid_uk_landlines + invalid_uk_landlines
-    ]
+    + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]) for num in invalid_uk_landlines]
+    + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE]) for num in valid_uk_landlines]
 )
 
 
@@ -226,17 +214,20 @@ international_phone_info_fixtures = [
 
 @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
 def test_detect_international_phone_numbers(phone_number):
-    assert is_uk_phone_number(phone_number) is False
+    number = PhoneNumber(phone_number)
+    assert not number.is_uk_phone_number()
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_detect_uk_phone_numbers(phone_number):
-    assert is_uk_phone_number(phone_number) is True
+    number = PhoneNumber(phone_number)
+    assert number.is_uk_phone_number()
 
 
 @pytest.mark.parametrize("phone_number, expected_info", international_phone_info_fixtures)
 def test_get_international_info(phone_number, expected_info):
-    assert get_international_phone_info(phone_number) == expected_info
+    number = PhoneNumber(phone_number)
+    assert number.get_international_phone_info() == expected_info
 
 
 @pytest.mark.parametrize(
@@ -252,24 +243,10 @@ def test_get_international_info(phone_number, expected_info):
         pytest.param("(1)2345", marks=pytest.mark.xfail),
     ],
 )
-def test_normalise_phone_number_raises_if_unparseable_characters(phone_number):
-    with pytest.raises(InvalidPhoneError):
-        normalise_phone_number(phone_number)
-
-
-@pytest.mark.parametrize(
-    "phone_number",
-    [
-        "+21 4321 0987",
-        "00997 1234 7890",
-        "801234-7890",
-        "(8-0)-1234-7890",
-    ],
-)
-def test_get_international_info_raises(phone_number):
+def test_instantiating_phonenumber_raises_if_unparseable_characters(phone_number):
     with pytest.raises(InvalidPhoneError) as error:
-        get_international_phone_info(phone_number)
-    assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE]
+        PhoneNumber(phone_number)
+    assert str(error.value) == InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.UNKNOWN_CHARACTER]
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
@@ -277,12 +254,13 @@ def test_get_international_info_raises(phone_number):
     "extra_args",
     [
         {},
-        {"international": False},
+        {"allow_international_number": False},
     ],
 )
 def test_phone_number_accepts_valid_values(extra_args, phone_number):
     try:
-        validate_phone_number(phone_number, **extra_args)
+        number = PhoneNumber(phone_number)
+        number.validate(**extra_args)
     except InvalidPhoneError:
         pytest.fail("Unexpected InvalidPhoneError")
 
@@ -290,14 +268,16 @@ def test_phone_number_accepts_valid_values(extra_args, phone_number):
 @pytest.mark.parametrize("phone_number", valid_mobile_phone_numbers)
 def test_phone_number_accepts_valid_international_values(phone_number):
     try:
-        validate_phone_number(phone_number, international=True)
+        number = PhoneNumber(phone_number)
+        number.validate(allow_international_number=True)
     except InvalidPhoneError:
         pytest.fail("Unexpected InvalidPhoneError")
 
 
 @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
 def test_valid_uk_phone_number_can_be_formatted_consistently(phone_number):
-    assert validate_and_format_phone_number(phone_number) == "447723456789"
+    number = PhoneNumber(phone_number)
+    assert number.get_normalised_format() == "447723456789"
 
 
 @pytest.mark.parametrize(
@@ -312,7 +292,8 @@ def test_valid_uk_phone_number_can_be_formatted_consistently(phone_number):
     ],
 )
 def test_valid_international_phone_number_can_be_formatted_consistently(phone_number, expected_formatted):
-    assert validate_and_format_phone_number(phone_number, international=True) == expected_formatted
+    number = PhoneNumber(phone_number)
+    assert number.get_normalised_format() == expected_formatted
 
 
 @pytest.mark.parametrize("phone_number, error_message", invalid_uk_mobile_phone_numbers)
@@ -320,19 +301,21 @@ def test_valid_international_phone_number_can_be_formatted_consistently(phone_nu
     "extra_args",
     [
         {},
-        {"international": False},
+        {"allow_international_number": False},
     ],
 )
 def test_phone_number_rejects_invalid_values(extra_args, phone_number, error_message):
     with pytest.raises(InvalidPhoneError) as e:
-        validate_phone_number(phone_number, **extra_args)
+        number = PhoneNumber(phone_number)
+        number.validate(**extra_args)
     assert error_message == str(e.value)
 
 
 @pytest.mark.parametrize("phone_number, error_message", invalid_mobile_phone_numbers)
 def test_phone_number_rejects_invalid_international_values(phone_number, error_message):
     with pytest.raises(InvalidPhoneError) as e:
-        validate_phone_number(phone_number, international=True)
+        number = PhoneNumber(phone_number)
+        number.validate(allow_international_number=True)
     assert error_message == str(e.value)
 
 
@@ -361,15 +344,16 @@ def test_validates_against_guestlist_of_international_phone_numbers(recipient_nu
         ("447900900123", "07900 900123"),  # UK
         ("20-12-1234-1234", "+20 12 12341234"),  # Egypt
         ("00201212341234", "+20 12 12341234"),  # Egypt
-        ("1664 0000000", "+1 664-000-0000"),  # Montserrat
+        ("16644918766", "+1 664-491-8766"),  # Montserrat
         ("7 499 1231212", "+7 499 123-12-12"),  # Moscow (Russia)
         ("1-202-555-0104", "+1 202-555-0104"),  # Washington DC (USA)
-        ("+23051234567", "+230 5123 4567"),  # Mauritius
+        ("+2304031001", "+230 403 1001"),  # Mauritius
         ("33(0)1 12345678", "+33 1 12 34 56 78"),  # Paris (France)
     ],
 )
 def test_format_uk_and_international_phone_numbers(phone_number, expected_formatted):
-    assert format_phone_number_human_readable(phone_number) == expected_formatted
+    number = PhoneNumber(phone_number)
+    assert number.get_human_readable_format() == expected_formatted
 
 
 @pytest.mark.parametrize(
@@ -383,19 +367,11 @@ def test_format_uk_and_international_phone_numbers(phone_number, expected_format
         ("foo", "foo"),
         ("TeSt@ExAmPl3.com", "test@exampl3.com"),
         ("+4407900 900 123", "447900900123"),
-        ("+1 800 555 5555", "18005555555"),
+        ("+1 928-282-4541", "19282824541"),
     ],
 )
 def test_format_recipient(recipient, expected_formatted):
     assert format_recipient(recipient) == expected_formatted
-
-
-def test_try_format_recipient_doesnt_throw():
-    assert try_validate_and_format_phone_number("ALPHANUM3R1C") == "ALPHANUM3R1C"
-
-
-def test_format_phone_number_human_readable_doenst_throw():
-    assert format_phone_number_human_readable("ALPHANUM3R1C") == "ALPHANUM3R1C"
 
 
 class TestPhoneNumberClass:
@@ -612,4 +588,18 @@ def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
     with pytest.raises(InvalidPhoneError) as e:
         number = PhoneNumber(phone_number=phone_number)
         number.validate(allow_international_number=True, allow_uk_landline=False)
+    assert str(error_message) == str(e.value)
+
+
+@pytest.mark.parametrize("valid_three_digit_number", ["123", "888"])
+def test_valid_three_digit_numbers_parse_if_is_service_contact_number_flag_set(valid_three_digit_number):
+    number = PhoneNumber(valid_three_digit_number, is_service_contact_number=True)
+    assert str(number.number.national_number) == valid_three_digit_number
+
+
+@pytest.mark.parametrize("invalid_three_digit_number", ["999", "112"])
+def test_invalid_three_digit_numbers_dont_parse_if_is_service_contact_number_flag_set(invalid_three_digit_number):
+    error_message = InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_EMERGENCY_NUMBER)
+    with pytest.raises(InvalidPhoneError) as e:
+        PhoneNumber(invalid_three_digit_number, is_service_contact_number=True)
     assert str(error_message) == str(e.value)
