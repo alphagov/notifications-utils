@@ -230,13 +230,13 @@ class PhoneNumber:
 
     def get_international_phone_info(self):
         return international_phone_info(
-            international=self.is_international_number(self.number),
-            crown_dependency=self._is_a_crown_dependency_number(),
+            international=self.is_international_number(),
+            crown_dependency=self.is_a_crown_dependency_number(),
             country_prefix=self.prefix,
             billable_units=INTERNATIONAL_BILLING_RATES[self.prefix]["billable_units"],
         )
 
-    def is_international_number(self, number):
+    def is_international_number(self):
         """
         Returns True for phone numbers that either have a GB country code
         or that are OFCOM TV numbers. libphonenumber only contains actually
@@ -244,14 +244,14 @@ class PhoneNumber:
         values calling methods like `phonenumbers.region_code_fornumber` so
         need handling as a special case.
         """
-        if phonenumbers.region_code_for_number(number) == "GB":
+        if phonenumbers.region_code_for_number(self.number) == "GB":
             return False
-        elif self._is_tv_number(number):
+        elif self._is_tv_number(self.number):
             return False
         else:
             return True
 
-    def _is_a_crown_dependency_number(self):
+    def is_a_crown_dependency_number(self):
         """
         Returns True for phone numbers from Jersey, Guernsey, Isle of Man, etc
         TV numbers are an edge case where libphonenumber cannot accurately
