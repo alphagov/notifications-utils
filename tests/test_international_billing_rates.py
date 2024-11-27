@@ -17,10 +17,10 @@ def test_international_billing_rates_are_in_correct_format(country_prefix, value
     # we don't want the prefixes to have + at the beginning for instance
     assert country_prefix.isdigit()
 
-    assert set(values.keys()) == {"attributes", "billable_units", "names"}
+    assert set(values.keys()) == {"attributes", "rate_multiplier", "names"}
 
-    assert isinstance(values["billable_units"], int)
-    assert 1 <= values["billable_units"] <= 4
+    assert isinstance(values["rate_multiplier"], int)
+    assert 1 <= values["rate_multiplier"] <= 4
 
     assert isinstance(values["names"], list)
     assert all(isinstance(country, str) for country in values["names"])

@@ -134,7 +134,35 @@ invalid_mobile_phone_numbers = (
     + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]) for num in invalid_uk_landlines]
     + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE]) for num in valid_uk_landlines]
 )
-
+tv_numbers_phone_info_fixtures = [
+    (
+        "07700900010",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",
+            rate_multiplier=1,
+        ),
+    ),
+    (
+        "447700900020",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",
+            rate_multiplier=1,
+        ),
+    ),
+    (
+        "+447700900030",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",
+            rate_multiplier=1,
+        ),
+    ),
+]
 
 international_phone_info_fixtures = [
     (
@@ -143,7 +171,7 @@ international_phone_info_fixtures = [
             international=False,
             crown_dependency=False,
             country_prefix="44",  # UK
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -152,7 +180,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=True,
             country_prefix="44",  # UK Crown dependency, so prefix same as UK
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -161,7 +189,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
-            billable_units=3,
+            rate_multiplier=3,
         ),
     ),
     (
@@ -170,7 +198,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
-            billable_units=3,
+            rate_multiplier=3,
         ),
     ),
     (
@@ -179,7 +207,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="1664",  # Montserrat
-            billable_units=3,
+            rate_multiplier=3,
         ),
     ),
     (
@@ -188,7 +216,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="7",  # Russia
-            billable_units=4,
+            rate_multiplier=4,
         ),
     ),
     (
@@ -197,7 +225,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="1",  # USA
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -206,7 +234,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="230",  # Mauritius
-            billable_units=2,
+            rate_multiplier=2,
         ),
     ),
 ]
@@ -539,6 +567,11 @@ class TestPhoneNumberClass:
     def test_tv_number_passes(self, phone_number, expected_valid_number):
         number = PhoneNumber(phone_number)
         assert expected_valid_number == str(number)
+
+    @pytest.mark.parametrize("phone_number, expected_info", tv_numbers_phone_info_fixtures)
+    def test_tv_number_returns_correct_international_info(self, phone_number, expected_info):
+        number = PhoneNumber(phone_number)
+        assert number.get_international_phone_info() == expected_info
 
     @pytest.mark.parametrize(
         "phone_number, expected_error_code",

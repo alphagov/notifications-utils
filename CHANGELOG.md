@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 91.0.1
+
+* Adds public utility method to check if a phonenumber is international (with correct handling for OFCOM TV numbers)
+* Updates PhoneNumber.get_international_phone_info to return the correct info for OFCOM TV numbers
+
 ## 91.0.0
 
 * BREAKING CHANGE: All standalone functions for validating, normalising and formatting phone numbers has been removed from notifications_utils/recipient_validation/phone_number.py, and are replaced and encapsualated entirely with a single `PhoneNumber` class. All code that relies on validation, normalisation or fomratting of a phone number must be re-written to use instances of `PhoneNumber` instead.

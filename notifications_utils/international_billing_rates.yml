@@ -7,7 +7,7 @@
 # ambiguity if we regenerate it in future. If you
 # find something is incorrect, add a comment.
 #
-# It's OK to modify the "billable_units", as these
+# It's OK to modify the "rate_multiplier", as these
 # get used for our actual billing calculations.
 #
 #################################################
@@ -51,7 +51,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Canada
   - United States
@@ -66,7 +66,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: Transactional traffic ONLY
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - South Ossetia
   - Kazakhstan
@@ -82,7 +82,7 @@
     sc: REG
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Egypt
 '27':
@@ -95,7 +95,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into long numeric sender
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - South Africa
 '30':
@@ -109,7 +109,7 @@
     sender_and_registration_info: Senders MUST NOT include "," (comma separator) within,
       up to 11 chars in length
     text_restrictions: NO unicode nor binary formatted SMS support
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Greece
 '31':
@@ -122,7 +122,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Netherlands
 '32':
@@ -135,7 +135,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Belgium
 '33':
@@ -152,7 +152,7 @@
     text_restrictions: Marketing traffic is on hold on working days from 10PM to 8AM
       (UTC/GMT +1 hour), weekend and bank holidays. Transactional traffic can be allowed  with
       no time limits with approval only.
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - France
 '34':
@@ -166,7 +166,7 @@
     sender_and_registration_info: All long numeric senders not starting with 34 are
       CONVERTED to "InfoSMS"
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Spain
 '36':
@@ -179,7 +179,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED to one national long numeric
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Hungary
 '39':
@@ -192,7 +192,7 @@
     sc: 'YES'
     sender_and_registration_info: Numeric national (local) sender IDs allowed only
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Italy
 '40':
@@ -207,7 +207,7 @@
       SC. Monthly time  FEE for each SC, one time fee for each Alpha sender, authorization
       letter and description required. Unregistered senders are converted to SC 1797
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Romania
 '41':
@@ -220,7 +220,7 @@
     sc: 'YES'
     sender_and_registration_info: National numeric senders are not allowed
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Switzerland
 '43':
@@ -235,7 +235,7 @@
       one long numeric sender allowed
     text_restrictions: Bulk traffic NOT allowed. NO political content and other text
       restrictions
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Austria
 '44':
@@ -248,7 +248,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Guernsey
   - Isle of Man
@@ -263,7 +263,7 @@
     sc: 'YES'
     sender_and_registration_info: ''
     text_restrictions: Only transactional traffic allowed
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Denmark
 '46':
@@ -276,7 +276,7 @@
     sc: 'YES'
     sender_and_registration_info: ''
     text_restrictions: ''
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Sweden
 '47':
@@ -289,7 +289,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Norway
 '48':
@@ -302,7 +302,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: ''
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Poland
 '49':
@@ -315,7 +315,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Germany
 '51':
@@ -328,7 +328,7 @@
     sc: LIMITED
     sender_and_registration_info: All senders CONVERTED into one SC
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Peru
 '52':
@@ -341,7 +341,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Mexico
 '53':
@@ -354,7 +354,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Cuba
 '54':
@@ -368,7 +368,7 @@
     sender_and_registration_info: All senders CONVERTED into one available shared
       SC
     text_restrictions: Political content NOT allowed
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Argentina
 '55':
@@ -382,7 +382,7 @@
     sender_and_registration_info: LIMITED amount of SCs available
     text_restrictions: NO marketing traffic. NO special characters. 160 chars per
       message available
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Brazil
 '56':
@@ -395,7 +395,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Chile
 '57':
@@ -408,7 +408,7 @@
     sc: LIMITED
     sender_and_registration_info: LIMITED amount of SCs available
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Colombia
 '58':
@@ -421,7 +421,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Venezuela
 '60':
@@ -435,7 +435,7 @@
     sender_and_registration_info: LIMITED amount of registered shared SCs available.
       HIGH one time and monthly FEEs for each additional dedicated SC
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Malaysia
 '61':
@@ -448,7 +448,7 @@
     sc: 'NO'
     sender_and_registration_info: Long numeric MUST NOT begin with "0" (zero)
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Australia
 '62':
@@ -461,7 +461,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: ''
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Indonesia
 '63':
@@ -475,7 +475,7 @@
     sender_and_registration_info: All numeric senders are converted to InfoText
     text_restrictions: Adult, alcohol, drugs, gambling, election and tobacco contents
       are strictly forbidden
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Philippines
 '64':
@@ -488,7 +488,7 @@
     sc: 'YES'
     sender_and_registration_info: All alpha senders converted to a random UK longnumber
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - New Zealand
 '65':
@@ -504,7 +504,7 @@
       LIMITED amount of free senders, MONTHLY FEE for additional Alpha and numeric
       senders. Only national long numeric senders ara available
     text_restrictions: ''
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Singapore
 '66':
@@ -521,7 +521,7 @@
       of the sender. Numeric sender up to 11 digits in length. Dynamic sender available
       over Offnet connection.
     text_restrictions: NO political nor erotic content and other text restrictions
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Thailand
 '81':
@@ -534,7 +534,7 @@
     sc: 'YES'
     sender_and_registration_info: 11-digit long short code.
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Japan
 '82':
@@ -549,7 +549,7 @@
       "00" is ADDED in front of international long numeric sender ids. '
     text_restrictions: "[\uAD6D\uC81C\uBC1C\uC2E0] is added in front of SMS text for\
       \ every inbound P2P and A2P coming from overseas countries."
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Korea, Republic of
 '84':
@@ -563,7 +563,7 @@
     sender_and_registration_info: One time and monthly FEEs for each sender. All not
       registered senders CONVERTED into "InfoSMS" sender
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Vietnam
 '86':
@@ -578,7 +578,7 @@
       numeric sender
     text_restrictions: Content template MUST be approved by the MNO. Transactional
       traffic ONLY. Sufix added in the message text
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - China
 '90':
@@ -592,7 +592,7 @@
     sender_and_registration_info: LIMITED amount of numeric senders are allowed (just
       some ranges)
     text_restrictions: NO lottery, gambling nor erotic content and other text restrictions
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Turkey
   - Northern Cyprus
@@ -606,7 +606,7 @@
     sc: 'NO'
     sender_and_registration_info: Alpha senders with exactly 6 characters ONLY
     text_restrictions: Transactional traffic ONLY
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - India
 '92':
@@ -619,7 +619,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Pakistan
 '93':
@@ -634,7 +634,7 @@
       Sender and text example required prior to registration. Registration ETA: up
       to 10 days.'
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Afghanistan
 '94':
@@ -647,7 +647,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Sri Lanka
 '95':
@@ -661,7 +661,7 @@
     sender_and_registration_info: There is monthly FEE for renting a SC. No generic
       senders available. WEB page and description for each sender needed.
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Myanmar
 '98':
@@ -674,7 +674,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Iran
 '211':
@@ -687,7 +687,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - South Sudan
 '212':
@@ -700,7 +700,7 @@
     sc: 'NO'
     sender_and_registration_info: Case sensitive senders
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Morocco
 '213':
@@ -713,7 +713,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Algeria
 '216':
@@ -726,7 +726,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Tunisia
 '218':
@@ -739,7 +739,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Libya
 '220':
@@ -752,7 +752,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Gambia
 '221':
@@ -765,7 +765,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Senegal
 '222':
@@ -778,7 +778,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Mauritania
 '223':
@@ -791,7 +791,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Mali
 '224':
@@ -804,7 +804,7 @@
     sc: 'YES'
     sender_and_registration_info: 00 added in front of destination
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Guinea
 '225':
@@ -817,7 +817,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Cote d'Ivoire
 '226':
@@ -830,7 +830,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Burkina Faso
 '227':
@@ -843,7 +843,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Niger
 '228':
@@ -856,7 +856,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Togo
 '229':
@@ -869,7 +869,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Benin
 '230':
@@ -882,7 +882,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Mauritius
 '231':
@@ -895,7 +895,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Liberia
 '232':
@@ -908,7 +908,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Sierra Leone
 '233':
@@ -921,7 +921,7 @@
     sc: REG
     sender_and_registration_info: One time and monthly FEEs for each SC
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Ghana
 '234':
@@ -934,7 +934,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Nigeria
 '235':
@@ -947,7 +947,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Chad
 '236':
@@ -960,7 +960,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Central African Republic
 '237':
@@ -973,7 +973,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Cameroon
 '238':
@@ -986,7 +986,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Cape Verde
 '239':
@@ -999,7 +999,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Sao Tome and Principe
 '240':
@@ -1012,7 +1012,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Equatorial Guinea
 '241':
@@ -1025,7 +1025,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Gabon
 '242':
@@ -1038,7 +1038,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Congo
 '243':
@@ -1051,7 +1051,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Congo, Democratic Republic of
 '244':
@@ -1064,7 +1064,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Angola
 '245':
@@ -1077,7 +1077,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Guinea-Bissau
 '246':
@@ -1090,7 +1090,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - British Indian Ocean Territory
 '248':
@@ -1103,7 +1103,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Seychelles
 '249':
@@ -1116,7 +1116,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Sudan
 '250':
@@ -1129,7 +1129,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Rwanda, Republic of
 '251':
@@ -1142,7 +1142,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Ethiopia
 '252':
@@ -1155,7 +1155,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Somalia
 '253':
@@ -1168,7 +1168,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Djibouti, Republic of
 '254':
@@ -1183,7 +1183,7 @@
       monthly FEEs for each additional sender. Only local entities can register senders
       for Safaricom.
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Kenya
 '255':
@@ -1196,7 +1196,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Tanzania
 '256':
@@ -1211,7 +1211,7 @@
       Only local entities can register the sender (requires Authorization letter).
     text_restrictions: As per regulation, 'DND*196#' is being added at the end of
       each message.
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Uganda
 '257':
@@ -1224,7 +1224,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Burundi
 '258':
@@ -1237,7 +1237,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Mozambique
 '260':
@@ -1250,7 +1250,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Zambia
 '261':
@@ -1263,7 +1263,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Madagascar
 '262':
@@ -1276,7 +1276,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Reunion
 '263':
@@ -1289,7 +1289,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Zimbabwe
 '264':
@@ -1303,7 +1303,7 @@
     sender_and_registration_info: Long registration procedure, up to 30 days. Monthly
       FEE for each sender
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Namibia
 '265':
@@ -1316,7 +1316,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Malawi
 '266':
@@ -1329,7 +1329,7 @@
     sc: null  # should be 'NO'
     sender_and_registration_info: null  # should be "Sender names can only be 3-11 chars, no spaces"
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Lesotho
 '267':
@@ -1342,7 +1342,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Botswana
 '268':
@@ -1355,7 +1355,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Eswatini
 '269':
@@ -1368,7 +1368,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Comoros
 '291':
@@ -1381,7 +1381,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Eritrea
 '297':
@@ -1394,7 +1394,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Aruba
 '298':
@@ -1407,7 +1407,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Faroe Islands
 '299':
@@ -1420,7 +1420,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Greenland
 '350':
@@ -1433,7 +1433,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Gibraltar
 '351':
@@ -1446,7 +1446,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Portugal
 '352':
@@ -1459,7 +1459,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Luxembourg
 '353':
@@ -1473,7 +1473,7 @@
     sender_and_registration_info: Numeric sender up to 12 digits in length. SC available
       upon registration
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Ireland
 '354':
@@ -1486,7 +1486,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Iceland
 '355':
@@ -1499,7 +1499,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Albania
 '356':
@@ -1512,7 +1512,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Malta
 '357':
@@ -1526,7 +1526,7 @@
     sender_and_registration_info: Senders up to 11 characters in length. NO special
       characters. Generic senders available
     text_restrictions: NO violent, offensive, discriminatory or erotic content
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Cyprus
 '358':
@@ -1540,7 +1540,7 @@
     sender_and_registration_info: $ INSERTED in front of each Alpha sender, "00" in
       front of long numeric senders
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Finland
 '359':
@@ -1553,7 +1553,7 @@
     sc: 'YES'
     sender_and_registration_info: Sender converts to short code 1917.
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Bulgaria
 '370':
@@ -1566,7 +1566,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Lithuania
 '371':
@@ -1579,7 +1579,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Latvia
 '372':
@@ -1592,7 +1592,7 @@
     sc: 'YES'
     sender_and_registration_info: ''
     text_restrictions: NO messages in any way related to premium rate services
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Estonia
 '373':
@@ -1605,7 +1605,7 @@
     sc: 'YES'
     sender_and_registration_info: All senders CONVERTED into one SC
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Moldova
 '374':
@@ -1618,7 +1618,7 @@
     sc: REG
     sender_and_registration_info: NO long numeric senders
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Armenia
 '375':
@@ -1631,7 +1631,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Belarus
 '376':
@@ -1644,7 +1644,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Andorra
 '377':
@@ -1657,7 +1657,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Monaco
 '378':
@@ -1670,7 +1670,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - San Marino, Republic of
 '380':
@@ -1683,7 +1683,7 @@
     sc: 'NO'
     sender_and_registration_info: Alpha senders are case sensitive
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Ukraine
 '381':
@@ -1696,7 +1696,7 @@
     sc: REG
     sender_and_registration_info: Monthly FEE for each SC
     text_restrictions: Transactional traffic ONLY
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Serbia
 '382':
@@ -1709,7 +1709,7 @@
     sc: REG
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Montenegro
 '383':
@@ -1723,7 +1723,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Kosovo
 '385':
@@ -1738,7 +1738,7 @@
       chars nor " " (space) support in the sender name. Instead of space "_" (underscore)
       is being used
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Croatia
 '386':
@@ -1751,7 +1751,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Slovenia
 '387':
@@ -1765,7 +1765,7 @@
     sender_and_registration_info: Numeric sender available for the FEE upon registration.
       SC registration CHARGED - one time and monthly FEEs per each sender.
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Bosnia and Herzegovina
 '389':
@@ -1778,7 +1778,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Macedonia
 '420':
@@ -1796,7 +1796,7 @@
       Content promoting lottery, betting, gambling nor consumer loans NOT allowed.
       NO political, violent, erotic nor abusive content and other text restrictions
   # not specified in MMG multiplier sheet so set to default of 4
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Czech Republic
 '421':
@@ -1811,7 +1811,7 @@
       FEEs for numeric senders. All not registered long numeric senders are CONVERTED
       into "Info"
     text_restrictions: ''
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Slovakia
 '423':
@@ -1824,7 +1824,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Liechtenstein
 '500':
@@ -1837,7 +1837,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Falkland Islands
 '501':
@@ -1850,7 +1850,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Belize
 '502':
@@ -1863,7 +1863,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Guatemala
 '503':
@@ -1876,7 +1876,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - El Salvador
 '504':
@@ -1889,7 +1889,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Honduras
 '505':
@@ -1902,7 +1902,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Nicaragua
 '506':
@@ -1915,7 +1915,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Costa Rica
 '507':
@@ -1928,7 +1928,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Panama
 '508':
@@ -1941,7 +1941,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Saint Pierre and Miquelon
 '509':
@@ -1954,7 +1954,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Haiti
 '590':
@@ -1967,7 +1967,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Guadeloupe
 '591':
@@ -1980,7 +1980,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Bolivia
 '592':
@@ -1993,7 +1993,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Guyana
 '593':
@@ -2006,7 +2006,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Ecuador
 '594':
@@ -2019,7 +2019,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - French Guiana
 '595':
@@ -2032,7 +2032,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Paraguay
 '596':
@@ -2045,7 +2045,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Martinique
 '597':
@@ -2058,7 +2058,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Suriname
 '598':
@@ -2071,7 +2071,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Uruguay
 '599':
@@ -2084,7 +2084,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Curacao (former Netherlands Antilles)
 '670':
@@ -2097,7 +2097,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Timor L'este
 '672':
@@ -2110,7 +2110,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Norfolk Island
 '673':
@@ -2123,7 +2123,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Brunei Darussalam
 '674':
@@ -2136,7 +2136,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Nauru
 '675':
@@ -2149,7 +2149,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Papua New Guinea
 '676':
@@ -2162,7 +2162,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Tonga
 '677':
@@ -2175,7 +2175,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Solomon Islands
 '678':
@@ -2188,7 +2188,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Vanuatu
 '679':
@@ -2201,7 +2201,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Fiji
 '680':
@@ -2214,7 +2214,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Palau
 '681':
@@ -2227,7 +2227,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Wallis and Futuna
 '682':
@@ -2240,7 +2240,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Cook Islands
 '683':
@@ -2253,7 +2253,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Niue
 '685':
@@ -2266,7 +2266,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Samoa
 '686':
@@ -2279,7 +2279,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Kiribati
 '687':
@@ -2292,7 +2292,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - New Caledonia
 '689':
@@ -2305,7 +2305,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - French Polynesia
 '690':
@@ -2318,7 +2318,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Tokelau
 '691':
@@ -2331,7 +2331,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Micronesia, Federated States of
 '692':
@@ -2344,7 +2344,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Marshall Islands
 '852':
@@ -2358,7 +2358,7 @@
     sender_and_registration_info: ''
     text_restrictions: OPT-IN required for promotional traffic. NO violent, discriminatory
       nor erotic content
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Hong Kong
 '853':
@@ -2371,7 +2371,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Macau
 '855':
@@ -2384,7 +2384,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Cambodia
 '856':
@@ -2397,7 +2397,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Laos
 '880':
@@ -2410,7 +2410,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Bangladesh
 '886':
@@ -2423,7 +2423,7 @@
     sc: 'NO'
     sender_and_registration_info: ONLY one shared long numeric available
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Taiwan
 '960':
@@ -2436,7 +2436,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Maldives
 '961':
@@ -2449,7 +2449,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Lebanon
 '962':
@@ -2462,7 +2462,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Jordan
 '963':
@@ -2475,7 +2475,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Syria
 '964':
@@ -2488,7 +2488,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Iraq
 '965':
@@ -2502,7 +2502,7 @@
     sender_and_registration_info: No new senders available at the moment. Registration
       ETA 1-5 days.
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Kuwait
 '966':
@@ -2515,7 +2515,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Saudi Arabia
 '967':
@@ -2528,7 +2528,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Yemen
 '968':
@@ -2542,7 +2542,7 @@
     sender_and_registration_info: Only local entities can register senders. NOC and
       Trace Licence required.
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Oman
 '970':
@@ -2555,7 +2555,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 4
+  rate_multiplier: 4
   names:
   - Palestinian Territory
 '971':
@@ -2570,7 +2570,7 @@
       process. One time and monthly FEEs for each additional SC
     text_restrictions: 'No marketing traffic between 8pm and 8am (GMT +4). International
       traffic is allowed. '
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - United Arab Emirates
 '972':
@@ -2583,7 +2583,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Israel
 '973':
@@ -2596,7 +2596,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Bahrain
 '974':
@@ -2610,7 +2610,7 @@
     sender_and_registration_info: Case sensitive senders. SCs and numeric senders
       MUST have more than 5 digits. All not registered senders are CONVERTED to "INFOSMSI"
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Qatar
 '975':
@@ -2623,7 +2623,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Bhutan
 '976':
@@ -2636,7 +2636,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Mongolia
 '977':
@@ -2649,7 +2649,7 @@
     sc: 'NO'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Nepal
 '992':
@@ -2663,7 +2663,7 @@
     sender_and_registration_info: Numeric sender available upon registration. Numeric
       sender MUST begin with "992" or "0" (zero)
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Tajikistan
 '993':
@@ -2676,7 +2676,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Turkmenistan
 '994':
@@ -2691,7 +2691,7 @@
     text_restrictions: NO political, erotic, religious, alcoholic or tobacco products,
       premium services related info. APPROVAL required for food add., medical, non-govern.
       organizations or minor individuals related messages
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Azerbaijan
 '995':
@@ -2704,7 +2704,7 @@
     sc: 'NO'
     sender_and_registration_info: ''
     text_restrictions: Few GSM 7 characters are not supported
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Georgia
 '996':
@@ -2718,7 +2718,7 @@
     sender_and_registration_info: ONLY two shared numeric senders available. Long
       numeric usage MUST be approved by MNO
     text_restrictions: null
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Kyrgyzstan
 '998':
@@ -2732,7 +2732,7 @@
     sender_and_registration_info: Numeric and all non registered senders are converted
       to InfoSMS
     text_restrictions: ''
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Uzbekistan
 '1242':
@@ -2745,7 +2745,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 2
+  rate_multiplier: 2
   names:
   - Bahamas
 '1246':
@@ -2758,7 +2758,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Barbados
 '1264':
@@ -2771,7 +2771,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Anguilla
 '1268':
@@ -2784,7 +2784,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Antigua and Barbuda
 '1284':
@@ -2797,7 +2797,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Virgin Islands, British
 '1345':
@@ -2810,7 +2810,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Cayman Islands
 '1441':
@@ -2823,7 +2823,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Bermuda
 '1473':
@@ -2836,7 +2836,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Grenada
 '1649':
@@ -2849,7 +2849,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Turks and Caicos Islands
 '1664':
@@ -2862,7 +2862,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Montserrat
 '1684':
@@ -2875,7 +2875,7 @@
     sc: 'NO'
     sender_and_registration_info: All senders CONVERTED into random long numeric senders
     text_restrictions: Bulk/marketing traffic NOT allowed
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - American Samoa
 '1721':
@@ -2888,7 +2888,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 1
+  rate_multiplier: 1
   names:
   - Sint Maarten
 '1758':
@@ -2901,7 +2901,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Saint Lucia
 '1767':
@@ -2914,7 +2914,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Dominica, Commonwealth of
 '1784':
@@ -2927,7 +2927,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Saint Vincent and The Grenadines
 '1868':
@@ -2940,7 +2940,7 @@
     sc: null
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Trinidad and Tobago
 '1869':
@@ -2953,7 +2953,7 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Saint Kitts and Nevis
 '1876':
@@ -2966,6 +2966,6 @@
     sc: 'YES'
     sender_and_registration_info: null
     text_restrictions: null
-  billable_units: 3
+  rate_multiplier: 3
   names:
   - Jamaica
