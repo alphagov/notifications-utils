@@ -134,7 +134,35 @@ invalid_mobile_phone_numbers = (
     + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.INVALID_NUMBER]) for num in invalid_uk_landlines]
     + [(num, InvalidPhoneError.ERROR_MESSAGES[InvalidPhoneError.Codes.NOT_A_UK_MOBILE]) for num in valid_uk_landlines]
 )
-
+tv_numbers_phone_info_fixtures = [
+    (
+        "07700900010",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",
+            billable_units=1,
+        ),
+    ),
+    (
+        "447700900020",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",
+            billable_units=1,
+        ),
+    ),
+    (
+        "+447700900030",
+        international_phone_info(
+            international=False,
+            crown_dependency=False,
+            country_prefix="44",
+            billable_units=1,
+        ),
+    ),
+]
 
 international_phone_info_fixtures = [
     (
@@ -539,6 +567,11 @@ class TestPhoneNumberClass:
     def test_tv_number_passes(self, phone_number, expected_valid_number):
         number = PhoneNumber(phone_number)
         assert expected_valid_number == str(number)
+
+    @pytest.mark.parametrize("phone_number, expected_info", tv_numbers_phone_info_fixtures)
+    def test_tv_number_returns_correct_international_info(self, phone_number, expected_info):
+        number = PhoneNumber(phone_number)
+        assert number.get_international_phone_info() == expected_info
 
     @pytest.mark.parametrize(
         "phone_number, expected_error_code",
