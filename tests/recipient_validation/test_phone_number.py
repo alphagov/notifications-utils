@@ -141,7 +141,7 @@ tv_numbers_phone_info_fixtures = [
             international=False,
             crown_dependency=False,
             country_prefix="44",
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -150,7 +150,7 @@ tv_numbers_phone_info_fixtures = [
             international=False,
             crown_dependency=False,
             country_prefix="44",
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -159,7 +159,7 @@ tv_numbers_phone_info_fixtures = [
             international=False,
             crown_dependency=False,
             country_prefix="44",
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
 ]
@@ -171,7 +171,7 @@ international_phone_info_fixtures = [
             international=False,
             crown_dependency=False,
             country_prefix="44",  # UK
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -180,7 +180,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=True,
             country_prefix="44",  # UK Crown dependency, so prefix same as UK
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -189,7 +189,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
-            billable_units=3,
+            rate_multiplier=3,
         ),
     ),
     (
@@ -198,7 +198,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
-            billable_units=3,
+            rate_multiplier=3,
         ),
     ),
     (
@@ -207,7 +207,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="1664",  # Montserrat
-            billable_units=3,
+            rate_multiplier=3,
         ),
     ),
     (
@@ -216,7 +216,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="7",  # Russia
-            billable_units=4,
+            rate_multiplier=4,
         ),
     ),
     (
@@ -225,7 +225,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="1",  # USA
-            billable_units=1,
+            rate_multiplier=1,
         ),
     ),
     (
@@ -234,7 +234,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="230",  # Mauritius
-            billable_units=2,
+            rate_multiplier=2,
         ),
     ),
 ]

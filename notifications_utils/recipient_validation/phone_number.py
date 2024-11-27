@@ -44,7 +44,7 @@ international_phone_info = namedtuple(
         "international",
         "crown_dependency",
         "country_prefix",
-        "billable_units",
+        "rate_multiplier",
     ],
 )
 
@@ -233,7 +233,7 @@ class PhoneNumber:
             international=self.is_international_number(),
             crown_dependency=self.is_a_crown_dependency_number(),
             country_prefix=self.prefix,
-            billable_units=INTERNATIONAL_BILLING_RATES[self.prefix]["billable_units"],
+            rate_multiplier=INTERNATIONAL_BILLING_RATES[self.prefix]["rate_multiplier"],
         )
 
     def is_international_number(self):
