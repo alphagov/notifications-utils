@@ -614,6 +614,13 @@ class TestPhoneNumberClass:
         except InvalidPhoneError:
             pytest.fail("Unexpected InvalidPhoneError")
 
+    def test_validation_fails_for_unsupported_country_codes(self):
+        number = PhoneNumber("24741111")
+
+        with pytest.raises(InvalidPhoneError) as exc:
+            number.validate(allow_international_number=True, allow_uk_landline=False)
+        assert exc.value.code == InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE
+
 
 def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
     phone_number = ""
