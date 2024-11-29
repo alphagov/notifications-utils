@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 92.0.1
+
+* Bumps core dependencies to latest versions
+
 ## 92.0.0
 
 * Restores old validation code so later utils changes can be added to api, admin etc.
@@ -23,6 +27,10 @@
 ## 91.0.3
 
 * Fix validating supported international country codes for phone numbers without a leading "+" that look a bit like UK numbers
+
+## 91.0.2
+
+* Bumps requests to newer version
 
 ## 91.0.1
 
