@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "cachetools>=5.3.3",
         "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
-        "requests>=2.32.0",
+        "requests>=2.32.2",
         "python-json-logger>=2.0.7",
         "Flask>=3.0.0",
         "gunicorn[eventlet]>=20.1.0",
