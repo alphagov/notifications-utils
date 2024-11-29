@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.0.5
+
+* Bumps core dependencies to latest versions
+
 ## 91.0.4
 
 * Don’t copy config when bumping utils version
@@ -7,6 +11,10 @@
 ## 91.0.3
 
 * Fix validating supported international country codes for phone numbers without a leading "+" that look a bit like UK numbers
+
+## 91.0.2
+
+* Bumps requests to newer version
 
 ## 91.0.1
 
