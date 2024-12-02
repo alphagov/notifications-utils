@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.0.3
+
+* Fix validating supported international country codes for phone numbers without a leading "+" that look a bit like UK numbers
+
 ## 91.0.1
 
 * Adds public utility method to check if a phonenumber is international (with correct handling for OFCOM TV numbers)

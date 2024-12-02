@@ -84,9 +84,14 @@ class PhoneNumber:
         if not allow_uk_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
+    def _raise_if_unsupported_country(self):
+        if str(self.number.country_code) not in COUNTRY_PREFIXES | {"+44"}:
+            raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
+
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
         self._raise_if_service_cannot_send_to_international_but_tries_to(allow_international=allow_international_number)
         self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
+        self._raise_if_unsupported_country()
 
     @staticmethod
     def _try_parse_number(phone_number):
@@ -130,9 +135,6 @@ class PhoneNumber:
             if str(number.national_number) in EMERGENCY_THREE_DIGIT_NUMBERS:
                 raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_EMERGENCY_NUMBER)
             return number
-
-        if str(number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
-            raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
             if forced_international_number := self._validate_forced_international_number(phone_number):
