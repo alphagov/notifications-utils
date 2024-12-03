@@ -16,7 +16,7 @@ billiard==4.2.1
     # via celery
 black==24.4.0
     # via -r requirements_for_test_common.in
-blinker==1.8.2
+blinker==1.9.0
     # via flask
 boto3[crt]==1.35.55
     # via notifications-utils (setup.py)
@@ -58,7 +58,7 @@ eventlet==0.37.0
     # via gunicorn
 execnet==2.1.1
     # via pytest-xdist
-flask==3.0.3
+flask==3.1.0
     # via
     #   flask-redis
     #   notifications-utils (setup.py)
@@ -107,7 +107,7 @@ packaging==24.1
     #   pytest
 pathspec==0.12.1
     # via black
-phonenumbers==8.13.49
+phonenumbers==8.13.50
     # via notifications-utils (setup.py)
 platformdirs==4.3.6
     # via black
