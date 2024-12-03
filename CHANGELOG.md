@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.0.4
+
+* Don’t copy config when bumping utils version
+
 ## 91.0.3
 
 * Fix validating supported international country codes for phone numbers without a leading "+" that look a bit like UK numbers
