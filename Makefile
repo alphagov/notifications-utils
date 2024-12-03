@@ -7,13 +7,13 @@ help:
 
 .PHONY: freeze-requirements
 freeze-requirements: ## Pin all test requirements including sub dependencies into requirements_for_test.txt
-	pip install --upgrade pip-tools
-	pip-compile requirements_for_test.in setup.py --output-file requirements_for_test.txt
+	uv pip compile requirements_for_test.in setup.py --output-file requirements_for_test.txt
 
 .PHONY: bootstrap
 bootstrap: ## Build project
-	pip install -r requirements_for_test.txt
-	pip install -e .
+	pip install uv
+	uv pip install -r requirements_for_test.txt
+	uv pip install -e .
 
 .PHONY: test
 test: ## Run tests
