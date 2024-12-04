@@ -306,7 +306,7 @@ class RecipientCSV:
 
         return False
 
-    def _get_error_for_field(self, key, value):  # noqa: C901
+    def _get_error_for_field(self, key, value):
         if self.is_address_column(key):
             return
 
