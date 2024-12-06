@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.1.2
+
+* Adds rule N804 (invalid-first-argument-name-for-class-method) to linter config
+
 ## 91.1.1
 
 * Remove hangul filler character from rendered emails
