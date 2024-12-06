@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.0.5
+
+* Adds rule N804 (invalid-first-argument-name-for-class-method) to linter config
+
 ## 91.0.4
 
 * Don’t copy config when bumping utils version

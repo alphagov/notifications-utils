@@ -20,6 +20,7 @@ lint.select = [
     "ISC",  # flake8-implicit-str-concat
     "RSE",  # flake8-raise
     "PIE",  # flake8-pie
+    "N804",  # First argument of a class method should be named `cls`
 ]
 lint.ignore = []
 exclude = [
