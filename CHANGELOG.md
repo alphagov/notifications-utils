@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.0.5
+
+* Remove hangul filler character from rendered emails
+
 ## 91.0.4
 
 * Don’t copy config when bumping utils version
