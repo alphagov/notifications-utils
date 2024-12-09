@@ -8,7 +8,7 @@ beautifulsoup4==4.12.3
     # via -r requirements_for_test_common.in
 billiard==4.2.1
     # via celery
-black==24.4.0
+black==24.10.0
     # via -r requirements_for_test_common.in
 blinker==1.8.2
     # via flask
@@ -144,7 +144,7 @@ requests==2.32.3
     #   requests-mock
 requests-mock==1.12.1
     # via -r requirements_for_test_common.in
-ruff==0.3.7
+ruff==0.8.2
     # via -r requirements_for_test_common.in
 s3transfer==0.10.3
     # via boto3
