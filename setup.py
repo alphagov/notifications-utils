@@ -28,7 +28,7 @@ setup(
         "requests>=2.32.2",
         "python-json-logger>=2.0.7",
         "Flask>=3.0.0",
-        "gunicorn[eventlet]>=20.1.0",
+        "gunicorn[eventlet]>=23.0.0",
         "ordered-set>=4.1.0",
         "Jinja2>=3.1.4",
         "statsd>=4.0.1",
