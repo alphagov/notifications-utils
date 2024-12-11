@@ -321,4 +321,4 @@ def remove_whitespace(value):
 
 
 def strip_unsupported_characters(value):
-    return value.replace("\u2028", "")
+    return value.replace("\u2028", "").replace("\u3164", "")

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 91.1.1
+
+* Remove hangul filler character from rendered emails
+
 ## 91.1.0
 
 * bump all libs in requirements_for_test_common.in
