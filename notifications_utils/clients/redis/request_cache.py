@@ -1,7 +1,8 @@
 import json
+from collections import namedtuple
 from contextlib import suppress
 from datetime import timedelta
-from functools import wraps
+from functools import singledispatch, wraps
 from inspect import signature
 from uuid import UUID
 
@@ -9,8 +10,46 @@ from uuid import UUID
 class RequestCache:
     DEFAULT_TTL = int(timedelta(days=28).total_seconds())
 
+    CacheResultWrapper = namedtuple("CacheResultWrapper", ("value", "cache_decision"))
+    CacheResultWrapper.__doc__ = """
+        Allows the result returned from a `RequestCache.set`-wrapped function to
+        be annotated with a dynamically-determined "decision" on whether this result
+        should be cached or not (and for how long).
+
+        Possible values for cache_decision:
+         - True: cache normally with the `ttl_in_seconds` supplied at decoration-time
+         - False: do not cache result
+         - Any other value is used in place of the decoration-time `ttl_in_seconds`
+           and caches the result
+
+        Either way, the `value` is extracted and the CacheResultWrapper is discarded
+        before returning the value (and possibly caching the result)
+    """
+
     def __init__(self, redis_client):
         self.redis_client = redis_client
+
+        # get_cache_decision and get_cache_value added to *instance* so that individual
+        # instances can have custom implementations `.register`-ed without having a
+        # global effect
+
+        def get_cache_decision(result):
+            return True
+
+        self.get_cache_decision = singledispatch(get_cache_decision)
+
+        def get_cache_value(result):
+            return result
+
+        self.get_cache_value = singledispatch(get_cache_value)
+
+        @self.get_cache_decision.register
+        def _(result: RequestCache.CacheResultWrapper):
+            return result.cache_decision
+
+        @self.get_cache_value.register
+        def _(result: RequestCache.CacheResultWrapper):
+            return result.value
 
     @staticmethod
     def _format_argument(argument):
@@ -52,13 +91,19 @@ class RequestCache:
                 cached = self.redis_client.get(redis_key)
                 if cached:
                     return json.loads(cached.decode("utf-8"))
-                api_response = client_method(*args, **kwargs)
-                self.redis_client.set(
-                    redis_key,
-                    json.dumps(api_response),
-                    ex=int(ttl_in_seconds),
-                )
-                return api_response
+                result = client_method(*args, **kwargs)
+                decision = self.get_cache_decision(result)
+                if decision is True:
+                    decision = ttl_in_seconds
+                value = self.get_cache_value(result)
+
+                if decision is not False:
+                    self.redis_client.set(
+                        redis_key,
+                        json.dumps(value),
+                        ex=int(decision),
+                    )
+                return value
 
             return new_client_method
 
