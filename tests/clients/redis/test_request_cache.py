@@ -127,6 +127,79 @@ def test_raises_if_key_doesnt_match_arguments(cache):
 
 
 @pytest.mark.parametrize(
+    "cache_decision, ttl_in_seconds_override, expect_set_call_ttl",
+    (
+        (False, None, None),
+        (True, None, 333),
+        (123, None, 333),
+        (True, 234, 234),
+    ),
+)
+def test_set_result_wrapper(
+    cache_decision, ttl_in_seconds_override, expect_set_call_ttl, mocked_redis_client, cache, mocker
+):
+    @cache.set("{bar}-xyz", ttl_in_seconds=333)
+    def foo(bar):
+        return RequestCache.CacheResultWrapper({"blah": f"123-{bar}"}, cache_decision, ttl_in_seconds_override)
+
+    mock_redis_set = mocker.patch.object(
+        mocked_redis_client,
+        "set",
+    )
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=None,
+    )
+
+    ret = foo("quack")
+
+    assert ret == {"blah": "123-quack"}
+
+    assert (
+        mock_redis_set.mock_calls == []
+        if cache_decision is None
+        else [mocker.call("quack-xyz", '{"blah": "123-quack"}', ex=expect_set_call_ttl)]
+    )
+
+
+def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
+    @cache.get_cache_decision.register
+    def _(result: float):
+        return result > 50
+
+    @cache.get_ttl_in_seconds_override.register
+    def _(result: float):
+        return int(result) * 2
+
+    @cache.set("{bar}-xyz", ttl_in_seconds=333)
+    def foo(bar):
+        return bar * 10.0
+
+    mock_redis_set = mocker.patch.object(
+        mocked_redis_client,
+        "set",
+    )
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=None,
+    )
+
+    ret = foo(3)
+
+    assert ret == 30.0
+
+    assert mock_redis_set.mock_calls == []
+
+    ret2 = foo(8)
+
+    assert ret2 == 80.0
+
+    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=160)]
+
+
+@pytest.mark.parametrize(
     "args, expected_cache_key",
     (
         (
