@@ -43,12 +43,12 @@ def cache(mocked_redis_client):
     ),
 )
 def test_set(
-    mocker,
     mocked_redis_client,
     cache,
     args,
     kwargs,
     expected_cache_key,
+    mocker,
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
@@ -85,11 +85,11 @@ def test_set(
     ),
 )
 def test_set_with_custom_ttl(
-    mocker,
     mocked_redis_client,
     cache,
     cache_set_call,
     expected_redis_client_ttl,
+    mocker,
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
@@ -139,7 +139,7 @@ def test_raises_if_key_doesnt_match_arguments(cache):
         ),
     ),
 )
-def test_get(mocker, mocked_redis_client, cache, args, expected_cache_key):
+def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
         "get",
@@ -170,7 +170,7 @@ def test_get(mocker, mocked_redis_client, cache, args, expected_cache_key):
         ),
     ),
 )
-def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
+def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
         "delete",
@@ -186,7 +186,7 @@ def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
-def test_doesnt_update_api_if_redis_delete_fails(mocker, mocked_redis_client, cache):
+def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, mocker):
     mocker.patch.object(mocked_redis_client, "delete", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
@@ -200,7 +200,7 @@ def test_doesnt_update_api_if_redis_delete_fails(mocker, mocked_redis_client, ca
     fake_api_call.assert_not_called()
 
 
-def test_delete_by_pattern(mocker, mocked_redis_client, cache):
+def test_delete_by_pattern(mocked_redis_client, cache, mocker):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
         "delete_by_pattern",
@@ -216,7 +216,7 @@ def test_delete_by_pattern(mocker, mocked_redis_client, cache):
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
-def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocker, mocked_redis_client, cache):
+def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker):
     mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
