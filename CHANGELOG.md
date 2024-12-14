@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 92.1.0
+
+* RequestCache: add CacheResultWrapper to allow dynamic cache decisions
+
 ## 92.0.2
 
 * Downgrade minimum version of `requests` to 2.32.3
