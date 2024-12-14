@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 92.1.0
+
+* RequestCache: add CacheResultWrapper to allow dynamic cache decisions
+
 ## 92.0.0
 
 * Restores old validation code so later utils changes can be added to api, admin etc.
