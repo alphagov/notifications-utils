@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 92.0.0
+
+* Restores old validation code so later utils changes can be added to api, admin etc.
+
 ## 91.1.2
 
 * Adds rule N804 (invalid-first-argument-name-for-class-method) to linter config

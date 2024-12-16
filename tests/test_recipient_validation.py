@@ -14,7 +14,7 @@ from notifications_utils.recipients import format_recipient
         ("foo", "foo"),
         ("TeSt@ExAmPl3.com", "test@exampl3.com"),
         ("+4407900 900 123", "447900900123"),
-        ("+1 202-555-0104", "12025550104"),
+        ("+1 800 555 5555", "18005555555"),
     ],
 )
 def test_format_recipient(recipient, expected_formatted):
