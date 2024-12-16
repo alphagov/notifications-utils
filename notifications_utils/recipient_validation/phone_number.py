@@ -3,6 +3,7 @@ from collections import namedtuple
 from contextlib import suppress
 
 import phonenumbers
+from flask import current_app
 
 from notifications_utils.formatters import (
     ALL_WHITESPACE,
@@ -14,11 +15,6 @@ from notifications_utils.international_billing_rates import (
 from notifications_utils.recipient_validation.errors import InvalidPhoneError
 
 UK_PREFIX = "44"
-
-EMERGENCY_THREE_DIGIT_NUMBERS = [
-    "999",
-    "112",
-]
 
 LANDLINE_CODES = {
     phonenumbers.PhoneNumberType.FIXED_LINE,
@@ -48,7 +44,132 @@ international_phone_info = namedtuple(
     ],
 )
 
+
+def normalise_phone_number(number):
+    for character in ALL_WHITESPACE + "()-+":
+        number = number.replace(character, "")
+
+    try:
+        list(map(int, number))
+    except ValueError as e:
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNKNOWN_CHARACTER) from e
+
+    return number.lstrip("0")
+
+
+def is_uk_phone_number(number):
+    if number.startswith("0") and not number.startswith("00"):
+        return True
+
+    number = normalise_phone_number(number)
+
+    if number.startswith(UK_PREFIX) or (number.startswith("7") and len(number) < 11):
+        return True
+
+    return False
+
+
+def get_international_phone_info(number):
+    number = validate_phone_number(number, international=True)
+    prefix = get_international_prefix(number)
+    crown_dependency = _is_a_crown_dependency_number(number)
+
+    return international_phone_info(
+        international=(prefix != UK_PREFIX or crown_dependency),
+        crown_dependency=crown_dependency,
+        country_prefix=prefix,
+        rate_multiplier=get_billable_units_for_prefix(prefix),
+    )
+
+
 CROWN_DEPENDENCY_RANGES = ["7781", "7839", "7911", "7509", "7797", "7937", "7700", "7829", "7624", "7524", "7924"]
+
+
+def _is_a_crown_dependency_number(number):
+    num_in_crown_dependency_range = number[2:6] in CROWN_DEPENDENCY_RANGES
+    num_in_tv_range = number[2:9] == "7700900"
+
+    return num_in_crown_dependency_range and not num_in_tv_range
+
+
+def get_international_prefix(number):
+    return next((prefix for prefix in COUNTRY_PREFIXES if number.startswith(prefix)), None)
+
+
+def get_billable_units_for_prefix(prefix):
+    return INTERNATIONAL_BILLING_RATES[prefix]["rate_multiplier"]
+
+
+def use_numeric_sender(number):
+    prefix = get_international_prefix(normalise_phone_number(number))
+    return INTERNATIONAL_BILLING_RATES[prefix]["attributes"]["alpha"] == "NO"
+
+
+def validate_uk_phone_number(number):
+    number = normalise_phone_number(number).lstrip(UK_PREFIX).lstrip("0")
+
+    if not number.startswith("7"):
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
+
+    if len(number) > 10:
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_LONG)
+
+    if len(number) < 10:
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
+
+    return f"{UK_PREFIX}{number}"
+
+
+def validate_phone_number(number, international=False):
+    if (not international) or is_uk_phone_number(number):
+        return validate_uk_phone_number(number)
+
+    number = normalise_phone_number(number)
+
+    if len(number) < 8:
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_SHORT)
+
+    if len(number) > 15:
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.TOO_LONG)
+
+    if get_international_prefix(number) is None:
+        raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
+
+    return number
+
+
+validate_and_format_phone_number = validate_phone_number
+
+
+def try_validate_and_format_phone_number(number, international=None, log_msg=None):
+    """
+    For use in places where you shouldn't error if the phone number is invalid - for example if firetext pass us
+    something in
+    """
+    try:
+        return validate_and_format_phone_number(number, international)
+    except InvalidPhoneError as exc:
+        if log_msg:
+            current_app.logger.warning("%s: %s", log_msg, exc)
+        return number
+
+
+def format_phone_number_human_readable(phone_number):
+    try:
+        phone_number = validate_phone_number(phone_number, international=True)
+    except InvalidPhoneError:
+        # if there was a validation error, we want to shortcut out here, but still display the number on the front end
+        return phone_number
+    international_phone_info = get_international_phone_info(phone_number)
+
+    return phonenumbers.format_number(
+        phonenumbers.parse("+" + phone_number, None),
+        (
+            phonenumbers.PhoneNumberFormat.INTERNATIONAL
+            if international_phone_info.international
+            else phonenumbers.PhoneNumberFormat.NATIONAL
+        ),
+    )
 
 
 class PhoneNumber:
@@ -64,8 +185,7 @@ class PhoneNumber:
         number.validate(allow_international_number = False, allow_uk_landline = False)
     """
 
-    def __init__(self, phone_number: str, is_service_contact_number: bool = False) -> None:
-        self.is_service_contact_number = is_service_contact_number
+    def __init__(self, phone_number: str) -> None:
         try:
             self.number = self.parse_phone_number(phone_number)
         except InvalidPhoneError:
@@ -74,18 +194,22 @@ class PhoneNumber:
         self._phone_number = phone_number
 
     def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
-        if not allow_international and str(self.number.country_code) != UK_PREFIX:
+        number = self._try_parse_number(self._phone_number)
+        if not allow_international and str(number.country_code) != UK_PREFIX:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
-    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, allow_uk_landline: bool = False):
-        if self.number.country_code != int(UK_PREFIX):
+    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(
+        self, allow_uk_landline: bool = False, allow_international_number: bool = False
+    ):
+        phone_number = self._try_parse_number(self._phone_number)
+        if phone_number.country_code != int(UK_PREFIX):
             return
-        is_landline = phonenumbers.number_type(self.number) in LANDLINE_CODES
+        is_landline = phonenumbers.number_type(phone_number) in LANDLINE_CODES
         if not allow_uk_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_unsupported_country(self):
-        if str(self.number.country_code) not in COUNTRY_PREFIXES | {"+44"}:
+        if str(self.number.country_code) not in COUNTRY_PREFIXES + ["+44"]:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
@@ -131,10 +255,6 @@ class PhoneNumber:
         self._raise_if_phone_number_is_empty(phone_number)
 
         number = self._try_parse_number(phone_number)
-        if self.is_service_contact_number and len(str(number.national_number)) == 3:
-            if str(number.national_number) in EMERGENCY_THREE_DIGIT_NUMBERS:
-                raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_EMERGENCY_NUMBER)
-            return number
 
         if (reason := phonenumbers.is_possible_number_with_reason(number)) != phonenumbers.ValidationResult.IS_POSSIBLE:
             if forced_international_number := self._validate_forced_international_number(phone_number):
