@@ -78,7 +78,7 @@ def get_international_phone_info(number):
         international=(prefix != UK_PREFIX or crown_dependency),
         crown_dependency=crown_dependency,
         country_prefix=prefix,
-        billable_units=get_billable_units_for_prefix(prefix),
+        rate_multiplier=get_billable_units_for_prefix(prefix),
     )
 
 
@@ -97,7 +97,7 @@ def get_international_prefix(number):
 
 
 def get_billable_units_for_prefix(prefix):
-    return INTERNATIONAL_BILLING_RATES[prefix]["billable_units"]
+    return INTERNATIONAL_BILLING_RATES[prefix]["rate_multiplier"]
 
 
 def use_numeric_sender(number):
