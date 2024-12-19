@@ -43,12 +43,12 @@ def cache(mocked_redis_client):
     ),
 )
 def test_set(
-    mocker,
     mocked_redis_client,
     cache,
     args,
     kwargs,
     expected_cache_key,
+    mocker,
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
@@ -85,11 +85,11 @@ def test_set(
     ),
 )
 def test_set_with_custom_ttl(
-    mocker,
     mocked_redis_client,
     cache,
     cache_set_call,
     expected_redis_client_ttl,
+    mocker,
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
@@ -127,6 +127,72 @@ def test_raises_if_key_doesnt_match_arguments(cache):
 
 
 @pytest.mark.parametrize(
+    "cache_decision, expect_set_call_ttl",
+    (
+        (False, None),
+        (True, 333),
+        (234, 234),
+    ),
+)
+def test_set_result_wrapper(cache_decision, expect_set_call_ttl, mocked_redis_client, cache, mocker):
+    @cache.set("{bar}-xyz", ttl_in_seconds=333)
+    def foo(bar):
+        return RequestCache.CacheResultWrapper({"blah": f"123-{bar}"}, cache_decision)
+
+    mock_redis_set = mocker.patch.object(
+        mocked_redis_client,
+        "set",
+    )
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=None,
+    )
+
+    ret = foo("quack")
+
+    assert ret == {"blah": "123-quack"}
+
+    assert (
+        mock_redis_set.mock_calls == []
+        if cache_decision is None
+        else [mocker.call("quack-xyz", '{"blah": "123-quack"}', ex=expect_set_call_ttl)]
+    )
+
+
+def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
+    @cache.get_cache_decision.register
+    def _(result: float):
+        return result > 50
+
+    @cache.set("{bar}-xyz", ttl_in_seconds=333)
+    def foo(bar):
+        return bar * 10.0
+
+    mock_redis_set = mocker.patch.object(
+        mocked_redis_client,
+        "set",
+    )
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=None,
+    )
+
+    ret = foo(3)
+
+    assert ret == 30.0
+
+    assert mock_redis_set.mock_calls == []
+
+    ret2 = foo(8)
+
+    assert ret2 == 80.0
+
+    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=333)]
+
+
+@pytest.mark.parametrize(
     "args, expected_cache_key",
     (
         (
@@ -139,7 +205,7 @@ def test_raises_if_key_doesnt_match_arguments(cache):
         ),
     ),
 )
-def test_get(mocker, mocked_redis_client, cache, args, expected_cache_key):
+def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
         "get",
@@ -170,7 +236,7 @@ def test_get(mocker, mocked_redis_client, cache, args, expected_cache_key):
         ),
     ),
 )
-def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
+def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
         "delete",
@@ -186,7 +252,7 @@ def test_delete(mocker, mocked_redis_client, cache, args, expected_cache_key):
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
-def test_doesnt_update_api_if_redis_delete_fails(mocker, mocked_redis_client, cache):
+def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, mocker):
     mocker.patch.object(mocked_redis_client, "delete", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
@@ -200,7 +266,7 @@ def test_doesnt_update_api_if_redis_delete_fails(mocker, mocked_redis_client, ca
     fake_api_call.assert_not_called()
 
 
-def test_delete_by_pattern(mocker, mocked_redis_client, cache):
+def test_delete_by_pattern(mocked_redis_client, cache, mocker):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
         "delete_by_pattern",
@@ -216,7 +282,7 @@ def test_delete_by_pattern(mocker, mocked_redis_client, cache):
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
-def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocker, mocked_redis_client, cache):
+def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker):
     mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
