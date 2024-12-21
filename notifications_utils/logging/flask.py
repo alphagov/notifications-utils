@@ -1,15 +1,22 @@
 import logging
 import logging.handlers
 import sys
-import time
 from collections.abc import Sequence
 from functools import partial
 from itertools import product
 from os import getpid
 from pathlib import Path
+from time import perf_counter_ns
 
 from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
+
+import notifications_utils.eventlet as utils_eventlet
+
+if utils_eventlet.using_eventlet:
+    thread_time_ns = utils_eventlet.greenlet_thread_time_ns
+else:
+    from time import thread_time_ns
 
 from .formatting import (
     LOG_FORMAT,
@@ -20,6 +27,8 @@ from .formatting import (
 )
 
 logger = logging.getLogger(__name__)
+
+_ns_per_s = 1.0e-9
 
 
 def _common_request_extra_log_context():
@@ -47,13 +56,23 @@ def _log_response_closed(
     logger,
     log_level,
     response,
-    before_request_real_time,
+    before_request_perf_counter_ns,
+    before_request_thread_time_ns,
     common_request_extra_log_context,
 ):
+    _perf_counter_ns = perf_counter_ns()
+    _thread_time_ns = thread_time_ns()
     context = {
         "status": response.status_code,
         "request_time": (
-            (time.perf_counter() - before_request_real_time) if before_request_real_time is not None else None
+            (_perf_counter_ns - before_request_perf_counter_ns) * _ns_per_s
+            if before_request_perf_counter_ns is not None
+            else None
+        ),
+        "request_cpu_time": (
+            (_thread_time_ns - before_request_thread_time_ns) * _ns_per_s
+            if before_request_thread_time_ns is not None and _thread_time_ns is not None
+            else None
         ),
         # response size not reliably available at this point :(
         "response_streamed": True,
@@ -77,7 +96,8 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     def before_request():
         # annotating this onto request instead of flask.g as it probably shouldn't
         # be inheritable from a request-less application context
-        request.before_request_real_time = time.perf_counter()
+        request.before_request_perf_counter_ns = perf_counter_ns()
+        request.before_request_thread_time_ns = thread_time_ns()
 
         # emit an early log message to record that the request was received by the app
         context = _common_request_extra_log_context()
@@ -101,11 +121,18 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
         if request.path in app.config["NOTIFY_LOG_DEBUG_PATH_LIST"] and not (500 <= response.status_code < 600):
             log_level = logging.DEBUG
 
+        _perf_counter_ns = perf_counter_ns()
+        _thread_time_ns = thread_time_ns()
         context = {
             "status": response.status_code,
             "request_time": (
-                (time.perf_counter() - request.before_request_real_time)
-                if hasattr(request, "before_request_real_time")
+                (_perf_counter_ns - request.before_request_perf_counter_ns) * _ns_per_s
+                if getattr(request, "before_request_perf_counter_ns", None) is not None
+                else None
+            ),
+            "request_cpu_time": (
+                (_thread_time_ns - request.before_request_thread_time_ns) * _ns_per_s
+                if getattr(request, "before_request_thread_time_ns", None) is not None
                 else None
             ),
             "response_size": None if response.is_streamed else response.calculate_content_length(),
@@ -126,7 +153,8 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                     current_app.logger,
                     log_level,
                     response,
-                    getattr(request, "before_request_real_time", None),
+                    getattr(request, "before_request_perf_counter_ns", None),
+                    getattr(request, "before_request_thread_time_ns", None),
                     # this is horrible, but call_on_close hook can't use `request` itself, meaning these filters
                     # and _common_request_extra_log_context() won't work normally when that is called, meaning
                     # we need to "pre-bake" their values now.
