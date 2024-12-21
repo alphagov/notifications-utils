@@ -7,7 +7,8 @@ from unittest import mock
 import pytest
 from freezegun import freeze_time
 
-from notifications_utils import logging, request_helper
+from notifications_utils import request_helper
+from notifications_utils.logging import flask as logging
 from notifications_utils.testing.comparisons import AnyStringMatching, RestrictedAny
 
 
