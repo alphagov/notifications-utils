@@ -52,6 +52,22 @@ def _common_request_extra_log_context():
     }
 
 
+def _eventlet_stats_extra_log_context():
+    greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()
+    before_request_greenlet_context_switch_count = getattr(
+        request, "before_request_greenlet_context_switch_count", None
+    )
+    return {
+        "greenlet_context_switches": (
+            None
+            if greenlet_context_switch_count is None or before_request_greenlet_context_switch_count is None
+            else greenlet_context_switch_count - before_request_greenlet_context_switch_count
+        ),
+        "greenlet_real_time_max_continuous": utils_eventlet.greenlet_perf_counter_ns_max_continuous() * _ns_per_s,
+        "greenlet_cpu_time_max_continuous": utils_eventlet.greenlet_thread_time_ns_max_continuous() * _ns_per_s,
+    }
+
+
 def _log_response_closed(
     logger,
     log_level,
@@ -91,6 +107,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
+    app.config.setdefault("NOTIFY_EVENTLET_STATS", False)
 
     @app.before_request
     def before_request():
@@ -98,6 +115,10 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
         # be inheritable from a request-less application context
         request.before_request_perf_counter_ns = perf_counter_ns()
         request.before_request_thread_time_ns = thread_time_ns()
+
+        if app.config["NOTIFY_EVENTLET_STATS"]:
+            request.before_request_greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()
+            utils_eventlet.reset_greenlet_stats()
 
         # emit an early log message to record that the request was received by the app
         context = _common_request_extra_log_context()
@@ -137,6 +158,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             ),
             "response_size": None if response.is_streamed else response.calculate_content_length(),
             "response_streamed": response.is_streamed,
+            **(_eventlet_stats_extra_log_context() if app.config["NOTIFY_EVENTLET_STATS"] else {}),
             **_common_request_extra_log_context(),
         }
         current_app.logger.getChild("request").log(
