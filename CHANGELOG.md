@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 93.0.0
+
+* BREAKING CHANGE: logging: all contents of `logging/__init__.py` have been moved to `logging/flask.py` because they all assume a flask(-like) environment and this way we don't implicitly import all of flask etc. every time anything under `logging` is imported.
+* Adds `request_cpu_time` to `app.request` logs when available.
+* Adds ability to track eventlet's switching of greenlets and annotate `app.request` logs with useful metrics when the flask config parameter `NOTIFY_EVENTLET_STATS` is set and the newly provided function `account_greenlet_times` is installed as a greenlet trace hook.
+
 ## 92.1.1
 
 * Bump minimum version of `jinja2` to 3.1.5
