@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 92.0.2
+
+* Downgrade minimum version of `requests` to 2.32.3
+
 ## 92.0.1
 
 * Bumps core dependencies to latest versions

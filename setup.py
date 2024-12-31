@@ -25,7 +25,7 @@ setup(
     install_requires=[
         "cachetools>=5.5.0",
         "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
-        "requests>=2.32.3",
+        "requests>=2.32.2",  # Can’t go past 2.32.2 until https://github.com/psf/requests/issues/6730 is fixed
         "python-json-logger>=2.0.7",
         "Flask>=3.1.0",
         "gunicorn[eventlet]>=20.1.0",
