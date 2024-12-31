@@ -7,7 +7,8 @@ from unittest import mock
 import pytest
 from freezegun import freeze_time
 
-from notifications_utils import logging, request_helper
+from notifications_utils import request_helper
+from notifications_utils.logging import flask as logging
 from notifications_utils.testing.comparisons import AnyStringMatching, RestrictedAny
 
 
@@ -180,6 +181,7 @@ def test_app_request_logs_level_by_status_code(
                 "parent_span_id": "deadbeef" if with_request_helper else None,
                 "status": status_code,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -197,6 +199,7 @@ def test_app_request_logs_level_by_status_code(
                 "parent_span_id": "deadbeef" if with_request_helper else None,
                 "status": status_code,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -241,6 +244,7 @@ def test_app_request_logs_level_by_status_code(
                 "user_id": None,
                 "status": status_code,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -261,6 +265,7 @@ def test_app_request_logs_level_by_status_code(
                 "user_id": None,
                 "status": status_code,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -339,6 +344,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -357,6 +363,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -409,6 +416,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -426,6 +434,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -453,6 +462,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -470,6 +480,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -498,6 +509,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -515,6 +527,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -588,6 +601,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "parent_span_id": None,
                 "status": 404,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -606,6 +620,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "parent_span_id": None,
                 "status": 404,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -683,6 +698,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -700,6 +716,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -742,6 +759,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "user_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -762,6 +780,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "user_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
@@ -847,6 +866,7 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "parent_span_id": None,
                 "status": 413,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
             extra={
@@ -865,6 +885,7 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "parent_span_id": None,
                 "status": 413,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
+                "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
         )
