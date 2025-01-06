@@ -16,8 +16,6 @@ class InvalidRecipientError(Exception):
 class InvalidEmailError(InvalidRecipientError):
     message = "Not a valid email address"
 
-    def get_v2_message(self):
-        return self.message
 
 
 class InvalidPhoneError(InvalidRecipientError):
@@ -90,5 +88,3 @@ class InvalidPhoneError(InvalidRecipientError):
 class InvalidAddressError(InvalidRecipientError):
     message = "Not a valid postal address"
 
-    def get_v2_message(self):
-        return self.message
