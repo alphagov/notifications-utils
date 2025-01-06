@@ -9,9 +9,15 @@ class InvalidRecipientError(Exception):
     def __init__(self, message: str = None):
         super().__init__(message or self.message)
 
+    def get_v2_message(self):
+        return self.message
+
 
 class InvalidEmailError(InvalidRecipientError):
     message = "Not a valid email address"
+
+    def get_v2_message(self):
+        return self.message
 
 
 class InvalidPhoneError(InvalidRecipientError):
@@ -77,6 +83,11 @@ class InvalidPhoneError(InvalidRecipientError):
     def get_legacy_v2_api_error_message(self):
         return self.LEGACY_V2_API_ERROR_MESSAGES[self.code]
 
+    def get_v2_message(self):
+        return self.get_legacy_v2_api_error_message()
+
 
 class InvalidAddressError(InvalidRecipientError):
     message = "Not a valid postal address"
+    def get_v2_message(self):
+        return self.message
