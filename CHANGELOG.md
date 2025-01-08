@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 92.1.1
+
+* Bump minimum version of `jinja2` to 3.1.5
+
 ## 92.1.0
 
 * RequestCache: add CacheResultWrapper to allow dynamic cache decisions

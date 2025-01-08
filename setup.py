@@ -30,7 +30,7 @@ setup(
         "Flask>=3.1.0",
         "gunicorn[eventlet]>=20.1.0",
         "ordered-set>=4.1.0",
-        "Jinja2>=3.1.4",
+        "Jinja2>=3.1.5",
         "statsd>=4.0.1",
         "Flask-Redis>=0.4.0",
         "pyyaml>=6.0.2",
