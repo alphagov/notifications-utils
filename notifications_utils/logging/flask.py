@@ -104,6 +104,7 @@ def _log_response_closed(
 
 def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = ()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
+    app.config.setdefault("NOTIFY_LOG_LEVEL_HANDLERS", app.config["NOTIFY_LOG_LEVEL"])
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
@@ -252,7 +253,7 @@ def get_handlers(app, extra_filters: Sequence[logging.Filter]):
 
 
 def configure_handler(handler, app, formatter, *, extra_filters: Sequence[logging.Filter]):
-    handler.setLevel(logging.getLevelName(app.config["NOTIFY_LOG_LEVEL"]))
+    handler.setLevel(logging.getLevelName(app.config["NOTIFY_LOG_LEVEL_HANDLERS"]))
     handler.setFormatter(formatter)
     handler.addFilter(AppNameFilter(app.config["NOTIFY_APP_NAME"]))
     handler.addFilter(RequestIdFilter())
