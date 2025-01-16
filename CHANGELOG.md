@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 93.1.0
+
+* Introduce `NOTIFY_LOG_LEVEL_HANDLERS` config variable for separate control of handler log level
+
 ## 93.0.0
 
 * BREAKING CHANGE: logging: all contents of `logging/__init__.py` have been moved to `logging/flask.py` because they all assume a flask(-like) environment and this way we don't implicitly import all of flask etc. every time anything under `logging` is imported.

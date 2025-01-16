@@ -14,7 +14,7 @@ from notifications_utils.testing.comparisons import AnyStringMatching, Restricte
 
 def test_get_handlers_sets_up_logging_appropriately_with_debug():
     class App:
-        config = {"NOTIFY_APP_NAME": "bar", "NOTIFY_LOG_LEVEL": "ERROR"}
+        config = {"NOTIFY_APP_NAME": "bar", "NOTIFY_LOG_LEVEL": "ERROR", "NOTIFY_LOG_LEVEL_HANDLERS": "ERROR"}
         debug = True
 
     app = App()
@@ -31,6 +31,7 @@ def test_get_handlers_sets_up_logging_appropriately_without_debug():
         config = {
             "NOTIFY_APP_NAME": "bar",
             "NOTIFY_LOG_LEVEL": "ERROR",
+            "NOTIFY_LOG_LEVEL_HANDLERS": "ERROR",
         }
         debug = False
 
@@ -58,6 +59,7 @@ def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
             config = {
                 "NOTIFY_APP_NAME": "bar",
                 "NOTIFY_LOG_LEVEL": "INFO",
+                "NOTIFY_LOG_LEVEL_HANDLERS": "INFO",
             }
             debug = False
 
