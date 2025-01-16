@@ -97,7 +97,7 @@ packaging==24.1
     #   pytest
 pathspec==0.12.1
     # via black
-phonenumbers==8.13.52
+phonenumberslite==8.13.53
     # via notifications-utils (setup.py)
 platformdirs==4.3.6
     # via black

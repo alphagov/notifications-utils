@@ -34,7 +34,7 @@ setup(
         "statsd>=4.0.1",
         "Flask-Redis>=0.4.0",
         "pyyaml>=6.0.2",
-        "phonenumbers>=8.13.50",
+        "phonenumberslite>=8.13.50",
         "pytz>=2024.2",
         "smartypants>=2.0.1",
         "pypdf>=3.13.0",
