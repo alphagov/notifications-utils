@@ -11,6 +11,8 @@ freeze-requirements: ## Pin all test requirements including sub dependencies int
 
 .PHONY: bootstrap
 bootstrap: ## Build project
+	# we need setuptools to run `make test` as it is referred to in setup.py
+	uv pip install setuptools
 	uv pip install -r requirements_for_test.txt
 	uv pip install -e .
 
