@@ -10,6 +10,9 @@ class EventletTimeout(Exception):
     pass
 
 
+_ns_per_s = 1.0e-9
+
+
 # eventlet detection cribbed from
 # https://github.com/celery/kombu/blob/74779a8078ab318a016ca107249e59f8c8063ef9/kombu/utils/compat.py#L38
 using_eventlet = False
@@ -25,7 +28,9 @@ if "eventlet" in sys.modules:
             using_eventlet = True
 
 if using_eventlet:
+    import flask
     import greenlet
+    from eventlet.hubs import get_hub
     from eventlet.timeout import Timeout
 
     class EventletTimeoutMiddleware:
@@ -188,6 +193,26 @@ if using_eventlet:
 
         return max(current_continuous_ns, getattr(current_greenlet, "_perf_counter_ns_max_continuous", None) or 0)
 
+    def _get_greenlet_debug_info(gt: greenlet.greenlet, key_prefix: str = "") -> dict:
+        return {
+            f"{key_prefix}greenlet_real_time": (
+                gt._perf_counter_ns_accum * _ns_per_s if hasattr(gt, "_perf_counter_ns_accum") else None
+            ),
+            f"{key_prefix}greenlet_cpu_time": (
+                gt._thread_time_ns_accum * _ns_per_s if hasattr(gt, "_thread_time_ns_accum") else None
+            ),
+            f"{key_prefix}greenlet_context_switches": getattr(gt, "_context_switch_count", None),
+        }
+
+    def get_main_greenlets_debug_info() -> dict:
+        info = _get_greenlet_debug_info(get_hub().greenlet, "hub_")
+
+        server_greenlet = getattr(flask.current_app, "_server_greenlet", None)
+        if server_greenlet:
+            info.update(_get_greenlet_debug_info(server_greenlet, "server_"))
+
+        return info
+
 else:
     EventletTimeoutMiddleware = None
     account_greenlet_times = None
@@ -198,3 +223,4 @@ else:
     greenlet_perf_count_ns_max_continuous = lambda: None  # noqa
     greenlet_thread_time_ns_max_continuous = lambda: None  # noqa
     greenlet_context_switch_count = lambda: None  # noqa
+    get_main_greenlets_debug_info = lambda: {}  # noqa
