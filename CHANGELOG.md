@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 93.1.1
+
+* Replace `phonenumbers` subdependency with `phonenumberslite`
+
 ## 93.1.0
 
 * Introduce `NOTIFY_LOG_LEVEL_HANDLERS` config variable for separate control of handler log level
