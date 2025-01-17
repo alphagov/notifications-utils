@@ -52,12 +52,13 @@ def _common_request_extra_log_context():
     }
 
 
-def _eventlet_stats_extra_log_context():
+def _eventlet_stats_extra_log_context(request_time: float | None) -> dict:
     greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()
     before_request_greenlet_context_switch_count = getattr(
         request, "before_request_greenlet_context_switch_count", None
     )
-    return {
+
+    context = {
         "greenlet_context_switches": (
             None
             if greenlet_context_switch_count is None or before_request_greenlet_context_switch_count is None
@@ -66,6 +67,10 @@ def _eventlet_stats_extra_log_context():
         "greenlet_real_time_max_continuous": utils_eventlet.greenlet_perf_counter_ns_max_continuous() * _ns_per_s,
         "greenlet_cpu_time_max_continuous": utils_eventlet.greenlet_thread_time_ns_max_continuous() * _ns_per_s,
     }
+    if request_time and request_time > current_app.config["NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS"]:
+        context.update(utils_eventlet.get_main_greenlets_debug_info())
+
+    return context
 
 
 def _log_response_closed(
@@ -109,6 +114,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
     app.config.setdefault("NOTIFY_EVENTLET_STATS", False)
+    app.config.setdefault("NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS", 1.0)
 
     @app.before_request
     def before_request():
@@ -159,9 +165,11 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             ),
             "response_size": None if response.is_streamed else response.calculate_content_length(),
             "response_streamed": response.is_streamed,
-            **(_eventlet_stats_extra_log_context() if app.config["NOTIFY_EVENTLET_STATS"] else {}),
             **_common_request_extra_log_context(),
         }
+        if app.config["NOTIFY_EVENTLET_STATS"]:
+            context.update(_eventlet_stats_extra_log_context(context["request_time"]))
+
         current_app.logger.getChild("request").log(
             log_level,
             "%(method)s %(url)s %(status)s took %(request_time)ss",
