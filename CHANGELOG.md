@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 93.2.0
+
+* logging: add verbose eventlet context to app.request logs if request_time is over a threshold
+
 ## 93.1.0
 
 * Introduce `NOTIFY_LOG_LEVEL_HANDLERS` config variable for separate control of handler log level
