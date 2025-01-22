@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 93.2.1
+
+* Replaces symlink at `./pyproject.toml` with a duplicate file
+
 ## 93.2.0
 
 * logging: add verbose eventlet context to app.request logs if request_time is over a threshold
