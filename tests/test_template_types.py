@@ -448,9 +448,9 @@ def test_HTML_template_has_URLs_replaced_with_links(content, html_snippet):
 @pytest.mark.parametrize(
     "template_content,expected",
     [
-        ("gov.uk", "gov.\u200Buk"),
-        ("GOV.UK", "GOV.\u200BUK"),
-        ("Gov.uk", "Gov.\u200Buk"),
+        ("gov.uk", "gov.\u200buk"),
+        ("GOV.UK", "GOV.\u200bUK"),
+        ("Gov.uk", "Gov.\u200buk"),
         ("https://gov.uk", "https://gov.uk"),
         ("https://www.gov.uk", "https://www.gov.uk"),
         ("www.gov.uk", "www.gov.uk"),
@@ -645,7 +645,7 @@ def test_sms_message_normalises_newlines(content):
     ),
 )
 def test_phone_templates_normalise_whitespace(template_class):
-    content = "  Hi\u00A0there\u00A0 what's\u200D up\t"
+    content = "  Hi\u00a0there\u00a0 what's\u200d up\t"
     assert (
         str(template_class({"content": content, "template_type": template_class.template_type})) == "Hi there what's up"
     )
@@ -1883,7 +1883,7 @@ def test_whitespace_in_subjects(template_class, template_type, subject, extra_ar
 def test_whitespace_in_subject_placeholders(template_class):
     assert (
         template_class(
-            {"content": "", "subject": "\u200C Your tax   ((status))", "template_type": "email"},
+            {"content": "", "subject": "\u200c Your tax   ((status))", "template_type": "email"},
             values={"status": " is\ndue "},
         ).subject
         == "Your tax is due"

@@ -1038,20 +1038,17 @@ def test_bfpo_address_lines_error():
 
 
 def test_bfpo_address_with_country_still_shows_country_in_normalised_lines_even_if_invalid():
-    assert (
-        PostalAddress(
-            """International BFPO
+    assert PostalAddress(
+        """International BFPO
             BFPO 1
             BF1 1AA
             usa"""
-        ).normalised_lines
-        == [
-            "International BFPO",
-            "BF1 1AA",
-            "BFPO 1",
-            "United States",
-        ]
-    )
+    ).normalised_lines == [
+        "International BFPO",
+        "BF1 1AA",
+        "BFPO 1",
+        "United States",
+    ]
 
 
 def test_postal_address_equality():

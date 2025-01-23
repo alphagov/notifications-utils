@@ -297,8 +297,7 @@ class RecipientCSV:
                     # Work out which columns are shared between the possible
                     # letter address columns and the columns in the user’s
                     # spreadsheet (`&` means set intersection)
-                    set_to_check
-                    & self.column_headers_as_column_keys
+                    set_to_check & self.column_headers_as_column_keys
                 )
                 >= self.count_of_required_recipient_columns
             ):
