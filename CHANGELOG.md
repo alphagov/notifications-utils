@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 94.0.1
+
+* Add `ruff.toml` to `MANIFEST.in`
+
 ## 94.0.0
 
 * `version_tools.copy_config` will now copy `ruff.toml` instead of `pyproject.toml`. Apps should maintain their own `pyproject.toml`, if required
