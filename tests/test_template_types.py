@@ -1818,11 +1818,11 @@ def test_message_too_long_for_an_email_message_within_limits(template_class, tem
     [
         (
             "a\n\n\nb",
-            ("<p>a</p><p>b</p>"),
+            "<p>a</p><p>b</p>",
         ),
         (
-            ("a\n\n* one\n* two\n* three\nand a half\n\n\n\n\nfoo"),
-            ("<p>a</p><ul>\n<li>one</li>\n<li>two</li>\n<li>three<br>and a half</li>\n</ul>\n<p>foo</p>"),
+            "a\n\n* one\n* two\n* three\nand a half\n\n\n\n\nfoo",
+            "<p>a</p><ul>\n<li>one</li>\n<li>two</li>\n<li>three<br>and a half</li>\n</ul>\n<p>foo</p>",
         ),
     ],
 )
@@ -2028,7 +2028,7 @@ def test_plain_text_email_whitespace():
         (
             PlainTextEmailTemplate,
             "email",
-            ("Heading link: https://example.com\n=================================================================\n"),
+            "Heading link: https://example.com\n=================================================================\n",
         ),
         (
             HTMLEmailTemplate,
@@ -2107,8 +2107,8 @@ def test_image_not_present_if_no_logo(template_class):
 @pytest.mark.parametrize(
     "content",
     (
-        ("The     quick brown fox.\n\n\n\n\nJumps over the lazy dog.   \nSingle linebreak above."),
-        ("\n   \nThe quick brown fox.  \n\n          Jumps over the lazy dog   .  \nSingle linebreak above. \n  \n \n"),
+        "The     quick brown fox.\n\n\n\n\nJumps over the lazy dog.   \nSingle linebreak above.",
+        "\n   \nThe quick brown fox.  \n\n          Jumps over the lazy dog   .  \nSingle linebreak above. \n  \n \n",
     ),
 )
 @pytest.mark.parametrize(
@@ -2116,9 +2116,12 @@ def test_image_not_present_if_no_logo(template_class):
     (
         (
             SMSBodyPreviewTemplate,
-            ("The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above."),
+            "The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above.",
         ),
-        (SMSMessageTemplate, ("The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above.")),
+        (
+            SMSMessageTemplate,
+            "The quick brown fox.\n\nJumps over the lazy dog.\nSingle linebreak above.",
+        ),
         (
             SMSPreviewTemplate,
             (
@@ -2148,17 +2151,17 @@ def test_text_messages_collapse_consecutive_whitespace(
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](((var)))"},
-            ("<p>[Example](<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>)</p>"),
+            "<p>[Example](<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>)</p>",
         ),
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
-            ("<p>[Example](https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>)</p>"),
+            "<p>[Example](https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>)</p>",
         ),
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](pre((var))post)"},
-            ("<p>[Example](pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post)</p>"),
+            "<p>[Example](pre<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>post)</p>",
         ),
         (
             LetterPreviewTemplate,
