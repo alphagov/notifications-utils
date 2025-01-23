@@ -11,17 +11,17 @@ from notifications_utils.sanitise_text import SanitiseSMS
 from . import email_with_smart_quotes_regex
 
 OBSCURE_ZERO_WIDTH_WHITESPACE = (
-    "\u180E"  # Mongolian vowel separator
-    "\u200B"  # zero width space
-    "\u200C"  # zero width non-joiner
-    "\u200D"  # zero width joiner
+    "\u180e"  # Mongolian vowel separator
+    "\u200b"  # zero width space
+    "\u200c"  # zero width non-joiner
+    "\u200d"  # zero width joiner
     "\u2060"  # word joiner
-    "\uFEFF"  # zero width non-breaking space
+    "\ufeff"  # zero width non-breaking space
     "\u2028"  # line separator
     "\u2029"  # paragraph separator
 )
 
-OBSCURE_FULL_WIDTH_WHITESPACE = "\u00A0\u202F"  # non breaking space  # narrow no break space
+OBSCURE_FULL_WIDTH_WHITESPACE = "\u00a0\u202f"  # non breaking space  # narrow no break space
 
 ALL_WHITESPACE = string.whitespace + OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE
 
@@ -56,7 +56,7 @@ more_than_two_newlines_in_a_row = re.compile(r"\n{3,}")
 
 
 def unlink_govuk_escaped(message):
-    return re.sub(govuk_not_a_link, r"\1\2\3" + ".\u200B" + r"\4", message)  # Unicode zero-width space
+    return re.sub(govuk_not_a_link, r"\1\2\3" + ".\u200b" + r"\4", message)  # Unicode zero-width space
 
 
 def nl2br(value):

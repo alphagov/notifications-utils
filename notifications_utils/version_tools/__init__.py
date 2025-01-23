@@ -11,7 +11,7 @@ repo_name = "alphagov/notifications-utils"
 config_files = {
     filename: importlib_resources.files("notifications_utils.version_tools").joinpath(filename).read_bytes()
     for filename in (
-        "pyproject.toml",
+        "ruff.toml",
         "requirements_for_test_common.in",
         ".pre-commit-config.yaml",
     )

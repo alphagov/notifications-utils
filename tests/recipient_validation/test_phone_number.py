@@ -427,7 +427,6 @@ def test_format_phone_number_human_readable_doenst_throw():
 
 
 class TestPhoneNumberClass:
-
     @pytest.mark.parametrize("phone_number, error_message", invalid_uk_mobile_phone_numbers)
     def test_rejects_invalid_uk_mobile_phone_numbers(self, phone_number, error_message):
         # problem is `invalid_uk_mobile_phone_numbers` also includes valid uk landlines

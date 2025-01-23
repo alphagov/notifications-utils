@@ -8,8 +8,6 @@ beautifulsoup4==4.12.3
     # via -r requirements_for_test_common.in
 billiard==4.2.1
     # via celery
-black==24.10.0
-    # via -r requirements_for_test_common.in
 blinker==1.9.0
     # via flask
 boto3==1.35.87
@@ -28,7 +26,6 @@ charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via
-    #   black
     #   celery
     #   click-didyoumean
     #   click-plugins
@@ -86,21 +83,14 @@ markupsafe==3.0.2
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils (setup.py)
-mypy-extensions==1.0.0
-    # via black
 ordered-set==4.1.0
     # via notifications-utils (setup.py)
 packaging==24.1
     # via
-    #   black
     #   gunicorn
     #   pytest
-pathspec==0.12.1
-    # via black
 phonenumbers==8.13.52
     # via notifications-utils (setup.py)
-platformdirs==4.3.6
-    # via black
 pluggy==1.5.0
     # via pytest
 prompt-toolkit==3.0.48
@@ -144,7 +134,7 @@ requests==2.32.3
     #   requests-mock
 requests-mock==1.12.1
     # via -r requirements_for_test_common.in
-ruff==0.8.2
+ruff==0.9.2
     # via -r requirements_for_test_common.in
 s3transfer==0.10.4
     # via boto3

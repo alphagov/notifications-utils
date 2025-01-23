@@ -54,9 +54,7 @@ with Path(version_file_path).open("w") as version_file:
 
 print("")
 print(
-    f"{color.BOLD}{color.GREEN}"
-    f"Changed version from {old_version} to {new_major}.{new_minor}.{new_patch}"
-    f"{color.END} ✅"
+    f"{color.BOLD}{color.GREEN}Changed version from {old_version} to {new_major}.{new_minor}.{new_patch}{color.END} ✅"
 )
 print("")
 print("   Update requirements files in other apps with:")

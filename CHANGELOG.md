@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 94.0.0
+
+* `version_tools.copy_config` will now copy `ruff.toml` instead of `pyproject.toml`. Apps should maintain their own `pyproject.toml`, if required
+* Replaces `black` formatter with `ruff format`
+* Upgrades `ruff` to version 0.9.2
+
 ## 93.2.1
 
 * Replaces symlink at `./pyproject.toml` with a duplicate file

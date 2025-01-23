@@ -121,7 +121,10 @@ def test_send_task_injects_global_request_id_into_headers(
     notify_celery.send_task("some-task")
 
     super_apply.assert_called_with(
-        "some-task", None, None, headers={"notify_request_id": "1234"}  # name  # args  # kwargs  # other kwargs
+        "some-task",  # name
+        None,  # args
+        None,  # kwargs
+        headers={"notify_request_id": "1234"},  # other kwargs
     )
 
 
@@ -150,14 +153,17 @@ def test_send_task_injects_request_id_with_none_headers(
     g.request_id = "1234"
 
     notify_celery.send_task(
-        "some-task",
+        "some-task",  # name
         None,  # args
         None,  # kwargs
         headers=None,  # other kwargs (task retry set headers to "None")
     )
 
     super_apply.assert_called_with(
-        "some-task", None, None, headers={"notify_request_id": "1234"}  # name  # args  # kwargs  # other kwargs
+        "some-task",  # name
+        None,  # args
+        None,  # kwargs
+        headers={"notify_request_id": "1234"},  # other kwargs
     )
 
 
@@ -174,5 +180,8 @@ def test_send_task_injects_id_from_request(
         notify_celery.send_task("some-task")
 
     super_apply.assert_called_with(
-        "some-task", None, None, headers={"notify_request_id": "1234"}  # name  # args  # kwargs  # other kwargs
+        "some-task",  # name
+        None,  # args
+        None,  # kwargs
+        headers={"notify_request_id": "1234"},  # other kwargs
     )
