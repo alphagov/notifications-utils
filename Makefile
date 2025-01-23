@@ -18,7 +18,7 @@ bootstrap: ## Build project
 .PHONY: test
 test: ## Run tests
 	ruff check .
-	black --check .
+	ruff format --check .
 	pytest -n auto
 	python setup.py sdist
 
