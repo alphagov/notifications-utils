@@ -25,7 +25,6 @@ select = [
     "T20", # flake8-print
     "UP",  # pyupgrade
     "C4",  # flake8-comprehensions
-    "ISC",  # flake8-implicit-str-concat
     "RSE",  # flake8-raise
     "PIE",  # flake8-pie
     "N804",  # First argument of a class method should be named `cls`
