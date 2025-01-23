@@ -26,7 +26,8 @@ non_working_days_dvla = BankHolidays(
     weekend=(5, 6),
 )
 non_working_days_royal_mail = BankHolidays(
-    use_cached_holidays=True, weekend=(6,)  # Only Sunday (day 6 of the week) is a non-working day
+    use_cached_holidays=True,
+    weekend=(6,),  # Only Sunday (day 6 of the week) is a non-working day
 )
 
 

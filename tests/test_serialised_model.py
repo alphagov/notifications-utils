@@ -98,7 +98,6 @@ def test_model_raises_keyerror_if_item_missing_from_dict():
 )
 def test_model_doesnt_swallow_attribute_errors(json_response):
     class Custom(SerialisedModel):
-
         @property
         def foo(self):
             raise AttributeError("Something has gone wrong")

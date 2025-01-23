@@ -448,9 +448,9 @@ def test_HTML_template_has_URLs_replaced_with_links(content, html_snippet):
 @pytest.mark.parametrize(
     "template_content,expected",
     [
-        ("gov.uk", "gov.\u200Buk"),
-        ("GOV.UK", "GOV.\u200BUK"),
-        ("Gov.uk", "Gov.\u200Buk"),
+        ("gov.uk", "gov.\u200buk"),
+        ("GOV.UK", "GOV.\u200bUK"),
+        ("Gov.uk", "Gov.\u200buk"),
         ("https://gov.uk", "https://gov.uk"),
         ("https://www.gov.uk", "https://www.gov.uk"),
         ("www.gov.uk", "www.gov.uk"),
@@ -645,7 +645,7 @@ def test_sms_message_normalises_newlines(content):
     ),
 )
 def test_phone_templates_normalise_whitespace(template_class):
-    content = "  Hi\u00A0there\u00A0 what's\u200D up\t"
+    content = "  Hi\u00a0there\u00a0 what's\u200d up\t"
     assert (
         str(template_class({"content": content, "template_type": template_class.template_type})) == "Hi there what's up"
     )
@@ -1350,9 +1350,7 @@ def test_templates_handle_html_and_redacting(
             [
                 mock.call(Markup("subject")),
                 mock.call(
-                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                    "content"
-                    "</p>"
+                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">content</p>'
                 ),
                 mock.call("\n\ncontent"),
                 mock.call(Markup("subject")),
@@ -1435,9 +1433,7 @@ def test_templates_remove_whitespace_before_punctuation(
             {},
             [
                 mock.call(
-                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
-                    "content"
-                    "</p>"
+                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">content</p>'
                 ),
                 mock.call("\n\ncontent"),
                 mock.call(Markup("subject")),
@@ -1826,14 +1822,7 @@ def test_message_too_long_for_an_email_message_within_limits(template_class, tem
         ),
         (
             ("a\n\n* one\n* two\n* three\nand a half\n\n\n\n\nfoo"),
-            (
-                "<p>a</p><ul>\n"
-                "<li>one</li>\n"
-                "<li>two</li>\n"
-                "<li>three<br>and a half</li>\n"
-                "</ul>\n"
-                "<p>foo</p>"
-            ),
+            ("<p>a</p><ul>\n<li>one</li>\n<li>two</li>\n<li>three<br>and a half</li>\n</ul>\n<p>foo</p>"),
         ),
     ],
 )
@@ -1883,7 +1872,7 @@ def test_whitespace_in_subjects(template_class, template_type, subject, extra_ar
 def test_whitespace_in_subject_placeholders(template_class):
     assert (
         template_class(
-            {"content": "", "subject": "\u200C Your tax   ((status))", "template_type": "email"},
+            {"content": "", "subject": "\u200c Your tax   ((status))", "template_type": "email"},
             values={"status": " is\ndue "},
         ).subject
         == "Your tax is due"
@@ -1945,14 +1934,7 @@ def test_nested_lists_in_lettr_markup():
         LetterPreviewTemplate(
             {
                 "content": (
-                    "nested list:\n"
-                    "\n"
-                    "1. one\n"
-                    "2. two\n"
-                    "3. three\n"
-                    "  - three one\n"
-                    "  - three two\n"
-                    "  - three three\n"
+                    "nested list:\n\n1. one\n2. two\n3. three\n  - three one\n  - three two\n  - three three\n"
                 ),
                 "subject": "foo",
                 "template_type": "letter",
@@ -2046,10 +2028,7 @@ def test_plain_text_email_whitespace():
         (
             PlainTextEmailTemplate,
             "email",
-            (
-                "Heading link: https://example.com\n"
-                "=================================================================\n"
-            ),
+            ("Heading link: https://example.com\n=================================================================\n"),
         ),
         (
             HTMLEmailTemplate,
@@ -2129,12 +2108,7 @@ def test_image_not_present_if_no_logo(template_class):
     "content",
     (
         ("The     quick brown fox.\n\n\n\n\nJumps over the lazy dog.   \nSingle linebreak above."),
-        (
-            "\n   \n"
-            "The quick brown fox.  \n\n"
-            "          Jumps over the lazy dog   .  \n"
-            "Single linebreak above. \n  \n \n"
-        ),
+        ("\n   \nThe quick brown fox.  \n\n          Jumps over the lazy dog   .  \nSingle linebreak above. \n  \n \n"),
     ),
 )
 @pytest.mark.parametrize(
@@ -2179,11 +2153,7 @@ def test_text_messages_collapse_consecutive_whitespace(
         (
             LetterPreviewTemplate,
             {"template_type": "letter", "subject": "foo", "content": "[Example](https://blah.blah/?query=((var)))"},
-            (
-                "<p>[Example]"
-                "(https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>)"
-                "</p>"
-            ),
+            ("<p>[Example](https://blah.blah/?query=<span class='placeholder'>&#40;&#40;var&#41;&#41;</span>)</p>"),
         ),
         (
             LetterPreviewTemplate,

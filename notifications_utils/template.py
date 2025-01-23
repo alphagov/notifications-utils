@@ -73,7 +73,7 @@ class Template(ABC):
             raise TypeError("Values must be a dict")
         if template.get("template_type") != self.template_type:
             raise TypeError(
-                f'Cannot initialise {self.__class__.__name__} with {template.get("template_type")} template_type'
+                f"Cannot initialise {self.__class__.__name__} with {template.get('template_type')} template_type"
             )
         self.id = template.get("id", None)
         self.name = template.get("name", None)
@@ -567,7 +567,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     max_page_count = LETTER_MAX_PAGE_COUNT
     max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
 
-    address_block = "\n".join(f'(({line.replace("_", " ")}))' for line in address_lines_1_to_7_keys)
+    address_block = "\n".join(f"(({line.replace('_', ' ')}))" for line in address_lines_1_to_7_keys)
 
     def __init__(
         self,
