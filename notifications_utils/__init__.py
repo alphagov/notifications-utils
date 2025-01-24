@@ -1,3 +1,7 @@
+# Avoid further additions to this file as it will implicitly be imported before all utils
+# imports and we need to be able to use parts of the utils package from an early stage of
+# app bringup
+
 import re
 
 SMS_CHAR_COUNT_LIMIT = 918  # 153 * 6, no network issues but check with providers before upping this further
