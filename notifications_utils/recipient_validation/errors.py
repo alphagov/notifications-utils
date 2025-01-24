@@ -22,6 +22,7 @@ class InvalidPhoneError(InvalidRecipientError):
         NOT_A_UK_MOBILE = auto()
         UNKNOWN_CHARACTER = auto()
         UNSUPPORTED_COUNTRY_CODE = auto()
+        UNSUPPORTED_EMERGENCY_NUMBER = auto()
 
     # TODO: Move this somewhere else maybe? Maybe not?
     ERROR_MESSAGES = {
@@ -36,6 +37,7 @@ class InvalidPhoneError(InvalidRecipientError):
         ),
         Codes.UNKNOWN_CHARACTER: "Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -",
         Codes.UNSUPPORTED_COUNTRY_CODE: "Country code not found - double check the mobile number you entered",
+        Codes.UNSUPPORTED_EMERGENCY_NUMBER: "Phone number cannot be an emergency number",
     }
 
     LEGACY_V2_API_ERROR_MESSAGES = ERROR_MESSAGES | {

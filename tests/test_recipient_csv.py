@@ -359,9 +359,12 @@ def test_check_if_message_too_long_for_sms_but_not_email_in_CSV(mocker, template
 
 def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     mock_strip_and_remove_obscure_whitespace = mocker.patch(
-        "notifications_utils.recipients.strip_and_remove_obscure_whitespace"
+        "notifications_utils.recipients.strip_and_remove_obscure_whitespace",
+        side_effect=lambda value: {"07700900123": "07700900123", "example": "example"}.get(value),
     )
-    mock_insert_or_append_to_dict = mocker.patch("notifications_utils.recipients.insert_or_append_to_dict")
+    mock_insert_or_append_to_dict = mocker.patch(
+        "notifications_utils.recipients.insert_or_append_to_dict",
+    )
 
     big_csv = RecipientCSV(
         "phonenumber,name\n" + ("07700900123,example\n" * 123),
@@ -732,7 +735,7 @@ def test_bad_or_missing_data(
             phone number, country
             1-202-555-0104, USA
             +12025550104, USA
-            23051234567, Mauritius
+            +2304031000, Mauritius
         """,
             set(),
         ),
@@ -885,6 +888,48 @@ def test_detects_rows_which_result_in_overly_long_messages():
     assert recipients[1].has_error_spanning_multiple_cells is False
     assert recipients[2].has_error_spanning_multiple_cells is False
     assert recipients[3].has_error_spanning_multiple_cells is True
+
+
+def test_denys_invalid_numbers_when_should_validate_phone_number_set_to_true():
+    template = SMSMessageTemplate(
+        {"content": "test", "template_type": "sms"},
+        sender=None,
+        prefix=None,
+    )
+    recipients = RecipientCSV(
+        """
+            phone number
+            077009004605425890423582904
+            07700900461432482390483204
+            077009004622342342340239489023
+            07700900463523423423432432
+        """,
+        template=template,
+        should_validate_phone_number=True,
+    )
+    assert recipients.has_errors
+    assert _index_rows(recipients.rows_with_errors) == {0, 1, 2, 3}
+
+
+def test_allows_invalid_numbers_when_should_validate_phone_number_set_to_false():
+    template = SMSMessageTemplate(
+        {"content": "test", "template_type": "sms"},
+        sender=None,
+        prefix=None,
+    )
+    recipients = RecipientCSV(
+        """
+            phone number
+            077009004605425890423582904
+            07700900461432482390483204
+            077009004622342342340239489023
+            07700900463523423423432432
+        """,
+        template=template,
+        should_validate_phone_number=False,
+    )
+    assert not recipients.has_errors
+    assert dict(_index_rows(recipients.rows_with_errors)) == {}
 
 
 def test_detects_rows_which_result_in_empty_messages():
