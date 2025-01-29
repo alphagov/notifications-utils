@@ -13,7 +13,7 @@ from notifications_utils.formatters import (
     strip_and_remove_obscure_whitespace,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
-from notifications_utils.recipient_validation import email_address, phone_number
+from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
 from notifications_utils.recipient_validation.phone_number import PhoneNumber
 from notifications_utils.recipient_validation.postal_address import (
@@ -49,6 +49,7 @@ class RecipientCSV:
         allow_international_letters=False,
         allow_sms_to_uk_landline=False,
         should_validate=True,
+        should_validate_phone_number=True,
     ):
         self.file_data = strip_all_whitespace(file_data, extra_trailing_characters=",")
         self.max_errors_shown = max_errors_shown
@@ -61,6 +62,7 @@ class RecipientCSV:
         self.remaining_messages = remaining_messages
         self.rows_as_list = None
         self.should_validate = should_validate
+        self.should_validate_phone_number = should_validate_phone_number
 
     def __len__(self):
         if not hasattr(self, "_len"):
@@ -319,16 +321,11 @@ class RecipientCSV:
                 if self.template_type == "email":
                     email_address.validate_email_address(value)
                 if self.template_type == "sms":
-                    if self.allow_sms_to_uk_landline:
+                    if self.should_validate_phone_number:
                         number = PhoneNumber(value)
                         number.validate(
                             allow_international_number=self.allow_international_sms,
                             allow_uk_landline=self.allow_sms_to_uk_landline,
-                        )
-                    else:
-                        phone_number.validate_phone_number(
-                            value,
-                            international=self.allow_international_sms,
                         )
             except InvalidRecipientError as error:
                 return str(error)
@@ -475,7 +472,8 @@ def format_recipient(recipient):
     if not isinstance(recipient, str):
         return ""
     with suppress(InvalidPhoneError):
-        return phone_number.validate_and_format_phone_number(recipient, international=True)
+        number = PhoneNumber(recipient)
+        return number.get_normalised_format()
     with suppress(InvalidEmailError):
         return email_address.validate_and_format_email_address(recipient)
     return recipient
