@@ -1,8 +1,13 @@
 # CHANGELOG
 
+# 95.1.0
+
+* Adds log message and statsd metric for retried celery tasks
+
 # 95.0.0
 
 * Reverts 92.0.0 to restore new validation code
+
 ## 94.0.1
 
 * Add `ruff.toml` to `MANIFEST.in`

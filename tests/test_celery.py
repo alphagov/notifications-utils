@@ -66,6 +66,32 @@ def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplo
     assert f"Celery task {celery_task.name} (queue: none) took 5.0000" in caplog.messages
 
 
+def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog):
+    statsd_mock = celery_app.statsd_client.timing
+
+    with freeze_time() as frozen, caplog.at_level(logging.WARNING):
+        async_task()
+        frozen.tick(5)
+
+        async_task.on_retry(retval=None, task_id=1234, args=[], kwargs={})
+
+    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.retry", 5.0)
+    assert f"Celery task {async_task.name} (queue: test-queue) failed for retry after 5.0000" in caplog.messages
+
+
+def test_retry_queue_when_applied_synchronously(celery_app, celery_task, caplog):
+    statsd_mock = celery_app.statsd_client.timing
+
+    with freeze_time() as frozen, caplog.at_level(logging.WARNING):
+        celery_task()
+        frozen.tick(5)
+
+        celery_task.on_retry(retval=None, task_id=1234, args=[], kwargs={})
+
+    statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.retry", 5.0)
+    assert f"Celery task {celery_task.name} (queue: none) failed for retry after 5.0000" in caplog.messages
+
+
 def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog):
     statsd_mock = celery_app.statsd_client.incr
 

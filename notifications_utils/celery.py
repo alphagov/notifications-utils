@@ -54,6 +54,30 @@ def make_task(app):
                     elapsed_time,
                 )
 
+        def on_retry(self, retval, task_id, args, kwargs):
+            # enables request id tracing for these logs
+            with self.app_context():
+                elapsed_time = time.monotonic() - self.start
+
+                app.logger.warning(
+                    "Celery task %s (queue: %s) failed for retry after %.4f",
+                    self.name,
+                    self.queue_name,
+                    elapsed_time,
+                    extra={
+                        "celery_task": self.name,
+                        "queue_name": self.queue_name,
+                        "time_taken": elapsed_time,
+                        # avoid name collision with LogRecord's own `process` attribute
+                        "process_": getpid(),
+                    },
+                )
+
+                app.statsd_client.timing(
+                    f"celery.{self.queue_name}.{self.name}.retry",
+                    elapsed_time,
+                )
+
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
             with self.app_context():
