@@ -88,18 +88,18 @@ def test_handles_placeholders_in_urls():
     [
         (
             """https://example.com"onclick="alert('hi')""",
-            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>')""",  # noqa
-            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>‘)""",  # noqa
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>')""",
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22onclick=%22alert%28%27hi">https://example.com"onclick="alert('hi</a>‘)""",
         ),
         (
             """https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue""",
-            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue">https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue</a>""",  # noqa
-            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue">https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue</a>""",  # noqa
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue">https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue</a>""",
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue">https://example.com/login?redirect=%2Fhomepage%3Fsuccess=true%26page=blue</a>""",
         ),
         (
             """https://example.com"style='text-decoration:blink'""",
-            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>'""",  # noqa
-            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>’""",  # noqa
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>'""",
+            """<a style="word-wrap: break-word; color: #1D70B8;" href="https://example.com%22style=%27text-decoration:blink">https://example.com"style='text-decoration:blink</a>’""",
         ),
     ],
 )
