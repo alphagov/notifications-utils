@@ -4,11 +4,11 @@
 
 * Add `RUF100` rule to linter config (checks for inapplicable uses of `# noqa`)
 
-# 95.1.0
+## 95.1.0
 
 * Adds log message and statsd metric for retried celery tasks
 
-# 95.0.0
+## 95.0.0
 
 * Reverts 92.0.0 to restore new validation code
 
