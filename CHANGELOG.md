@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 95.1.1
+
+* Add `RUF100` rule to linter config (checks for inapplicable uses of `# noqa`)
+
 # 95.1.0
 
 * Adds log message and statsd metric for retried celery tasks

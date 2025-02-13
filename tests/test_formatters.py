@@ -29,11 +29,11 @@ from notifications_utils.template import (
     [
         (
             """https://example.com/"onclick="alert('hi')""",
-            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com/%22onclick=%22alert%28%27hi%27%29">https://example.com/"onclick="alert('hi')</a>""",  # noqa
+            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com/%22onclick=%22alert%28%27hi%27%29">https://example.com/"onclick="alert('hi')</a>""",
         ),
         (
             """https://example.com/"style='text-decoration:blink'""",
-            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com/%22style=%27text-decoration:blink%27">https://example.com/"style='text-decoration:blink'</a>""",  # noqa
+            """<a class="govuk-link govuk-link--no-visited-state" href="https://example.com/%22style=%27text-decoration:blink%27">https://example.com/"style='text-decoration:blink'</a>""",
         ),
     ],
 )
