@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 95.2.0
+
+* Implement `InsensitiveSet.__contains__`
+
 ## 95.1.2
 
 * Fix to the number of arguments the `on_retry` of the `NotifyTask` class takes.
