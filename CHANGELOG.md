@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 95.1.2
+
+* Implement `InsensitiveSet.__contains__`
+
 ## 95.1.1
 
 * Add `RUF100` rule to linter config (checks for inapplicable uses of `# noqa`)
