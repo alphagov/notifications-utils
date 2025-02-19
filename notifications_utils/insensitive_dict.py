@@ -63,3 +63,6 @@ class InsensitiveDict(dict):
 class InsensitiveSet(OrderedSet):
     def __init__(self, iterable):
         return super().__init__(InsensitiveDict.from_keys(iterable).values())
+
+    def __contains__(self, key):
+        return key in InsensitiveDict.from_keys(self)
