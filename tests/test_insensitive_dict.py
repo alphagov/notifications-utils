@@ -112,6 +112,27 @@ def test_insensitive_set():
     )
 
 
+def test_insensitive_set_contains():
+    foobar = InsensitiveSet(("foo", "bar"))
+
+    for key in (
+        "foo",
+        "F o o ",
+        "F_O_O",
+        "B_A_R",
+        "B a r",
+        "bar",
+    ):
+        assert key in foobar
+
+    for key in (
+        "baz",
+        "barz",
+        "z foo",
+    ):
+        assert key not in foobar
+
+
 @pytest.mark.parametrize(
     "extra_args, expected_dict",
     (
