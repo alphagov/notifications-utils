@@ -1,6 +1,8 @@
 import contextvars
+import os
 from collections import deque
 
+import eventlet
 import greenlet
 from gunicorn.workers import geventlet
 
@@ -32,3 +34,46 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
         g.gr_context = contextvars.Context()
 
         return ret
+
+class GreenThreadCreationThrottlingEventletWorker(geventlet.EventletWorker):
+    greenthread_creation_wait_seconds = 1.0
+
+    def eventlet_serve(self, sock, handle, concurrency):
+        pool = eventlet.greenpool.GreenPool(1)
+        server_gt = eventlet.greenthread.getcurrent()
+
+        while True:
+            try:
+                # if we've already reached maximum concurrency, wait indefinitely for a GreenThread
+                # slot to become available, otherwise only wait greenthread_creation_wait_seconds
+                timeout = self.greenthread_creation_wait_seconds if pool.size < concurrency else None
+                if pool.sem.acquire(timeout=timeout):
+                    # an existing GreenThread slot has become available - "release" this
+                    # semaphore so it can be re-acquired in pool.spawn
+                    pool.sem.release()
+                # else we've at least waited greenthread_creation_wait_seconds, warranting
+                # us to proceed and accept a connection
+                conn, addr = sock.accept()
+
+                # (re)check if we (still) need to expand the pool to handle this connection
+                if pool.sem.count == 0:
+                    # we do
+                    pool.resize(pool.size + 1)
+                    log_context = {
+                        "pool_size": pool.size,
+                        "process_": os.getpid(),
+                    }
+                    self.log.info("Expanded GreenPool size to %(pool_size)s", log_context, extra=log_context)
+
+                gt = pool.spawn(handle, conn, addr)
+                gt.link(geventlet._eventlet_stop, server_gt, conn)
+                conn, addr, gt = None, None, None
+            except eventlet.StopServe:
+                sock.close()
+                pool.waitall()
+                return
+
+    def patch(self, *args, **kwargs):
+        geventlet._eventlet_serve = self.eventlet_serve
+        super().patch(*args, **kwargs)
+
