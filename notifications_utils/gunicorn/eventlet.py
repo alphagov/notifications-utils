@@ -1,5 +1,6 @@
 import contextvars
 import os
+import time
 from collections import deque
 
 import eventlet
@@ -35,8 +36,8 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
 
         return ret
 
-class GreenThreadCreationThrottlingEventletWorker(geventlet.EventletWorker):
-    greenthread_creation_wait_seconds = 1.0
+class PoolExpansionCooldownEventletWorker(geventlet.EventletWorker):
+    pool_expansion_cooldown_seconds = 1.0
 
     def eventlet_serve(self, sock, handle, concurrency):
         pool = eventlet.greenpool.GreenPool(1)
@@ -44,21 +45,26 @@ class GreenThreadCreationThrottlingEventletWorker(geventlet.EventletWorker):
 
         while True:
             try:
-                # if we've already reached maximum concurrency, wait indefinitely for a GreenThread
-                # slot to become available, otherwise only wait greenthread_creation_wait_seconds
-                timeout = self.greenthread_creation_wait_seconds if pool.size < concurrency else None
-                if pool.sem.acquire(timeout=timeout):
-                    # an existing GreenThread slot has become available - "release" this
-                    # semaphore so it can be re-acquired in pool.spawn
-                    pool.sem.release()
-                # else we've at least waited greenthread_creation_wait_seconds, warranting
-                # us to proceed and accept a connection
+                time_till_cooldown_expiry = self.pool_expansion_cooldown_seconds - (time.monotonic() - self.last_expanded)
+                if pool.size >= concurrency or time_till_cooldown_expiry > 0:
+                    # if we've already reached maximum concurrency, wait indefinitely for a
+                    # GreenThread slot to become available, else wait time_till_cooldown_expiry
+                    timeout = None if pool.size >= concurrency else time_till_cooldown_expiry
+
+                    if pool.sem.acquire(timeout=timeout):
+                        # an existing GreenThread slot has become available - "release" this
+                        # semaphore so it can be re-acquired in pool.spawn
+                        pool.sem.release()
+                    # else it's at least been pool_expansion_cooldown_seconds since we last expanded
+                    # the pool, warranting us to proceed and accept a connection
+
                 conn, addr = sock.accept()
 
                 # (re)check if we (still) need to expand the pool to handle this connection
                 if pool.sem.count == 0:
                     # we do
                     pool.resize(pool.size + 1)
+                    self.last_expanded = time.monotonic()
                     log_context = {
                         "pool_size": pool.size,
                         "process_": os.getpid(),
@@ -73,7 +79,13 @@ class GreenThreadCreationThrottlingEventletWorker(geventlet.EventletWorker):
                 pool.waitall()
                 return
 
+    def run(self, *args, **kwargs):
+        self.last_expanded = time.monotonic()
+        super().run(*args, **kwargs)
+
     def patch(self, *args, **kwargs):
         geventlet._eventlet_serve = self.eventlet_serve
         super().patch(*args, **kwargs)
 
+class NotifyEventletWorker(PoolExpansionCooldownEventletWorker, ContextRecyclingEventletWorker):
+    pass
