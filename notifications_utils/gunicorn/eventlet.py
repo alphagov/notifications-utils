@@ -61,7 +61,7 @@ class PoolExpansionCooldownEventletWorker(geventlet.EventletWorker):
                 conn, addr = sock.accept()
 
                 # (re)check if we (still) need to expand the pool to handle this connection
-                if pool.sem.count == 0:
+                if pool.sem.counter == 0:
                     # we do
                     pool.resize(pool.size + 1)
                     self.last_expanded = time.monotonic()
