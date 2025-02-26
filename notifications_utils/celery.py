@@ -54,7 +54,7 @@ def make_task(app):
                     elapsed_time,
                 )
 
-        def on_retry(self, retval, task_id, args, kwargs):
+        def on_retry(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
             with self.app_context():
                 elapsed_time = time.monotonic() - self.start

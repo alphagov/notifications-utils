@@ -1,7 +1,9 @@
+import inspect
 import logging
 import uuid
 
 import pytest
+from celery import Task
 from flask import g
 from freezegun import freeze_time
 
@@ -73,7 +75,7 @@ def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog):
         async_task()
         frozen.tick(5)
 
-        async_task.on_retry(retval=None, task_id=1234, args=[], kwargs={})
+        async_task.on_retry(exc=Exception, task_id="1234", args=[], kwargs={}, einfo=None)
 
     statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.retry", 5.0)
     assert f"Celery task {async_task.name} (queue: test-queue) failed for retry after 5.0000" in caplog.messages
@@ -86,7 +88,7 @@ def test_retry_queue_when_applied_synchronously(celery_app, celery_task, caplog)
         celery_task()
         frozen.tick(5)
 
-        celery_task.on_retry(retval=None, task_id=1234, args=[], kwargs={})
+        celery_task.on_retry(exc=Exception, task_id="1234", args=[], kwargs={}, einfo=None)
 
     statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.retry", 5.0)
     assert f"Celery task {celery_task.name} (queue: none) failed for retry after 5.0000" in caplog.messages
@@ -211,3 +213,10 @@ def test_send_task_injects_id_from_request(
         None,  # kwargs
         headers={"notify_request_id": "1234"},  # other kwargs
     )
+
+
+@pytest.mark.parametrize("method, _value", list(inspect.getmembers(Task, predicate=inspect.isfunction)))
+def test_method_signatures(celery_app, async_task, method, _value):
+    if method == "run":
+        return
+    assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
