@@ -1,7 +1,9 @@
+import inspect
 import logging
 import uuid
 
 import pytest
+from celery import Task
 from flask import g
 from freezegun import freeze_time
 
@@ -211,3 +213,10 @@ def test_send_task_injects_id_from_request(
         None,  # kwargs
         headers={"notify_request_id": "1234"},  # other kwargs
     )
+
+
+@pytest.mark.parametrize("method, _value", list(inspect.getmembers(Task, predicate=inspect.isfunction)))
+def test_method_signatures(celery_app, async_task, method, _value):
+    if method == "run":
+        return
+    assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
