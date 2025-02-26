@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 95.1.2
+
+* Fix to the number of arguments the `on_retry` of the `NotifyTask` class takes.
+
 ## 95.1.1
 
 * Add `RUF100` rule to linter config (checks for inapplicable uses of `# noqa`)
