@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 98.0.1
+
+* Moves from `setup.py` to `pyproject.toml` for package configuation
+* Changes ruff config from `exclude` to `extend-exclude`
+
 ## 98.0.0
 
 * Update rate multipliers for international SMS to have values for 1 April 2025 onwards. When used in notifications-api and
