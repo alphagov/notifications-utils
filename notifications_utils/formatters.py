@@ -42,6 +42,14 @@ HTML_ENTITY_MAPPING = (
     ("&rpar;", "▶️🐦🥴"),
 )
 
+HTML_ESCAPE_MAPPING = (
+    ("&", "&amp;"),
+    ('"', "&quot;"),
+    ("'", "&apos;"),
+    (">", "&gt;"),
+    ("<", "&lt;"),
+)
+
 url = re.compile(
     r"(?i)"  # case insensitive
     r"\b(?<![\@\.])"  # match must not start with @ or . (like @test.example.com)
@@ -174,6 +182,14 @@ def escape_html(value):
 
     for entity, temporary_replacement in HTML_ENTITY_MAPPING:
         value = value.replace(temporary_replacement, entity)
+
+    return value
+
+
+def unescape_url(value):
+    if url.match(value):
+        for entity, temporary_replacement in HTML_ESCAPE_MAPPING:
+            value = value.replace(temporary_replacement, entity)
 
     return value
 

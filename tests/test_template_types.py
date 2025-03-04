@@ -829,6 +829,26 @@ def test_letter_preview_renders_QR_code_correctly(jinja_template):
     assert jinja_template_locals["message"] == expected_qr_code_svg
 
 
+@mock.patch("notifications_utils.template.LetterPreviewTemplate.jinja_template.render")
+def test_letter_preview_url_with_query_params_renders_QR_code_correctly(jinja_template):
+    str(
+        LetterPreviewTemplate(
+            {
+                "content": "This is your link:\n\nqr: www.gov.uk/search?q=foo&r=bar",
+                "subject": "Subject",
+                "template_type": "letter",
+            },
+            {"addressline1": "name", "addressline2": "street", "postcode": "SW1 1AA"},
+            contact_block="",
+        )
+    )
+
+    jinja_template_locals = jinja_template.call_args_list[0][0][0]
+
+    expected_qr_code_svg = '<p>This is your link:</p><p><div class=\'qrcode\'><svg viewBox="0 0 29 29"><path stroke="#000" d="M0 0.5h7m1 0h1m1 0h4m1 0h1m1 0h4m1 0h7m-29 1h1m5 0h1m2 0h1m1 0h2m2 0h3m4 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h3m3 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h2m2 0h3m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m2 0h2m4 0h1m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m2 0h3m4 0h1m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-20 1h1m1 0h1m2 0h2m3 0h1m-19 1h7m1 0h1m2 0h1m1 0h1m2 0h1m1 0h1m3 0h2m3 0h1m-27 1h1m6 0h3m1 0h1m1 0h1m3 0h8m1 0h1m-24 1h2m2 0h2m2 0h3m1 0h2m1 0h1m1 0h2m1 0h2m-26 1h1m1 0h2m2 0h4m1 0h1m1 0h3m3 0h1m1 0h2m1 0h1m2 0h1m-26 1h1m1 0h5m2 0h2m1 0h3m1 0h1m5 0h2m-26 1h2m1 0h1m3 0h1m1 0h2m6 0h3m1 0h4m2 0h1m-29 1h1m1 0h1m2 0h2m2 0h3m4 0h3m1 0h1m1 0h2m1 0h3m-21 1h2m2 0h1m6 0h1m1 0h1m1 0h4m1 0h1m-28 1h2m3 0h4m1 0h1m4 0h2m1 0h1m1 0h2m3 0h4m-29 1h1m6 0h1m3 0h5m2 0h2m1 0h4m3 0h1m-29 1h1m2 0h2m1 0h1m1 0h3m2 0h1m1 0h2m8 0h1m-26 1h1m1 0h1m1 0h1m2 0h1m1 0h1m3 0h3m3 0h1m1 0h4m-25 1h1m4 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h7m1 0h1m-21 1h1m1 0h1m2 0h1m2 0h1m1 0h3m3 0h2m1 0h2m-29 1h7m1 0h1m3 0h1m1 0h2m2 0h3m1 0h1m1 0h3m-27 1h1m5 0h1m1 0h3m7 0h3m3 0h1m3 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h3m1 0h1m2 0h1m1 0h5m1 0h2m-28 1h1m1 0h3m1 0h1m1 0h2m3 0h4m1 0h1m1 0h2m3 0h2m-27 1h1m1 0h3m1 0h1m1 0h1m3 0h2m4 0h8m1 0h1m-28 1h1m5 0h1m1 0h2m1 0h2m3 0h1m2 0h2m4 0h1m1 0h1m-28 1h7m2 0h6m1 0h2m1 0h1m1 0h3m2 0h1"/></svg></div></p>'  # noqa
+    assert jinja_template_locals["message"] == expected_qr_code_svg
+
+
 @pytest.mark.parametrize(
     "template_class",
     (
