@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 97.0.0
+
+* for bilingual letters preview, only show barcodes on the first page (patch).
+* rename `include_notify_tag` argument to `includes_first_page` (major).
+
 ## 96.0.0
 
 * BREAKING CHANGE: the `gunicorn_defaults` module has been moved to `gunicorn.defaults` to make space for gunicorn-related utils that don't have the restricted-import constraints of the gunicorn defaults. Imports of `notifications_utils.gunicorn_defaults` should be changed to `notifications_utils.gunicorn.defaults`.
