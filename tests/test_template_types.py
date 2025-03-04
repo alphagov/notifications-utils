@@ -777,6 +777,7 @@ def test_letter_preview_renderer(
             "logo_file_name": expected_logo_file_name,
             "logo_class": expected_logo_class,
             "language": "english",
+            "includes_first_page": True,
         }
     )
     letter_markdown.assert_called_once_with(Markup("Foo\n"))
@@ -2236,8 +2237,8 @@ def test_letter_qr_codes_with_too_much_data(content, values, should_error):
     "extra_template_kwargs, should_have_notify_tag",
     (
         ({}, True),
-        ({"include_notify_tag": True}, True),
-        ({"include_notify_tag": False}, False),
+        ({"includes_first_page": True}, True),
+        ({"includes_first_page": False}, False),
     ),
 )
 def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hides_barcodes(
@@ -2248,6 +2249,17 @@ def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hid
     )
     assert ("content: 'NOTIFY';" in str(template)) == should_have_notify_tag
     assert "#mdi,\n  #barcode,\n  #qrcode {\n    display: none;\n  }" in str(template).strip()
+
+
+@pytest.mark.parametrize("includes_first_page", [True, False])
+def test_rendered_letter_template_for_preview_displays_barcodes_only_if_file_includes_first_page(includes_first_page):
+    template = LetterPreviewTemplate(
+        template={"template_type": "letter", "subject": "subject", "content": "content"},
+        includes_first_page=includes_first_page,
+    )
+    assert (
+        "#mdi,\n  #barcode,\n  #qrcode {\n    display: none;\n  }" in str(template).strip()
+    ) is not includes_first_page
 
 
 @pytest.mark.parametrize(
