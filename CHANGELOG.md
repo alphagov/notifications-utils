@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 96.0.0
+
+* BREAKING CHANGE: the `gunicorn_defaults` module has been moved to `gunicorn.defaults` to make space for gunicorn-related utils that don't have the restricted-import constraints of the gunicorn defaults. Imports of `notifications_utils.gunicorn_defaults` should be changed to `notifications_utils.gunicorn.defaults`.
+* Added `ContextRecyclingEventletWorker` custom gunicorn worker class.
+
 ## 95.2.0
 
 * Implement `InsensitiveSet.__contains__`
