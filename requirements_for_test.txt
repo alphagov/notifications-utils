@@ -16,6 +16,8 @@ botocore==1.35.87
     # via
     #   boto3
     #   s3transfer
+build==1.2.2
+    # via -r requirements_for_test.in
 cachetools==5.5.0
     # via notifications-utils (setup.py)
 celery==5.3.6
@@ -87,6 +89,7 @@ ordered-set==4.1.0
     # via notifications-utils (setup.py)
 packaging==24.1
     # via
+    #   build
     #   gunicorn
     #   pytest
 phonenumbers==8.13.52
@@ -97,6 +100,8 @@ prompt-toolkit==3.0.48
     # via click-repl
 pypdf==5.1.0
     # via notifications-utils (setup.py)
+pyproject-hooks==1.2.0
+    # via build
 pytest==8.3.4
     # via
     #   -r requirements_for_test_common.in
