@@ -15,7 +15,10 @@ from notifications_utils.qr_code import (
     qr_code_placeholder,
 )
 
-LINK_STYLE = "word-wrap: break-word; color: #1D70B8;"
+LINK_STYLE = (
+    "word-break: break-all; -ms-word-break: break-all; "
+    "overflow-wrap: break-word; word-wrap: break-word; color: #1D70B8;"
+)
 
 mistune._block_quote_leading_pattern = re.compile(r"^ *\^ ?", flags=re.M)
 mistune.BlockGrammar.block_quote = re.compile(r"^( *\^[^\n]+(\n[^\n]+)*\n*)+")
