@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 95.2.1
+
+* Implement `formatters.unescape_url`
+* Fix QR code URL with '&' encoded as '&amp;'
+
 ## 95.2.0
 
 * Implement `InsensitiveSet.__contains__`
