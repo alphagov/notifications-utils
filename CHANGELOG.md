@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 96.0.1
+
+* Moves from `setup.py` to `pyproject.toml` for package configuation
+* Changes ruff config from `exclude` to `extend-exclude`
+
 ## 96.0.0
 
 * BREAKING CHANGE: the `gunicorn_defaults` module has been moved to `gunicorn.defaults` to make space for gunicorn-related utils that don't have the restricted-import constraints of the gunicorn defaults. Imports of `notifications_utils.gunicorn_defaults` should be changed to `notifications_utils.gunicorn.defaults`.
