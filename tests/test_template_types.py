@@ -2237,8 +2237,8 @@ def test_letter_qr_codes_with_too_much_data(content, values, should_error):
     "extra_template_kwargs, should_have_notify_tag",
     (
         ({}, True),
-        ({"include_notify_tag": True}, True),
-        ({"include_notify_tag": False}, False),
+        ({"includes_first_page": True}, True),
+        ({"includes_first_page": False}, False),
     ),
 )
 def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hides_barcodes(
