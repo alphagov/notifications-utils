@@ -1,8 +1,6 @@
-exclude = [
+extend-exclude = [
     "migrations/versions/",
-    "venv*",
     "__pycache__",
-    "node_modules",
     "cache",
     "migrations",
     "build",

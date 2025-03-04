@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 95.2.1
+
+* Moves from `setup.py` to `pyproject.toml` for package configuation
+* Changes ruff config from `exclude` to `extend-exclude`
+
+Neither of these changes should have an impact on consuming apps
+
 ## 95.2.0
 
 * Implement `InsensitiveSet.__contains__`
