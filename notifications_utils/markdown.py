@@ -6,7 +6,7 @@ import mistune
 from ordered_set import OrderedSet
 
 from notifications_utils import MAGIC_SEQUENCE, magic_sequence_regex
-from notifications_utils.formatters import create_sanitised_html_for_url, replace_svg_dashes
+from notifications_utils.formatters import create_sanitised_html_for_url, replace_svg_dashes, unescape_strict
 from notifications_utils.qr_code import (
     QR_CODE_MAX_BYTES,
     QrCodeTooLong,
@@ -67,7 +67,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         if "<span class='placeholder" in data or '<span class="placeholder' in data:
             placeholder = qr_code_placeholder(data)
             return replace_svg_dashes(placeholder)
-
+        data = unescape_strict(data)
         qr_data = qr_code_as_svg(data)
         return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
 

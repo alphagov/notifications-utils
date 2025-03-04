@@ -656,6 +656,31 @@ def test_letter_qr_code_works_with_extra_whitespace():
             "notifications_utils.markdown.qr_code_as_svg",
             "arbitrary data not a URL",
         ),
+        (
+            "qr: www.gov.uk/search?q=foo&r=bar",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "www.gov.uk/search?q=foo&r=bar",
+        ),
+        (
+            "qr: www.gov.uk/search?q=hello!@#$%^&*<>[]()\"'world",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "www.gov.uk/search?q=hello!@#$%^&*<>[]()\"'world",
+        ),
+        (
+            "qr: www.gov.uk/search?q=hello world",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "www.gov.uk/search?q=hello world",
+        ),
+        (
+            "qr: www.gov.uk/search?q=hello-world",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "www.gov.uk/search?q=hello-world",
+        ),
+        (
+            "qr: www.gov.uk/search?q=user@example.com",
+            "notifications_utils.markdown.qr_code_as_svg",
+            "www.gov.uk/search?q=user@example.com",
+        ),
     ),
 )
 def test_letter_qr_code_only_passes_through_url(
