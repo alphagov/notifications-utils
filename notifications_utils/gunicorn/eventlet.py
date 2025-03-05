@@ -119,3 +119,7 @@ class ExpansionCooldownEventletWorker(geventlet.EventletWorker):
         # monkey-patch it (or have to totally replace the run() method)
         geventlet._eventlet_serve = self.eventlet_serve
         super().patch(*args, **kwargs)
+
+
+class NotifyEventletWorker(ExpansionCooldownEventletWorker, ContextRecyclingEventletWorker):
+    pass
