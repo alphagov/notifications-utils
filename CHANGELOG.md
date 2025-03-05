@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 97.0.2
+
+* Fix external link redirect
+
 ## 97.0.1
 
 * Fix QR code URL with '&' encoded as '&amp;'
