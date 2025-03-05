@@ -579,6 +579,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
         redact_missing_personalisation=False,
         date=None,
         language="english",
+        includes_first_page: bool = True,
     ):
         self.contact_block = (contact_block or "").strip()
         super().__init__(
@@ -592,6 +593,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
             self.content = template["content"]
         else:
             self.content = template.get("letter_welsh_content", "")
+        self.includes_first_page = includes_first_page
 
     @property
     def subject(self):
@@ -704,6 +706,7 @@ class LetterPreviewTemplate(BaseLetterTemplate):
             "contact_block": self._contact_block,
             "date": self._date,
             "language": self.language,
+            "includes_first_page": self.includes_first_page,
         }
 
     def __str__(self):
@@ -723,7 +726,7 @@ class LetterPrintTemplate(LetterPreviewTemplate):
         redact_missing_personalisation=False,
         date=None,
         language="english",
-        include_notify_tag: bool = True,
+        includes_first_page: bool = True,
     ):
         super().__init__(
             template,
@@ -735,11 +738,11 @@ class LetterPrintTemplate(LetterPreviewTemplate):
             date=date,
             language=language,
         )
-        self.include_notify_tag = include_notify_tag
+        self.includes_first_page = includes_first_page
 
     @property
     def render_params(self):
-        return super().render_params | {"include_notify_tag": self.include_notify_tag}
+        return super().render_params | {"includes_first_page": self.includes_first_page}
 
 
 def get_sms_fragment_count(character_count, non_gsm_characters):
