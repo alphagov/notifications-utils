@@ -114,7 +114,7 @@ def autolink_urls(value, *, classes=""):
     )
 
 
-def create_sanitised_html_for_url(link, *, classes="", style=""):
+def create_sanitised_html_for_url(link, *, classes="", style="", title="", link_text=""):
     """
     takes a link and returns an <a> tag to that link. We escape the link that goes into the `href` attribute to
     prevent XSS attacks (eg through double-quotes). Notably we don't escape _all_ escape-able values,
@@ -126,7 +126,8 @@ def create_sanitised_html_for_url(link, *, classes="", style=""):
                http://foo.com/"bar"?x=1&redirect=%2Fsuccess%3Fone#2
              </a>`
     """
-    link_text = link
+    if not link_text:
+        link_text = link
 
     if not link.lower().startswith("http"):
         link = f"http://{link}"
@@ -135,6 +136,9 @@ def create_sanitised_html_for_url(link, *, classes="", style=""):
     style_attribute = f'style="{style}" ' if style else ""
 
     safe_link = urllib.parse.quote(link, safe=":/?#=&;%")
+
+    if title:
+        return f'<a {class_attribute}{style_attribute}href="{safe_link}" title="{title}">{link_text}</a>'
 
     return f'<a {class_attribute}{style_attribute}href="{safe_link}">{link_text}</a>'
 
