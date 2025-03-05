@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 97.0.1
+
+* Fix QR code URL with '&' encoded as '&amp;'
+
 ## 97.0.0
 
 * for bilingual letters preview, only show barcodes on the first page (patch).

@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = "97.0.0"  # 30cda215ff802d90fad96e1efd98a03b
+__version__ = "97.0.1"  # 00ec821d5d989563632f396ed0dd1b3e
