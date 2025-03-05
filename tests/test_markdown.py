@@ -211,6 +211,92 @@ def test_level_1_header(markdown_function, heading, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
+        [notify_letter_preview_markdown, "<p>Visit our [website](www.example.com/xyz).</p>"],
+        [
+            notify_email_markdown,
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                'Visit our <a style="word-wrap: break-word; color: #1D70B8;" href="http://www.example.com/xyz">website</a>.</p>'
+            ),
+        ],
+        [
+            notify_plain_text_email_markdown,
+            ("\n\nVisit our website: www.example.com/xyz."),
+        ],
+    ),
+)
+def test_external_link_without_http(markdown_function, expected):
+    assert markdown_function("Visit our [website](www.example.com/xyz).") == (expected)
+
+
+@pytest.mark.parametrize(
+    "markdown_function, expected",
+    (
+        [notify_letter_preview_markdown, "<p>Visit our [website](https://www.example.com/xyz).</p>"],
+        [
+            notify_email_markdown,
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                'Visit our <a style="word-wrap: break-word; color: #1D70B8;" href="https://www.example.com/xyz">website</a>.</p>'
+            ),
+        ],
+        [
+            notify_plain_text_email_markdown,
+            ("\n\nVisit our website: https://www.example.com/xyz."),
+        ],
+    ),
+)
+def test_external_link_with_http(markdown_function, expected):
+    assert markdown_function("Visit our [website](https://www.example.com/xyz).") == (expected)
+
+
+@pytest.mark.parametrize(
+    "markdown_function, expected",
+    (
+        [notify_letter_preview_markdown, '<p>Visit our [website](www.example.com/xyz "Link Title").</p>'],
+        [
+            notify_email_markdown,
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                'Visit our <a style="word-wrap: break-word; color: #1D70B8;" href="http://www.example.com/xyz" '
+                'title="Link Title">website</a>.</p>'
+            ),
+        ],
+        [
+            notify_plain_text_email_markdown,
+            ("\n\nVisit our website (Link Title): www.example.com/xyz."),
+        ],
+    ),
+)
+def test_external_title_link_without_http(markdown_function, expected):
+    assert markdown_function("Visit our [website](www.example.com/xyz 'Link Title').") == (expected)
+
+
+@pytest.mark.parametrize(
+    "markdown_function, expected",
+    (
+        [notify_letter_preview_markdown, '<p>Visit our [website](https://www.example.com/xyz "Link Title").</p>'],
+        [
+            notify_email_markdown,
+            (
+                '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">'
+                'Visit our <a style="word-wrap: break-word; color: #1D70B8;" href="https://www.example.com/xyz" '
+                'title="Link Title">website</a>.</p>'
+            ),
+        ],
+        [
+            notify_plain_text_email_markdown,
+            ("\n\nVisit our website (Link Title): https://www.example.com/xyz."),
+        ],
+    ),
+)
+def test_external_title_link_http(markdown_function, expected):
+    assert markdown_function("Visit our [website](https://www.example.com/xyz 'Link Title').") == (expected)
+
+
+@pytest.mark.parametrize(
+    "markdown_function, expected",
+    (
         [notify_letter_preview_markdown, "<p>heading</p>"],
         [
             notify_email_markdown,

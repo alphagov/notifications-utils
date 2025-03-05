@@ -229,9 +229,10 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def link(self, link, title, content):
         if link.startswith("span class='placeholder") and link.endswith("</span"):
             link = f"<{link}>"
+
         if title:
-            return f'<a style="{LINK_STYLE}" href="{link}" title="{title}">{content}</a>'
-        return f'<a style="{LINK_STYLE}" href="{link}">{content}</a>'
+            return create_sanitised_html_for_url(link, style=LINK_STYLE, title=title, link_text=content)
+        return create_sanitised_html_for_url(link, style=LINK_STYLE, link_text=content)
 
     def autolink(self, link, is_email=False):
         if is_email:
