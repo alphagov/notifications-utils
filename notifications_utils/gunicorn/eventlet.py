@@ -18,21 +18,24 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
     """
 
     def __init__(self, *args, **kwargs):
-        self.context_pool = deque()  # a stack of unused thread contexts
         super().__init__(*args, **kwargs)
+        self.context_pool = deque()  # a stack of unused thread contexts
+        self.recycle_eventlet_thread_contexts = getattr(self.cfg, "recycle_eventlet_thread_contexts", False)
 
     def handle(self, *args, **kwargs):
-        g = greenlet.getcurrent()
-        if self.context_pool:
-            # reuse an existing thread context from the pool
-            g.gr_context = self.context_pool.pop()
+        if self.recycle_eventlet_thread_contexts:
+            g = greenlet.getcurrent()
+            if self.context_pool:
+                # reuse an existing thread context from the pool
+                g.gr_context = self.context_pool.pop()
 
         ret = super().handle(*args, **kwargs)
 
-        # stash potentially-populated thread context in context_pool
-        self.context_pool.append(g.gr_context)
-        # replace reference to now-stashed context with an empty one
-        g.gr_context = contextvars.Context()
+        if self.recycle_eventlet_thread_contexts:
+            # stash potentially-populated thread context in context_pool
+            self.context_pool.append(g.gr_context)
+            # replace reference to now-stashed context with an empty one
+            g.gr_context = contextvars.Context()
 
         return ret
 
