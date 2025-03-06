@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 97.0.3
+
+* Bump minimum jinja2 version to 3.1.6
+
 ## 97.0.2
 
 * Fix external link redirect
