@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 97.1.0
+
+* Added `ExpansionCooldownEventletWorker` custom gunicorn worker class
+* Allow disabling `ContextRecyclingEventletWorker`'s behaviour via `recycle_eventlet_thread_contexts` gunicorn config variable
+* Added `NotifyEventletWorker` custom gunicorn worker class for for enabling an app to make use of all our custom gunicorn worker class features together
+
 ## 97.0.2
 
 * Fix external link redirect
