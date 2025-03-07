@@ -20,7 +20,7 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.context_pool = deque()  # a stack of unused thread contexts
-        self.recycle_eventlet_thread_contexts = getattr(self.cfg, "recycle_eventlet_thread_contexts", False)
+        self.recycle_eventlet_thread_contexts = (os.getenv("RECYCLE_EVENTLET_THREAD_CONTEXTS") or "0") != "0"
 
     def handle(self, *args, **kwargs):
         if self.recycle_eventlet_thread_contexts:
@@ -57,13 +57,9 @@ class ExpansionCooldownEventletWorker(geventlet.EventletWorker):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.worker_connections_expansion_cooldown_seconds = getattr(
-            self.cfg, "worker_connections_expansion_cooldown_seconds", 0
-        )
-        self.worker_connections_expansion_min_wait_seconds = getattr(
-            self.cfg, "worker_connections_expansion_min_wait_seconds", 0
-        )
-        self.initial_worker_connections = getattr(self.cfg, "initial_worker_connections", 1)
+        self.worker_connections_expansion_cooldown_seconds = float(os.getenv("WORKER_CONNECTIONS_EXPANSION_COOLDOWN_SECONDS") or "0")
+        self.worker_connections_expansion_min_wait_seconds = float(os.getenv("WORKER_CONNECTIONS_EXPANSION_MIN_WAIT_SECONDS") or "0")
+        self.initial_worker_connections = int(os.getenv("INITIAL_WORKER_CONNECTIONS") or "1")
 
     # based on gunicorn@1299ea9e967a61ae2edebe191082fd169b864c64's _eventlet_serve
     # routine with sections added before and after sock.accept() call
