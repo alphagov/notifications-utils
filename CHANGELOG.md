@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 97.0.4
+
+* Moves from `setup.py` to `pyproject.toml` for package configuation
+* Changes ruff config from `exclude` to `extend-exclude`
+
 ## 97.0.3
 
 * Bump minimum jinja2 version to 3.1.6
