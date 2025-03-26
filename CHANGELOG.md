@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 97.0.4
+
+* Add s3 multipart upload lifecycle (create, upload, complete, abort)
+
 ## 97.0.3
 
 * Bump minimum jinja2 version to 3.1.6
