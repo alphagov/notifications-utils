@@ -160,12 +160,14 @@ def test_block_code(markdown_function, expected):
         [
             notify_email_markdown,
             (
+                '<div style="Margin: 0 0 20px 0;">'
                 "<blockquote "
-                'style="Margin: 0 0 20px 0; border-left: 10px solid #B1B4B6;'
+                'style="Margin: 0; border-left: 10px solid #B1B4B6;'
                 "padding: 15px 0 0.1px 15px; font-size: 19px; line-height: 25px;"
                 '">'
                 '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">inset text</p>'
                 "</blockquote>"
+                "</div>"
             ),
         ],
         [

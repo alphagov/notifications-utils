@@ -218,12 +218,14 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
 
     def block_quote(self, text):
         return (
+            '<div style="Margin: 0 0 20px 0;">'
             "<blockquote "
-            'style="Margin: 0 0 20px 0; border-left: 10px solid #B1B4B6;'
+            'style="Margin: 0; border-left: 10px solid #B1B4B6;'
             'padding: 15px 0 0.1px 15px; font-size: 19px; line-height: 25px;"'
             ">"
             f"{text}"
             "</blockquote>"
+            "</div>"
         )
 
     def link(self, link, title, content):
