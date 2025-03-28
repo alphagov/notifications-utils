@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 97.0.5
+
+* Fix mailto: URLs in Markdown links
+
 ## 97.0.4
 
 * Fix inset text block styling
