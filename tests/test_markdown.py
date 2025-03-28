@@ -1,4 +1,5 @@
 import pytest
+from bs4 import BeautifulSoup
 
 from notifications_utils.field import Field
 from notifications_utils.markdown import (
@@ -250,6 +251,39 @@ def test_external_link_without_http(markdown_function, expected):
 )
 def test_external_link_with_http(markdown_function, expected):
     assert markdown_function("Visit our [website](https://www.example.com/xyz).") == (expected)
+
+
+@pytest.mark.parametrize(
+    "url, expected_link_href",
+    (
+        (
+            "mailto:unsubscribe@example.com",
+            "mailto:unsubscribe%40example.com",
+        ),
+        (
+            "mailto:unsubscribe%40example.com",
+            "mailto:unsubscribe%40example.com",
+        ),
+        (
+            r"file:///C:\Windows\system32\mspaint.exe",
+            "file:///C:%5CWindows%5Csystem32%5Cmspaint.exe",
+        ),
+        (
+            "tel:+44123",
+            "tel:%2B44123",
+        ),
+        (
+            "ftp://username:password@ftp.example.com/folder/",
+            "ftp://username:password%40ftp.example.com/folder/",
+        ),
+    ),
+)
+def test_mailto_link_in_email_markdown_link(url, expected_link_href):
+    paragraph = BeautifulSoup(
+        notify_email_markdown(f"Unusual [link]({url})"),
+        features="html.parser",
+    )
+    assert paragraph.select_one("a")["href"] == expected_link_href
 
 
 @pytest.mark.parametrize(
