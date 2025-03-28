@@ -25,6 +25,8 @@ OBSCURE_FULL_WIDTH_WHITESPACE = "\u00a0\u202f"  # non breaking space  # narrow n
 
 ALL_WHITESPACE = string.whitespace + OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FULL_WIDTH_WHITESPACE
 
+RECOGNISED_URL_PROTOCOLS = tuple(f"{protocol}:" for protocol in {"ftp", "file", "http", "https", "mailto", "tel"})
+
 govuk_not_a_link = re.compile(r"(^|\s)(#|\*|\^)?(GOV)\.(UK)(?!\/|\?|#)", re.IGNORECASE)
 
 smartypants.tags_to_skip = smartypants.tags_to_skip + ["a"]
@@ -129,7 +131,7 @@ def create_sanitised_html_for_url(link, *, classes="", style="", title="", link_
     if not link_text:
         link_text = link
 
-    if not link.lower().startswith("http"):
+    if not link.lower().startswith(RECOGNISED_URL_PROTOCOLS):
         link = f"http://{link}"
 
     class_attribute = f'class="{classes}" ' if classes else ""
