@@ -65,6 +65,14 @@ class Field:
         r"([^()]+)"  # body of placeholder - potentially standard or conditional.
         r"\){2}"  # closing ))
     )
+    # different placeholder syntax for safe patterns
+    placeholder_safe_pattern = re.compile(
+        r"\(\{"  # opening ({
+        r"([^()]+)"  # body of placeholder - potentially standard or conditional.
+        r"\}\)"  # closing })
+    )
+    placeholder_safe_tag = "<span class='placeholder'>&#40;&lbrace;{}&rbrace;&#41;</span>"
+    conditional_placeholder_safe_tag = "<span class='placeholder-conditional'>&#40;&lbrace;{}??</span>{}&rbrace;&#41;"
     placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
     conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
