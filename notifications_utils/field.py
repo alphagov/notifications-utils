@@ -120,6 +120,11 @@ class Field:
     def format_match(self, match):
         return self.format_placeholder(Placeholder.from_match(match))
 
+    def escape_markdown_if_safe_placeholder(self, placeholder):
+        if re.match(self.placeholder_safe_pattern, placeholder):
+            for match in re.finditer(self.placeholder_safe_pattern, placeholder):
+                str(match).replace("`", "\`") #do some replacement on this
+
     def format_placeholder(self, placeholder):
         if self.redact_missing_personalisation:
             return self.placeholder_tag_redacted
