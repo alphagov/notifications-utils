@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 98.0.0
+
+* Update rate multipliers for international SMS to have values for 1 April 2025 onwards. When used in notifications-api and
+  notifications-admin this change will affect the billing of text messages the pricing shown.
+
 ## 97.0.5
 
 * Fix mailto: URLs in Markdown links
