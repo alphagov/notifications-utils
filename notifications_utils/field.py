@@ -16,12 +16,21 @@ class Placeholder:
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
 
+    placeholder_safe_pattern = re.compile(
+        r"\(\{"  # opening ({
+        r"([^()]+)"  # body of placeholder - potentially standard or conditional.
+        r"\}\)"  # closing })
+    )
+
     @classmethod
     def from_match(cls, match):
         return cls(match.group(0))
 
     def is_conditional(self):
         return "??" in self.body
+
+    def is_safe(self):
+        return re.match(self.body, self.placeholder_safe_pattern) is not None
 
     @property
     def name(self):
@@ -146,13 +155,19 @@ class Field:
 
         return replacement
 
+    def sanitise_value_for_safe_placeholder(self, val):
+        return "This is a safe string"
+
     def get_replacement(self, placeholder):
         replacement = self.values.get(placeholder.name)
         if replacement is None:
             return None
 
         if isinstance(replacement, list):
-            vals = (strip_and_remove_obscure_whitespace(str(val)) for val in replacement if val is not None)
+            if placeholder.is_safe():
+                vals = (self.sanitise_value_for_safe_placeholder(strip_and_remove_obscure_whitespace(str(val))) for val in replacement if val is not None)  # noqa: E501
+            else:
+                vals = (strip_and_remove_obscure_whitespace(str(val)) for val in replacement if val is not None)
             vals = list(filter(None, vals))
             if not vals:
                 return ""
