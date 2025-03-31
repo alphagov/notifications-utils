@@ -30,7 +30,7 @@ def test_international_billing_rates_are_in_correct_format(country_prefix, value
 
 
 def test_country_codes():
-    assert len(COUNTRY_PREFIXES) == 220
+    assert len(COUNTRY_PREFIXES) == 223
 
 
 @pytest.mark.parametrize(

@@ -55,7 +55,6 @@
   names:
   - Canada
   - United States
-  - Dominican Republic
 '7':
   attributes:
     alpha: REG
@@ -2930,6 +2929,45 @@
   rate_multiplier: 7
   names:
   - Saint Vincent and The Grenadines
+'1809':
+  attributes:
+    alpha: 'NO'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: ''
+    numeric: LIMITED
+    sc: 'NO'
+    sender_and_registration_info: All senders CONVERTED into random long numeric senders
+    text_restrictions: Bulk/marketing traffic NOT allowed
+  rate_multiplier: 3
+  names:
+  - Dominican Republic
+'1829':
+  attributes:
+    alpha: 'NO'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: ''
+    numeric: LIMITED
+    sc: 'NO'
+    sender_and_registration_info: All senders CONVERTED into random long numeric senders
+    text_restrictions: Bulk/marketing traffic NOT allowed
+  rate_multiplier: 3
+  names:
+  - Dominican Republic
+'1849':
+  attributes:
+    alpha: 'NO'
+    comment: null
+    dlr: Carrier DLR
+    generic_sender: ''
+    numeric: LIMITED
+    sc: 'NO'
+    sender_and_registration_info: All senders CONVERTED into random long numeric senders
+    text_restrictions: Bulk/marketing traffic NOT allowed
+  rate_multiplier: 3
+  names:
+  - Dominican Republic
 '1868':
   attributes:
     alpha: null
