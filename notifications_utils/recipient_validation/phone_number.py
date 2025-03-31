@@ -231,11 +231,16 @@ class PhoneNumber:
         return self.number.country_code == 44
 
     def get_international_phone_info(self):
+        if is_international := self.is_international_number():
+            rate_multiplier = INTERNATIONAL_BILLING_RATES[self.prefix]["rate_multiplier"]
+        else:
+            rate_multiplier = 1
+
         return international_phone_info(
-            international=self.is_international_number(),
+            international=is_international,
             crown_dependency=self.is_a_crown_dependency_number(),
             country_prefix=self.prefix,
-            rate_multiplier=INTERNATIONAL_BILLING_RATES[self.prefix]["rate_multiplier"],
+            rate_multiplier=rate_multiplier,
         )
 
     def is_international_number(self):

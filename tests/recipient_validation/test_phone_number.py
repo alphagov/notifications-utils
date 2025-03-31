@@ -180,7 +180,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=True,
             country_prefix="44",  # UK Crown dependency, so prefix same as UK
-            rate_multiplier=1,
+            rate_multiplier=2,
         ),
     ),
     (
@@ -189,7 +189,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
-            rate_multiplier=3,
+            rate_multiplier=7,
         ),
     ),
     (
@@ -198,7 +198,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
-            rate_multiplier=3,
+            rate_multiplier=7,
         ),
     ),
     (
@@ -207,7 +207,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="1664",  # Montserrat
-            rate_multiplier=3,
+            rate_multiplier=6,
         ),
     ),
     (
@@ -216,7 +216,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="7",  # Russia
-            rate_multiplier=4,
+            rate_multiplier=10,
         ),
     ),
     (
@@ -234,7 +234,7 @@ international_phone_info_fixtures = [
             international=True,
             crown_dependency=False,
             country_prefix="230",  # Mauritius
-            rate_multiplier=2,
+            rate_multiplier=4,
         ),
     ),
 ]

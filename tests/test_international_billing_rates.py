@@ -20,7 +20,7 @@ def test_international_billing_rates_are_in_correct_format(country_prefix, value
     assert set(values.keys()) == {"attributes", "rate_multiplier", "names"}
 
     assert isinstance(values["rate_multiplier"], int)
-    assert 1 <= values["rate_multiplier"] <= 4
+    assert 1 <= values["rate_multiplier"] <= 12
 
     assert isinstance(values["names"], list)
     assert all(isinstance(country, str) for country in values["names"])
