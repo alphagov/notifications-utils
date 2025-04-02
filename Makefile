@@ -7,7 +7,7 @@ help:
 
 .PHONY: freeze-requirements
 freeze-requirements: ## Pin all test requirements including sub dependencies into requirements_for_test.txt
-	uv pip compile requirements_for_test.in setup.py --output-file requirements_for_test.txt
+	uv pip compile requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt
 
 .PHONY: bootstrap
 bootstrap: ## Build project
@@ -19,7 +19,7 @@ test: ## Run tests
 	ruff check .
 	ruff format --check .
 	pytest -n auto
-	python setup.py sdist
+	python -m build
 
 .PHONY: watch-tests
 watch-tests: ## Automatically rerun tests
