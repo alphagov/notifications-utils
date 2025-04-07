@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 98.0.2
+
+* Bump ruff to latest version
+
 ## 98.0.1
 
 * Moves from `setup.py` to `pyproject.toml` for package configuation
