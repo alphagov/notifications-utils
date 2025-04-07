@@ -265,7 +265,7 @@ class BaseSMSTemplate(Template):
         if self.values:
             values = self.values
         else:
-            values = {key: MAGIC_SEQUENCE for key in self.placeholders}
+            values = dict.fromkeys(self.placeholders, MAGIC_SEQUENCE)
         return (
             Take(PlainTextField(self.content, values, html="passthrough"))
             .then(add_prefix, self.prefix)
