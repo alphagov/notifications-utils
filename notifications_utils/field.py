@@ -188,6 +188,10 @@ class Field:
         return OrderedSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
 
     @property
+    def placeholder_objects(self):
+        return OrderedSet(Placeholder(body) for body in re.findall(self.placeholder_pattern, self.content))
+
+    @property
     def replaced(self):
         return re.sub(self.placeholder_pattern, self.replace_match, self.sanitizer(self.content))
 
