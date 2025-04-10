@@ -177,6 +177,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
             "((warning?? This is a warning\n text after linebreak))",
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This is a warning\n text after linebreak&#41;&#41;",  # noqa
         ),
+        (
+            "((application form::file))",
+            "<span class='placeholder-typed placeholder-typed--file'>&#40;&#40;application form</span>::file&#41;&#41;",
+        ),
     ],
 )
 def test_formatting_of_placeholders(content, expected):
