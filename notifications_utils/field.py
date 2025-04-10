@@ -183,12 +183,12 @@ class Field:
 
     @property
     def placeholders(self):
-        if not getattr(self, "content", ""):
-            return set()
-        return OrderedSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
+        return OrderedSet(placeholder.name for placeholder in self.placeholder_objects)
 
     @property
     def placeholder_objects(self):
+        if not getattr(self, "content", ""):
+            return set()
         return OrderedSet(Placeholder(body) for body in re.findall(self.placeholder_pattern, self.content))
 
     @property
