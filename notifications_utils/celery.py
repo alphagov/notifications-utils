@@ -42,6 +42,7 @@ def make_task(app):
                     elapsed_time,
                     extra={
                         "celery_task": self.name,
+                        "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
                         "time_taken": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
@@ -66,6 +67,7 @@ def make_task(app):
                     elapsed_time,
                     extra={
                         "celery_task": self.name,
+                        "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
                         "time_taken": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
@@ -90,6 +92,7 @@ def make_task(app):
                     elapsed_time,
                     extra={
                         "celery_task": self.name,
+                        "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
                         "time_taken": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
