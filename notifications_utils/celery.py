@@ -1,3 +1,4 @@
+import logging
 import time
 from contextlib import contextmanager
 from os import getpid
@@ -11,6 +12,12 @@ def make_task(app):
     class NotifyTask(Task):
         abstract = True
         start = None
+
+        def __init__(self, *args, **kwargs):
+            # custom task-decorator arguments magically get applied as class attributes (!),
+            # provide a default if this is missing
+            self.early_log_level = getattr(self, "early_log_level", logging.INFO)
+            super().__init__(*args, **kwargs)
 
         @property
         def queue_name(self):
@@ -42,6 +49,7 @@ def make_task(app):
                     elapsed_time,
                     extra={
                         "celery_task": self.name,
+                        "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
                         "time_taken": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
@@ -66,6 +74,7 @@ def make_task(app):
                     elapsed_time,
                     extra={
                         "celery_task": self.name,
+                        "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
                         "time_taken": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
@@ -90,6 +99,7 @@ def make_task(app):
                     elapsed_time,
                     extra={
                         "celery_task": self.name,
+                        "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
                         "time_taken": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
@@ -103,6 +113,21 @@ def make_task(app):
             # ensure task has flask context to access config, logger, etc
             with self.app_context():
                 self.start = time.monotonic()
+
+                app.logger.log(
+                    self.early_log_level,
+                    "Celery task %s (queue: %s) started",
+                    self.name,
+                    self.queue_name,
+                    extra={
+                        "celery_task": self.name,
+                        "celery_task_id": self.request.id,
+                        "queue_name": self.queue_name,
+                        # avoid name collision with LogRecord's own `process` attribute
+                        "process_": getpid(),
+                    },
+                )
+
                 return super().__call__(*args, **kwargs)
 
     return NotifyTask
