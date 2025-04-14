@@ -12,16 +12,31 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
+    is_conditional = False
+
+    def __new__(cls, body):
+        class_ = super().__new__(cls)
+
+        if "??" in body:
+            class_.__class__ = ConditionalPlaceholder
+
+        return class_
+
     def __init__(self, body):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
+        self.name = self.body
 
     @classmethod
     def from_match(cls, match):
         return cls(match.group(0))
 
-    def is_conditional(self):
-        return "??" in self.body
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.body})"
+
+
+class ConditionalPlaceholder(Placeholder):
+    is_conditional = True
 
     @property
     def name(self):
@@ -30,21 +45,10 @@ class Placeholder:
 
     @property
     def conditional_text(self):
-        if self.is_conditional():
-            # ((a?? b??c)) returns " b??c"
-            return "??".join(self.body.split("??")[1:])
-        else:
-            raise ValueError(f"{self} not conditional")
+        return "??".join(self.body.split("??")[1:])
 
     def get_conditional_body(self, show_conditional):
-        # note: unsanitised/converted
-        if self.is_conditional():
-            return self.conditional_text if str2bool(show_conditional) else ""
-        else:
-            raise ValueError(f"{self} not conditional")
-
-    def __repr__(self):
-        return f"Placeholder({self.body})"
+        return self.conditional_text if str2bool(show_conditional) else ""
 
 
 class Field:
@@ -116,7 +120,7 @@ class Field:
         if self.redact_missing_personalisation:
             return self.placeholder_tag_redacted
 
-        if placeholder.is_conditional():
+        if placeholder.is_conditional:
             return self.conditional_placeholder_tag.format(placeholder.name, placeholder.conditional_text)
 
         return self.placeholder_tag.format(placeholder.name)
@@ -128,7 +132,7 @@ class Field:
         if replacement is None:
             return self.format_placeholder(placeholder)
 
-        if placeholder.is_conditional():
+        if placeholder.is_conditional:
             return placeholder.get_conditional_body(replacement)
 
         return replacement
