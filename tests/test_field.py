@@ -83,9 +83,21 @@ def test_returns_a_string_without_placeholders(content):
             {"placeholder": {"key": "value"}},
             "before {'key': 'value'} after",
         ),
-        ("((warning?))", {"warning?": "This is not a conditional"}, "This is not a conditional"),
-        ("((warning?warning))", {"warning?warning": "This is not a conditional"}, "This is not a conditional"),
-        ("((warning??This is a conditional warning))", {"warning": True}, "This is a conditional warning"),
+        (
+            "((warning?))",
+            {"warning?": "This is not a conditional"},
+            "This is not a conditional",
+        ),
+        (
+            "((warning?warning))",
+            {"warning?warning": "This is not a conditional"},
+            "This is not a conditional",
+        ),
+        (
+            "((warning??This is a conditional warning))",
+            {"warning": True},
+            "This is a conditional warning",
+        ),
         (
             "((warning??This is a conditional warning\nwith line break))",
             {"warning": True},
@@ -124,7 +136,11 @@ def test_replacement_of_placeholders(field_class, template_content, data, expect
 @pytest.mark.parametrize(
     "template_content,data,expected",
     [
-        ("((code)) is your security code", {"code": "12345"}, "12345 is your security code"),
+        (
+            "((code)) is your security code",
+            {"code": "12345"},
+            "12345 is your security code",
+        ),
         (
             "((code)) is your security code",
             {},
@@ -149,7 +165,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
     "content,expected",
     [
         ("((colour))", "<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>"),
-        ("the quick ((colour)) fox", "the quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> fox"),
+        (
+            "the quick ((colour)) fox",
+            "the quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> fox",
+        ),
         (
             "((article)) quick ((colour)) ((animal))",
             "<span class='placeholder'>&#40;&#40;article&#41;&#41;</span> quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> <span class='placeholder'>&#40;&#40;animal&#41;&#41;</span>",  # noqa
@@ -166,8 +185,14 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
                 <span class='placeholder'>&#40;&#40;animal&#41;&#41;</span>
             """,
         ),
-        ("the quick (((colour))) fox", "the quick (<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>) fox"),
-        ("((warning?))", "<span class='placeholder'>&#40;&#40;warning?&#41;&#41;</span>"),
+        (
+            "the quick (((colour))) fox",
+            "the quick (<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>) fox",
+        ),
+        (
+            "((warning?))",
+            "<span class='placeholder'>&#40;&#40;warning?&#41;&#41;</span>",
+        ),
         (
             "((warning? This is not a conditional))",
             "<span class='placeholder'>&#40;&#40;warning? This is not a conditional&#41;&#41;</span>",
@@ -183,6 +208,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
         (
             "((warning?? This warning is ?? questionable))",
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This warning is ?? questionable&#41;&#41;",  # noqa
+        ),
+        (
+            "Unsafe placeholder: ((name::unsafe))",
+            "Unsafe placeholder: <span class='placeholder'>&#40;&#40;name</span>::unsafe&#41;&#41;",
         ),
     ],
 )
@@ -211,6 +240,35 @@ def test_formatting_of_placeholders(content, expected):
     ],
 )
 def test_handling_of_missing_values(content, values, expected):
+    assert str(Field(content, values)) == expected
+
+
+@pytest.mark.parametrize(
+    "content, values, expected",
+    [
+        (
+            "My name is ((name))",
+            {"name": "Geoff"},
+            "My name is Geoff",
+        ),
+        (
+            "My name is ((name::unsafe))",
+            {"name": "Geoff"},
+            "My name is SANITISED",
+        ),
+        (
+            "My name is ((name::unsafefoobar))",
+            {"name::unsafefoobar": "Geoff"},
+            "My name is Geoff",
+        ),
+        (
+            "My name is ((show_name??name::unsafefoobar))",
+            {"show_name": True},
+            "My name is name::unsafefoobar",
+        ),
+    ],
+)
+def test_placeholder_types_render_as_expected(content, values, expected):
     assert str(Field(content, values)) == expected
 
 
