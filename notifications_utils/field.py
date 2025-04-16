@@ -12,8 +12,6 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
-    is_conditional = False
-
     placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
 
     def __new__(cls, body, redact_missing_personalisation=False):
@@ -57,7 +55,6 @@ class RedactedPlaceholder(Placeholder):
 
 
 class ConditionalPlaceholder(Placeholder):
-    is_conditional = True
     placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
 
     @property
