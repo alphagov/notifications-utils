@@ -15,7 +15,6 @@ class Placeholder:
     is_conditional = False
 
     placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
-    conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
 
     def __new__(cls, body):
@@ -45,14 +44,12 @@ class Placeholder:
         if redact:
             return self.placeholder_tag_redacted
 
-        if self.is_conditional:
-            return self.conditional_placeholder_tag.format(self.name, self.conditional_text)
-
         return self.placeholder_tag.format(self.name)
 
 
 class ConditionalPlaceholder(Placeholder):
     is_conditional = True
+    placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
 
     @property
     def name(self):
@@ -65,6 +62,12 @@ class ConditionalPlaceholder(Placeholder):
 
     def get_conditional_body(self, show_conditional):
         return self.conditional_text if str2bool(show_conditional) else ""
+
+    def format(self, *, redact):
+        if redact:
+            return self.placeholder_tag_redacted
+
+        return self.placeholder_tag.format(self.name, self.conditional_text)
 
 
 class Field:
