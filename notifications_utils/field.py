@@ -34,8 +34,8 @@ class Placeholder:
         return self.body
 
     @classmethod
-    def from_match(cls, match, redact_missing_personalisation=False):
-        return cls(match.group(0), redact_missing_personalisation=redact_missing_personalisation)
+    def from_match_and_field(cls, match, field):
+        return cls(match.group(0), redact_missing_personalisation=field.redact_missing_personalisation)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.body})"
@@ -136,15 +136,10 @@ class Field:
         self._values = InsensitiveDict({self.sanitizer(k): value[k] for k in value}) if value else {}
 
     def format_match(self, match):
-        return Placeholder.from_match(
-            match, redact_missing_personalisation=self.redact_missing_personalisation
-        ).format()
+        return Placeholder.from_match_and_field(match, self).format()
 
     def replace_match(self, match):
-        placeholder = Placeholder.from_match(
-            match,
-            redact_missing_personalisation=self.redact_missing_personalisation,
-        )
+        placeholder = Placeholder.from_match_and_field(match, self)
         replacement = self.get_replacement(placeholder)
         return placeholder.replace_with(replacement)
 
