@@ -114,8 +114,9 @@ def test_returns_a_string_without_placeholders(content):
         ),
     ],
 )
-def test_replacement_of_placeholders(template_content, data, expected):
-    assert str(Field(template_content, data)) == expected
+@pytest.mark.parametrize("field_class", (Field, PlainTextField))
+def test_replacement_of_placeholders(field_class, template_content, data, expected):
+    assert str(field_class(template_content, data)) == expected
 
 
 @pytest.mark.parametrize(
@@ -310,3 +311,11 @@ def test_formatting_of_placeholders_without_brackets():
     assert str(Field("((conditional??yes))", with_brackets=False)) == (
         "<span class='placeholder-conditional'>&#40;&#40;conditional??</span>yes&#41;&#41;"
     )
+    assert str(Field("email: ((email address))", with_brackets=False, redact_missing_personalisation=True)) == (
+        "email: <span class='placeholder-redacted'>hidden</span>"
+    )
+
+
+def test_PlainTextField():
+    assert str(PlainTextField("((foo)) ((foo??bar))")) == "((foo)) ((foo??bar))"
+    assert str(PlainTextField("((foo)) ((foo??bar))", redact_missing_personalisation=True)) == "[hidden] [hidden]"
