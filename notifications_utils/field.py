@@ -1,6 +1,6 @@
 import re
-from enum import StrEnum, auto
 from collections import OrderedDict
+from enum import StrEnum, auto
 
 from markupsafe import Markup
 from ordered_set import OrderedSet

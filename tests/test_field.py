@@ -83,9 +83,21 @@ def test_returns_a_string_without_placeholders(content):
             {"placeholder": {"key": "value"}},
             "before {'key': 'value'} after",
         ),
-        ("((warning?))", {"warning?": "This is not a conditional"}, "This is not a conditional"),
-        ("((warning?warning))", {"warning?warning": "This is not a conditional"}, "This is not a conditional"),
-        ("((warning??This is a conditional warning))", {"warning": True}, "This is a conditional warning"),
+        (
+            "((warning?))",
+            {"warning?": "This is not a conditional"},
+            "This is not a conditional",
+        ),
+        (
+            "((warning?warning))",
+            {"warning?warning": "This is not a conditional"},
+            "This is not a conditional",
+        ),
+        (
+            "((warning??This is a conditional warning))",
+            {"warning": True},
+            "This is a conditional warning",
+        ),
         (
             "((warning??This is a conditional warning\nwith line break))",
             {"warning": True},
@@ -121,7 +133,11 @@ def test_replacement_of_placeholders(template_content, data, expected):
 @pytest.mark.parametrize(
     "template_content,data,expected",
     [
-        ("((code)) is your security code", {"code": "12345"}, "12345 is your security code"),
+        (
+            "((code)) is your security code",
+            {"code": "12345"},
+            "12345 is your security code",
+        ),
         (
             "((code)) is your security code",
             {},
@@ -146,7 +162,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
     "content,expected",
     [
         ("((colour))", "<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>"),
-        ("the quick ((colour)) fox", "the quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> fox"),
+        (
+            "the quick ((colour)) fox",
+            "the quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> fox",
+        ),
         (
             "((article)) quick ((colour)) ((animal))",
             "<span class='placeholder'>&#40;&#40;article&#41;&#41;</span> quick <span class='placeholder'>&#40;&#40;colour&#41;&#41;</span> <span class='placeholder'>&#40;&#40;animal&#41;&#41;</span>",  # noqa
@@ -163,8 +182,14 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
                 <span class='placeholder'>&#40;&#40;animal&#41;&#41;</span>
             """,
         ),
-        ("the quick (((colour))) fox", "the quick (<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>) fox"),
-        ("((warning?))", "<span class='placeholder'>&#40;&#40;warning?&#41;&#41;</span>"),
+        (
+            "the quick (((colour))) fox",
+            "the quick (<span class='placeholder'>&#40;&#40;colour&#41;&#41;</span>) fox",
+        ),
+        (
+            "((warning?))",
+            "<span class='placeholder'>&#40;&#40;warning?&#41;&#41;</span>",
+        ),
         (
             "((warning? This is not a conditional))",
             "<span class='placeholder'>&#40;&#40;warning? This is not a conditional&#41;&#41;</span>",
