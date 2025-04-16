@@ -177,6 +177,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
             "((warning?? This is a warning\n text after linebreak))",
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This is a warning\n text after linebreak&#41;&#41;",  # noqa
         ),
+        (
+            "Unsafe placeholder: ((name::unsafe))",
+            "Unsafe placeholder: <span class='placeholder'>&#40;&#40;name</span>::unsafe&#41;&#41;",
+        ),
     ],
 )
 def test_formatting_of_placeholders(content, expected):
@@ -204,6 +208,20 @@ def test_formatting_of_placeholders(content, expected):
     ],
 )
 def test_handling_of_missing_values(content, values, expected):
+    assert str(Field(content, values)) == expected
+
+
+@pytest.mark.parametrize(
+    "content, values, expected",
+    [
+        (
+            "My name is ((name::unsafe))",
+            {"name": "my name"},
+            "My name is SANITISED",
+        )
+    ],
+)
+def test_unsafe_placeholder_is_correctly_sanitised(content, values, expected):
     assert str(Field(content, values)) == expected
 
 
