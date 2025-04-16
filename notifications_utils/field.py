@@ -46,6 +46,15 @@ class Placeholder:
 
         return self.placeholder_tag.format(self.name)
 
+    def replace_with(self, replacement, *, redact):
+        if replacement is None:
+            return self.format(redact=redact)
+
+        if self.is_conditional:
+            return self.get_conditional_body(replacement)
+
+        return replacement
+
 
 class ConditionalPlaceholder(Placeholder):
     is_conditional = True
@@ -135,14 +144,7 @@ class Field:
     def replace_match(self, match):
         placeholder = Placeholder.from_match(match)
         replacement = self.get_replacement(placeholder)
-
-        if replacement is None:
-            return placeholder.format(redact=self.redact_missing_personalisation)
-
-        if placeholder.is_conditional:
-            return placeholder.get_conditional_body(replacement)
-
-        return replacement
+        return placeholder.replace_with(replacement, redact=self.redact_missing_personalisation)
 
     def get_replacement(self, placeholder):
         replacement = self.values.get(placeholder.name)
