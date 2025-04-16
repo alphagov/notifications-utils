@@ -15,17 +15,19 @@ class Placeholder:
     is_conditional = False
 
     placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
-    placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
 
-    def __new__(cls, body):
+    def __new__(cls, body, redact_missing_personalisation=False):
         class_ = super().__new__(cls)
+
+        if redact_missing_personalisation:
+            class_.__class__ = RedactedPlaceholder
 
         if "??" in body:
             class_.__class__ = ConditionalPlaceholder
 
         return class_
 
-    def __init__(self, body):
+    def __init__(self, body, redact_missing_personalisation=False):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
 
@@ -34,23 +36,24 @@ class Placeholder:
         return self.body
 
     @classmethod
-    def from_match(cls, match):
-        return cls(match.group(0))
+    def from_match(cls, match, redact_missing_personalisation=False):
+        return cls(match.group(0), redact_missing_personalisation=redact_missing_personalisation)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.body})"
 
-    def format(self, *, redact):
-        if redact:
-            return self.placeholder_tag_redacted
-
+    def format(self):
         return self.placeholder_tag.format(self.name)
 
-    def replace_with(self, replacement, *, redact):
+    def replace_with(self, replacement):
         if replacement is None:
-            return self.format(redact=redact)
-
+            return self.format()
         return replacement
+
+
+class RedactedPlaceholder(Placeholder):
+    def format(self):
+        return "<span class='placeholder-redacted'>hidden</span>"
 
 
 class ConditionalPlaceholder(Placeholder):
@@ -69,16 +72,12 @@ class ConditionalPlaceholder(Placeholder):
     def get_conditional_body(self, show_conditional):
         return self.conditional_text if str2bool(show_conditional) else ""
 
-    def format(self, *, redact):
-        if redact:
-            return self.placeholder_tag_redacted
-
+    def format(self):
         return self.placeholder_tag.format(self.name, self.conditional_text)
 
-    def replace_with(self, replacement, *, redact):
+    def replace_with(self, replacement):
         if replacement is None:
-            return self.format(redact=redact)
-
+            return self.format()
         return self.get_conditional_body(replacement)
 
 
@@ -118,8 +117,6 @@ class Field:
         self.content = content
         self.values = values
         self.markdown_lists = markdown_lists
-        if not with_brackets:
-            self.placeholder_tag = self.placeholder_tag_no_brackets
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __str__(self):
@@ -142,12 +139,17 @@ class Field:
         self._values = InsensitiveDict({self.sanitizer(k): value[k] for k in value}) if value else {}
 
     def format_match(self, match):
-        return Placeholder.from_match(match).format(redact=self.redact_missing_personalisation)
+        return Placeholder.from_match(
+            match, redact_missing_personalisation=self.redact_missing_personalisation
+        ).format()
 
     def replace_match(self, match):
-        placeholder = Placeholder.from_match(match)
+        placeholder = Placeholder.from_match(
+            match,
+            redact_missing_personalisation=self.redact_missing_personalisation,
+        )
         replacement = self.get_replacement(placeholder)
-        return placeholder.replace_with(replacement, redact=self.redact_missing_personalisation)
+        return placeholder.replace_with(replacement)
 
     def get_replacement(self, placeholder):
         replacement = self.values.get(placeholder.name)
