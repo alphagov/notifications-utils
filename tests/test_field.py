@@ -92,6 +92,8 @@ def test_returns_a_string_without_placeholders(content):
             "This is a conditional warning\nwith line break",
         ),
         ("((warning??This is a conditional warning))", {"warning": False}, ""),
+        ("((warning??foo??bar))", {"warning": True}, "foo??bar"),
+        ("((warning??foo??bar))", {"warning": False}, ""),
         (
             "Please report to the ((>location)) office at ((&time)) on ((<day)).",
             {">location": "London", "&time": "09:00", "<day": "Monday"},
@@ -177,6 +179,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
         (
             "((warning?? This is a warning\n text after linebreak))",
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This is a warning\n text after linebreak&#41;&#41;",  # noqa
+        ),
+        (
+            "((warning?? This warning is ?? questionable))",
+            "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This warning is ?? questionable&#41;&#41;",  # noqa
         ),
     ],
 )
@@ -319,3 +325,4 @@ def test_formatting_of_placeholders_without_brackets():
 def test_PlainTextField():
     assert str(PlainTextField("((foo)) ((foo??bar))")) == "((foo)) ((foo??bar))"
     assert str(PlainTextField("((foo)) ((foo??bar))", redact_missing_personalisation=True)) == "[hidden] [hidden]"
+    assert str(PlainTextField("((foo??bar??baz))")) == "((foo??bar??baz))"
