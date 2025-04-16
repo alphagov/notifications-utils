@@ -132,15 +132,6 @@ class Field:
     def format_match(self, match):
         return Placeholder.from_match(match).format(redact=self.redact_missing_personalisation)
 
-    def format_placeholder(self, placeholder):
-        if self.redact_missing_personalisation:
-            return self.placeholder_tag_redacted
-
-        if placeholder.is_conditional:
-            return self.conditional_placeholder_tag.format(placeholder.name, placeholder.conditional_text)
-
-        return self.placeholder_tag.format(placeholder.name)
-
     def replace_match(self, match):
         placeholder = Placeholder.from_match(match)
         replacement = self.get_replacement(placeholder)
