@@ -12,8 +12,6 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
-    placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
-
     def __new__(cls, body, redact_missing_personalisation=False):
         class_ = super().__new__(cls)
 
@@ -41,7 +39,7 @@ class Placeholder:
         return f"{self.__class__.__name__}({self.body})"
 
     def format(self):
-        return self.placeholder_tag.format(self.name)
+        return f"<span class='placeholder'>&#40;&#40;{self.name}&#41;&#41;</span>"
 
     def replace_with(self, replacement):
         if replacement is None:
@@ -55,8 +53,6 @@ class RedactedPlaceholder(Placeholder):
 
 
 class ConditionalPlaceholder(Placeholder):
-    placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
-
     @property
     def name(self):
         # for non conditionals, name equals body
@@ -70,7 +66,7 @@ class ConditionalPlaceholder(Placeholder):
         return self.conditional_text if str2bool(show_conditional) else ""
 
     def format(self):
-        return self.placeholder_tag.format(self.name, self.conditional_text)
+        return f"<span class='placeholder-conditional'>&#40;&#40;{self.name}??</span>{self.conditional_text}&#41;&#41;"
 
     def replace_with(self, replacement):
         if replacement is None:
