@@ -1,6 +1,6 @@
 import pytest
 
-from notifications_utils.field import Field, str2bool
+from notifications_utils.field import Field, PlainTextField, str2bool
 
 
 @pytest.mark.parametrize(
@@ -300,3 +300,13 @@ def test_what_will_trigger_conditional_placeholder(value):
 def test_field_renders_lists_as_strings(values, expected, expected_as_markdown):
     assert str(Field("list: ((placeholder))", values, markdown_lists=True)) == expected_as_markdown
     assert str(Field("list: ((placeholder))", values)) == expected
+
+
+def test_formatting_of_placeholders_without_brackets():
+    assert str(Field("email: ((email address))", with_brackets=False)) == (
+        "email: <span class='placeholder-no-brackets'>email address</span>"
+    )
+    assert str(PlainTextField("email: ((email address))", with_brackets=False)) == "email: email address"
+    assert str(Field("((conditional??yes))", with_brackets=False)) == (
+        "<span class='placeholder-conditional'>&#40;&#40;conditional??</span>yes&#41;&#41;"
+    )
