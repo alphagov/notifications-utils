@@ -14,6 +14,10 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 class Placeholder:
     is_conditional = False
 
+    placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
+    conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
+    placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
+
     def __new__(cls, body):
         class_ = super().__new__(cls)
 
@@ -25,7 +29,10 @@ class Placeholder:
     def __init__(self, body):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
-        self.name = self.body
+
+    @property
+    def name(self):
+        return self.body
 
     @classmethod
     def from_match(cls, match):
@@ -33,6 +40,15 @@ class Placeholder:
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.body})"
+
+    def format(self, *, redact):
+        if redact:
+            return self.placeholder_tag_redacted
+
+        if self.is_conditional:
+            return self.conditional_placeholder_tag.format(self.name, self.conditional_text)
+
+        return self.placeholder_tag.format(self.name)
 
 
 class ConditionalPlaceholder(Placeholder):
@@ -69,10 +85,7 @@ class Field:
         r"([^()]+)"  # body of placeholder - potentially standard or conditional.
         r"\){2}"  # closing ))
     )
-    placeholder_tag = "<span class='placeholder'>&#40;&#40;{}&#41;&#41;</span>"
-    conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
-    placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
 
     def __init__(
         self,
@@ -114,7 +127,7 @@ class Field:
         self._values = InsensitiveDict({self.sanitizer(k): value[k] for k in value}) if value else {}
 
     def format_match(self, match):
-        return self.format_placeholder(Placeholder.from_match(match))
+        return Placeholder.from_match(match).format(redact=self.redact_missing_personalisation)
 
     def format_placeholder(self, placeholder):
         if self.redact_missing_personalisation:
@@ -130,7 +143,7 @@ class Field:
         replacement = self.get_replacement(placeholder)
 
         if replacement is None:
-            return self.format_placeholder(placeholder)
+            return placeholder.format(redact=self.redact_missing_personalisation)
 
         if placeholder.is_conditional:
             return placeholder.get_conditional_body(replacement)
