@@ -240,13 +240,28 @@ def test_handling_of_missing_values(content, values, expected):
     "content, values, expected",
     [
         (
+            "My name is ((name))",
+            {"name": "Geoff"},
+            "My name is Geoff",
+        ),
+        (
             "My name is ((name::unsafe))",
-            {"name": "my name"},
+            {"name": "Geoff"},
             "My name is SANITISED",
+        ),
+        (
+            "My name is ((name::unsafefoobar))",
+            {"name::unsafefoobar": "Geoff"},
+            "My name is Geoff",
+        ),
+        (
+            "My name is ((show_name??name::unsafefoobar))",
+            {"show_name": True},
+            "My name is name::unsafefoobar",
         )
     ],
 )
-def test_unsafe_placeholder_is_correctly_sanitised(content, values, expected):
+def test_placeholder_types_render_as_expected(content, values, expected):
     assert str(Field(content, values)) == expected
 
 

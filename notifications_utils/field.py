@@ -1,5 +1,4 @@
 import re
-from collections import OrderedDict
 from enum import StrEnum, auto
 
 from markupsafe import Markup
@@ -23,17 +22,15 @@ class Placeholder:
         UNSAFE = auto()
         CONDITIONAL = auto()
 
-    extended_type_pattern = OrderedDict(
-        {
-            Types.UNSAFE: "::unsafe",
-            Types.CONDITIONAL: "??",
-        }
-    )
+    extended_type_pattern = {
+        Types.CONDITIONAL: re.compile(r".*\?\?.*"),
+        Types.UNSAFE: re.compile(r".*::unsafe$"),
+    }
 
     @property
     def type(self):
         for type, pattern in self.extended_type_pattern.items():
-            if pattern in self.body:
+            if re.match(pattern, self.body):
                 return type
         return self.Types.BASE
 
