@@ -50,9 +50,6 @@ class Placeholder:
         if replacement is None:
             return self.format(redact=redact)
 
-        if self.is_conditional:
-            return self.get_conditional_body(replacement)
-
         return replacement
 
 
@@ -77,6 +74,12 @@ class ConditionalPlaceholder(Placeholder):
             return self.placeholder_tag_redacted
 
         return self.placeholder_tag.format(self.name, self.conditional_text)
+
+    def replace_with(self, replacement, *, redact):
+        if replacement is None:
+            return self.format(redact=redact)
+
+        return self.get_conditional_body(replacement)
 
 
 class Field:
