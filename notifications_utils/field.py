@@ -12,18 +12,21 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
-    def __new__(cls, body, redact_missing_personalisation=False):
+    def __new__(cls, body, field=None):
         class_ = super().__new__(cls)
 
-        if redact_missing_personalisation:
+        if field and field.redact_missing_personalisation:
             class_.__class__ = RedactedPlaceholder
 
         if "??" in body:
             class_.__class__ = ConditionalPlaceholder
 
+        if field and not field.with_brackets:
+            class_.__class__ = NoBracketsPlaceholder
+
         return class_
 
-    def __init__(self, body, redact_missing_personalisation=False):
+    def __init__(self, body, field=None):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
 
@@ -33,7 +36,7 @@ class Placeholder:
 
     @classmethod
     def from_match_and_field(cls, match, field):
-        return cls(match.group(0), redact_missing_personalisation=field.redact_missing_personalisation)
+        return cls(match.group(0), field)
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.body})"
@@ -50,6 +53,11 @@ class Placeholder:
 class RedactedPlaceholder(Placeholder):
     def format(self):
         return "<span class='placeholder-redacted'>hidden</span>"
+
+
+class NoBracketsPlaceholder(Placeholder):
+    def format(self):
+        return f"<span class='placeholder-no-brackets'>{self.name}</span>"
 
 
 class ConditionalPlaceholder(Placeholder):
@@ -92,7 +100,6 @@ class Field:
         r"([^()]+)"  # body of placeholder - potentially standard or conditional.
         r"\){2}"  # closing ))
     )
-    placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
 
     def __init__(
         self,
@@ -111,6 +118,7 @@ class Field:
         self.values = values
         self.markdown_lists = markdown_lists
         self.redact_missing_personalisation = redact_missing_personalisation
+        self.with_brackets = with_brackets
 
     def __str__(self):
         if self.values:
