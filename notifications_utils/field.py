@@ -1,4 +1,6 @@
 import re
+from enum import StrEnum, auto
+from collections import OrderedDict
 
 from markupsafe import Markup
 from ordered_set import OrderedSet
@@ -16,17 +18,38 @@ class Placeholder:
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
 
+    class Types(StrEnum):
+        BASE = auto()
+        CONDITIONAL = auto()
+
+    extended_type_pattern = OrderedDict(
+        {
+            Types.CONDITIONAL: "??",
+        }
+    )
+
+    @property
+    def type(self):
+        for type, pattern in self.extended_type_pattern.items():
+            if pattern in self.body:
+                return type
+        return self.Types.BASE
+
     @classmethod
     def from_match(cls, match):
         return cls(match.group(0))
 
     def is_conditional(self):
-        return "??" in self.body
+        return self.type == self.Types.CONDITIONAL
 
     @property
     def name(self):
         # for non conditionals, name equals body
-        return self.body.split("??")[0]
+        match self.type:
+            case self.Types.BASE:
+                return self.body
+            case self.Types.CONDITIONAL:
+                return self.body.split("??")[0]
 
     @property
     def conditional_text(self):
