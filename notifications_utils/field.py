@@ -42,7 +42,7 @@ class Placeholder:
         return self.body
 
     @classmethod
-    def from_match(cls, match, *, field):
+    def from_match(cls, match, *, field=None):
         return cls(match.group(0), field)
 
     def __repr__(self):

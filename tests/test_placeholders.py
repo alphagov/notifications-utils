@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from notifications_utils.field import Placeholder
+from notifications_utils.field import ConditionalPlaceholder, Placeholder
 
 
 @pytest.mark.parametrize(
@@ -25,7 +25,7 @@ def test_placeholder_returns_name(body, expected):
     ],
 )
 def test_placeholder_identifies_conditional(body, is_conditional):
-    assert Placeholder(body).is_conditional() == is_conditional
+    assert isinstance(Placeholder(body), ConditionalPlaceholder) == is_conditional
 
 
 @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ def test_placeholder_gets_conditional_text(body, conditional_text):
 
 
 def test_placeholder_raises_if_accessing_conditional_text_on_non_conditional():
-    with pytest.raises(ValueError):
+    with pytest.raises(AttributeError):
         Placeholder("hello").conditional_text  # noqa
 
 
@@ -57,7 +57,7 @@ def test_placeholder_gets_conditional_body(body, value, result):
 
 
 def test_placeholder_raises_if_getting_conditional_body_on_non_conditional():
-    with pytest.raises(ValueError):
+    with pytest.raises(AttributeError):
         Placeholder("hello").get_conditional_body("Yes")
 
 
