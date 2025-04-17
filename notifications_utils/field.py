@@ -29,13 +29,14 @@ class Placeholder:
     def __init__(self, body, field=None):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
+        self.field = field
 
     @property
     def name(self):
         return self.body
 
     @classmethod
-    def from_match_and_field(cls, match, field):
+    def from_match(cls, match, *, field):
         return cls(match.group(0), field)
 
     def __repr__(self):
@@ -140,10 +141,10 @@ class Field:
         self._values = InsensitiveDict({self.sanitizer(k): value[k] for k in value}) if value else {}
 
     def format_match(self, match):
-        return Placeholder.from_match_and_field(match, self).format()
+        return Placeholder.from_match(match, field=self).format()
 
     def replace_match(self, match):
-        placeholder = Placeholder.from_match_and_field(match, self)
+        placeholder = Placeholder.from_match(match, field=self)
         replacement = self.get_replacement(placeholder)
         return placeholder.replace_with(replacement)
 
