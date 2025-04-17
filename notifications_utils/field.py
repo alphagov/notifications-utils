@@ -70,7 +70,6 @@ class NoBracketsPlaceholder(Placeholder):
 class ConditionalPlaceholder(Placeholder):
     @property
     def name(self):
-        # for non conditionals, name equals body
         return self.body.split("??")[0]
 
     @property
