@@ -1,6 +1,6 @@
 import pytest
 
-from notifications_utils.field import Field, str2bool
+from notifications_utils.field import Field, PlainTextField, str2bool
 
 
 @pytest.mark.parametrize(
@@ -92,6 +92,8 @@ def test_returns_a_string_without_placeholders(content):
             "This is a conditional warning\nwith line break",
         ),
         ("((warning??This is a conditional warning))", {"warning": False}, ""),
+        ("((warning??foo??bar))", {"warning": True}, "foo??bar"),
+        ("((warning??foo??bar))", {"warning": False}, ""),
         (
             "Please report to the ((>location)) office at ((&time)) on ((<day)).",
             {">location": "London", "&time": "09:00", "<day": "Monday"},
@@ -114,8 +116,9 @@ def test_returns_a_string_without_placeholders(content):
         ),
     ],
 )
-def test_replacement_of_placeholders(template_content, data, expected):
-    assert str(Field(template_content, data)) == expected
+@pytest.mark.parametrize("field_class", (Field, PlainTextField))
+def test_replacement_of_placeholders(field_class, template_content, data, expected):
+    assert str(field_class(template_content, data)) == expected
 
 
 @pytest.mark.parametrize(
@@ -176,6 +179,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
         (
             "((warning?? This is a warning\n text after linebreak))",
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This is a warning\n text after linebreak&#41;&#41;",  # noqa
+        ),
+        (
+            "((warning?? This warning is ?? questionable))",
+            "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This warning is ?? questionable&#41;&#41;",  # noqa
         ),
     ],
 )
@@ -300,3 +307,22 @@ def test_what_will_trigger_conditional_placeholder(value):
 def test_field_renders_lists_as_strings(values, expected, expected_as_markdown):
     assert str(Field("list: ((placeholder))", values, markdown_lists=True)) == expected_as_markdown
     assert str(Field("list: ((placeholder))", values)) == expected
+
+
+def test_formatting_of_placeholders_without_brackets():
+    assert str(Field("email: ((email address))", with_brackets=False)) == (
+        "email: <span class='placeholder-no-brackets'>email address</span>"
+    )
+    assert str(PlainTextField("email: ((email address))", with_brackets=False)) == "email: email address"
+    assert str(Field("((conditional??yes))", with_brackets=False)) == (
+        "<span class='placeholder-conditional'>&#40;&#40;conditional??</span>yes&#41;&#41;"
+    )
+    assert str(Field("email: ((email address))", with_brackets=False, redact_missing_personalisation=True)) == (
+        "email: <span class='placeholder-redacted'>hidden</span>"
+    )
+
+
+def test_PlainTextField():
+    assert str(PlainTextField("((foo)) ((foo??bar))")) == "((foo)) ((foo??bar))"
+    assert str(PlainTextField("((foo)) ((foo??bar))", redact_missing_personalisation=True)) == "[hidden] [hidden]"
+    assert str(PlainTextField("((foo??bar??baz))")) == "((foo??bar??baz))"
