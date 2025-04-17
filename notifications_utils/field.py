@@ -23,11 +23,9 @@ class Placeholder:
 
         if field and field.redact_missing_personalisation:
             class_.__class__ = RedactedPlaceholder
-
-        if "??" in body:
+        elif "??" in body:
             class_.__class__ = ConditionalPlaceholder
-
-        if field and not field.with_brackets:
+        elif field and not field.with_brackets:
             class_.__class__ = NoBracketsPlaceholder
 
         return class_
