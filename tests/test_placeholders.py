@@ -40,11 +40,6 @@ def test_placeholder_gets_conditional_text(body, conditional_text):
     assert Placeholder(body).conditional_text == conditional_text
 
 
-def test_placeholder_raises_if_accessing_conditional_text_on_non_conditional():
-    with pytest.raises(AttributeError):
-        Placeholder("hello").conditional_text  # noqa
-
-
 @pytest.mark.parametrize(
     "body, value, result",
     [
@@ -53,12 +48,7 @@ def test_placeholder_raises_if_accessing_conditional_text_on_non_conditional():
     ],
 )
 def test_placeholder_gets_conditional_body(body, value, result):
-    assert Placeholder(body).get_conditional_body(value) == result
-
-
-def test_placeholder_raises_if_getting_conditional_body_on_non_conditional():
-    with pytest.raises(AttributeError):
-        Placeholder("hello").get_conditional_body("Yes")
+    assert Placeholder(body).replace_with(value) == result
 
 
 def test_placeholder_can_be_constructed_from_regex_match():

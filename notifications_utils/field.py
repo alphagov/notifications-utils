@@ -80,9 +80,6 @@ class ConditionalPlaceholder(Placeholder):
     def conditional_text(self):
         return "??".join(self.body.split("??")[1:])
 
-    def get_conditional_body(self, show_conditional):
-        return self.conditional_text if str2bool(show_conditional) else ""
-
     def format(self):
         if self.html:
             return (
@@ -93,7 +90,9 @@ class ConditionalPlaceholder(Placeholder):
     def replace_with(self, replacement):
         if replacement is None:
             return self.format()
-        return self.get_conditional_body(replacement)
+        if str2bool(replacement):
+            return self.conditional_text
+        return ""
 
 
 class Field:
