@@ -29,7 +29,7 @@ class Placeholder:
     def __init__(self, body, field=None):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
-        self.field = field
+        self.html = not isinstance(field, PlainTextField)
 
     @property
     def name(self):
@@ -43,7 +43,9 @@ class Placeholder:
         return f"{self.__class__.__name__}({self.body})"
 
     def format(self):
-        return f"<span class='placeholder'>&#40;&#40;{self.name}&#41;&#41;</span>"
+        if self.html:
+            return f"<span class='placeholder'>&#40;&#40;{self.name}&#41;&#41;</span>"
+        return f"(({self.name}))"
 
     def replace_with(self, replacement):
         if replacement is None:
@@ -53,12 +55,16 @@ class Placeholder:
 
 class RedactedPlaceholder(Placeholder):
     def format(self):
-        return "<span class='placeholder-redacted'>hidden</span>"
+        if self.html:
+            return "<span class='placeholder-redacted'>hidden</span>"
+        return "[hidden]"
 
 
 class NoBracketsPlaceholder(Placeholder):
     def format(self):
-        return f"<span class='placeholder-no-brackets'>{self.name}</span>"
+        if self.html:
+            return f"<span class='placeholder-no-brackets'>{self.name}</span>"
+        return self.name
 
 
 class ConditionalPlaceholder(Placeholder):
@@ -75,7 +81,11 @@ class ConditionalPlaceholder(Placeholder):
         return self.conditional_text if str2bool(show_conditional) else ""
 
     def format(self):
-        return f"<span class='placeholder-conditional'>&#40;&#40;{self.name}??</span>{self.conditional_text}&#41;&#41;"
+        if self.html:
+            return (
+                f"<span class='placeholder-conditional'>&#40;&#40;{self.name}??</span>{self.conditional_text}&#41;&#41;"
+            )
+        return f"(({self.name}??{self.conditional_text}))"
 
     def replace_with(self, replacement):
         if replacement is None:
@@ -191,11 +201,6 @@ class PlainTextField(Field):
     Use this where no HTML should be rendered in the outputted content,
     even when no values have been passed in
     """
-
-    placeholder_tag = "(({}))"
-    conditional_placeholder_tag = "(({}??{}))"
-    placeholder_tag_no_brackets = "{}"
-    placeholder_tag_redacted = "[hidden]"
 
 
 def str2bool(value):
