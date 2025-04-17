@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 99.0.0
+
+* NOTABLE CHANGE: Celery tasks emit an "early" log message when starting, with a customisable log level to allow this to be disabled for high-volume tasks. When upgrading past this version you may want to pass the extra argument `early_log_level=logging.DEBUG` to the task decorator of your most heavily-called tasks to reduce the effect on log volume
+* Annotates automatic celery task log messages with `celery_task_id`
+
 ## 98.0.1
 
 * Moves from `setup.py` to `pyproject.toml` for package configuation
