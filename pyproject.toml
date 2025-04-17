@@ -6,7 +6,7 @@ name = "notifications-utils"
 dynamic = ["version"]
 description = "Shared python code for GOV.UK Notify."
 readme = "README.md"
-license = {text = "MIT License"}
+license = "MIT"
 authors = [
     { name = "Government Digital Service" },
 ]
