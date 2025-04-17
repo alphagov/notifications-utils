@@ -12,6 +12,12 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
+    pattern = re.compile(
+        r"\({2}"  # opening ((
+        r"([^()]+)"  # body of placeholder - potentially standard or conditional.
+        r"\){2}"  # closing ))
+    )
+
     def __new__(cls, body, field=None):
         class_ = super().__new__(cls)
 
@@ -105,12 +111,6 @@ class Field:
     has a field for the body and a field for the subject.
     """
 
-    placeholder_pattern = re.compile(
-        r"\({2}"  # opening ((
-        r"([^()]+)"  # body of placeholder - potentially standard or conditional.
-        r"\){2}"  # closing ))
-    )
-
     def __init__(
         self,
         content,
@@ -178,7 +178,7 @@ class Field:
 
     @property
     def _raw_formatted(self):
-        return re.sub(self.placeholder_pattern, self.format_match, self.sanitizer(self.content))
+        return re.sub(Placeholder.pattern, self.format_match, self.sanitizer(self.content))
 
     @property
     def formatted(self):
@@ -188,11 +188,11 @@ class Field:
     def placeholders(self):
         if not getattr(self, "content", ""):
             return set()
-        return OrderedSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
+        return OrderedSet(Placeholder(body).name for body in re.findall(Placeholder.pattern, self.content))
 
     @property
     def replaced(self):
-        return re.sub(self.placeholder_pattern, self.replace_match, self.sanitizer(self.content))
+        return re.sub(Placeholder.pattern, self.replace_match, self.sanitizer(self.content))
 
 
 class PlainTextField(Field):
