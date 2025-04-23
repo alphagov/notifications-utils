@@ -37,16 +37,23 @@ def celery_task_early_debug(notify_celery):
 
 @pytest.fixture
 def async_task(celery_task):
-    celery_task.push_request(delivery_info={"routing_key": "test-queue"})
+    celery_task.push_request(delivery_info={"routing_key": "test-queue"}, id=1234)
     yield celery_task
     celery_task.pop_request()
+
+
+@pytest.fixture
+def async_task_early_debug(celery_task_early_debug):
+    celery_task_early_debug.push_request(delivery_info={"routing_key": "test-queue"}, id=1234)
+    yield celery_task_early_debug
+    celery_task_early_debug.pop_request()
 
 
 @pytest.fixture
 def request_id_task(celery_task):
     # Note that each header is a direct attribute of the
     # task context (aka "request").
-    celery_task.push_request(notify_request_id="1234")
+    celery_task.push_request(notify_request_id="1234", id=1234)
     yield celery_task
     celery_task.pop_request()
 
@@ -65,6 +72,20 @@ def test_success_should_log_and_call_statsd(celery_app, async_task, caplog):
     assert f"Celery task {async_task.name} (queue: test-queue) took 5.0000" in caplog.messages
 
 
+def test_success_no_early_log(celery_app, async_task_early_debug, caplog):
+    statsd_mock = celery_app.statsd_client.timing
+
+    with freeze_time() as frozen, caplog.at_level(logging.INFO):
+        async_task_early_debug()
+        frozen.tick(5)
+
+        async_task_early_debug.on_success(retval=None, task_id=1234, args=[], kwargs={})
+
+    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task_early_debug.name}.success", 5.0)
+    assert f"Celery task {async_task_early_debug.name} (queue: test-queue) started" not in caplog.messages
+    assert f"Celery task {async_task_early_debug.name} (queue: test-queue) took 5.0000" in caplog.messages
+
+
 def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplog):
     statsd_mock = celery_app.statsd_client.timing
 
@@ -75,22 +96,8 @@ def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplo
         celery_task.on_success(retval=None, task_id=1234, args=[], kwargs={})
 
     statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.success", 5.0)
-    assert f"Celery task {celery_task.name} (queue: none) started" in caplog.messages
+    assert f"Celery task {celery_task.name} (queue: none) started" not in caplog.messages
     assert f"Celery task {celery_task.name} (queue: none) took 5.0000" in caplog.messages
-
-
-def test_success_queue_when_applied_synchronously_no_early_log(celery_app, celery_task_early_debug, caplog):
-    statsd_mock = celery_app.statsd_client.timing
-
-    with freeze_time() as frozen, caplog.at_level(logging.INFO):
-        celery_task_early_debug()
-        frozen.tick(5)
-
-        celery_task_early_debug.on_success(retval=None, task_id=1234, args=[], kwargs={})
-
-    statsd_mock.assert_called_once_with(f"celery.none.{celery_task_early_debug.name}.success", 5.0)
-    assert f"Celery task {celery_task_early_debug.name} (queue: none) started" not in caplog.messages
-    assert f"Celery task {celery_task_early_debug.name} (queue: none) took 5.0000" in caplog.messages
 
 
 def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog):
