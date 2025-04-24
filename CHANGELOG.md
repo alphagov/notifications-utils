@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.4.0
+
+* Add celery logging configuration for json logging
+
 ## 99.3.3
 
 * Fix bug with non-SMS templates considering international SMS limits
