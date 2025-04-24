@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.1.0
+
+* Adds support for economy mail in get_min_and_max_days_in_transit, with delivery estimated between 2 and 6 days
+
 ## 99.0.0
 
 * NOTABLE CHANGE: Celery tasks emit an "early" log message when starting, with a customisable log level to allow this to be disabled for high-volume tasks. When upgrading past this version you may want to pass the extra argument `early_log_level=logging.DEBUG` to the task decorator of your most heavily-called tasks to reduce the effect on log volume
