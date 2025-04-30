@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.1.1
+
+* Bump ruff to latest version
+
 ## 99.1.0
 
 * Adds support for economy mail in get_min_and_max_days_in_transit, with delivery estimated between 2 and 6 days
