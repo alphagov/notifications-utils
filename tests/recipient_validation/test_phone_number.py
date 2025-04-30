@@ -26,6 +26,7 @@ valid_international_phone_numbers = [
     "007 (8) (495) 123-45-67",  # russia
     "784951234567",  # Russia but without a + or 00 so it looks like it could be a uk phone number
     "1-202-555-0104",  # USA
+    "1‑202–555—010−4",  # USA with non-breaking hyphen, en dash, em dash, minus sign
     "+12025550104",  # USA
     "0012025550104",  # USA
     "+0012025550104",  # USA
