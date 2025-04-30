@@ -170,8 +170,14 @@ class Field:
 
         return replacement
 
-    # first draft, needs refactoring
     def sanitise_replacement_unsafe(self, replacement: str):
+        # if the replacement contains a link consider it all compromised
+        html_pattern = re.compile(
+            r'https?://\S+|www\.\S+'
+        )
+        if re.search(html_pattern, replacement):
+            return ""
+        # escape markdown-specific characters
         markdown_characters = r"`*_(){}[]<>#+-.!|"
         for character in markdown_characters:
             replacement = replacement.replace(character, f"\\{character}")
