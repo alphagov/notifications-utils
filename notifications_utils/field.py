@@ -1,4 +1,5 @@
 import re
+from enum import StrEnum, auto
 
 from markupsafe import Markup
 from ordered_set import OrderedSet
@@ -16,17 +17,46 @@ class Placeholder:
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
 
+    class Types(StrEnum):
+        BASE = auto()
+        UNSAFE = auto()
+        CONDITIONAL = auto()
+
+    # order matters as the placeholder type will be the first type that returns a match
+    # conditional shoud come first because no escaping should happen on conditional
+    # placeholders as they don't contain vulnerable input
+    extended_type_pattern = {
+        Types.CONDITIONAL: re.compile(r".*\?\?.*"),
+        Types.UNSAFE: re.compile(r".*::unsafe$"),
+    }
+
+    @property
+    def type(self):
+        for type, pattern in self.extended_type_pattern.items():
+            if re.match(pattern, self.body):
+                return type
+        return self.Types.BASE
+
     @classmethod
     def from_match(cls, match):
         return cls(match.group(0))
 
     def is_conditional(self):
-        return "??" in self.body
+        return self.type == self.Types.CONDITIONAL
+
+    def is_unsafe(self):
+        return self.type == self.Types.UNSAFE
 
     @property
     def name(self):
         # for non conditionals, name equals body
-        return self.body.split("??")[0]
+        match self.type:
+            case self.Types.BASE:
+                return self.body
+            case self.Types.UNSAFE:
+                return self.body.split("::unsafe")[0]
+            case self.Types.CONDITIONAL:
+                return self.body.split("??")[0]
 
     @property
     def conditional_text(self):
@@ -69,6 +99,7 @@ class Field:
     conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
     placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
+    placeholder_tag_unsafe = "<span class='placeholder'>&#40;&#40;{}</span>::unsafe&#41;&#41;"
 
     def __init__(
         self,
@@ -119,6 +150,9 @@ class Field:
         if placeholder.is_conditional():
             return self.conditional_placeholder_tag.format(placeholder.name, placeholder.conditional_text)
 
+        if placeholder.is_unsafe():
+            return self.placeholder_tag_unsafe.format(placeholder.name)
+
         return self.placeholder_tag.format(placeholder.name)
 
     def replace_match(self, match):
@@ -130,6 +164,9 @@ class Field:
 
         if placeholder.is_conditional():
             return placeholder.get_conditional_body(replacement)
+
+        if placeholder.is_unsafe():
+            return "SANITISED"
 
         return replacement
 
@@ -181,6 +218,7 @@ class PlainTextField(Field):
     conditional_placeholder_tag = "(({}??{}))"
     placeholder_tag_no_brackets = "{}"
     placeholder_tag_redacted = "[hidden]"
+    placeholder_tag_unsafe = "(({}::unsafe))"
 
 
 def str2bool(value):
