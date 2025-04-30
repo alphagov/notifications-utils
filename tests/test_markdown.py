@@ -135,7 +135,10 @@ def test_URLs_get_escaped(url, expected_html, expected_html_in_template):
                 "</p>"
             ),
         ),
-        (notify_plain_text_email_markdown, ("\n\nhttps://example.com\n\nNext paragraph")),
+        (
+            notify_plain_text_email_markdown,
+            ("\n\nhttps://example.com\n\nNext paragraph"),
+        ),
     ],
 )
 def test_preserves_whitespace_when_making_links(markdown_function, expected_output):
@@ -214,7 +217,10 @@ def test_level_1_header(markdown_function, heading, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, "<p>Visit our [website](www.example.com/xyz).</p>"],
+        [
+            notify_letter_preview_markdown,
+            "<p>Visit our [website](www.example.com/xyz).</p>",
+        ],
         [
             notify_email_markdown,
             (
@@ -235,7 +241,10 @@ def test_external_link_without_http(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, "<p>Visit our [website](https://www.example.com/xyz).</p>"],
+        [
+            notify_letter_preview_markdown,
+            "<p>Visit our [website](https://www.example.com/xyz).</p>",
+        ],
         [
             notify_email_markdown,
             (
@@ -289,7 +298,10 @@ def test_mailto_link_in_email_markdown_link(url, expected_link_href):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, '<p>Visit our [website](www.example.com/xyz "Link Title").</p>'],
+        [
+            notify_letter_preview_markdown,
+            '<p>Visit our [website](www.example.com/xyz "Link Title").</p>',
+        ],
         [
             notify_email_markdown,
             (
@@ -311,7 +323,10 @@ def test_external_title_link_without_http(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, '<p>Visit our [website](https://www.example.com/xyz "Link Title").</p>'],
+        [
+            notify_letter_preview_markdown,
+            '<p>Visit our [website](https://www.example.com/xyz "Link Title").</p>',
+        ],
         [
             notify_email_markdown,
             (
@@ -374,7 +389,10 @@ def test_level_3_header(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ('<p>a</p><div class="page-break">&nbsp;</div><p>b</p>')],
+        [
+            notify_letter_preview_markdown,
+            ('<p>a</p><div class="page-break">&nbsp;</div><p>b</p>'),
+        ],
         [
             notify_email_markdown,
             (
@@ -397,7 +415,10 @@ def test_hrule(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<ol>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ol>\n")],
+        [
+            notify_letter_preview_markdown,
+            ("<ol>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ol>\n"),
+        ],
         [
             notify_email_markdown,
             (
@@ -443,7 +464,10 @@ def test_ordered_list(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<ul>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ul>\n")],
+        [
+            notify_letter_preview_markdown,
+            ("<ul>\n<li>one</li>\n<li>two</li>\n<li>three</li>\n</ul>\n"),
+        ],
         [
             notify_email_markdown,
             (
@@ -501,7 +525,10 @@ def test_pluses_dont_render_as_lists(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, expected",
     (
-        [notify_letter_preview_markdown, ("<p>line one<br>line two</p><p>new paragraph</p>")],
+        [
+            notify_letter_preview_markdown,
+            ("<p>line one<br>line two</p><p>new paragraph</p>"),
+        ],
         [
             notify_email_markdown,
             (
@@ -542,7 +569,12 @@ def test_multiple_newlines_get_truncated(markdown_function, expected):
 
 
 @pytest.mark.parametrize(
-    "markdown_function", (notify_letter_preview_markdown, notify_email_markdown, notify_plain_text_email_markdown)
+    "markdown_function",
+    (
+        notify_letter_preview_markdown,
+        notify_email_markdown,
+        notify_plain_text_email_markdown,
+    ),
 )
 def test_table(markdown_function):
     assert markdown_function("col | col\n----|----\nval | val\n") == ("")
@@ -635,7 +667,11 @@ def test_double_emphasis(markdown_function, expected):
 @pytest.mark.parametrize(
     "markdown_function, text, expected",
     (
-        [notify_letter_preview_markdown, "something *important*", "<p>something *important*</p>"],
+        [
+            notify_letter_preview_markdown,
+            "something *important*",
+            "<p>something *important*</p>",
+        ],
         [
             notify_email_markdown,
             "something *important*",
@@ -689,7 +725,12 @@ def test_nested_emphasis(markdown_function, expected):
 
 
 @pytest.mark.parametrize(
-    "markdown_function", (notify_letter_preview_markdown, notify_email_markdown, notify_plain_text_email_markdown)
+    "markdown_function",
+    (
+        notify_letter_preview_markdown,
+        notify_email_markdown,
+        notify_plain_text_email_markdown,
+    ),
 )
 def test_image(markdown_function):
     assert markdown_function("![alt text](http://example.com/image.png)") == ("")
@@ -821,10 +862,22 @@ def test_letter_qr_code_only_passes_through_url(
     "content, data, expected_data",
     (
         # This is the officially-supported syntax
-        ("qr: ((data))", {"data": "https://www.example.com"}, "https://www.example.com"),
+        (
+            "qr: ((data))",
+            {"data": "https://www.example.com"},
+            "https://www.example.com",
+        ),
         ("qr: static", {}, "static"),
-        ("qr: prefix https://www.google.com suffix", {}, "prefix https://www.google.com suffix"),
-        ("qr: prefix ((data))", {"data": "https://www.example.com"}, "prefix https://www.example.com"),
+        (
+            "qr: prefix https://www.google.com suffix",
+            {},
+            "prefix https://www.google.com suffix",
+        ),
+        (
+            "qr: prefix ((data))",
+            {"data": "https://www.example.com"},
+            "prefix https://www.example.com",
+        ),
         #
         # This is an old syntax which we don’t support, so we make sure it doesn't render broken QR codes
         ("[qr](((data)))", {"data": "https://www.example.com"}, None),
