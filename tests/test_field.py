@@ -248,13 +248,13 @@ def test_handling_of_missing_values(content, values, expected):
     [
         (
             "My name is ((name))",
-            {"name": "Geoff"},
-            "My name is Geoff",
+            {"name": "Geoff()[]{}"},
+            "My name is Geoff()[]{}",
         ),
         (
             "My name is ((name::unsafe))",
-            {"name": "Geoff"},
-            "My name is SANITISED",
+            {"name": "Geoff()[]{}"},
+            r"My name is Geoff\(\)\[\]\{\}",
         ),
         (
             "My name is ((name::unsafefoobar))",

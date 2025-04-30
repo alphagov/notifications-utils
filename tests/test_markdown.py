@@ -858,6 +858,25 @@ def test_strikethrough(markdown_function, expected):
     assert markdown_function("~~Strike~~") == expected
 
 
+@pytest.mark.parametrize(
+    "content, data, expected_html",
+    [
+        (
+            "This is an escaped heading: \n ((var::unsafe))",
+            {"var": "# This is heading 1"},
+            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">This is an escaped heading:<br> # This is heading 1</p>',  # noqa: E501
+        ),
+        (
+            "This is an unescaped heading: \n ((var))",
+            {"var": "# This is heading 1"},
+            '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">This is an unescaped heading: </p><h2 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; font-size: 27px; line-height: 35px; font-weight: bold; color: #0B0C0C;">This is heading 1</h2>',  # noqa: E501
+        ),
+    ],
+)
+def test_unsafe_placeholders_are_escaped_correctly(content, data, expected_html):
+    assert notify_email_markdown(str(Field(content, data))) == expected_html
+
+
 def test_footnotes():
     # Can’t work out how to test this
     pass
