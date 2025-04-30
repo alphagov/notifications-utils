@@ -99,7 +99,7 @@ class Field:
     conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
     placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
-    placeholder_tag_unsafe = "<span class='placeholder'>&#40;&#40;{}</span>::unsafe&#41;&#41;"
+    placeholder_tag_unsafe = "<span class='placeholder-unsafe'>&#40;&#40;{}</span>::unsafe&#41;&#41;"
 
     def __init__(
         self,
@@ -166,8 +166,15 @@ class Field:
             return placeholder.get_conditional_body(replacement)
 
         if placeholder.is_unsafe():
-            return "SANITISED"
+            return self.sanitise_replacement_unsafe(replacement)
 
+        return replacement
+
+    # first draft, needs refactoring
+    def sanitise_replacement_unsafe(self, replacement: str):
+        markdown_characters = r"`*_(){}[]<>#+-.!|"
+        for character in markdown_characters:
+            replacement = replacement.replace(character, f"\\{character}")
         return replacement
 
     def get_replacement(self, placeholder):
