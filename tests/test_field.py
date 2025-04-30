@@ -211,7 +211,7 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
         ),
         (
             "Unsafe placeholder: ((name::unsafe))",
-            "Unsafe placeholder: <span class='placeholder'>&#40;&#40;name</span>::unsafe&#41;&#41;",
+            "Unsafe placeholder: <span class='placeholder-unsafe'>&#40;&#40;name</span>::unsafe&#41;&#41;",
         ),
     ],
 )

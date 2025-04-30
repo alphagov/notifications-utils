@@ -99,7 +99,7 @@ class Field:
     conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
     placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
-    placeholder_tag_unsafe = "<span class='placeholder'>&#40;&#40;{}</span>::unsafe&#41;&#41;"
+    placeholder_tag_unsafe = "<span class='placeholder-unsafe'>&#40;&#40;{}</span>::unsafe&#41;&#41;"
 
     def __init__(
         self,
