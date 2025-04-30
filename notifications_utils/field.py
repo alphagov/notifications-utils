@@ -166,8 +166,15 @@ class Field:
             return placeholder.get_conditional_body(replacement)
 
         if placeholder.is_unsafe():
-            return "SANITISED"
+            return self.sanitise_replacement_unsafe(replacement)
 
+        return replacement
+
+    # first draft, needs refactoring
+    def sanitise_replacement_unsafe(self, replacement: str):
+        markdown_characters = r"`*_(){}[]<>#+-.!|"
+        for character in markdown_characters:
+            replacement = replacement.replace(character, f"\\{character}")
         return replacement
 
     def get_replacement(self, placeholder):
