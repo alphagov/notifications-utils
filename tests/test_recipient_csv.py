@@ -719,7 +719,7 @@ def test_bad_or_missing_data(
 
 
 @pytest.mark.parametrize(
-    "file_contents,rows_with_bad_recipients",
+    "file_contents,rows_with_bad_recipients,expectected_count",
     [
         (
             """
@@ -729,6 +729,7 @@ def test_bad_or_missing_data(
             +447900123
         """,
             {0, 1, 2},
+            0,
         ),
         (
             """
@@ -738,15 +739,17 @@ def test_bad_or_missing_data(
             +2304031000, Mauritius
         """,
             set(),
+            3,
         ),
     ],
 )
-def test_international_recipients(file_contents, rows_with_bad_recipients):
+def test_international_recipients(file_contents, rows_with_bad_recipients, expectected_count):
     recipients = RecipientCSV(
         file_contents,
         template=_sample_template("sms"),
         allow_international_sms=True,
     )
+    assert recipients.international_sms_count == expectected_count
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
 
 

@@ -63,6 +63,8 @@ class RecipientCSV:
         self.rows_as_list = None
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
+        # use the international_sms_count property to get this.
+        self._international_sms_count = 0
 
     def __len__(self):
         if not hasattr(self, "_len"):
@@ -129,6 +131,12 @@ class RecipientCSV:
         if not self.guestlist:
             return True
         return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows)
+
+    @property
+    def international_sms_count(self):
+        if self._international_sms_count == 0:
+            self.rows
+        return self._international_sms_count
 
     @property
     def rows(self):
@@ -327,6 +335,8 @@ class RecipientCSV:
                             allow_international_number=self.allow_international_sms,
                             allow_uk_landline=self.allow_sms_to_uk_landline,
                         )
+                        if number.is_international_number():
+                            self._international_sms_count += 1
             except InvalidRecipientError as error:
                 return str(error)
 
