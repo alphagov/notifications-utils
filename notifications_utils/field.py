@@ -8,6 +8,7 @@ from notifications_utils.formatters import (
     escape_html,
     strip_and_remove_obscure_whitespace,
     unescaped_formatted_list,
+    url,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
 
@@ -170,8 +171,11 @@ class Field:
 
         return replacement
 
-    # first draft, needs refactoring
     def sanitise_replacement_unsafe(self, replacement: str):
+        # if the replacement contains a link consider it all compromised
+        if re.search(url, replacement):
+            return ""
+        # escape markdown-specific characters
         markdown_characters = r"`*_(){}[]<>#+-.!|"
         for character in markdown_characters:
             replacement = replacement.replace(character, f"\\{character}")

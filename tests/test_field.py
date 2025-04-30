@@ -257,6 +257,11 @@ def test_handling_of_missing_values(content, values, expected):
             r"My name is Geoff\(\)\[\]\{\}",
         ),
         (
+            "Escaped link: ((link::unsafe))",
+            {"link": "https://www.google.com"},
+            "Escaped link: ",
+        ),
+        (
             "My name is ((name::unsafefoobar))",
             {"name::unsafefoobar": "Geoff"},
             "My name is Geoff",
