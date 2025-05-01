@@ -7,6 +7,7 @@ from itertools import islice
 from typing import cast
 
 from ordered_set import OrderedSet
+from werkzeug.utils import cached_property
 
 from notifications_utils.formatters import (
     strip_all_whitespace,
@@ -133,7 +134,7 @@ class RecipientCSV:
             return True
         return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows)
 
-    @property
+    @cached_property
     def international_sms_count(self):
         if self.template_type != "sms":
             return 0
