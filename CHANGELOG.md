@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.5.2
+
+* Make inheritence of annotations on SerialisedModel work on both the class and its instances
+
 ## 99.5.1
 
 * Bump minimum Flask version to 3.1.1
