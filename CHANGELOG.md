@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.3.4
+
+* Make inheritence of annotations on SerialisedModel work on both the class and its instances
+
 ## 99.3.3
 
 * Fix bug with non-SMS templates considering international SMS limits
