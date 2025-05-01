@@ -754,6 +754,31 @@ def test_international_recipients(file_contents, rows_with_bad_recipients, expec
 
 
 @pytest.mark.parametrize(
+    "extra_args, too_many",
+    (
+        ({"remaining_international_sms_messages": 2}, True),
+        ({"remaining_international_sms_messages": 3}, False),
+        ({}, False),
+    ),
+)
+def test_international_sms_limit(extra_args, too_many):
+    recipients = RecipientCSV(
+        """
+        phone number, count international
+        +12025550104, 1
+        +447900900123, (UK)
+        +12025550104, 2
+        +12025550104, 3
+        07900 900 321, (UK with no country code)
+        """,
+        template=_sample_template("sms"),
+        allow_international_sms=True,
+        **extra_args,
+    )
+    assert recipients.more_international_sms_than_can_send is too_many
+
+
+@pytest.mark.parametrize(
     "file_contents,rows_with_bad_recipients",
     [
         (

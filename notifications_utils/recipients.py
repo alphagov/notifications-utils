@@ -45,6 +45,7 @@ class RecipientCSV:
         max_initial_rows_shown=10,
         guestlist=None,
         remaining_messages=sys.maxsize,
+        remaining_international_sms_messages=sys.maxsize,
         allow_international_sms=False,
         allow_international_letters=False,
         allow_sms_to_uk_landline=False,
@@ -60,6 +61,7 @@ class RecipientCSV:
         self.allow_international_letters = allow_international_letters
         self.allow_sms_to_uk_landline = allow_sms_to_uk_landline
         self.remaining_messages = remaining_messages
+        self.remaining_international_sms_messages = remaining_international_sms_messages
         self.rows_as_list = None
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
@@ -140,6 +142,10 @@ class RecipientCSV:
         for row in self.rows:
             with suppress(InvalidPhoneError):
                 yield PhoneNumber(row.recipient).is_international_number()
+
+    @property
+    def more_international_sms_than_can_send(self):
+        return self.international_sms_count > self.remaining_international_sms_messages
 
     @property
     def rows(self):
