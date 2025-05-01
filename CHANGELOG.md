@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.2.0
+
+* Add s3 multipart upload lifecycle (create, upload, complete, abort)
+
 ## 99.1.2
 
 * Normalise unusual dashes and spacing characters in phone numbers
