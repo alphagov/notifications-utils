@@ -5,8 +5,10 @@ class SanitiseText:
     ALLOWED_CHARACTERS = set()
 
     REPLACEMENT_CHARACTERS = {
+        "‑": "-",  # NON-BREAKING HYPHEN (U+2011)
         "–": "-",  # EN DASH (U+2013)
         "—": "-",  # EM DASH (U+2014)
+        "−": "-",  # MINUS SIGN (U+2212)
         "…": "...",  # HORIZONTAL ELLIPSIS (U+2026)
         "‘": "'",  # LEFT SINGLE QUOTATION MARK (U+2018)
         "’": "'",  # RIGHT SINGLE QUOTATION MARK (U+2019)

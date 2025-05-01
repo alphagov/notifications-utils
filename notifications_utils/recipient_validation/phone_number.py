@@ -12,6 +12,7 @@ from notifications_utils.international_billing_rates import (
     INTERNATIONAL_BILLING_RATES,
 )
 from notifications_utils.recipient_validation.errors import InvalidPhoneError
+from notifications_utils.sanitise_text import SanitiseASCII
 
 UK_PREFIX = "44"
 
@@ -187,7 +188,7 @@ class PhoneNumber:
         "+07700900100" (a leading plus but no country code)
         "0+44(0)7700900100" (a mix of all of the above)
         """
-        return phone_number.replace("+", "").lstrip("0")
+        return SanitiseASCII.encode(phone_number.replace("+", "").lstrip("0"))
 
     @staticmethod
     def _validate_forced_international_number(phone_number: str) -> phonenumbers.PhoneNumber | None:

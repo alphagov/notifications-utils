@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.1.2
+
+* Normalise unusual dashes and spacing characters in phone numbers
+
 ## 99.1.1
 
 * Bump ruff to latest version
