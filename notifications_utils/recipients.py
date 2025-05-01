@@ -122,6 +122,7 @@ class RecipientCSV:
             or self.too_many_rows
             or (not self.allowed_to_send_to)
             or any(self.rows_with_errors)
+            or self.more_international_sms_than_can_send
         )  # `or` is 3x faster than using `any()` here
 
     @property

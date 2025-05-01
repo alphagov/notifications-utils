@@ -776,6 +776,7 @@ def test_international_sms_limit(extra_args, too_many):
         **extra_args,
     )
     assert recipients.more_international_sms_than_can_send is too_many
+    assert recipients.has_errors is too_many
 
 
 @pytest.mark.parametrize(
