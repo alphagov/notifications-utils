@@ -719,7 +719,7 @@ def test_bad_or_missing_data(
 
 
 @pytest.mark.parametrize(
-    "file_contents,rows_with_bad_recipients",
+    "file_contents,rows_with_bad_recipients,expectected_count",
     [
         (
             """
@@ -729,6 +729,7 @@ def test_bad_or_missing_data(
             +447900123
         """,
             {0, 1, 2},
+            0,
         ),
         (
             """
@@ -738,16 +739,44 @@ def test_bad_or_missing_data(
             +2304031000, Mauritius
         """,
             set(),
+            3,
         ),
     ],
 )
-def test_international_recipients(file_contents, rows_with_bad_recipients):
+def test_international_recipients(file_contents, rows_with_bad_recipients, expectected_count):
     recipients = RecipientCSV(
         file_contents,
         template=_sample_template("sms"),
         allow_international_sms=True,
     )
+    assert recipients.international_sms_count == expectected_count
     assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
+
+
+@pytest.mark.parametrize(
+    "extra_args, too_many",
+    (
+        ({"remaining_international_sms_messages": 2}, True),
+        ({"remaining_international_sms_messages": 3}, False),
+        ({}, False),
+    ),
+)
+def test_international_sms_limit(extra_args, too_many):
+    recipients = RecipientCSV(
+        """
+        phone number, count international
+        +12025550104, 1
+        +447900900123, (UK)
+        +12025550104, 2
+        +12025550104, 3
+        07900 900 321, (UK with no country code)
+        """,
+        template=_sample_template("sms"),
+        allow_international_sms=True,
+        **extra_args,
+    )
+    assert recipients.more_international_sms_than_can_send is too_many
+    assert recipients.has_errors is too_many
 
 
 @pytest.mark.parametrize(

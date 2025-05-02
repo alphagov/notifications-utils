@@ -7,6 +7,7 @@ from itertools import islice
 from typing import cast
 
 from ordered_set import OrderedSet
+from werkzeug.utils import cached_property
 
 from notifications_utils.formatters import (
     strip_all_whitespace,
@@ -45,6 +46,7 @@ class RecipientCSV:
         max_initial_rows_shown=10,
         guestlist=None,
         remaining_messages=sys.maxsize,
+        remaining_international_sms_messages=sys.maxsize,
         allow_international_sms=False,
         allow_international_letters=False,
         allow_sms_to_uk_landline=False,
@@ -60,6 +62,7 @@ class RecipientCSV:
         self.allow_international_letters = allow_international_letters
         self.allow_sms_to_uk_landline = allow_sms_to_uk_landline
         self.remaining_messages = remaining_messages
+        self.remaining_international_sms_messages = remaining_international_sms_messages
         self.rows_as_list = None
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
@@ -120,6 +123,7 @@ class RecipientCSV:
             or self.too_many_rows
             or (not self.allowed_to_send_to)
             or any(self.rows_with_errors)
+            or self.more_international_sms_than_can_send
         )  # `or` is 3x faster than using `any()` here
 
     @property
@@ -129,6 +133,21 @@ class RecipientCSV:
         if not self.guestlist:
             return True
         return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows)
+
+    @cached_property
+    def international_sms_count(self):
+        if self.template_type != "sms":
+            return 0
+        return sum(self._international_sms_count_generator())
+
+    def _international_sms_count_generator(self):
+        for row in self.rows:
+            with suppress(InvalidPhoneError):
+                yield get_phone_number_object(row.recipient).is_international_number()
+
+    @property
+    def more_international_sms_than_can_send(self):
+        return self.international_sms_count > self.remaining_international_sms_messages
 
     @property
     def rows(self):
@@ -322,7 +341,7 @@ class RecipientCSV:
                     email_address.validate_email_address(value)
                 if self.template_type == "sms":
                     if self.should_validate_phone_number:
-                        number = PhoneNumber(value)
+                        number = get_phone_number_object(value)
                         number.validate(
                             allow_international_number=self.allow_international_sms,
                             allow_uk_landline=self.allow_sms_to_uk_landline,
@@ -477,6 +496,11 @@ def format_recipient(recipient):
     with suppress(InvalidEmailError):
         return email_address.validate_and_format_email_address(recipient)
     return recipient
+
+
+@lru_cache(maxsize=RecipientCSV.max_rows, typed=False)
+def get_phone_number_object(phone_number):
+    return PhoneNumber(phone_number)
 
 
 def allowed_to_send_to(recipient, allowlist):

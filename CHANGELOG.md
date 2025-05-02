@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 99.3.0
+
+* Adds `RecipientCSV.international_sms_count`
+* Adds `RecipientCSV.more_international_sms_than_can_send` (initialise per `RecipientCSV(remaining_international_sms_messages=123)` to enable this check)
+
 ## 99.2.0
 
 * Add s3 multipart upload lifecycle (create, upload, complete, abort)
