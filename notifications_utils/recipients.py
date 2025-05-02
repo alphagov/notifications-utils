@@ -143,7 +143,7 @@ class RecipientCSV:
     def _international_sms_count_generator(self):
         for row in self.rows:
             with suppress(InvalidPhoneError):
-                yield PhoneNumber(row.recipient).is_international_number()
+                yield get_phone_number_object(row.recipient).is_international_number()
 
     @property
     def more_international_sms_than_can_send(self):
@@ -341,7 +341,7 @@ class RecipientCSV:
                     email_address.validate_email_address(value)
                 if self.template_type == "sms":
                     if self.should_validate_phone_number:
-                        number = PhoneNumber(value)
+                        number = get_phone_number_object(value)
                         number.validate(
                             allow_international_number=self.allow_international_sms,
                             allow_uk_landline=self.allow_sms_to_uk_landline,
@@ -496,6 +496,11 @@ def format_recipient(recipient):
     with suppress(InvalidEmailError):
         return email_address.validate_and_format_email_address(recipient)
     return recipient
+
+
+@lru_cache(maxsize=RecipientCSV.max_rows, typed=False)
+def get_phone_number_object(phone_number):
+    return PhoneNumber(phone_number)
 
 
 def allowed_to_send_to(recipient, allowlist):
