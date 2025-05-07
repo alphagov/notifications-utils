@@ -86,7 +86,7 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_unsupported_country(self):
-        if str(self.number.country_code) not in COUNTRY_PREFIXES | {f"+{UK_PREFIX}"}:
+        if str(self.number.country_code) not in COUNTRY_PREFIXES:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
