@@ -770,6 +770,7 @@ def test_international_sms_limit(extra_args, too_many):
         +12025550104, 2
         +12025550104, 3
         07900 900 321, (UK with no country code)
+        +447797292290, Jersey (doesn’t count towards international limit)
         """,
         template=_sample_template("sms"),
         allow_international_sms=True,

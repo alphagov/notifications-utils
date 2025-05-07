@@ -143,7 +143,7 @@ class RecipientCSV:
     def _international_sms_count_generator(self):
         for row in self.rows:
             with suppress(InvalidPhoneError):
-                yield get_phone_number_object(row.recipient).is_international_number()
+                yield not get_phone_number_object(row.recipient).is_uk_phone_number()
 
     @property
     def more_international_sms_than_can_send(self):
