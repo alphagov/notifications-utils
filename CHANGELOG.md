@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.3.2
+
+* Stops counting Crown Dependency phone numbers in CSV file as international
+
 ## 99.3.1
 
 * Bump `python-json-logger` to version 3
