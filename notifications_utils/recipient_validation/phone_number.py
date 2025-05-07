@@ -86,7 +86,7 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_unsupported_country(self):
-        if str(self.number.country_code) not in COUNTRY_PREFIXES | {"+44"}:
+        if str(self.number.country_code) not in COUNTRY_PREFIXES | {f"+{UK_PREFIX}"}:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
@@ -229,7 +229,7 @@ class PhoneNumber:
         # TODO: check if we still need this - looking at api, this might be able to be removed entirely since it's
         # always used in conjunction with should_use_numeric_sender
         """
-        return self.number.country_code == 44
+        return self.number.country_code == int(UK_PREFIX)
 
     def get_international_phone_info(self):
         if is_international := self.is_international_number():
@@ -294,8 +294,8 @@ class PhoneNumber:
         return phonenumbers.format_number(
             self.number,
             (
-                phonenumbers.PhoneNumberFormat.INTERNATIONAL
-                if self.number.country_code != 44
-                else phonenumbers.PhoneNumberFormat.NATIONAL
+                phonenumbers.PhoneNumberFormat.NATIONAL
+                if self.is_uk_phone_number()
+                else phonenumbers.PhoneNumberFormat.INTERNATIONAL
             ),
         )
