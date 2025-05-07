@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.3.1
+
+* Bump `python-json-logger` to version 3
+
 ## 99.3.0
 
 * Adds `RecipientCSV.international_sms_count`
