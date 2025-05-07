@@ -75,7 +75,7 @@ class PhoneNumber:
         self._phone_number = phone_number
 
     def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
-        if not allow_international and str(self.number.country_code) != UK_PREFIX:
+        if not (allow_international or self.is_uk_phone_number()):
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, allow_uk_landline: bool = False):
