@@ -147,6 +147,8 @@ class RecipientCSV:
 
     @property
     def more_international_sms_than_can_send(self):
+        if self.template_type != "sms":
+            return False
         return self.international_sms_count > self.remaining_international_sms_messages
 
     @property
