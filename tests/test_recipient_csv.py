@@ -780,6 +780,51 @@ def test_international_sms_limit(extra_args, too_many):
     assert recipients.has_errors is too_many
 
 
+@pytest.mark.parametrize("allow_international", [True, False])
+@pytest.mark.parametrize("remaining_international_sms_messages", [1, 0, -1])
+def test_international_sms_limit_doesnt_apply_for_email(allow_international, remaining_international_sms_messages):
+    recipients = RecipientCSV(
+        """
+        email_address,
+        example@gmail.com
+        """,
+        template=_sample_template("email"),
+        allow_international_sms=allow_international,
+        remaining_international_sms_messages=remaining_international_sms_messages,
+    )
+    assert recipients.more_international_sms_than_can_send is False
+    assert recipients.has_errors is False
+
+
+@pytest.mark.parametrize("allow_international_sms", (True, False))
+def test_international_sms_limit_handles_negative_limit(allow_international_sms):
+    recipients = RecipientCSV(
+        """
+        phone number
+        +447900900123
+        """,
+        template=_sample_template("sms"),
+        allow_international_sms=allow_international_sms,
+        remaining_international_sms_messages=-1,
+    )
+    assert not recipients.more_international_sms_than_can_send
+    assert not recipients.has_errors
+
+
+def test_international_sms_limit_is_ok_with_uk_number_if_no_international_remaining():
+    recipients = RecipientCSV(
+        """
+        phone_number,
+        07790 000 123
+        """,
+        template=_sample_template("sms"),
+        allow_international_sms=True,
+        remaining_international_sms_messages=0,
+    )
+    assert recipients.more_international_sms_than_can_send is False
+    assert recipients.has_errors is False
+
+
 @pytest.mark.parametrize(
     "file_contents,rows_with_bad_recipients",
     [

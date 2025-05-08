@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.3.3
+
+* Fix bug with non-SMS templates considering international SMS limits
+
 ## 99.3.2
 
 * Stops counting Crown Dependency phone numbers in CSV file as international
