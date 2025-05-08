@@ -49,8 +49,6 @@ international_phone_info = namedtuple(
     ],
 )
 
-CROWN_DEPENDENCY_RANGES = ["7781", "7839", "7911", "7509", "7797", "7937", "7700", "7829", "7624", "7524", "7924"]
-
 
 class PhoneNumber:
     """
