@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 99.3.2
+
+* Stops counting Crown Dependency phone numbers in CSV file as international
+
+## 99.3.1
+
+* Bump `python-json-logger` to version 3
+
+## 99.3.0
+
+* Adds `RecipientCSV.international_sms_count`
+* Adds `RecipientCSV.more_international_sms_than_can_send` (initialise per `RecipientCSV(remaining_international_sms_messages=123)` to enable this check)
+
+## 99.2.0
+
+* Add s3 multipart upload lifecycle (create, upload, complete, abort)
+
+## 99.1.2
+
+* Normalise unusual dashes and spacing characters in phone numbers
+
 ## 99.1.1
 
 * Bump ruff to latest version
