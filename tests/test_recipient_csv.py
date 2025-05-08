@@ -795,6 +795,7 @@ def test_international_sms_limit_doesnt_apply_for_email(allow_international, rem
     assert recipients.more_international_sms_than_can_send is False
     assert recipients.has_errors is False
 
+
 @pytest.mark.parametrize("allow_international_sms", (True, False))
 def test_international_sms_limit_handles_negative_limit(allow_international_sms):
     recipients = RecipientCSV(
