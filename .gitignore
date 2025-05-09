@@ -2,7 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,visualstudio,python,flask,asdf,virtualenv,jetbrains+all
 
 ### asdf ###
-/.tool-versions
+# /.tool-versions
 
 ### Flask ###
 instance/*
