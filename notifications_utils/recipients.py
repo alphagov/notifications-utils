@@ -16,7 +16,7 @@ from notifications_utils.formatters import (
 from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
-from notifications_utils.recipient_validation.phone_number import PhoneNumber
+from notifications_utils.recipient_validation.notifynl.phone_number import PhoneNumber
 from notifications_utils.recipient_validation.postal_address import (
     address_line_7_key,
     address_lines_1_to_6_and_postcode_keys,

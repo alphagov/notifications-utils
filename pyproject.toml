@@ -4,12 +4,14 @@ requires = ["setuptools"]
 [project]
 name = "notifications-utils"
 dynamic = ["version"]
-description = "Shared python code for GOV.UK Notify."
+description = "Shared python code for NotifyNL."
 readme = "README.md"
 license = "MIT"
 authors = [
     { name = "Government Digital Service" },
+    { name = "Worth Ventures B.V." }
 ]
+requires-python = ">=3.11"
 dependencies = [
     "boto3[crt]>=1.34.100",
     "cachetools>=5.5.0",
@@ -33,10 +35,44 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/alphagov/notifications-utils"
+Homepage = "https://github.com/worthnl/notifynl-utils"
 
 [tool.pytest.ini_options]
 xfail_strict = true
+testpaths = ["tests"]
+addopts = "-p no:warnings -n auto"
+
+[tool.ruff]
+extend-exclude = [
+    "migrations/versions/",
+    "__pycache__",
+    "cache",
+    "migrations",
+    "build",
+    "sample_cap_xml_documents.py",
+]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle
+    "W",  # pycodestyle
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C90",  # mccabe cyclomatic complexity
+    "G",  # flake8-logging-format
+    "T20", # flake8-print
+    "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+    "ISC",  # flake8-implicit-str-concat
+    "RSE",  # flake8-raise
+    "PIE",  # flake8-pie
+    "N804",  # First argument of a class method should be named `cls`
+    "RUF100",  # Checks for noqa directives that are no longer applicable
+]
+ignore = []
 
 [tool.setuptools.dynamic]
 version = {attr = "notifications_utils.version.__version__"}

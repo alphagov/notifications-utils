@@ -1,0 +1,4 @@
+-r requirements_for_test.in
+
+pytest-cov
+pytest-env
