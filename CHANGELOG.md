@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.3.4
+
+* `celery.NotifyTask`: don't emit early log if called synchronously
+
 ## 99.3.3
 
 * Fix bug with non-SMS templates considering international SMS limits
