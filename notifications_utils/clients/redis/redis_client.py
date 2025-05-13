@@ -5,7 +5,7 @@ from types import TracebackType
 
 # (`Type` is deprecated in favour of `type` but we need to match the
 # signature of the method we are stubbing)
-from typing import Type, Union  # noqa: UP035
+from typing import Type  # noqa: UP035
 
 from flask import current_app
 from flask_redis import FlaskRedis
