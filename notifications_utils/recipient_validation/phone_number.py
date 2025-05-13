@@ -225,9 +225,6 @@ class PhoneNumber:
         """
         Returns if the number starts with +44. Note, this includes international numbers for crown dependencies such as
         jersey/guernsey.
-
-        # TODO: check if we still need this - looking at api, this might be able to be removed entirely since it's
-        # always used in conjunction with should_use_numeric_sender
         """
         return self.number.country_code == int(UK_PREFIX)
 
