@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 99.3.3
+
+* Fix bug with non-SMS templates considering international SMS limits
+
+## 99.3.2
+
+* Stops counting Crown Dependency phone numbers in CSV file as international
+
+## 99.3.1
+
+* Bump `python-json-logger` to version 3
+
 ## 99.3.0
 
 * Adds `RecipientCSV.international_sms_count`

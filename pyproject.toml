@@ -18,14 +18,14 @@ dependencies = [
     "Flask-Redis>=0.4.0",
     "Flask>=3.1.0",
     "govuk-bank-holidays>=0.15",
-    "gunicorn[eventlet]>=20.1.0",
+    "gunicorn[eventlet]>=23.0.0",
     "itsdangerous>=2.2.0",
     "Jinja2>=3.1.6",
     "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
     "ordered-set>=4.1.0",
     "phonenumbers>=8.13.50",
     "pypdf>=3.13.0",
-    "python-json-logger>=2.0.7",
+    "python-json-logger>=3.3.0",
     "pytz>=2024.2",
     "pyyaml>=6.0.2",
     "requests>=2.32.2",  # Can’t go past 2.32.2 until https://github.com/psf/requests/issues/6730 is fixed

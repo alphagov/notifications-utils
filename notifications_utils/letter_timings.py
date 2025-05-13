@@ -107,9 +107,9 @@ def get_min_and_max_days_in_transit(postage):
         # first class post is printed earlier in the day, so will
         # actually transit on the printing day, and be delivered the next
         # day, so effectively spends no full days in transit
-        "first": (0, 0),
-        "second": (1, 2),
-        "economy": (2, 6),
+        Postage.FIRST: (0, 0),
+        Postage.SECOND: (1, 2),
+        Postage.ECONOMY: (2, 6),
         Postage.EUROPE: (3, 5),
         Postage.REST_OF_WORLD: (5, 7),
     }[postage]

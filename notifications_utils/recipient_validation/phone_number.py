@@ -75,7 +75,7 @@ class PhoneNumber:
         self._phone_number = phone_number
 
     def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
-        if not allow_international and str(self.number.country_code) != UK_PREFIX:
+        if not (allow_international or self.is_uk_phone_number()):
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, allow_uk_landline: bool = False):
@@ -86,7 +86,7 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_unsupported_country(self):
-        if str(self.number.country_code) not in COUNTRY_PREFIXES | {"+44"}:
+        if str(self.number.country_code) not in COUNTRY_PREFIXES:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
@@ -225,11 +225,8 @@ class PhoneNumber:
         """
         Returns if the number starts with +44. Note, this includes international numbers for crown dependencies such as
         jersey/guernsey.
-
-        # TODO: check if we still need this - looking at api, this might be able to be removed entirely since it's
-        # always used in conjunction with should_use_numeric_sender
         """
-        return self.number.country_code == 44
+        return self.number.country_code == int(UK_PREFIX)
 
     def get_international_phone_info(self):
         if is_international := self.is_international_number():
@@ -294,8 +291,8 @@ class PhoneNumber:
         return phonenumbers.format_number(
             self.number,
             (
-                phonenumbers.PhoneNumberFormat.INTERNATIONAL
-                if self.number.country_code != 44
-                else phonenumbers.PhoneNumberFormat.NATIONAL
+                phonenumbers.PhoneNumberFormat.NATIONAL
+                if self.is_uk_phone_number()
+                else phonenumbers.PhoneNumberFormat.INTERNATIONAL
             ),
         )
