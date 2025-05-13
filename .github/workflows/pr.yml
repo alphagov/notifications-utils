@@ -48,7 +48,4 @@ jobs:
         
       - name: Run tests (pytest)[${{ matrix.python-version }}]
         uses: pavelzw/pytest-action@v2
-        with:
-          verbose: false
-          job-summary: true
         continue-on-error: true
