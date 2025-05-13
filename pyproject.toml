@@ -56,20 +56,20 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle
-    "W",  # pycodestyle
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C90",  # mccabe cyclomatic complexity
-    "G",  # flake8-logging-format
-    "T20", # flake8-print
-    "UP",  # pyupgrade
-    "C4",  # flake8-comprehensions
-    "ISC",  # flake8-implicit-str-concat
-    "RSE",  # flake8-raise
-    "PIE",  # flake8-pie
-    "N804",  # First argument of a class method should be named `cls`
+    "E",       # pycodestyle
+    "W",       # pycodestyle
+    "F",       # pyflakes
+    "I",       # isort
+    "B",       # flake8-bugbear
+    "C90",     # mccabe cyclomatic complexity
+    "G",       # flake8-logging-format
+    "T20",     # flake8-print
+    "UP",      # pyupgrade
+    "C4",      # flake8-comprehensions
+    "ISC",     # flake8-implicit-str-concat
+    "RSE",     # flake8-raise
+    "PIE",     # flake8-pie
+    "N804",    # First argument of a class method should be named `cls`
     "RUF100",  # Checks for noqa directives that are no longer applicable
 ]
 ignore = []
@@ -79,3 +79,22 @@ version = {attr = "notifications_utils.version.__version__"}
 
 [tool.setuptools.packages.find]
 exclude = ["tests*"]
+
+[dependency-groups]
+dev = [
+    "beautifulsoup4==4.12.3",
+    "build==1.2.2",
+    "celery==5.3.6",
+    "freezegun==1.5.1",
+    "pytest==8.3.4",
+    "pytest-cov>=6.1.1",
+    "pytest-emoji>=0.2.0",
+    "pytest-env==1.1.5",
+    "pytest-md>=0.2.0",
+    "pytest-mock==3.14.0",
+    "pytest-testmon==2.1.1",
+    "pytest-xdist==3.6.1",
+    "redis>=4.3.4",
+    "requests-mock==1.12.1",
+    "ruff==0.11.4",
+]
