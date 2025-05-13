@@ -5,7 +5,7 @@ on:
     branches: ["main"]
 
 concurrency:
-  group: ${{ github.workflow }}.${{ github.ref }} 
+  group: ${{ github.workflow }}.${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -45,7 +45,10 @@ jobs:
 
       - name: Linting (ruff)[${{ matrix.python-version }}]
         uses: astral-sh/ruff-action@v3
-        
+
+      - name: Build [${{ matrix.python-version }}]
+        run: uv build
+
       - name: Run tests (pytest)[${{ matrix.python-version }}]
         uses: pavelzw/pytest-action@v2
         continue-on-error: true
