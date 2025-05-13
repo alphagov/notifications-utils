@@ -5,7 +5,14 @@ from typing import Any
 from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
 
 
-class SerialisedModel:
+class SerialisedModelMeta(type):
+    def __init__(cls, name, bases, dict_):
+        for parent in cls.__mro__:
+            cls.__annotations__ = getattr(parent, "__annotations__", {}) | cls.__annotations__
+        super().__init__(name, bases, dict_)
+
+
+class SerialisedModel(metaclass=SerialisedModelMeta):
     """
     A SerialisedModel takes a dictionary, typically created by
     serialising a database object. It then takes the value of specified
@@ -23,11 +30,6 @@ class SerialisedModel:
     then clear the cache, before adding that field to the class’s
     annotations.
     """
-
-    def __new__(cls, *args, **kwargs):
-        for parent in cls.__mro__:
-            cls.__annotations__ = getattr(parent, "__annotations__", {}) | cls.__annotations__
-        return super().__new__(cls)
 
     def __init__(self, _dict):
         for property, type_ in self.__annotations__.items():
