@@ -2,6 +2,7 @@ recursive-include notifications_utils *.jinja2
 recursive-include notifications_utils *.json
 recursive-include notifications_utils *.txt
 include notifications_utils/international_billing_rates.yml
+include notifications_utils/international_billing_rates_nl.yml
 include notifications_utils/version_tools/.pre-commit-config.yaml
 include notifications_utils/version_tools/ruff.toml
 include notifications_utils/version_tools/requirements_for_test_common.in

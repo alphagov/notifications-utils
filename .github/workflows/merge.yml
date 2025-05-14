@@ -47,13 +47,9 @@ jobs:
         run: echo "TAG=$(python -c 'from notifications_utils.version import __version__; print(__version__)')" >> $GITHUB_ENV
         id: set-tag
 
-      - uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ secrets.RELEASE_TOKEN }}
-          custom_tag: ${{ env.TAG }}
-
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           make_latest: true
           token: ${{ secrets.RELEASE_TOKEN }}
+          generate_release_notes: true
