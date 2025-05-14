@@ -44,18 +44,17 @@ jobs:
       - name: Build
         run: uv build
 
-      - run: echo "TAG=$(python -c 'from notifications_utils.version import __version__; print(__version__)')" >> $GITHUB_ENV
-        name: Set tag
+      - name: Set tag
+        run: echo "TAG=$(python -c 'from notifications_utils.version import __version__; print(__version__)')" >> $GITHUB_ENV
         id: set-tag
 
       - uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.RELEASE_TOKEN }}
           custom_tag: ${{ env.TAG }}
-        name: Create git tag
 
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           make_latest: true
-        name: Create Github release
+          token: ${{ secrets.RELEASE_TOKEN }}
