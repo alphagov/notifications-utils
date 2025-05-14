@@ -114,19 +114,21 @@ def make_task(app):
             with self.app_context():
                 self.start = time.monotonic()
 
-                app.logger.log(
-                    self.early_log_level,
-                    "Celery task %s (queue: %s) started",
-                    self.name,
-                    self.queue_name,
-                    extra={
-                        "celery_task": self.name,
-                        "celery_task_id": self.request.id,
-                        "queue_name": self.queue_name,
-                        # avoid name collision with LogRecord's own `process` attribute
-                        "process_": getpid(),
-                    },
-                )
+                if self.request.id is not None:
+                    # we're not being called synchronously
+                    app.logger.log(
+                        self.early_log_level,
+                        "Celery task %s (queue: %s) started",
+                        self.name,
+                        self.queue_name,
+                        extra={
+                            "celery_task": self.name,
+                            "celery_task_id": self.request.id,
+                            "queue_name": self.queue_name,
+                            # avoid name collision with LogRecord's own `process` attribute
+                            "process_": getpid(),
+                        },
+                    )
 
                 return super().__call__(*args, **kwargs)
 
