@@ -1,7 +1,7 @@
 # This file is intentionally minimal to make it importable from gunicorn_config.py
 import logging
 
-from pythonjsonlogger.jsonlogger import JsonFormatter as BaseJSONFormatter
+from pythonjsonlogger.json import JsonFormatter as BaseJSONFormatter
 
 LOG_FORMAT = '%(asctime)s %(app_name)s %(name)s %(levelname)s %(request_id)s "%(message)s" [in %(pathname)s:%(lineno)d]'
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"

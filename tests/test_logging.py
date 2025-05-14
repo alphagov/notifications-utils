@@ -2,6 +2,7 @@ import json
 import logging as builtin_logging
 import re
 import time
+from datetime import datetime, timezone
 from unittest import mock
 
 import pytest
@@ -67,9 +68,14 @@ def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
 
         handlers = logging.get_handlers(app, extra_filters=[])
 
+        # System timezone is an issue for this test, ensured the logging handler uses UTC
+        for handler in handlers:
+            handler.formatter.converter = lambda *args: datetime.now(timezone.utc).timetuple()  # noqa: UP017
+
         record = builtin_logging.LogRecord(
             name="log thing", level="info", pathname="path", lineno=123, msg="message to log", exc_info=None, args=None
         )
+
         record.service_id = 1234
         assert json.loads(handlers[0].format(record))["time"] == logged_time
 

@@ -20,6 +20,7 @@ class InvalidPhoneError(InvalidRecipientError):
         TOO_LONG = auto()
         TOO_SHORT = auto()
         NOT_A_UK_MOBILE = auto()
+        NOT_A_DUTCH_MOBILE = auto()
         UNKNOWN_CHARACTER = auto()
         UNSUPPORTED_COUNTRY_CODE = auto()
         UNSUPPORTED_EMERGENCY_NUMBER = auto()
@@ -35,6 +36,9 @@ class InvalidPhoneError(InvalidRecipientError):
         Codes.NOT_A_UK_MOBILE: (
             "This does not look like a UK mobile number – double check the mobile number you entered"
         ),
+        Codes.NOT_A_DUTCH_MOBILE: (
+            "This does not look like a dutch mobile number – double check the mobile number you entered"
+        ),
         Codes.UNKNOWN_CHARACTER: "Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -",
         Codes.UNSUPPORTED_COUNTRY_CODE: "Country code not found - double check the mobile number you entered",
         Codes.UNSUPPORTED_EMERGENCY_NUMBER: "Phone number cannot be an emergency number",
@@ -44,6 +48,7 @@ class InvalidPhoneError(InvalidRecipientError):
         Codes.TOO_LONG: "Too many digits",
         Codes.TOO_SHORT: "Not enough digits",
         Codes.NOT_A_UK_MOBILE: "Not a UK mobile number",
+        Codes.NOT_A_DUTCH_MOBILE: "Not a dutch mobile number",
         Codes.UNKNOWN_CHARACTER: "Must not contain letters or symbols",
         Codes.UNSUPPORTED_COUNTRY_CODE: "Not a valid country prefix",
     }

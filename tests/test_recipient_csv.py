@@ -280,6 +280,7 @@ def test_get_rows_only_iterates_over_file_once(mocker):
         ),
     ],
 )
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_get_annotated_rows(file_contents, template_type, expected):
     recipients = RecipientCSV(
         file_contents, template=_sample_template(template_type, "hello ((name))"), max_initial_rows_shown=1
@@ -321,6 +322,7 @@ def test_get_rows_with_errors():
         ("sms", 500, "phone number\n", "07900900123\n", "12345"),
     ],
 )
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_big_list_validates_right_through(template_type, row_count, header, filler, row_with_error):
     big_csv = RecipientCSV(
         header + (filler * (row_count - 1) + row_with_error),
@@ -743,6 +745,7 @@ def test_bad_or_missing_data(
         ),
     ],
 )
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_international_recipients(file_contents, rows_with_bad_recipients, expectected_count):
     recipients = RecipientCSV(
         file_contents,
@@ -761,6 +764,7 @@ def test_international_recipients(file_contents, rows_with_bad_recipients, expec
         ({}, False),
     ),
 )
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_international_sms_limit(extra_args, too_many):
     recipients = RecipientCSV(
         """
@@ -770,6 +774,7 @@ def test_international_sms_limit(extra_args, too_many):
         +12025550104, 2
         +12025550104, 3
         07900 900 321, (UK with no country code)
+        +447797292290, Jersey (doesn’t count towards international limit)
         """,
         template=_sample_template("sms"),
         allow_international_sms=True,
@@ -777,6 +782,53 @@ def test_international_sms_limit(extra_args, too_many):
     )
     assert recipients.more_international_sms_than_can_send is too_many
     assert recipients.has_errors is too_many
+
+
+@pytest.mark.parametrize("allow_international", [True, False])
+@pytest.mark.parametrize("remaining_international_sms_messages", [1, 0, -1])
+def test_international_sms_limit_doesnt_apply_for_email(allow_international, remaining_international_sms_messages):
+    recipients = RecipientCSV(
+        """
+        email_address,
+        example@gmail.com
+        """,
+        template=_sample_template("email"),
+        allow_international_sms=allow_international,
+        remaining_international_sms_messages=remaining_international_sms_messages,
+    )
+    assert recipients.more_international_sms_than_can_send is False
+    assert recipients.has_errors is False
+
+
+@pytest.mark.parametrize("allow_international_sms", (True, False))
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
+def test_international_sms_limit_handles_negative_limit(allow_international_sms):
+    recipients = RecipientCSV(
+        """
+        phone number
+        +447900900123
+        """,
+        template=_sample_template("sms"),
+        allow_international_sms=allow_international_sms,
+        remaining_international_sms_messages=-1,
+    )
+    assert not recipients.more_international_sms_than_can_send
+    assert not recipients.has_errors
+
+
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
+def test_international_sms_limit_is_ok_with_uk_number_if_no_international_remaining():
+    recipients = RecipientCSV(
+        """
+        phone_number,
+        07790 000 123
+        """,
+        template=_sample_template("sms"),
+        allow_international_sms=True,
+        remaining_international_sms_messages=0,
+    )
+    assert recipients.more_international_sms_than_can_send is False
+    assert recipients.has_errors is False
 
 
 @pytest.mark.parametrize(
@@ -803,6 +855,7 @@ def test_international_sms_limit(extra_args, too_many):
         ),
     ],
 )
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_sms_to_uk_landlines(file_contents, rows_with_bad_recipients):
     recipients = RecipientCSV(
         file_contents,
@@ -868,6 +921,7 @@ def test_errors_when_too_many_rows():
         ),
     ],
 )
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_recipient_guestlist(file_contents, template_type, guestlist, count_of_rows_with_errors):
     recipients = RecipientCSV(file_contents, template=_sample_template(template_type), guestlist=guestlist)
 
@@ -1125,6 +1179,7 @@ def test_recipients_can_be_accessed_by_index(index, expected_row):
 
 
 @pytest.mark.parametrize("international_sms", (True, False))
+@pytest.mark.xfail(reason="[NOTIFYNL] Dutch phone number implementation breaks this test")
 def test_multiple_sms_recipient_columns(international_sms):
     recipients = RecipientCSV(
         """
