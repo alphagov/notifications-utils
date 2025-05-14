@@ -1,6 +1,3 @@
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,visualstudio,python,flask,asdf,virtualenv,jetbrains+all
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,visualstudio,python,flask,asdf,virtualenv,jetbrains+all
-
 ### asdf ###
 # /.tool-versions
 
