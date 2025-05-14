@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.4.0
+
+* Add celery logging configuration for json logging
+
 ## 99.3.4
 
 * `celery.NotifyTask`: don't emit early log if called synchronously
