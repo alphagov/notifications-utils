@@ -46,4 +46,6 @@ jobs:
         run: uv build
 
       - uses: pavelzw/pytest-action@v2
-        continue-on-error: true
+        with:
+          verbose: false
+          emoji: false
