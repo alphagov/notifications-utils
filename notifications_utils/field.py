@@ -36,10 +36,14 @@ class Placeholder:
         else:
             raise ValueError(f"{self} not conditional")
 
-    def get_conditional_body(self, show_conditional):
+    def get_conditional_body(self, show_conditional, values):
         # note: unsanitised/converted
         if self.is_conditional():
-            return self.conditional_text if str2bool(show_conditional) else ""
+            # NotifyNL: conditional placeholders
+            if str2bool(show_conditional):
+                conditional_value = values.get(self.conditional_text.strip())
+                return conditional_value if conditional_value is not None else self.conditional_text
+            return ""
         else:
             raise ValueError(f"{self} not conditional")
 
@@ -129,7 +133,7 @@ class Field:
             return self.format_placeholder(placeholder)
 
         if placeholder.is_conditional():
-            return placeholder.get_conditional_body(replacement)
+            return placeholder.get_conditional_body(replacement, self.value)
 
         return replacement
 
