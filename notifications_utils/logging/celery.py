@@ -47,6 +47,7 @@ def setup_logging_connect(*args, **kwargs):
         },
         "loggers": {
             "celery.worker": {"handlers": ["default"], "level": log_level, "propagate": True},
+            "celery.beat": {"handlers": ["default"], "level": "INFO", "propagate": True},
         },
     }
 

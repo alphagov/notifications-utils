@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.4.1
+
+* Fix celery beat logging so that it will log in json
+
 ## 99.4.0
 
 * Add celery logging configuration for json logging
