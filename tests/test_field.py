@@ -210,8 +210,8 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This warning is ?? questionable&#41;&#41;",  # noqa
         ),
         (
-            "Unsafe placeholder: ((name::unsafe))",
-            "Unsafe placeholder: <span class='placeholder-unsafe'>&#40;&#40;name</span>::unsafe&#41;&#41;",
+            "Unsafe placeholder: ((name::make_safe))",
+            "Unsafe placeholder: <span class='placeholder-unsafe'>&#40;&#40;name</span>::make_safe&#41;&#41;",
         ),
     ],
 )
@@ -252,18 +252,18 @@ def test_handling_of_missing_values(content, values, expected):
             "My name is Geoff()[]{}",
         ),
         (
-            "My name is ((name::unsafe))",
+            "My name is ((name::make_safe))",
             {"name": "Geoff()[]{}"},
             r"My name is Geoff\(\)\[\]\{\}",
         ),
         (
-            "Escaped link: ((link::unsafe))",
+            "Escaped link: ((link::make_safe))",
             {"link": "https://www.google.com"},
             "Escaped link: ",
         ),
         (
-            "My name is ((name::unsafefoobar))",
-            {"name::unsafefoobar": "Geoff"},
+            "My name is ((name::make_safefoobar))",
+            {"name::make_safefoobar": "Geoff"},
             "My name is Geoff",
         ),
         (

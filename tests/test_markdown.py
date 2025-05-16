@@ -915,7 +915,7 @@ def test_strikethrough(markdown_function, expected):
     "content, data, expected_html",
     [
         (
-            "This is an escaped heading: \n ((var::unsafe))",
+            "This is an escaped heading: \n ((var::make_safe))",
             {"var": "# This is heading 1"},
             '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">This is an escaped heading:<br> # This is heading 1</p>',  # noqa: E501
         ),
