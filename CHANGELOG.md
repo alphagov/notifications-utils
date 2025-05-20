@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.5.0
+
+* Update economy letter transit date to 5 days
+
 ## 99.4.1
 
 * Fix celery beat logging so that it will log in json
