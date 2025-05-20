@@ -47,7 +47,7 @@ eventlet==0.38.2
     # via gunicorn
 execnet==2.1.1
     # via pytest-xdist
-flask==3.1.0
+flask==3.1.1
     # via
     #   notifications-utils (pyproject.toml)
     #   flask-redis
@@ -81,6 +81,7 @@ kombu==5.4.2
     # via celery
 markupsafe==3.0.2
     # via
+    #   flask
     #   jinja2
     #   werkzeug
 mistune==0.8.4
