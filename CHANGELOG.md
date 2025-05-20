@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.5.1
+
+* Bump minimum Flask version to 3.1.1
+
 ## 99.5.0
 
 * Update economy letter transit date to 5 days
