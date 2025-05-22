@@ -5,7 +5,7 @@
 {% endif %}
 {% if complete_html %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml">
 
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -59,15 +59,102 @@
         <![endif]-->
         <table role="presentation" width="100%" style="border-collapse: collapse;max-width: 580px;" cellpadding="0" cellspacing="0" border="0" align="center">
           <tr>
-            <td width="70" bgcolor="{{ govuk_bg_colour }}" valign="{% if rebrand %}bottom{% else %}middle{% endif %}">
-              <a href="https://www.gov.uk" title="Go to the GOV.UK homepage" style="text-decoration: none{% if rebrand %};color: #fff{% endif %}">
+            {% if rebrand %}
+            <!--[if vml]>
+            <td align="left" valign="middle" style="padding-left:10px">
+               <a href="https://www.gov.uk" title="Go to the GOV.UK homepage" style="text-decoration: none;">
+                <span>GOV.UK</span>
+                <v:group id="svg-content" coordsize="324,60" style="width:162;height:30;position:absolute;top:-8;left:0">
+
+                  {# backplate for VML shapes that make up the GOV.UK text #}
+                  <v:rect style="width:344;height:80;position:absolute;top:-10;left:-10" fillcolor="#1d70b8" stroked="f"></v:rect>
+
+                  {# group containing shapes that make up the crown #}
+                  <v:group coordsize="324,60" style="position:absolute;width:324;height:60">
+
+                    <v:shape filled="true" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m2000,1390at1630,1390,2370,2130,2000,1390,2000,1390e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m1019,1980at649,1980,1389,2720,1019,1980,1019,1980e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m370,2950at0,2950,740,3690,370,2950,370,2950e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m3170,2690at2800,2690,3540,3430,3170,2690,3170,2690e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m4330,1390at3960,1390,4700,2130,4330,1390,4330,1390e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m5320,1980at4950,1980,5690,2720,5320,1980,5320,1980e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m5970,2950at5600,2950,6340,3690,5970,2950,5970,2950e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m3170,2690at2800,2690,3540,3430,3170,2690,3170,2690e"></v:shape>
+
+                    <v:shape filled="true" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                      style="position:relative;top:0;left:0;width:324;height:60"
+                      path="m3310,980v20-10,30-30,50-50l3819,1170l3819,490l3359,640v-10-20-30-30-50-50l3499,0l2829,0l3019,590v-20,10-30,30-50,50l2509,490l2509,
+                      1170l2968,930v10,20,30,30,50,50l2758,1780v-90,280,120,570,409,570l3167,2350v300,0,509-290,409-570l3316,980xm3700,3790v0,0-340,380-410,
+                      610v220,0,420-50,640-280l3860,4970v-200-280-441-410-570-380,10,310,50,670,580,720,370,30,670-150,700-380,40-260-200-430-370-160-140-450,
+                      240-610,490-320-190-450-180-770,240-1090,300,400,260,730-120,1110,240-130,620,0,400,459-120-280-370-221-420,20-30,170,70,370,300,
+                      420,190,30,470-90,700-590-130,0-240,70-390,170l5640,4149v60,229,140,370,220,450,60-160,50-280,0-530l6360,4249v-260,360-520,869-730,
+                      1750-740-111-1570-170-2450-170l3180,5829v-881,0-1711,60-2450,170-210-890-470-1390-730-1750l500,4069v-50,250-60,370,0,530,80-80,160-230,
+                      220-450l960,4949v-150-100-260-170-390-170,229,500,520,620,700,590,229-40,330-240,300-420-50-240-300-310-420-20-221-460,160-600,400-460-370-370-420-710-120-1110,
+                      420,320,430,640,240,1090,250-280,630-130,490,320-180-270-410-100-370,160,30,229,330,409,700,380,540-50,570-420,580-720-130-20-370,
+                      100-570,380l2430,4119v220,229,420,270,640,280-70-230-410-610-410-610l3720,3789,3720,3789xe">
+                    </v:shape>
+
+                  </v:group>
+
+                  {# the dot between GOV and UK #}
+                  <v:shape filled="t" fillcolor="#00ffe0" stroked="f" coordsize="32400,6000"
+                    style="position:relative;top:0;left:0;width:324;height:60"
+                    path="m22700,2870at21970,2870,23430,4330,22700,2870,22700,2870e"></v:shape>
+
+                  {# shape making up the GOV UK, without the dot #}
+                  <v:shape filled="t" fillcolor="#ffffff" stroked="f" coordsize="32400,6000"
+                    style="position:relative;top:0;left:0;width:324;height:60"
+                    path="m9470,3610v0,190,20,360,70,540,50,170,120,320,210,450,90,130,220,240,360,320,150,80,320,120,530,120v210,0,360-30,490-90v130-60,229-140,
+                    310-230,80-90,130-200,160-300,30-111,50-210,50-300l11650,4080l10550,4080l10550,3420l12500,3420l12500,5820l11730,5820l11730,5280v-50,
+                    80-120,160-200,229-80,70-170,130-270,180-100,50-210,90-330,120-120,30-250,40-380,40-320,0-600-60-840-170-250-111-450-270-620-470-170-200-300-441-380-710-90-270-130-560-130-870v0-310,
+                    50-600,150-870,100-270,240-510,420-710v180-200,400-360,650-470v250-110,540-170,860-170,320,0,400,20,590,70v180,50,350,110,509,200,
+                    150,90,290,190,400,320,120,120,210,260,280,409l11669,2838v-50-90-100-180-160-260-60-80-130-150-221-210-80-60-170-100-280-140-100-30-221-50-350-50-200,
+                    0-380,40-530,120v-150,80-270,190-360,320v-90,130-170,280-210,459v-40,179-70,350-70,530l9488,3637l9488,3637xm15290,1370v320,0,610,
+                    60,869,170,260,120,470,270,650,470,180,200,310,440,409,710v99,270,140,560,140,869,0,309-50,600-140,869v-90,270-230,509-410,710v-180,
+                    201-400,360-650,470v-260,110-550,170-870,170v-320,0-610-60-870-170v-260-111-470-270-650-470-180-200-310-441-410-710-90-270-140-560-140-870v0-310,
+                    50-600,140-870,90-270,229-510,409-710v180-200,400-360,650-470v250-110,540-170,869-170l15286,1368xm15290,5040v190,0,360-40,500-111,
+                    140-70,270-170,360-300,100-130,170-280,220-450,50-170,80-360,80-570l16450,3589v0-200-30-390-80-570-50-170-130-330-221-450-100-130-221-230-360-300-140-70-310-111-500-111v-190,
+                    0-360,40-500,110v-150,70-270,170-360,300v-90,130-170,280-221,450v-50,170-80,360-80,570l14128,3608v0,210,30,400,80,570,50,170,120,
+                    320,220,450,100,130,220,229,360,300,150,70,310,110,500,110xm18910,5800l17680,1400l18660,1400l19500,4690l19530,4690l20349,1400l21318,
+                    1400l20088,5800m26289,5040v130,0,250-20,360-60,110-40,200-90,280-170,80-80,140-170,190-290,50-120,70-250,70-410l27189,1400l28049,
+                    1400l28049,4250v0,240-40,459-130,660-90,200-210,360-370,500-160,140-340,240-560,320-221,70-450,110-710,110v-260,0-491-40-710-111v-221-70-400-180-560-320v-160-140-280-300-370-500v-90-200-130-410-130-660l24509,
+                    1400l25378,1400l25378,4120v0,160,20,290,70,409,50,120,110,210,190,290,80,80,170,130,280,170v110,40,229,60,360,60l26278,5049xm28850,
+                    1400l29719,1400l29719,3310l31269,1399l32349,1399l30839,3159,32449,5799l31429,5799l30279,3829,29719,4459l29719,5809l28849,5809e">
+                  </v:shape>
+
+                </v:group>
+              </a>
+            </td>
+            <![endif]-->
+            <!--[if !mso]><!-->
+            <td width="70" bgcolor="{{ govuk_bg_colour }}" valign="bottom">
+              <a href="https://www.gov.uk" title="Go to the GOV.UK homepage" style="text-decoration: none;color: #fff">
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                   <tr>
-                    {% if rebrand %}
                     <td style="font-size: 28px; line-height: 2; padding-left: 10px" valign="bottom" height="60" class="logo__crown">
-                    {% else %}
-                    <td style="padding-left: 10px" class="logo__crown">
-                    {% endif %}
                       <img
                         src="https://static.notifications.service.gov.uk/images/govuk-logotype-tudor-crown.png"
                         alt=""
@@ -76,7 +163,6 @@
                         style="Margin-top: 2px; max-height: 32px"
                       >
                     </td>
-                    {% if rebrand %}
                     <td style="font-size: 28px; line-height: 2.1428571429; padding-left: 8px;" valign="bottom" height="60" class="logo__text">
                       <span style="
                         font-family: Helvetica, Arial, 'Noto Sans', sans-serif;
@@ -94,7 +180,25 @@
                        vertical-align: top;
                         margin-right: 0.05em;" class="logo__dot">.</span>UK</span>
                     </td>
-                    {% else %}
+                  </tr>
+                </table>
+              </a>
+            </td>
+            <!--<![endif]-->
+            {% else %}
+            <td width="70" bgcolor="{{ govuk_bg_colour }}" valign="middle">
+              <a href="https://www.gov.uk" title="Go to the GOV.UK homepage" style="text-decoration: none">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding-left: 10px" class="logo__crown">
+                      <img
+                        src="https://static.notifications.service.gov.uk/images/govuk-logotype-tudor-crown.png"
+                        alt=""
+                        height="32"
+                        border="0"
+                        style="Margin-top: 2px; max-height: 32px"
+                      >
+                    </td>
                     <td style="font-size: 28px; line-height: 1.315789474; Margin-top: 4px; padding-left: 8px;" class="logo__text">
                       <span style="
                         font-family: Helvetica, Arial, 'Noto Sans', sans-serif;
@@ -105,11 +209,11 @@
                         display: inline-block;
                           ">GOV.UK</span>
                     </td>
-                    {% endif %}
                   </tr>
                 </table>
               </a>
             </td>
+            {% endif %}
           </tr>
         </table>
         <!--[if (gte mso 9)|(IE)]>
