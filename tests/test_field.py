@@ -184,6 +184,10 @@ def test_optional_redacting_of_missing_values(template_content, data, expected):
             "((warning?? This warning is ?? questionable))",
             "<span class='placeholder-conditional'>&#40;&#40;warning??</span> This warning is ?? questionable&#41;&#41;",  # noqa
         ),
+        (
+            "((application form::file))",
+            "<span class='placeholder-typed placeholder-typed--file'>&#40;&#40;application form</span>::file&#41;&#41;",
+        ),
     ],
 )
 def test_formatting_of_placeholders(content, expected):
