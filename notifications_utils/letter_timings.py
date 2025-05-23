@@ -1,5 +1,5 @@
 from collections import namedtuple
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 
 import pytz
 
@@ -131,7 +131,7 @@ def get_letter_timings(upload_time, postage):
 
     # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)
-    now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/London"))
+    now = datetime.now(UTC).astimezone(pytz.timezone("Europe/London"))
 
     return LetterTimings(
         printed_by=printed_by,
@@ -161,7 +161,7 @@ def too_late_to_cancel_letter(notification_created_at):
     time_created_at = convert_utc_to_bst(notification_created_at)
     day_created_on = time_created_at.date()
 
-    current_time = convert_utc_to_bst(datetime.utcnow())
+    current_time = convert_utc_to_bst(datetime.now(UTC))
     current_day = current_time.date()
     if _after_letter_processing_deadline() and _notification_created_before_today_deadline(notification_created_at):
         return True
@@ -172,14 +172,14 @@ def too_late_to_cancel_letter(notification_created_at):
 
 
 def _after_letter_processing_deadline():
-    current_utc_datetime = datetime.utcnow()
+    current_utc_datetime = datetime.now(UTC)
     bst_time = convert_utc_to_bst(current_utc_datetime).time()
 
     return bst_time >= LETTER_PROCESSING_DEADLINE
 
 
 def _notification_created_before_today_deadline(notification_created_at):
-    current_bst_datetime = convert_utc_to_bst(datetime.utcnow())
+    current_bst_datetime = convert_utc_to_bst(datetime.now(UTC))
     todays_deadline = current_bst_datetime.replace(
         hour=LETTER_PROCESSING_DEADLINE.hour,
         minute=LETTER_PROCESSING_DEADLINE.minute,

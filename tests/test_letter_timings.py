@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 import pytz
@@ -281,12 +281,12 @@ def test_get_estimated_delivery_date_for_letter(
 
 def test_letter_timings_only_accept_real_postage_values():
     with pytest.raises(KeyError):
-        get_letter_timings(datetime.utcnow().isoformat(), postage="foo")
+        get_letter_timings(datetime.now(UTC).isoformat(), postage="foo")
 
 
 @pytest.mark.parametrize("status", ["sending", "pending"])
 def test_letter_cannot_be_cancelled_if_letter_status_is_not_created_or_pending_virus_check(status):
-    notification_created_at = datetime.utcnow()
+    notification_created_at = datetime.now(UTC)
 
     assert not letter_can_be_cancelled(status, notification_created_at)
 

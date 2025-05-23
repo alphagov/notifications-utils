@@ -20,9 +20,15 @@ def utc_string_to_aware_gmt_datetime(date):
 
 def convert_utc_to_bst(utc_dt):
     """
-    Takes a naive UTC datetime and returns a naive London datetime
+    Takes a naive or aware UTC datetime and returns a naive London datetime
     """
-    return pytz.utc.localize(utc_dt).astimezone(local_timezone).replace(tzinfo=None)
+    if not utc_dt.tzinfo:
+        utc_dt = pytz.utc.localize(utc_dt)
+
+    if str(utc_dt.tzinfo) != "UTC":
+        raise ValueError(f"Timezone is {utc_dt.tzinfo}, must be UTC")
+
+    return utc_dt.astimezone(local_timezone).replace(tzinfo=None)
 
 
 def convert_bst_to_utc(date):
