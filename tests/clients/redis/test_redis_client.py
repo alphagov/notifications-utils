@@ -1,7 +1,7 @@
 import inspect
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import Mock
 
 import pytest
@@ -201,7 +201,7 @@ def test_delete_multi(mocked_redis_client):
         (1.2, 1.2),
         (uuid.UUID(int=0), "00000000-0000-0000-0000-000000000000"),
         pytest.param({"a": 1}, None, marks=pytest.mark.xfail(raises=ValueError)),
-        pytest.param(datetime.utcnow(), None, marks=pytest.mark.xfail(raises=ValueError)),
+        pytest.param(datetime.now(UTC), None, marks=pytest.mark.xfail(raises=ValueError)),
     ],
 )
 def test_prepare_value(input, output):
