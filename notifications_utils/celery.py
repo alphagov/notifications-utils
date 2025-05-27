@@ -57,10 +57,28 @@ def make_task(app):
                     },
                 )
 
-                app.statsd_client.timing(
-                    f"celery.{self.queue_name}.{self.name}.success",
-                    elapsed_time,
-                )
+                if hasattr(app, "statsd_client") and app.statsd_client:
+                    app.statsd_client.timing(
+                        f"celery.{self.queue_name}.{self.name}.success",
+                        elapsed_time,
+                    )
+
+                # OpenTelemetry metric
+                if hasattr(app, "otel_client") and app.otel_client:
+                    app.otel_client.incr(
+                        "celery_task_success_total",
+                        value=1,
+                        attributes={"task": self.name, "queue": self.queue_name},
+                        description="Celery task successes",
+                        unit="1",
+                    )
+                    app.otel_client.record(
+                        "celery_task_success_duration_seconds",
+                        value=elapsed_time,
+                        attributes={"task": self.name, "queue": self.queue_name},
+                        description="Celery task success duration in seconds",
+                        unit="s",
+                    )
 
         def on_retry(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
@@ -82,10 +100,27 @@ def make_task(app):
                     },
                 )
 
-                app.statsd_client.timing(
-                    f"celery.{self.queue_name}.{self.name}.retry",
-                    elapsed_time,
-                )
+                if hasattr(app, "statsd_client") and app.statsd_client:
+                    app.statsd_client.timing(
+                        f"celery.{self.queue_name}.{self.name}.retry",
+                        elapsed_time,
+                    )
+
+                if hasattr(app, "otel_client") and app.otel_client:
+                    app.otel_client.incr(
+                        "celery_task_retry_total",
+                        value=1,
+                        attributes={"task": self.name, "queue": self.queue_name},
+                        description="Celery task retries",
+                        unit="1",
+                    )
+                    app.otel_client.record(
+                        "celery_task_retry_duration_seconds",
+                        value=elapsed_time,
+                        attributes={"task": self.name, "queue": self.queue_name},
+                        description="Celery task retry duration in seconds",
+                        unit="s",
+                    )
 
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
@@ -107,7 +142,17 @@ def make_task(app):
                     },
                 )
 
-                app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
+                if hasattr(app, "statsd_client") and app.statsd_client:
+                    app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
+
+                if hasattr(app, "otel_client") and app.otel_client:
+                    app.otel_client.incr(
+                        "celery_task_failure_total",
+                        value=1,
+                        attributes={"task": self.name, "queue": self.queue_name},
+                        description="Celery task failures",
+                        unit="1",
+                    )
 
         def __call__(self, *args, **kwargs):
             # ensure task has flask context to access config, logger, etc
@@ -140,9 +185,6 @@ class NotifyCelery(Celery):
         super().__init__(
             task_cls=make_task(app),
         )
-
-        # Make sure this is present upfront to avoid errors later on.
-        assert app.statsd_client
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])

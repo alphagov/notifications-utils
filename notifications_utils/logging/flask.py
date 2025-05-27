@@ -107,7 +107,7 @@ def _log_response_closed(
     )
 
 
-def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = ()):
+def init_app(app, statsd_client=None, otel_client=None, extra_filters: Sequence[logging.Filter] = ()):
     app.config.setdefault("NOTIFY_LOG_LEVEL", "INFO")
     app.config.setdefault("NOTIFY_LOG_LEVEL_HANDLERS", app.config["NOTIFY_LOG_LEVEL"])
     app.config.setdefault("NOTIFY_APP_NAME", "none")
