@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 99.6.0
+
+* Improve celery json logging. Include beat with separate log level options and testing.
+
 ## 99.5.2
 
 * Make inheritence of annotations on SerialisedModel work on both the class and its instances

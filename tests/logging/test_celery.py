@@ -2,70 +2,38 @@ import json
 import os
 import pathlib
 import subprocess
-import warnings
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from notifications_utils.logging.celery import set_up_logging, setup_logging_connect
+from notifications_utils.logging.celery import setup_logging_connect
 
 
-def test_set_up_logging_success():
-    """Test that set_up_logging correctly overrides warnings.showwarning."""
-    logger = MagicMock()
-    set_up_logging(logger)
+class Config:
+    CELERY_WORKER_LOG_LEVEL = "CRITICAL"
+    CELERY_BEAT_LOG_LEVEL = "INFO"
 
-    # Assert that warnings.showwarning is overridden
-    assert warnings.showwarning != warnings._showwarning_orig
-
-    # Simulate a warning and check if it logs correctly
-    warnings.showwarning("Test message", UserWarning, "test_file.py", 42)
-    logger.warning.assert_called_once_with(
-        "Test message",
-        {
-            "level": "WARNING",
-            "message": "Test message",
-            "category": "UserWarning",
-            "filename": "test_file.py",
-            "lineno": 42,
-        },
-    )
-
-
-def test_set_up_logging_missing_logger():
-    logger = None
-
-    with pytest.raises(AttributeError, match="The provided logger object is invalid."):
-        set_up_logging(logger)
+    def get(self, key, default=None):
+        return getattr(self, key, default)
 
 
 @patch("notifications_utils.logging.celery.dictConfig")
+@patch("notifications_utils.logging.celery.config", Config())
 def test_setup_logging_connect_success(mock_dict_config):
     """Test that setup_logging_connect successfully configures logging."""
+
     setup_logging_connect()
 
     # Assert that dictConfig was called
     mock_dict_config.assert_called_once()
 
 
-def test_celery_dummy_logs(tmp_path):
-    command = [
-        "celery",
-        "--quiet",
-        "-A",
-        "dummy_celery_app",
-        "worker",
-        "--loglevel=INFO",
-    ]
+def assert_command_has_outputs(tmp_path, command, filename, expected_messages, unexpected_messages=None, env=None):
+    if unexpected_messages is None:
+        unexpected_messages = []
 
-    # Set the environment variable
-    env = os.environ.copy()
-    env["CELERY_LOG_LEVEL"] = "INFO"
-
-    # assemble an example celery app directory, able to access notifications_utils
-    # via a cwd link
     (tmp_path / "notifications_utils").symlink_to(pathlib.Path(__file__).parent.parent.parent / "notifications_utils")
-    (tmp_path / "dummy_celery_app.py").symlink_to(pathlib.Path(__file__).parent / "dummy_celery_app.py")
+    (tmp_path / filename).symlink_to(pathlib.Path(__file__).parent / filename)
 
     try:
         # Start the Celery worker process
@@ -74,18 +42,12 @@ def test_celery_dummy_logs(tmp_path):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            env=env,
             cwd=tmp_path,
+            env=env,
         )
 
         stdout, stderr = process.communicate(timeout=10)
         logs = stdout + stderr
-
-        expected_messages = [
-            "No hostname was supplied. Reverting to default 'localhost'",
-            "Connected to memory://localhost//",
-            "Task dummy_celery_app.test_task",
-        ]
 
         # Parse the logs as JSON and check the messages field contains the expected messages
         for log_line in logs.splitlines():
@@ -95,6 +57,10 @@ def test_celery_dummy_logs(tmp_path):
                 for message in expected_messages:
                     if message in log_message:
                         expected_messages.remove(message)
+                for bad_message in unexpected_messages:
+                    assert bad_message not in log_message, (
+                        f"Unexpected message found in logs: '{bad_message}'. Logs are:\n{logs}"
+                    )
             except json.JSONDecodeError:
                 continue
 
@@ -107,3 +73,51 @@ def test_celery_dummy_logs(tmp_path):
         pytest.fail("Celery command not found. Ensure Celery is installed and in PATH.")
     except Exception as e:
         pytest.fail(f"Unexpected error occurred: {e}")
+
+
+@pytest.mark.slow
+def test_celery_dummy_logs(tmp_path):
+    command = ["celery", "--quiet", "-A", "dummy_celery_app", "worker", "-B"]
+
+    expected_messages = [
+        "Connected to filesystem://localhost//",
+        "beat: Starting...",
+        "Task test_task",
+        "Scheduler: Sending due task test-task",
+        "beat: Shutting down...",
+    ]
+
+    env = os.environ.copy()
+    env["CELERY_WORKER_LOG_LEVEL"] = "INFO"
+    env["CELERY_BEAT_LOG_LEVEL"] = "INFO"
+    assert_command_has_outputs(tmp_path, command, "dummy_celery_app.py", expected_messages, env=env)
+
+
+@pytest.mark.slow
+def test_celery_worker_logs_absent(tmp_path):
+    command = [
+        "celery",
+        "--quiet",
+        "-A",
+        "dummy_celery_app",
+        "worker",
+        "-B",
+    ]
+
+    expected_messages = [
+        "beat: Starting...",
+        "Scheduler: Sending due task test-task",
+        "beat: Shutting down...",
+    ]
+
+    unexpected_messages = ["Connected to filesystem://localhost//", "Task test_task"]
+
+    env = os.environ.copy()
+    # test we aren't leaking celery worker logs when set to CRITICAL. They could contain PII
+    # or other sensitive data.
+    env["CELERY_WORKER_LOG_LEVEL"] = "CRITICAL"
+    env["CELERY_BEAT_LOG_LEVEL"] = "INFO"
+
+    assert_command_has_outputs(
+        tmp_path, command, "dummy_celery_app.py", expected_messages, unexpected_messages, env=env
+    )
