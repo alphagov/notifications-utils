@@ -256,3 +256,76 @@ def test_method_signatures(celery_app, async_task, method, _value):
     if method == "run":
         return
     assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
+
+
+def test_success_should_log_and_call_otel(celery_app, async_task, caplog):
+    statsd_mock = celery_app.statsd_client.timing
+    otel_incr_mock = celery_app.otel_client.incr
+    otel_record_mock = celery_app.otel_client.record
+
+    with freeze_time() as frozen, caplog.at_level(logging.INFO):
+        async_task()
+        frozen.tick(5)
+        async_task.on_success(retval=None, task_id=1234, args=[], kwargs={})
+
+    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.success", 5.0)
+    otel_incr_mock.assert_called_once_with(
+        "celery_task_success_total",
+        value=1,
+        attributes={"task": async_task.name, "queue": "test-queue"},
+        description="Celery task successes",
+        unit="1",
+    )
+    otel_record_mock.assert_called_once_with(
+        "celery_task_success_duration_seconds",
+        value=5.0,
+        attributes={"task": async_task.name, "queue": "test-queue"},
+        description="Celery task success duration in seconds",
+        unit="s",
+    )
+
+
+def test_retry_should_log_and_call_otel(celery_app, async_task, caplog):
+    statsd_mock = celery_app.statsd_client.timing
+    otel_incr_mock = celery_app.otel_client.incr
+    otel_record_mock = celery_app.otel_client.record
+
+    with freeze_time() as frozen, caplog.at_level(logging.WARNING):
+        async_task()
+        frozen.tick(5)
+        async_task.on_retry(exc=Exception, task_id="1234", args=[], kwargs={}, einfo=None)
+
+    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.retry", 5.0)
+    otel_incr_mock.assert_called_once_with(
+        "celery_task_retry_total",
+        value=1,
+        attributes={"task": async_task.name, "queue": "test-queue"},
+        description="Celery task retries",
+        unit="1",
+    )
+    otel_record_mock.assert_called_once_with(
+        "celery_task_retry_duration_seconds",
+        value=5.0,
+        attributes={"task": async_task.name, "queue": "test-queue"},
+        description="Celery task retry duration in seconds",
+        unit="s",
+    )
+
+
+def test_failure_should_log_and_call_otel(celery_app, async_task, caplog):
+    statsd_mock = celery_app.statsd_client.incr
+    otel_incr_mock = celery_app.otel_client.incr
+
+    with freeze_time() as frozen, caplog.at_level(logging.INFO):
+        async_task()
+        frozen.tick(5)
+        async_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
+
+    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.failure")
+    otel_incr_mock.assert_called_with(
+        "celery_task_failure_total",
+        value=1,
+        attributes={"task": async_task.name, "queue": "test-queue"},
+        description="Celery task failures",
+        unit="1",
+    )
