@@ -133,6 +133,8 @@ def test_attribute_inheritence():
 
     instance = Child({"foo": 1, "bar": 2, "baz": 3})
 
+    assert instance.__annotations__.keys() == Child.__annotations__.keys() == {"foo", "bar", "baz"}
+
     assert instance.foo == "1"
     assert instance.bar == "2"
     assert instance.baz == "3"
