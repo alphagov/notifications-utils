@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 99.7.0
+
+* Update economy letter transit dates to max 8 days
+
+
 ## 99.6.0
 
 * Improve celery json logging. Include beat with separate log level options and testing.
