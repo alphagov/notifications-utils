@@ -1,9 +1,12 @@
 # CHANGELOG
 
+## 100.0.0
+
+* `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
+
 ## 99.7.0
 
 * Update economy letter transit dates to max 8 days
-
 
 ## 99.6.0
 
