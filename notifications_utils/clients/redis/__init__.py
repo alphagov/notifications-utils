@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from .request_cache import RequestCache  # noqa: F401 (unused import)
 
 
 def daily_limit_cache_key(service_id, notification_type=None):
-    yyyy_mm_dd = datetime.utcnow().strftime("%Y-%m-%d")
+    yyyy_mm_dd = datetime.now(UTC).strftime("%Y-%m-%d")
 
     if not notification_type:
         return f"{service_id}-{yyyy_mm_dd}-count"

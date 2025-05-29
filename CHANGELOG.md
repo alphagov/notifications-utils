@@ -1,9 +1,12 @@
 # CHANGELOG
 
+## 99.8.0
+
+`timezones.convert_utc_to_bst` can now accept timezone-aware datetimes
+
 ## 99.7.0
 
 * Update economy letter transit dates to max 8 days
-
 
 ## 99.6.0
 
