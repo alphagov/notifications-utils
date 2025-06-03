@@ -1,13 +1,16 @@
 # CHANGELOG
 
+## 99.8.0
+
+* Add new version of GOV.UK brand to email template, behind a flag
+
 ## 99.7.0
 
 * Update economy letter transit dates to max 8 days
 
-
 ## 99.6.0
 
-* Improve celery json logging. Include beat with separate log level options and testing.
+* Improve celery json logging. Include beat with separate log level options and testing
 
 ## 99.5.2
 
