@@ -20,9 +20,7 @@ class OtelClient:
             app.logger.info("OpenTelemetry metrics will be exported to console")
             metric_readers.append(PeriodicExportingMetricReader(ConsoleMetricExporter()))
         elif export_mode == "otlp":
-            otlp_host = self.config.get("OTEL_COLLECTOR_HOST", "localhost")
-            otlp_port = self.config.get("OTEL_COLLECTOR_PORT", 4317)
-            endpoint = f"{otlp_host}:{otlp_port}"
+            endpoint = self.config.get("OTEL_COLLECTOR_ENDPOINT", "localhost:4317")
             otlp_exporter = OTLPMetricExporter(endpoint=endpoint, insecure=True)
             metric_readers.append(PeriodicExportingMetricReader(otlp_exporter))
 
