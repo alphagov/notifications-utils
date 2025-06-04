@@ -14,6 +14,7 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 class Placeholder:
     class Types:
         FILE = "file"
+        SECURE = "secure"
 
     def __init__(self, body):
         # body shouldn’t include leading/trailing brackets, like (( and ))
@@ -37,6 +38,8 @@ class Placeholder:
         type_ = self.body.split("::")[1]
         if InsensitiveDict.make_key(type_) == self.Types.FILE:
             return self.Types.FILE
+        if InsensitiveDict.make_key(type_) == self.Types.SECURE:
+            return self.Types.SECURE
 
     @property
     def name(self):
