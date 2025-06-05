@@ -1,6 +1,6 @@
 import math
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import lru_cache
 from html import unescape
 from os import path
@@ -590,7 +590,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
         )
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
-        self.date = date or datetime.utcnow()
+        self.date = date or datetime.now(UTC)
         self.language = language
         if language == "english":
             self.content = template["content"]
