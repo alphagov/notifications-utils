@@ -120,6 +120,7 @@ pytest-xdist==3.6.1
     # via -r requirements_for_test_common.in
 python-dateutil==2.9.0.post0
     # via
+    #   notifications-utils (pyproject.toml)
     #   botocore
     #   celery
     #   freezegun
