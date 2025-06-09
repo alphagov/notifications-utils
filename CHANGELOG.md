@@ -1,9 +1,5 @@
 # CHANGELOG
 
-## 100.0.0
-
-* `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
-
 ## 99.8.0
 
 * Add new version of GOV.UK brand to email template, behind a flag
