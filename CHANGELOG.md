@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 100.0.0
+
+* `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
+
+## 99.8.0
+
+* Add new version of GOV.UK brand to email template, behind a flag
+
+## 99.7.0
+
+* Update economy letter transit dates to max 8 days
+
+## 99.6.0
+
+* Improve celery json logging. Include beat with separate log level options and testing
+
+## 99.5.2
+
+* Make inheritence of annotations on SerialisedModel work on both the class and its instances
+
+## 99.5.1
+
+* Bump minimum Flask version to 3.1.1
+
+## 99.5.0
+
+* Update economy letter transit date to 5 days
+
 ## 99.4.1
 
 * Fix celery beat logging so that it will log in json

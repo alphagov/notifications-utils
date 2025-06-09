@@ -1,32 +1,28 @@
-import os
-import warnings
 from logging.config import dictConfig
 
 from celery.signals import setup_logging
 
+config = None
 
-def set_up_logging(logger):
-    if logger is None or not hasattr(logger, "warning"):
-        raise AttributeError("The provided logger object is invalid.")
 
-    def custom_showwarning(message, category, filename, lineno, file=None, line=None):
-        log_entry = {
-            "level": "WARNING",
-            "message": str(message),
-            "category": category.__name__,
-            "filename": filename,
-            "lineno": lineno,
-        }
-        logger.warning(str(message), log_entry)
-
-    warnings.showwarning = custom_showwarning
-
+def set_up_logging(conf):
+    global config
+    config = conf
+    # we connect to the setup_logging signal to configure logging during the worker startup
+    # and beat startup. If we don't do this and go directly to the setup_logging_connect
+    # we will not have some of the startup messages.
     setup_logging.connect(setup_logging_connect)
 
 
 def setup_logging_connect(*args, **kwargs):
-    log_level = os.environ.get("CELERY_LOG_LEVEL", "CRITICAL").upper()
+    if config is None:
+        raise ValueError("Configuration object is not set. Please call set_up_logging first.")
 
+    worker_log_level = config.get("CELERY_WORKER_LOG_LEVEL", "CRITICAL").upper()
+    beat_log_level = config.get("CELERY_BEAT_LOG_LEVEL", "INFO").upper()
+
+    # Override the default celery logger to use the JSON formatter
+    # We need to be very careful with the worker logger as it can leak PII data
     LOGGING_CONFIG = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -39,15 +35,14 @@ def setup_logging_connect(*args, **kwargs):
         },
         "handlers": {
             "default": {
-                "level": log_level,
                 "formatter": "generic",
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stdout",  # Default is stderr
             },
         },
         "loggers": {
-            "celery.worker": {"handlers": ["default"], "level": log_level, "propagate": True},
-            "celery.beat": {"handlers": ["default"], "level": "INFO", "propagate": True},
+            "celery.worker": {"handlers": ["default"], "level": worker_log_level, "propagate": False},
+            "celery.beat": {"handlers": ["default"], "level": beat_log_level, "propagate": False},
         },
     }
 
