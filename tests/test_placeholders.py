@@ -10,6 +10,8 @@ from notifications_utils.field import Placeholder
     [
         ("((with-brackets))", "with-brackets"),
         ("without-brackets", "without-brackets"),
+        ("make_safe_placeholder::make_safe", "make_safe_placeholder"),
+        ("((name::notify_test_service))", "name::notify_test_service"),
     ],
 )
 def test_placeholder_returns_name(body, expected):
