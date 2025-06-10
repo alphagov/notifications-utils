@@ -6,6 +6,7 @@ from os import getpid
 from celery import Celery, Task
 from flask import g, request
 from flask.ctx import has_app_context, has_request_context
+from opentelemetry.instrumentation.celery import CeleryInstrumentor
 
 
 class NotifyTask(Task):
@@ -191,6 +192,9 @@ class NotifyCelery(Celery):
         super().__init__(
             task_cls=make_task(app),
         )
+
+        if hasattr(app, "otel_client") and app.otel_client:
+            CeleryInstrumentor().instrument()
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])

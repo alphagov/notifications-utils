@@ -31,6 +31,7 @@ dependencies = [
     "smartypants>=2.0.1",
     "statsd>=4.0.1",
     "opentelemetry-distro==0.54b1",
+    "opentelemetry-instrumentation-celery==0.54b1",
     "opentelemetry-exporter-otlp==1.33.1"
 ]
 

@@ -106,6 +106,7 @@ opentelemetry-api==1.33.1
     #   opentelemetry-exporter-otlp-proto-grpc
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-instrumentation
+    #   opentelemetry-instrumentation-celery
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
 opentelemetry-distro==0.54b1
@@ -121,7 +122,11 @@ opentelemetry-exporter-otlp-proto-grpc==1.33.1
 opentelemetry-exporter-otlp-proto-http==1.33.1
     # via opentelemetry-exporter-otlp
 opentelemetry-instrumentation==0.54b1
-    # via opentelemetry-distro
+    # via
+    #   opentelemetry-distro
+    #   opentelemetry-instrumentation-celery
+opentelemetry-instrumentation-celery==0.54b1
+    # via notifications-utils (pyproject.toml)
 opentelemetry-proto==1.33.1
     # via
     #   opentelemetry-exporter-otlp-proto-common
@@ -135,6 +140,7 @@ opentelemetry-sdk==1.33.1
 opentelemetry-semantic-conventions==0.54b1
     # via
     #   opentelemetry-instrumentation
+    #   opentelemetry-instrumentation-celery
     #   opentelemetry-sdk
 ordered-set==4.1.0
     # via notifications-utils (pyproject.toml)
