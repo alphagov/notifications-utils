@@ -33,6 +33,7 @@ def celery_app(mocker):
     app.config["CELERY"] = {"broker_url": "foo"}
     app.config["NOTIFY_TRACE_ID_HEADER"] = "Ex-Notify-Request-Id"
     app.statsd_client = mocker.Mock()
+    app.otel_client = mocker.Mock()
     request_helper.init_app(app)
 
     ctx = app.app_context()
