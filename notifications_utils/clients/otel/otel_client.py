@@ -49,12 +49,31 @@ class OtelClient:
             )
         return self._metrics[name]
 
-    def get_histogram(self, name, description="", unit="seconds"):
+    def get_histogram(self, name, description="", unit="seconds", buckets=None):
         if name not in self._metrics:
+            if buckets is None:
+                buckets = [
+                    0.005,
+                    0.01,
+                    0.025,
+                    0.05,
+                    0.075,
+                    0.1,
+                    0.25,
+                    0.5,
+                    0.75,
+                    1.0,
+                    2.5,
+                    5.0,
+                    7.5,
+                    10.0,
+                    float("inf"),
+                ]
             self._metrics[name] = self.get_meter().create_histogram(
                 name=name,
                 description=description,
                 unit=unit,
+                explicit_bucket_boundaries_advisory=buckets,
             )
         return self._metrics[name]
 
@@ -71,8 +90,8 @@ class OtelClient:
         counter = self.get_counter(name, description, unit)
         counter.add(value, attributes or {})
 
-    def record(self, name, value, attributes=None, description="", unit="seconds"):
-        histogram = self.get_histogram(name, description, unit)
+    def record(self, name, value, attributes=None, description="", unit="seconds", buckets=None):
+        histogram = self.get_histogram(name, description, unit, buckets)
         histogram.record(value, attributes or {})
 
     def gauge(self, name, value, attributes=None, description="", unit=""):
