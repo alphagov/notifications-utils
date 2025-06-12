@@ -96,4 +96,4 @@ class OtelClient:
 
     def gauge(self, name, value, attributes=None, description="", unit=""):
         gauge = self.get_gauge(name, description, unit)
-        gauge.record(value, attributes or {})
+        gauge.set(value, attributes or {})

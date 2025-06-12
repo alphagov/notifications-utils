@@ -174,7 +174,7 @@ def test_gauge(config_none, fake_app):
         client.init_app(fake_app)
 
         client.gauge("my_gauge", value=42, attributes={"foo": "bar"})
-        mock_gauge.record.assert_called_with(42, {"foo": "bar"})
+        mock_gauge.set.assert_called_with(42, {"foo": "bar"})
 
 
 def test_counter(config_none, fake_app):
@@ -197,3 +197,18 @@ def test_counter(config_none, fake_app):
 
         client.incr("my_counter", value=5, attributes={"foo": "bar"})
         mock_counter.add.assert_called_with(5, {"foo": "bar"})
+
+
+def test_without_mocks_otel(config_none, fake_app):
+    fake_app.config = config_none
+
+    client = OtelClient()
+    client.init_app(fake_app)
+
+    client.incr("actual_counter", attributes={"test": "value"})
+    client.record("actual_histogram", value=2.5, attributes={"test": "value"})
+    client.gauge("actual_gauge", value=10, attributes={"test": "value"})
+
+    client.get_counter("actual_counter").add(3, {"test": "value"})
+    client.get_histogram("actual_histogram").record(1.5, {"test": "value"})
+    client.get_gauge("actual_gauge").set(20, {"test": "value"})
