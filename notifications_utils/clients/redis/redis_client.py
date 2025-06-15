@@ -62,6 +62,61 @@ class RedisClient:
             return deleted
             """
         )
+        # checks whether a token-bucket-based rate-limiter has currently
+        # exceeded its rate limit, deducting 1 from the token-bucket in
+        # the process of doing so (down to a limit of bucket_min). the
+        # bucket is replenished at a rate determined by replenish_per_sec
+        # up to a maximum of bucket_max. returns the number of tokens
+        # remaining in the bucket following replenishment and deductions.
+        # if the return value is positive, this indicates that the bucket
+        # is not depleted and the request should be served. if bucket_min
+        # is negative, the return value can also be negative - this can
+        # be used to cause further (denied) requests beyond the rate limit
+        # to also count against the limit, but only to a reasonable (and
+        # controllable) degree. in this case, negative return values
+        # indicate a depleted bucket and the request should not be served.
+        #
+        # float arithmetic used for token calculation here is not ideal
+        # but shouldn't cause precision problems this century with
+        # reasonable rate values. if it did become a problem, this could
+        # be trivially modified to only allow replenishment in batches of
+        # N tokens (through a divide before and multiply after the floor
+        # call)
+        self.scripts["tally-bucket-rate-limit"] = self.redis_store.register_script(
+            """
+            local key = ARGV[1]
+            local replenish_per_sec = ARGV[2]
+            local bucket_max = ARGV[3]
+            local bucket_min = ARGV[4]
+
+            local raw_now = redis.call('time')
+            local now = raw_now[1] + (raw_now[2] * 1e-6)
+
+            local last_replenished, tokens_remaining
+            local value = redis.call('get', key)
+            if value == false or string.len(value) < 12 then
+                last_replenished = now
+                tokens_remaining = bucket_max
+            else
+                last_replenished, tokens_remaining = struct.unpack('di4', value)
+            end
+
+            local replenishment = math.floor((now - last_replenished) * replenish_per_sec)
+            tokens_remaining = math.min(tokens_remaining + replenishment, bucket_max)
+            tokens_remaining = math.max(tokens_remaining - 1, bucket_min)
+            -- critically, we do not use `now` for our new value of
+            -- last_replenished, but the timestamp made-up to the
+            -- last whole token we were able to grant in this
+            -- iteration. this avoids incorrect behaviour due to
+            -- rounding.
+            last_replenished = last_replenished + (replenishment / replenish_per_sec)
+
+            value = struct.pack('di4', last_replenished, tokens_remaining)
+            redis.call('set', key, value)
+
+            return tokens_remaining
+            """
+        )
 
     def delete_by_pattern(self, pattern, raise_exception=False):
         r"""
