@@ -1,9 +1,5 @@
 # CHANGELOG
 
-## 100.1.0
-
-* `timezones.convert_utc_to_bst` can now accept timezone-aware datetimes
-
 ## 100.0.0
 
 * `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
