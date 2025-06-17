@@ -101,7 +101,8 @@ class RedisClient:
                 last_replenished, tokens_remaining = struct.unpack('di4', value)
             end
 
-            local replenishment = math.floor((now - last_replenished) * replenish_per_sec)
+            local elapsed = math.max(now - last_replenished, 0)
+            local replenishment = math.floor(elapsed * replenish_per_sec)
             tokens_remaining = math.min(tokens_remaining + replenishment, bucket_max)
             tokens_remaining = math.max(tokens_remaining - 1, bucket_min)
             -- critically, we do not use `now` for our new value of
