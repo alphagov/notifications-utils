@@ -1,4 +1,3 @@
-import msgpack
 import time
 from contextlib import suppress
 from dataclasses import dataclass
@@ -7,6 +6,8 @@ from functools import singledispatch, wraps
 from inspect import signature
 from typing import TypeAlias
 from uuid import UUID
+
+import msgpack
 
 _JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
 
@@ -146,10 +147,12 @@ class RequestCache:
         return _set
 
     def _set_tombstone(self, key, ex=TOMBSTONE_TTL, raise_exception=False):
-        tombstone = msgpack.dumpb({
-            "is_tombstone": True,
-            "timestamp": time.time(),
-        })
+        tombstone = msgpack.dumpb(
+            {
+                "is_tombstone": True,
+                "timestamp": time.time(),
+            }
+        )
         # this *could* use set_if_timestamp_newer but doesn't really need to
         # because the only timestamp we'd ever use would be "now", i.e. the
         # latest possible value we could manage, which should be able to
