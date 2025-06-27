@@ -62,6 +62,26 @@ class RedisClient:
             return deleted
             """
         )
+        self.scripts["overwrite-keys-by-pattern"] = self.redis_store.register_script(
+            """
+            local pattern = ARGV[1]
+            local new_value = ARGV[2]
+
+            local keys = redis.call('keys', pattern)
+            local overwritten = 0
+            for i=1, #keys, 2500 do
+                local mset_args = {}
+                for j=i, math.min(i + 2499, #keys) do
+                    table.insert(mset_args, keys[j])
+                    table.insert(mset_args, new_value)
+                end
+
+                redis.call('mset', unpack(mset_args))
+                overwritten = overwritten + #mset_args/2
+            end
+            return overwritten
+            """
+        )
         self.scripts["set-if-timestamp-newer"] = self.redis_store.register_script(
             """
             local key = ARGV[1]
@@ -95,6 +115,19 @@ class RedisClient:
             return true
             """
         )
+
+    def overwrite_by_pattern(self, pattern, value, raise_exception=False):
+        """
+        similar to `delete_by_pattern`, will overwrite all keys matching `pattern` with
+        `value`
+        """
+        if self.active:
+            try:
+                return self.scripts["overwrite-keys-by-pattern"](args=[pattern, value])
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, "overwrite-by-pattern", pattern)
+
+        return 0
 
     def delete_by_pattern(self, pattern, raise_exception=False):
         r"""
