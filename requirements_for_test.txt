@@ -86,6 +86,8 @@ markupsafe==3.0.2
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils (pyproject.toml)
+msgpack==1.1.1
+    # via notifications-utils (pyproject.toml)
 ordered-set==4.1.0
     # via notifications-utils (pyproject.toml)
 packaging==24.1

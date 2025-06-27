@@ -1,4 +1,5 @@
-import json
+import msgpack
+import time
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import timedelta
@@ -12,6 +13,9 @@ _JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool
 
 class RequestCache:
     DEFAULT_TTL = int(timedelta(days=28).total_seconds())
+    # tombstones only need to last as long as the longest time you expect a `@set`-wrapped
+    # function invocation to take
+    TOMBSTONE_TTL = int(timedelta(minutes=10).total_seconds())
 
     @dataclass
     class CacheResultWrapper:
@@ -107,7 +111,12 @@ class RequestCache:
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
                 cached = self.redis_client.get(redis_key)
                 if cached:
-                    return json.loads(cached.decode("utf-8"))
+                    outer = msgpack.loadb(cached)
+                    if not outer.get("is_tombstone"):
+                        return msgpack.loadb(outer["value"])
+
+                # the most out-of-date data this inner result could possibly contain
+                pessimistic_timestamp = time.time()
 
                 result = client_method(*args, **kwargs)
 
@@ -118,9 +127,15 @@ class RequestCache:
                     if final_ttl is None:
                         final_ttl = ttl_in_seconds
 
-                    self.redis_client.set(
+                    outer = {
+                        "timestamp": pessimistic_timestamp,
+                        "is_tombstone": False,
+                        "value": msgpack.dumpb(value),
+                    }
+
+                    self.redis_client.set_if_timestamp_newer(
                         redis_key,
-                        json.dumps(value),
+                        msgpack.dumpb(outer),
                         ex=int(final_ttl),
                     )
 
@@ -130,17 +145,29 @@ class RequestCache:
 
         return _set
 
-    def delete(self, key_format):
+    def _set_tombstone(self, key, ex=TOMBSTONE_TTL, raise_exception=False):
+        tombstone = msgpack.dumpb({
+            "is_tombstone": True,
+            "timestamp": time.time(),
+        })
+        # this *could* use set_if_timestamp_newer but doesn't really need to
+        # because the only timestamp we'd ever use would be "now", i.e. the
+        # latest possible value we could manage, which should be able to
+        # overwrite any existing values anyway
+        self.redis_client.set(key, tombstone, ex=ex, raise_exception=raise_exception)
+
+    def delete(self, key_format, force_delete=False):
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
                 redis_key = self._make_key(key_format, client_method, args, kwargs)
+                delete_method = self.redis_client.delete if force_delete else self._set_tombstone
 
                 # It is important to attempt the redis deletion first and raise an exception
                 # if it is unsuccessful. If we didn't, then we risk having a successful API
                 # call that updates the database, but redis left with stale data. Stale data
                 # is worse then failing the users requests
-                self.redis_client.delete(redis_key, raise_exception=True)
+                delete_method(redis_key, raise_exception=True)
 
                 api_response = client_method(*args, **kwargs)
 
@@ -149,7 +176,7 @@ class RequestCache:
                 # before the database has been updated. We want to raise an exception if the call
                 # to redis here fails because that will hopefully prompt the user that something
                 # went wrong and they should retry their action (hopefully resolving the problem).
-                self.redis_client.delete(redis_key, raise_exception=True)
+                delete_method(redis_key, raise_exception=True)
                 return api_response
 
             return new_client_method

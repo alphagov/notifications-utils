@@ -20,6 +20,7 @@ dependencies = [
     "itsdangerous>=2.2.0",
     "Jinja2>=3.1.6",
     "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
+    "msgpack>=1.1",
     "ordered-set>=4.1.0",
     "phonenumbers>=8.13.50",
     "pypdf>=3.13.0",
