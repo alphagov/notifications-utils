@@ -76,6 +76,13 @@ class RedisClient:
         # controllable) degree. in this case, negative return values
         # indicate a depleted bucket and the request should not be served.
         #
+        # `now` argument is expected to be a locally-sourced float unix
+        # epoch UTC timestamp. clock skew between clients shouldn't cause
+        # too much weirdness because we only ever allow last_replenished
+        # to go forwards - it would just result in slightly "burstier"
+        # replenishment than otherwise as most of the replenishment would
+        # end up being done by the instances with the most-ahead clock.
+        #
         # float arithmetic used for token calculation here is not ideal
         # but shouldn't cause precision problems this century with
         # reasonable rate values. if it did become a problem, this could
@@ -85,12 +92,10 @@ class RedisClient:
         self.scripts["tally-bucket-rate-limit"] = self.redis_store.register_script(
             """
             local key = ARGV[1]
-            local replenish_per_sec = ARGV[2]
-            local bucket_max = ARGV[3]
-            local bucket_min = ARGV[4]
-
-            local raw_now = redis.call('time')
-            local now = raw_now[1] + (raw_now[2] * 1e-6)
+            local now = ARGV[2]
+            local replenish_per_sec = ARGV[3]
+            local bucket_max = ARGV[4]
+            local bucket_min = ARGV[5]
 
             local last_replenished, tokens_remaining
             local value = redis.call('get', key)
