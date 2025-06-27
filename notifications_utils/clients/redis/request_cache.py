@@ -183,16 +183,28 @@ class RequestCache:
 
         return _delete
 
-    def delete_by_pattern(self, key_format):
+    def _set_tombstone_by_pattern(self, pattern, raise_exception=False):
+        tombstone = msgpack.dumpb({
+            "is_tombstone": True,
+            "timestamp": time.time(),
+        })
+        # as in _set_tombstone, we luckily don't actually need to do a conditional
+        # set for tombstones because the timestamp we want to use here will always
+        # be the latest-possible
+        self.redis_client.overwrite_by_pattern(pattern, tombstone, raise_exception=raise_exception)
+
+    def delete_by_pattern(self, key_format, force_delete=False):
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                delete_method = self.redis_client.delete_by_pattern if force_delete else self._set_tombstone_by_pattern
+
                 # See equivalent comments above for why we attempt the redis delete before and
                 # after the API call
                 redis_key = self._make_key(key_format, client_method, args, kwargs)
-                self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
+                delete_method(redis_key, raise_exception=True)
                 api_response = client_method(*args, **kwargs)
-                self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
+                delete_method(redis_key, raise_exception=True)
                 return api_response
 
             return new_client_method
