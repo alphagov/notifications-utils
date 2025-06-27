@@ -932,6 +932,9 @@ mypy-extensions==1.1.0 \
 opentelemetry-api==1.42.1 \
     --hash=sha256:51a69edacadbc03a8950ace1c4c21099cacc538820ac2c9e36277e78cebba714 \
     --hash=sha256:56c63bea9f77b62856be8c47600474acad853b2924b99b1687c4cb6297166716
+msgpack==1.1.1
+    # via notifications-utils (pyproject.toml)
+ordered-set==4.1.0
     # via notifications-utils (pyproject.toml)
 ordered-set==4.1.0 \
     --hash=sha256:046e1132c71fcf3330438a539928932caf51ddbc582496833e23de611de14562 \
