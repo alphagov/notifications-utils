@@ -12,6 +12,10 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 
 
 class Placeholder:
+    class Types:
+        FILE = "file"
+        SECURE = "secure"
+
     def __init__(self, body):
         # body shouldn’t include leading/trailing brackets, like (( and ))
         self.body = body.lstrip("(").rstrip(")")
@@ -24,7 +28,23 @@ class Placeholder:
         return "??" in self.body
 
     @property
+    def is_file(self):
+        return self.type == self.Types.FILE
+
+    @property
+    def type(self):
+        if "::" not in self.body or self.is_conditional():
+            return None
+        type_ = self.body.split("::")[1]
+        if InsensitiveDict.make_key(type_) == self.Types.FILE:
+            return self.Types.FILE
+        if InsensitiveDict.make_key(type_) == self.Types.SECURE:
+            return self.Types.SECURE
+
+    @property
     def name(self):
+        if self.type:
+            return self.body.split("::")[0]
         # for non conditionals, name equals body
         return self.body.split("??")[0]
 
@@ -69,6 +89,7 @@ class Field:
     conditional_placeholder_tag = "<span class='placeholder-conditional'>&#40;&#40;{}??</span>{}&#41;&#41;"
     placeholder_tag_no_brackets = "<span class='placeholder-no-brackets'>{}</span>"
     placeholder_tag_redacted = "<span class='placeholder-redacted'>hidden</span>"
+    typed_placeholder_tag = "<span class='placeholder-typed placeholder-typed--{}'>&#40;&#40;{}</span>::{}&#41;&#41;"
 
     def __init__(
         self,
@@ -119,6 +140,9 @@ class Field:
         if placeholder.is_conditional():
             return self.conditional_placeholder_tag.format(placeholder.name, placeholder.conditional_text)
 
+        if placeholder.type:
+            return self.typed_placeholder_tag.format(placeholder.type, placeholder.name, placeholder.type)
+
         return self.placeholder_tag.format(placeholder.name)
 
     def replace_match(self, match):
@@ -162,9 +186,13 @@ class Field:
 
     @property
     def placeholders(self):
+        return OrderedSet(placeholder.name for placeholder in self.placeholder_objects)
+
+    @property
+    def placeholder_objects(self):
         if not getattr(self, "content", ""):
             return set()
-        return OrderedSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
+        return OrderedSet(Placeholder(body) for body in re.findall(self.placeholder_pattern, self.content))
 
     @property
     def replaced(self):
