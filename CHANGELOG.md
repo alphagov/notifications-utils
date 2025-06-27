@@ -1,5 +1,72 @@
 # CHANGELOG
 
+## X.0.0
+
+`clients.redis.RequestCache` now stores its cached values in a new format, and "deletions" actually insert a timestamped delete marker (a "tombstone") instead of simply deleting the value. This should mostly be transparent to applications, but care must be taken when upgrading a live app deployment using a previous version of utils:
+
+The solution for a smooth rollout is to use a new (and non-colliding) `key_format` for apps using the new utils version. There is still some subtlety to the procedure however - instances of both the old app and the new app need to be able to invalidate cache entries of both old and new `key_format`s. In the following scenario the new `key_format` simply prepends `v1-` to the previous `key_format`.
+
+First, a new app release needs to be made, still using the **old** utils version, but updating every place that deletes a `key_format` to **also** delete the `v1-` prefixed `key_format`.
+
+Original app code:
+
+```
+@set("foo-{foo_id}-bar-{bar_id}")
+def get_foo(...):
+    ...
+
+@delete("foo-{foo_id}-bar-{bar_id}")
+@delete_by_pattern("foo-{foo_id}-baz-*")
+def update_foo_baz(...):
+    ...
+```
+
+becomes
+
+```
+@set("foo-{foo_id}-bar-{bar_id}")
+def get_foo(...):
+    ...
+
+@delete("foo-{foo_id}-bar-{bar_id}")
+@delete_by_pattern("foo-{foo_id}-baz-*")
+@delete("v1-foo-{foo_id}-bar-{bar_id}")
+@delete_by_pattern("v1-foo-{foo_id}-baz-*")
+def update_foo_baz(...):
+    ...
+```
+
+These deletions of the *new* `key_format` keys by the *old* utils version will of course be simple deletes rather than tombstones. Luckily that does work *well enough* for a transition period. Note how a *prefix* was chosen for namespacing the `key_format` because many uses of `@delete_by_pattern` use trailing wildcards.
+
+Next, the app's utils version can be upgraded. Places that `@set` values should be switched to use their new `key_format`. Places that `@delete` and `@delete_by_pattern` the *old* `key_format` should remain, but must be given the `force_delete` kwarg (to prevent them instead being overwritten with a tombstone, which old utils versions won't understand)
+
+```
+@set("v1-foo-{foo_id}-bar-{bar_id}")
+def get_foo(...):
+    ...
+
+@delete("foo-{foo_id}-bar-{bar_id}", force_delete=True)
+@delete_by_pattern("foo-{foo_id}-baz-*", force_delete=True)
+@delete("v1-foo-{foo_id}-bar-{bar_id}")
+@delete_by_pattern("v1-foo-{foo_id}-baz-*")
+def update_foo_baz(...):
+    ...
+```
+
+After this has been fully deployed, the delete calls for the old `key_format` can be removed:
+
+```
+@set("v1-foo-{foo_id}-bar-{bar_id}")
+def get_foo(...):
+    ...
+
+@delete("v1-foo-{foo_id}-bar-{bar_id}")
+@delete_by_pattern("v1-foo-{foo_id}-baz-*")
+def update_foo_baz(...):
+```
+
+Yet further consideration needs to be made for situations where multiple different apps cooperate in use of the same `key_format`. These situations do exist but finding them is an exercise left to the reader.
+
 ## 101.3.1
 
 * Fix rendering of parentheses in some HTML email clients
