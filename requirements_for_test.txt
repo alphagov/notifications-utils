@@ -55,10 +55,14 @@ flask-redis==0.4.0
     # via notifications-utils (pyproject.toml)
 freezegun==1.5.1
     # via -r requirements_for_test_common.in
+gevent==25.5.1
+    # via gunicorn
 govuk-bank-holidays==0.15
     # via notifications-utils (pyproject.toml)
-greenlet==3.1.1
-    # via eventlet
+greenlet==3.2.3
+    # via
+    #   eventlet
+    #   gevent
 gunicorn==23.0.0
     # via notifications-utils (pyproject.toml)
 idna==3.10
@@ -147,6 +151,10 @@ s3transfer==0.10.4
     # via boto3
 segno==1.6.1
     # via notifications-utils (pyproject.toml)
+setuptools==80.9.0
+    # via
+    #   zope-event
+    #   zope-interface
 six==1.16.0
     # via python-dateutil
 smartypants==2.0.1
@@ -172,3 +180,7 @@ wcwidth==0.2.13
     # via prompt-toolkit
 werkzeug==3.1.3
     # via flask
+zope-event==5.1
+    # via gevent
+zope-interface==7.2
+    # via gevent

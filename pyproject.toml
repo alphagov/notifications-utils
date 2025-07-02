@@ -16,7 +16,7 @@ dependencies = [
     "Flask-Redis>=0.4.0",
     "Flask>=3.1.1",
     "govuk-bank-holidays>=0.15",
-    "gunicorn[eventlet]>=23.0.0",
+    "gunicorn[eventlet, gevent]>=23.0.0",
     "itsdangerous>=2.2.0",
     "Jinja2>=3.1.6",
     "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
