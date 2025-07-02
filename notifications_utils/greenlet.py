@@ -13,7 +13,7 @@ class EventletTimeout(Exception):
 _ns_per_s = 1.0e-9
 
 
-# eventlet detection cribbed from
+# eventlet/gevent detection cribbed from
 # https://github.com/celery/kombu/blob/74779a8078ab318a016ca107249e59f8c8063ef9/kombu/utils/compat.py#L38
 using_eventlet = False
 if "eventlet" in sys.modules:
@@ -27,12 +27,20 @@ if "eventlet" in sys.modules:
         if is_monkey_patched(socket):
             using_eventlet = True
 
-if using_eventlet:
-    import flask
-    import greenlet
-    from eventlet.hubs import get_hub
-    from eventlet.timeout import Timeout
+using_gevent = False
+if "gevent" in sys.modules:
+    try:
+        import socket
 
+        from gevent import socket as _gsocket
+    except ImportError:
+        pass
+    else:
+        if socket.socket is _gsocket.socket:
+            using_gevent = True
+
+if using_eventlet:
+    from eventlet.timeout import Timeout
     class EventletTimeoutMiddleware:
         """
         A WSGI middleware that will raise `exception` after `timeout_seconds` of request
@@ -56,6 +64,12 @@ if using_eventlet:
         def __call__(self, *args, **kwargs):
             with Timeout(self._timeout_seconds, exception=self._exception):
                 return self._app(*args, **kwargs)
+
+else:
+    EventletTimeoutMiddleware = None
+
+if using_eventlet or using_gevent:
+    import greenlet
 
     def account_greenlet_times(event: str, args) -> None:
         """
@@ -204,6 +218,22 @@ if using_eventlet:
             f"{key_prefix}greenlet_context_switches": getattr(gt, "_context_switch_count", None),
         }
 
+else:
+    # don't make this callable lest someone tries to use it and realizes it does nothing
+    account_greenlet_times = None
+
+    greenlet_thread_time_ns = lambda: None  # noqa
+    greenlet_perf_counter_ns = lambda: None  # noqa
+    reset_greenlet_stats = lambda: None  # noqa
+    greenlet_perf_count_ns_max_continuous = lambda: None  # noqa
+    greenlet_thread_time_ns_max_continuous = lambda: None  # noqa
+    greenlet_context_switch_count = lambda: None  # noqa
+
+if using_eventlet:
+    import flask
+    from eventlet.hubs import get_hub
+    from eventlet.timeout import Timeout
+
     def get_main_greenlets_debug_info() -> dict:
         info = _get_greenlet_debug_info(get_hub().greenlet, "hub_")
 
@@ -213,14 +243,18 @@ if using_eventlet:
 
         return info
 
-else:
-    EventletTimeoutMiddleware = None
-    account_greenlet_times = None
+elif using_gevent:
+    import flask
+    from gevent.hub import get_hub
 
-    greenlet_thread_time_ns = lambda: None  # noqa
-    greenlet_perf_counter_ns = lambda: None  # noqa
-    reset_greenlet_stats = lambda: None  # noqa
-    greenlet_perf_count_ns_max_continuous = lambda: None  # noqa
-    greenlet_thread_time_ns_max_continuous = lambda: None  # noqa
-    greenlet_context_switch_count = lambda: None  # noqa
+    def get_main_greenlets_debug_info() -> dict:
+        info = _get_greenlet_debug_info(get_hub(), "hub_")
+
+        server_greenlet = getattr(flask.current_app, "_server_greenlet", None)
+        if server_greenlet:
+            info.update(_get_greenlet_debug_info(server_greenlet, "server_"))
+
+        return info
+
+else:
     get_main_greenlets_debug_info = lambda: {}  # noqa
