@@ -3,10 +3,10 @@ import time
 from collections.abc import Callable
 
 
-# eventlet's own Timeout class inherits from BaseException instead of
-# Exception, which makes more likely that an attempted catch-all
+# eventlet and gevent's own Timeout classes inherit from BaseException
+# instead of Exception, which makes more likely that an attempted catch-all
 # handler will miss it.
-class EventletTimeout(Exception):
+class RequestHandlingTimeout(Exception):
     pass
 
 
@@ -39,9 +39,16 @@ if "gevent" in sys.modules:
         if socket.socket is _gsocket.socket:
             using_gevent = True
 
-if using_eventlet:
-    from eventlet.timeout import Timeout
-    class EventletTimeoutMiddleware:
+if using_eventlet or using_gevent:
+    import greenlet
+
+    # for our simple uses, these two can be used interchangeably
+    if using_eventlet:
+        from eventlet.timeout import Timeout
+    else:
+        from gevent.timeout import Timeout
+
+    class RequestHandlingTimeoutMiddleware:
         """
         A WSGI middleware that will raise `exception` after `timeout_seconds` of request
         processing, *but only when* the next I/O context switch occurs.
@@ -55,7 +62,7 @@ if using_eventlet:
             self,
             app: Callable,
             timeout_seconds: float = 30,
-            exception: BaseException = EventletTimeout,
+            exception: BaseException = RequestHandlingTimeout,
         ):
             self._app = app
             self._timeout_seconds = timeout_seconds
@@ -64,12 +71,6 @@ if using_eventlet:
         def __call__(self, *args, **kwargs):
             with Timeout(self._timeout_seconds, exception=self._exception):
                 return self._app(*args, **kwargs)
-
-else:
-    EventletTimeoutMiddleware = None
-
-if using_eventlet or using_gevent:
-    import greenlet
 
     def account_greenlet_times(event: str, args) -> None:
         """
@@ -219,7 +220,8 @@ if using_eventlet or using_gevent:
         }
 
 else:
-    # don't make this callable lest someone tries to use it and realizes it does nothing
+    # don't make these callable lest someone tries to use it and doesn't realize it does nothing
+    RequestHandlingTimeoutMiddleware = None
     account_greenlet_times = None
 
     greenlet_thread_time_ns = lambda: None  # noqa

@@ -13,7 +13,7 @@ from flask.ctx import has_app_context, has_request_context
 
 import notifications_utils.greenlet as utils_greenlet
 
-if utils_greenlet.using_eventlet:
+if utils_greenlet.using_eventlet or utils_greenlet.using_gevent:
     thread_time_ns = utils_greenlet.greenlet_thread_time_ns
 else:
     from time import thread_time_ns
@@ -67,7 +67,7 @@ def _greenlet_stats_extra_log_context(request_time: float | None) -> dict:
         "greenlet_real_time_max_continuous": utils_greenlet.greenlet_perf_counter_ns_max_continuous() * _ns_per_s,
         "greenlet_cpu_time_max_continuous": utils_greenlet.greenlet_thread_time_ns_max_continuous() * _ns_per_s,
     }
-    if request_time and request_time > current_app.config["NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS"]:
+    if request_time and request_time > current_app.config["NOTIFY_GREENLET_STATS_VERBOSE_THRESHOLD_SECONDS"]:
         context.update(utils_greenlet.get_main_greenlets_debug_info())
 
     return context
@@ -113,8 +113,8 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
-    app.config.setdefault("NOTIFY_EVENTLET_STATS", False)
-    app.config.setdefault("NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS", 1.0)
+    app.config.setdefault("NOTIFY_GREENLET_STATS", False)
+    app.config.setdefault("NOTIFY_GREENLET_STATS_VERBOSE_THRESHOLD_SECONDS", 1.0)
 
     @app.before_request
     def before_request():
@@ -123,7 +123,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
         request.before_request_perf_counter_ns = perf_counter_ns()
         request.before_request_thread_time_ns = thread_time_ns()
 
-        if app.config["NOTIFY_EVENTLET_STATS"]:
+        if app.config["NOTIFY_GREENLET_STATS"]:
             request.before_request_greenlet_context_switch_count = utils_greenlet.greenlet_context_switch_count()
             utils_greenlet.reset_greenlet_stats()
 
@@ -167,7 +167,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             "response_streamed": response.is_streamed,
             **_common_request_extra_log_context(),
         }
-        if app.config["NOTIFY_EVENTLET_STATS"]:
+        if app.config["NOTIFY_GREENLET_STATS"]:
             context.update(_greenlet_stats_extra_log_context(context["request_time"]))
 
         current_app.logger.getChild("request").log(
