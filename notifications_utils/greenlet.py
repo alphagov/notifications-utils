@@ -6,18 +6,18 @@ from contextlib import nullcontext
 from notifications_utils.logging.formatting import _ns_per_s
 
 
-# eventlet's own Timeout class inherits from BaseException instead of
-# Exception, which makes more likely that an attempted catch-all
+# eventlet and gevent's own Timeout classes inherit from BaseException
+# instead of Exception, which makes more likely that an attempted catch-all
 # handler will miss it.
-class EventletTimeout(Exception):
+class RequestHandlingTimeout(Exception):
     pass
 
 
-class HardEventletTimeout(EventletTimeout):
+class HardRequestHandlingTimeout(RequestHandlingTimeout):
     "This should not be caught by app code"
 
 
-class SoftEventletTimeout(EventletTimeout):
+class SoftRequestHandlingTimeout(RequestHandlingTimeout):
     pass
 
 
@@ -47,10 +47,16 @@ if "gevent" in sys.modules:
         if socket.socket is _gsocket.socket:
             using_gevent = True
 
-if using_eventlet:
-    from eventlet.timeout import Timeout
+if using_eventlet or using_gevent:
+    import greenlet
 
-    class EventletTimeoutMiddleware:
+    # for our simple uses, these two can be used interchangeably
+    if using_eventlet:
+        from eventlet.timeout import Timeout  # type: ignore[assignment]
+    else:
+        from gevent.timeout import Timeout  # type: ignore[assignment]
+
+    class RequestHandlingTimeoutMiddleware:
         """
         A WSGI middleware that will raise `exception` after `timeout_seconds` of request
         processing, *but only when* the next I/O context switch occurs.
@@ -71,9 +77,9 @@ if using_eventlet:
             self,
             app: Callable,
             timeout_seconds: float = 30,
-            exception: type[BaseException] = HardEventletTimeout,
+            exception: type[BaseException] = HardRequestHandlingTimeout,
             soft_timeout_seconds: float | None = None,
-            soft_exception: type[BaseException] = SoftEventletTimeout,
+            soft_exception: type[BaseException] = SoftRequestHandlingTimeout,
         ):
             if soft_timeout_seconds is not None and soft_timeout_seconds >= timeout_seconds:
                 raise ValueError("soft_timeout_seconds must be less than timeout_seconds")
@@ -98,12 +104,6 @@ if using_eventlet:
                 ),
             ):
                 return self._app(*args, **kwargs)
-
-else:
-    EventletTimeoutMiddleware = None  # type: ignore
-
-if using_eventlet or using_gevent:
-    import greenlet
 
     def account_greenlet_times(event: str, args) -> None:
         """
@@ -253,7 +253,8 @@ if using_eventlet or using_gevent:
         }
 
 else:
-    # don't make this callable lest someone tries to use it and doesn't realize it does nothing
+    # don't make these callable lest someone tries to use it and doesn't realize it does nothing
+    RequestHandlingTimeoutMiddleware = None  # type: ignore
     account_greenlet_times = None  # type: ignore[assignment]
 
     greenlet_thread_time_ns = lambda: None  # noqa
@@ -266,7 +267,6 @@ else:
 if using_eventlet:
     import flask
     from eventlet.hubs import get_hub
-    from eventlet.timeout import Timeout
 
     def get_main_greenlets_debug_info() -> dict:
         info = _get_greenlet_debug_info(get_hub().greenlet, "hub_")
