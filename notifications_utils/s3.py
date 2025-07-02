@@ -5,10 +5,10 @@ from botocore.exceptions import ClientError as BotoClientError
 from flask import current_app
 
 from notifications_utils.exception_handling import extract_reraise_chained_exception
-from notifications_utils.greenlet import EventletTimeout
+from notifications_utils.greenlet import RequestHandlingTimeout
 
 
-@extract_reraise_chained_exception(EventletTimeout)
+@extract_reraise_chained_exception(RequestHandlingTimeout)
 def s3upload(
     filedata,
     region,
@@ -46,7 +46,7 @@ class S3ObjectNotFound(BotoClientError):
     pass
 
 
-@extract_reraise_chained_exception(EventletTimeout)
+@extract_reraise_chained_exception(RequestHandlingTimeout)
 def s3download(bucket_name, filename):
     try:
         s3 = resource("s3")
@@ -59,7 +59,7 @@ def s3download(bucket_name, filename):
 S3_MULTIPART_UPLOAD_MIN_PART_SIZE = 5 * 1024 * 1024  # 5MB minimum multi part upload size
 
 
-@extract_reraise_chained_exception(EventletTimeout)
+@extract_reraise_chained_exception(RequestHandlingTimeout)
 def s3_multipart_upload_create(bucket_name, file_location, content_type="binary/octet-stream"):
     s3 = client("s3")
 
@@ -78,7 +78,7 @@ def s3_multipart_upload_create(bucket_name, file_location, content_type="binary/
         raise e
 
 
-@extract_reraise_chained_exception(EventletTimeout)
+@extract_reraise_chained_exception(RequestHandlingTimeout)
 def s3_multipart_upload_part(part_number, bucket_name, filename, upload_id, data_bytes):
     s3 = client("s3")
 
@@ -102,7 +102,7 @@ def s3_multipart_upload_part(part_number, bucket_name, filename, upload_id, data
         raise e
 
 
-@extract_reraise_chained_exception(EventletTimeout)
+@extract_reraise_chained_exception(RequestHandlingTimeout)
 def s3_multipart_upload_complete(bucket_name, filename, upload_id, parts):
     s3 = client("s3")
     try:
@@ -123,7 +123,7 @@ def s3_multipart_upload_complete(bucket_name, filename, upload_id, parts):
         raise e
 
 
-@extract_reraise_chained_exception(EventletTimeout)
+@extract_reraise_chained_exception(RequestHandlingTimeout)
 def s3_multipart_upload_abort(bucket_name, filename, upload_id):
     s3 = client("s3")
 
