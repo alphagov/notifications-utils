@@ -21,7 +21,7 @@ class SoftEventletTimeout(EventletTimeout):
     pass
 
 
-# eventlet detection cribbed from
+# eventlet/gevent detection cribbed from
 # https://github.com/celery/kombu/blob/74779a8078ab318a016ca107249e59f8c8063ef9/kombu/utils/compat.py#L38
 using_eventlet = False
 if "eventlet" in sys.modules:
@@ -35,10 +35,19 @@ if "eventlet" in sys.modules:
         if is_monkey_patched(socket):
             using_eventlet = True
 
+using_gevent = False
+if "gevent" in sys.modules:
+    try:
+        import socket
+
+        from gevent import socket as _gsocket
+    except ImportError:
+        pass
+    else:
+        if socket.socket is _gsocket.socket:
+            using_gevent = True
+
 if using_eventlet:
-    import flask
-    import greenlet
-    from eventlet.hubs import get_hub
     from eventlet.timeout import Timeout
 
     class EventletTimeoutMiddleware:
@@ -89,6 +98,12 @@ if using_eventlet:
                 ),
             ):
                 return self._app(*args, **kwargs)
+
+else:
+    EventletTimeoutMiddleware = None  # type: ignore
+
+if using_eventlet or using_gevent:
+    import greenlet
 
     def account_greenlet_times(event: str, args) -> None:
         """
@@ -237,6 +252,22 @@ if using_eventlet:
             f"{key_prefix}greenlet_context_switches": getattr(gt, "_context_switch_count", None),
         }
 
+else:
+    # don't make this callable lest someone tries to use it and doesn't realize it does nothing
+    account_greenlet_times = None  # type: ignore[assignment]
+
+    greenlet_thread_time_ns = lambda: None  # noqa
+    greenlet_perf_counter_ns = lambda: None  # noqa
+    reset_greenlet_stats = lambda: None  # noqa
+    greenlet_perf_counter_ns_max_continuous = lambda: None  # noqa
+    greenlet_thread_time_ns_max_continuous = lambda: None  # noqa
+    greenlet_context_switch_count = lambda: None  # noqa
+
+if using_eventlet:
+    import flask
+    from eventlet.hubs import get_hub
+    from eventlet.timeout import Timeout
+
     def get_main_greenlets_debug_info() -> dict:
         info = _get_greenlet_debug_info(get_hub().greenlet, "hub_")
 
@@ -246,14 +277,18 @@ if using_eventlet:
 
         return info
 
-else:
-    EventletTimeoutMiddleware = None  # type: ignore
-    account_greenlet_times = None  # type: ignore[assignment]
+elif using_gevent:
+    import flask
+    from gevent.hub import get_hub
 
-    greenlet_thread_time_ns = lambda: None  # noqa
-    greenlet_perf_counter_ns = lambda: None  # noqa
-    reset_greenlet_stats = lambda: None  # noqa
-    greenlet_perf_counter_ns_max_continuous = lambda: None  # noqa
-    greenlet_thread_time_ns_max_continuous = lambda: None  # noqa
-    greenlet_context_switch_count = lambda: None  # noqa
+    def get_main_greenlets_debug_info() -> dict:
+        info = _get_greenlet_debug_info(get_hub(), "hub_")
+
+        server_greenlet = getattr(flask.current_app, "_server_greenlet", None)
+        if server_greenlet:
+            info.update(_get_greenlet_debug_info(server_greenlet, "server_"))
+
+        return info
+
+else:
     get_main_greenlets_debug_info = lambda: {}  # noqa
