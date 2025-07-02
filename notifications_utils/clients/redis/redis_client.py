@@ -22,7 +22,7 @@ from redis.exceptions import TimeoutError as redis_TimeoutError
 from redis.lock import Lock
 from redis.typing import Number
 
-from notifications_utils.eventlet import HardEventletTimeout, SoftEventletTimeout
+from notifications_utils.greenlet import HardEventletTimeout, SoftEventletTimeout
 
 
 @overload

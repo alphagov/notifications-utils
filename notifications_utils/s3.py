@@ -4,8 +4,8 @@ from boto3 import client, resource
 from botocore.exceptions import ClientError as BotoClientError
 from flask import current_app
 
-from notifications_utils.eventlet import EventletTimeout
 from notifications_utils.exception_handling import extract_reraise_chained_exception
+from notifications_utils.greenlet import EventletTimeout
 
 
 @extract_reraise_chained_exception(EventletTimeout)
