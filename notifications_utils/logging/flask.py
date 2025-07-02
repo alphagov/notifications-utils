@@ -11,10 +11,10 @@ from time import perf_counter_ns
 from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 
-import notifications_utils.eventlet as utils_eventlet
+import notifications_utils.greenlet as utils_greenlet
 
-if utils_eventlet.using_eventlet:
-    thread_time_ns = utils_eventlet.greenlet_thread_time_ns
+if utils_greenlet.using_eventlet:
+    thread_time_ns = utils_greenlet.greenlet_thread_time_ns
 else:
     from time import thread_time_ns
 
@@ -52,8 +52,8 @@ def _common_request_extra_log_context():
     }
 
 
-def _eventlet_stats_extra_log_context(request_time: float | None) -> dict:
-    greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()
+def _greenlet_stats_extra_log_context(request_time: float | None) -> dict:
+    greenlet_context_switch_count = utils_greenlet.greenlet_context_switch_count()
     before_request_greenlet_context_switch_count = getattr(
         request, "before_request_greenlet_context_switch_count", None
     )
@@ -64,11 +64,11 @@ def _eventlet_stats_extra_log_context(request_time: float | None) -> dict:
             if greenlet_context_switch_count is None or before_request_greenlet_context_switch_count is None
             else greenlet_context_switch_count - before_request_greenlet_context_switch_count
         ),
-        "greenlet_real_time_max_continuous": utils_eventlet.greenlet_perf_counter_ns_max_continuous() * _ns_per_s,
-        "greenlet_cpu_time_max_continuous": utils_eventlet.greenlet_thread_time_ns_max_continuous() * _ns_per_s,
+        "greenlet_real_time_max_continuous": utils_greenlet.greenlet_perf_counter_ns_max_continuous() * _ns_per_s,
+        "greenlet_cpu_time_max_continuous": utils_greenlet.greenlet_thread_time_ns_max_continuous() * _ns_per_s,
     }
     if request_time and request_time > current_app.config["NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS"]:
-        context.update(utils_eventlet.get_main_greenlets_debug_info())
+        context.update(utils_greenlet.get_main_greenlets_debug_info())
 
     return context
 
@@ -124,8 +124,8 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
         request.before_request_thread_time_ns = thread_time_ns()
 
         if app.config["NOTIFY_EVENTLET_STATS"]:
-            request.before_request_greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()
-            utils_eventlet.reset_greenlet_stats()
+            request.before_request_greenlet_context_switch_count = utils_greenlet.greenlet_context_switch_count()
+            utils_greenlet.reset_greenlet_stats()
 
         # emit an early log message to record that the request was received by the app
         context = _common_request_extra_log_context()
@@ -168,7 +168,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
             **_common_request_extra_log_context(),
         }
         if app.config["NOTIFY_EVENTLET_STATS"]:
-            context.update(_eventlet_stats_extra_log_context(context["request_time"]))
+            context.update(_greenlet_stats_extra_log_context(context["request_time"]))
 
         current_app.logger.getChild("request").log(
             log_level,
