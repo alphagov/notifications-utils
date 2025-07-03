@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 101.0.0
+
+* Updated the estimated letter delivery timings to take into account the change that first class letters are now
+  the only postage class to be delivered on Saturdays, and delivery times for second class and economy mail are slower.
+
 ## 100.0.0
 
 * `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
