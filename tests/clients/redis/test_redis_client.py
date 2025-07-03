@@ -74,6 +74,50 @@ def test_delete_by_key_script(app, redis_client_with_live_instance, pattern, key
     assert redis_client_with_live_instance.delete_by_pattern(pattern) == number_of_matches
 
 
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
+def test_decrement_correct_number_of_tokens_for_multiple_calls_within_replenishment_interval(
+    app, redis_client_with_live_instance
+):
+    key = "rate-limit-test-key"
+    replenish_per_sec = 1
+    bucket_max = 100
+    bucket_min = -100
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+        key, replenish_per_sec, bucket_max, bucket_min
+    )
+    assert tokens_remaining == 97
+
+
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
+def test_do_not_decrement_below_bucket_min(app, redis_client_with_live_instance):
+    key = "rate-limit-test-key"
+    replenish_per_sec = 1
+    bucket_max = 1
+    bucket_min = -1
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+        key, replenish_per_sec, bucket_max, bucket_min
+    )
+    assert tokens_remaining == -1
+
+
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
+def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_with_live_instance):
+    key = "rate-limit-test-key"
+    replenish_per_sec = 5
+    bucket_max = 100
+    bucket_min = -100
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+        key, replenish_per_sec, bucket_max, bucket_min
+    )
+    assert tokens_remaining == 98
+
+
 @pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config["REDIS_ENABLED"] = True
