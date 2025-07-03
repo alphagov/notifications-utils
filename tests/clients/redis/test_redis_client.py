@@ -42,6 +42,38 @@ def redis_client_with_live_instance(app, tmp_path_factory):
     except Exception as e:
         raise Exception("redis_client_with_live_instance fixture cannot be used in parallel.") from e
 
+
+@pytest.mark.parametrize(
+    "pattern, key_value_pairs, number_of_matches",
+    [
+        (
+            "h?llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("h3llo", "valid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            3,
+        ),
+        (
+            "h[a,e]llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("hullo", "invalid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            2,
+        ),
+    ],
+)
+def test_delete_by_key_script(app, redis_client_with_live_instance, pattern, key_value_pairs, number_of_matches):
+    for key, value in key_value_pairs:
+        redis_client_with_live_instance.redis_store.set(key, value)
+    assert redis_client_with_live_instance.delete_by_pattern(pattern) == number_of_matches
+
+
 @pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config["REDIS_ENABLED"] = True
