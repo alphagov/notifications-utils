@@ -6,6 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 import redis
+from filelock import FileLock
 from freezegun import freeze_time
 
 from notifications_utils.clients.redis.redis_client import (
@@ -26,6 +27,22 @@ def delete_mock():
 
 
 @pytest.fixture(scope="function")
+def redis_client_with_live_instance(app, tmp_path_factory):
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    redis_lock_file = root_tmp_dir / "redis_lock"
+    app.config["REDIS_ENABLED"] = True
+    app.config["REDIS_URL"] = "redis://localhost:6999/0"
+    lock = FileLock(str(redis_lock_file) + ".lock")
+    try:
+        with lock.acquire(blocking=False):
+            redis_client = RedisClient()
+            redis_client.init_app(app)
+            redis_client.redis_store.flushall()
+            return redis_client
+    except Exception as e:
+        raise Exception("redis_client_with_live_instance fixture cannot be used in parallel.") from e
+
+@pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config["REDIS_ENABLED"] = True
 
@@ -42,7 +59,9 @@ def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     mocker.patch.object(redis_client, "scripts", {"delete-keys-by-pattern": delete_mock})
 
     mocker.patch.object(
-        redis_client.redis_store, "hgetall", return_value={b"template-1111": b"8", b"template-2222": b"8"}
+        redis_client.redis_store,
+        "hgetall",
+        return_value={b"template-1111": b"8", b"template-2222": b"8"},
     )
 
     return redis_client

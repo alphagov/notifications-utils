@@ -47,6 +47,8 @@ eventlet==0.38.2
     # via gunicorn
 execnet==2.1.1
     # via pytest-xdist
+filelock==3.12.4
+    # via -r requirements_for_test.in
 flask==3.1.1
     # via
     #   notifications-utils (pyproject.toml)
