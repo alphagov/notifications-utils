@@ -16,6 +16,7 @@ bootstrap: ## Build project
 
 .PHONY: test
 test: ## Run tests
+	redis-server --daemonize yes --port 6999 || redis --daemonize yes --port 6999 || echo "using local version of redis"
 	ruff check .
 	ruff format --check .
 	pytest -n auto
