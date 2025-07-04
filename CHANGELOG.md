@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 100.1.0
+
+* Add otel common code. Add common config base class.
+
 ## 100.0.0
 
 * `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
