@@ -31,7 +31,26 @@ dependencies = [
     "segno>=1.6.1",
     "smartypants>=2.0.1",
     "statsd>=4.0.1",
+    "opentelemetry-distro==0.54b1",
+    "opentelemetry-exporter-otlp==1.33.1",
+    "opentelemetry-processor-baggage==0.54b1",
 ]
+
+[project.optional-dependencies]
+otel-instrumentation = [
+    "opentelemetry-instrumentation-flask==0.54b1",
+    "opentelemetry-instrumentation-celery==0.54b1",
+    "opentelemetry-instrumentation-requests==0.54b1",
+    "opentelemetry-instrumentation-redis==0.54b1",
+    "opentelemetry-instrumentation-sqlalchemy==0.54b1",
+    "opentelemetry-instrumentation-botocore==0.54b1"
+]
+otel-flask = [ "opentelemetry-instrumentation-flask==0.54b1" ]
+otel-celery = [ "opentelemetry-instrumentation-celery==0.54b1" ]
+otel-requests = [ "opentelemetry-instrumentation-requests==0.54b1" ]
+otel-redis = [ "opentelemetry-instrumentation-redis==0.54b1" ]
+otel-sqlalchemy = [ "opentelemetry-instrumentation-sqlalchemy==0.54b1" ]
+otel-botocore = [ "opentelemetry-instrumentation-botocore==0.54b1" ]
 
 [project.urls]
 Homepage = "https://github.com/alphagov/notifications-utils"
