@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 100.1.0
+
+* Added `tally-bucket-rate-limit` lua script to redis client and wrapper method: `get_remaining_bucket_tokens`
+* Added tests to test lua scripts against a real redis instance. (Read changes in README when testing locally)
+
 ## 100.0.0
 
 * `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
