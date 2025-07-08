@@ -25,7 +25,7 @@ def init_otel_app(app: Flask) -> None:
         app.logger.debug("OpenTelemetry instrumentation already applied, skipping.")
         return
 
-    export_mode = app.config.get("OTEL_EXPORT_TYPE", "none").lower().strip()
+    export_mode = app.config.get("NOTIFY_OTEL_EXPORT_TYPE", "none").lower().strip()
     metric_readers = []
 
     if export_mode == "console":
@@ -33,18 +33,18 @@ def init_otel_app(app: Flask) -> None:
         metric_readers.append(PeriodicExportingMetricReader(ConsoleMetricExporter()))
         span_processor = BatchSpanProcessor(ConsoleSpanExporter())
     elif export_mode == "otlp":
-        endpoint = app.config.get("OTEL_COLLECTOR_ENDPOINT", "localhost:4317")
+        endpoint = app.config.get("NOTIFY_OTEL_COLLECTOR_ENDPOINT", "localhost:4317")
         app.logger.info("OpenTelemetry metrics and spans will be exported to OTLP collector at %s", endpoint)
         otlp_exporter = OTLPMetricExporter(endpoint=endpoint, insecure=True)
         metric_readers.append(PeriodicExportingMetricReader(otlp_exporter))
 
-        os.environ["OTEL_METRIC_EXPORT_INTERVAL"] = app.config.get("OTEL_METRIC_EXPORT_INTERVAL", "15s")
-        os.environ["OTEL_METRIC_EXPORT_TIMEOUT"] = app.config.get("OTEL_METRIC_EXPORT_TIMEOUT", "30s")
+        os.environ["OTEL_METRIC_EXPORT_INTERVAL"] = app.config.get("NOTIFY_OTEL_METRIC_EXPORT_INTERVAL")
+        os.environ["OTEL_METRIC_EXPORT_TIMEOUT"] = app.config.get("NOTIFY_OTEL_METRIC_EXPORT_TIMEOUT")
 
         span_processor = BatchSpanProcessor(
             OTLPSpanExporter(
                 endpoint=endpoint,
-                insecure=app.config.get("OTEL_COLLECTOR_INSECURE", True),
+                insecure=app.config.get("NOTIFY_OTEL_COLLECTOR_INSECURE", True),
             )
         )
     elif export_mode == "none":
@@ -52,6 +52,27 @@ def init_otel_app(app: Flask) -> None:
         return
     else:
         raise ValueError(f"Invalid OTEL_EXPORT_TYPE: {export_mode}. Expected 'console', 'otlp', or 'none'.")
+
+    # TODO: Look into replacing the resource name inside the otel collector. This config would need to
+    # look something like:
+    #
+    # traces:
+    #     receivers: [otlp]
+    #     processors: [resourcedetection, transform/spans, batch/traces]
+    #     exporters: [otlp/traces]
+    #
+    # resourcedetection:
+    #     detectors:
+    #     - env
+    #     - system
+    #     - ecs
+    # transform/spans:
+    #     trace_statements:
+    #     - context: span
+    #         statements:
+    #         - >
+    #           set(resource.attributes["service.name"], resource.attributes["aws.ecs.service.name"])
+    #           where resource.attributes["aws.ecs.service.name"] != nil
 
     resource = Resource.create(
         {"service.name": os.getenv("NOTIFY_APP_NAME") or app.config.get("NOTIFY_APP_NAME") or "notifications"}
@@ -62,10 +83,14 @@ def init_otel_app(app: Flask) -> None:
 
     set_tracer_provider(TracerProvider(resource=resource))
 
-    def regex_predicate(baggage_key: str) -> bool:
-        return baggage_key.startswith("^public-.+")
+    def public_baggage_predicate(baggage_key: str) -> bool:
+        """
+        Filter to only include baggage keys starting with 'public-'.
+        This ensures only public baggage items are automatically added as span attributes.
+        """
+        return baggage_key.startswith("public-")
 
-    get_tracer_provider().add_span_processor(BaggageSpanProcessor(regex_predicate))
+    get_tracer_provider().add_span_processor(BaggageSpanProcessor(public_baggage_predicate))
     get_tracer_provider().add_span_processor(span_processor)
 
     _instrument_app(app)
@@ -80,15 +105,15 @@ def _instrument_app(app: Flask) -> None:
 
     # Affects both requests and Flask instrumentation
     os.environ["OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST"] = app.config.get(
-        "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST", ".*"
+        "NOTIFY_OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST"
     )
 
     os.environ["OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE"] = app.config.get(
-        "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE", ".*"
+        "NOTIFY_OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE"
     )
 
     os.environ["OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS"] = app.config.get(
-        "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS", "authorization,set-cookie,.*session.*"
+        "NOTIFY_OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS"
     )
 
     instrument_map = {
@@ -120,7 +145,7 @@ def _instrument_flask(app: Flask) -> None:
 
     FlaskInstrumentor().instrument_app(
         app,
-        excluded_urls=app.config.get("OTEL_PYTHON_FLASK_EXCLUDED_URLS", "_status(\\?.*)?$,/metrics"),
+        excluded_urls=app.config.get("NOTIFY_OTEL_PYTHON_FLASK_EXCLUDED_URLS"),
     )
 
 

@@ -2,57 +2,73 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from notifications_utils.clients.otel.utils import otel_histogram, otel_span, otel_span_with_status
+from notifications_utils.clients.otel.utils import otel_duration_histogram, otel_span_with_status
 
 
-def test_otel_span_static_attributes():
+def test_otel_span_with_status_as_decorator_success():
     mock_tracer = MagicMock()
     mock_span = MagicMock()
     mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
 
-    # Patch must be active before the decorator is applied
-    with patch("notifications_utils.clients.otel.utils.get_tracer", return_value=mock_tracer):
+    @otel_span_with_status(mock_tracer, "test-span-decorator", service="test")
+    def test_func(x):
+        return x * 2
 
-        @otel_span(attributes={"foo": "bar"})
-        def test_func(x):
-            return x + 1
-
-        result = test_func(1)
-        assert result == 2
-        mock_span.set_attribute.assert_any_call("foo", "bar")
+    result = test_func(5)
+    assert result == 10
+    mock_span.set_attribute.assert_any_call("service", "test")
+    mock_span.set_status.assert_not_called()
+    mock_span.record_exception.assert_not_called()
 
 
-def test_otel_span_dynamic_attributes():
+def test_otel_span_with_status_as_decorator_exception():
     mock_tracer = MagicMock()
     mock_span = MagicMock()
     mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
 
-    with patch("notifications_utils.clients.otel.utils.get_tracer", return_value=mock_tracer):
+    @otel_span_with_status(mock_tracer, "test-span-decorator", operation="failing")
+    def test_func():
+        raise ValueError("test error")
 
-        @otel_span(attributes=lambda args, kwargs: {"arg": args[0]})
-        def test_func(x):
-            return x * 2
+    with pytest.raises(ValueError, match="test error"):
+        test_func()
 
-        result = test_func(3)
-        assert result == 6
-        mock_span.set_attribute.assert_any_call("arg", 3)
+    mock_span.set_attribute.assert_any_call("operation", "failing")
+    mock_span.record_exception.assert_called()
+    mock_span.set_status.assert_called()
 
 
-def test_otel_span_exception_records_status():
+def test_otel_span_with_status_as_decorator_no_attributes():
     mock_tracer = MagicMock()
     mock_span = MagicMock()
     mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
 
-    with patch("notifications_utils.clients.otel.utils.get_tracer", return_value=mock_tracer):
+    @otel_span_with_status(mock_tracer, "simple-span")
+    def test_func(a, b):
+        return a + b
 
-        @otel_span()
-        def test_func():
-            raise ValueError("fail!")
+    result = test_func(3, 4)
+    assert result == 7
+    # Should not call set_attribute since no attributes were provided
+    mock_span.set_attribute.assert_not_called()
+    mock_span.set_status.assert_not_called()
 
-        with pytest.raises(ValueError):
-            test_func()
-        mock_span.record_exception.assert_called()
-        mock_span.set_status.assert_called()
+
+def test_otel_span_with_status_as_decorator_multiple_attributes():
+    mock_tracer = MagicMock()
+    mock_span = MagicMock()
+    mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
+
+    @otel_span_with_status(mock_tracer, "multi-attr-span", user_id="123", operation="update", priority="high")
+    def test_func():
+        return "success"
+
+    result = test_func()
+    assert result == "success"
+    mock_span.set_attribute.assert_any_call("user_id", "123")
+    mock_span.set_attribute.assert_any_call("operation", "update")
+    mock_span.set_attribute.assert_any_call("priority", "high")
+    assert mock_span.set_attribute.call_count == 3
 
 
 def test_otel_span_with_status_success():
@@ -78,14 +94,14 @@ def test_otel_span_with_status_exception():
     mock_span.set_status.assert_called()
 
 
-def test_otel_histogram_records_success():
+def test_otel_duration_histogram_records_success():
     mock_meter = MagicMock()
     mock_histogram = MagicMock()
     mock_meter.create_histogram.return_value = mock_histogram
 
     with patch("notifications_utils.clients.otel.utils.get_meter", return_value=mock_meter):
 
-        @otel_histogram("test_histogram", attributes={"foo": "bar"})
+        @otel_duration_histogram("test_histogram", attributes={"foo": "bar"})
         def test_func(x):
             return x + 1
 
@@ -98,14 +114,14 @@ def test_otel_histogram_records_success():
         assert kwargs["attributes"]["status"] == "success"
 
 
-def test_otel_histogram_records_error():
+def test_otel_duration_histogram_records_error():
     mock_meter = MagicMock()
     mock_histogram = MagicMock()
     mock_meter.create_histogram.return_value = mock_histogram
 
     with patch("notifications_utils.clients.otel.utils.get_meter", return_value=mock_meter):
 
-        @otel_histogram("test_histogram")
+        @otel_duration_histogram("test_histogram")
         def test_func():
             raise RuntimeError("fail!")
 
@@ -117,14 +133,14 @@ def test_otel_histogram_records_error():
         assert kwargs["attributes"]["status"] == "error"
 
 
-def test_otel_histogram_dynamic_attributes():
+def test_otel_duration_histogram_dynamic_attributes():
     mock_meter = MagicMock()
     mock_histogram = MagicMock()
     mock_meter.create_histogram.return_value = mock_histogram
 
     with patch("notifications_utils.clients.otel.utils.get_meter", return_value=mock_meter):
 
-        @otel_histogram("test_histogram", attributes=lambda args, kwargs: {"arg": args[0]})
+        @otel_duration_histogram("test_histogram", attributes=lambda args, kwargs: {"arg": args[0]})
         def test_func(x):
             return x * 2
 

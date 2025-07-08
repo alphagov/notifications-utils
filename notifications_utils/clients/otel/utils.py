@@ -5,7 +5,7 @@ from functools import wraps
 from typing import Any
 
 from opentelemetry.metrics import get_meter
-from opentelemetry.trace import Span, Status, StatusCode, Tracer, get_tracer
+from opentelemetry.trace import Span, Status, StatusCode, Tracer
 
 default_histogram_bucket = [
     0.005,
@@ -25,90 +25,31 @@ default_histogram_bucket = [
     float("inf"),
 ]
 
-# Examples of how to use the decorator:
+# Examples of how to use the otel_duration_histogram decorator:
 
 # Example 1: Static attributes (current behavior)
-# @otel_span(attributes={"operation": "send_email"})
+# @otel_duration_histogram("my_function_duration", attributes={"operation": "send_email"})
 # def send_email(to, subject):
 #     ...
 
 # Example 2: Dynamic attributes based on function arguments
-# @otel_span(attributes=lambda args, kwargs: {"user_id": kwargs.get("user_id")})
+# @otel_duration_histogram("process_user_duration", attributes=lambda args, kwargs: {"user_id": kwargs.get("user_id")})
 # def process_user(user_id):
 #     ...
 
 # Example 3: Dynamic attributes using both args and kwargs
-# @otel_span(attributes=lambda args, kwargs: {
+# @otel_duration_histogram("do_something_duration", attributes=lambda args, kwargs: {
 #     "first_arg": args[0] if args else None,
 #     "keyword": kwargs.get("keyword")
 # })
 # def do_something(a, keyword=None):
 #     ...
 
-
-def otel_span(
-    _func: Callable | None = None, *, attributes: dict[str, Any] | Callable[[tuple, dict], dict[str, Any]] | None = None
-) -> Callable:
-    """
-    Decorator to create an OpenTelemetry span around a function.
-
-    Args:
-        attributes (dict or callable, optional):
-            - If a dict, sets static attributes on the span.
-            - If a callable, it should accept (args, kwargs) and return a dict of attributes.
-
-    Returns:
-        function: Wrapped function with span instrumentation.
-    """
-
-    def decorator(func):
-        tracer = get_tracer(__name__)
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            with tracer.start_as_current_span(func.__name__) as span:
-                # Support static or dynamic attributes
-                attrs = attributes(args, kwargs) if callable(attributes) else attributes
-                if attrs:
-                    for key, value in attrs.items():
-                        span.set_attribute(key, value)
-                try:
-                    return func(*args, **kwargs)
-                except Exception as exc:
-                    span.record_exception(exc)
-                    span.set_status(Status(StatusCode.ERROR, str(exc)))
-                    raise exc
-
-        return wrapper
-
-    if _func is None:
-        return decorator
-    else:
-        return decorator(_func)
+# If you are considering using this decorator, think about if a span would be more appropriate for your use case.
+# If we are using spanmetrics inside the otel collector you will automatically get a histogram for the span duration.
 
 
-# Examples of how to use the otel_histogram decorator:
-
-# Example 1: Static attributes (current behavior)
-# @otel_histogram("my_function_duration", attributes={"operation": "send_email"})
-# def send_email(to, subject):
-#     ...
-
-# Example 2: Dynamic attributes based on function arguments
-# @otel_histogram("process_user_duration", attributes=lambda args, kwargs: {"user_id": kwargs.get("user_id")})
-# def process_user(user_id):
-#     ...
-
-# Example 3: Dynamic attributes using both args and kwargs
-# @otel_histogram("do_something_duration", attributes=lambda args, kwargs: {
-#     "first_arg": args[0] if args else None,
-#     "keyword": kwargs.get("keyword")
-# })
-# def do_something(a, keyword=None):
-#     ...
-
-
-def otel_histogram(
+def otel_duration_histogram(
     name: str,
     *,
     unit: str = "seconds",
