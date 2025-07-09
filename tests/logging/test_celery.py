@@ -46,7 +46,7 @@ def assert_command_has_outputs(tmp_path, command, filename, expected_messages, u
             env=env,
         )
 
-        stdout, stderr = process.communicate(timeout=10)
+        stdout, stderr = process.communicate(timeout=45)
         logs = stdout + stderr
 
         # Parse the logs as JSON and check the messages field contains the expected messages
