@@ -90,7 +90,7 @@ def test_already_instrumented(otel_patches, app):
 
 
 def test_console_export(otel_patches, app):
-    app.config = {"NOTIFY_OTEL_EXPORT_TYPE": "console"}
+    app.config = {"OTEL_EXPORT_TYPE": "console"}
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     app.logger.info.assert_any_call("OpenTelemetry metrics and spans will be exported to console")
@@ -107,9 +107,9 @@ def test_console_export(otel_patches, app):
 
 
 def test_otlp_export(otel_patches, app):
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "otlp"
-    app.config["NOTIFY_OTEL_COLLECTOR_ENDPOINT"] = "test-endpoint:4317"
-    app.config["NOTIFY_OTEL_COLLECTOR_INSECURE"] = False
+    app.config["OTEL_EXPORT_TYPE"] = "otlp"
+    app.config["OTEL_COLLECTOR_ENDPOINT"] = "test-endpoint:4317"
+    app.config["OTEL_COLLECTOR_INSECURE"] = False
 
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
@@ -129,7 +129,7 @@ def test_otlp_export(otel_patches, app):
 
 
 def test_none_export(otel_patches, app):
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "none"
+    app.config["OTEL_EXPORT_TYPE"] = "none"
     init_otel_app(app)
     app.logger.info.assert_any_call("OpenTelemetry metrics and spans will not be exported")
     otel_patches["instrument_app"].assert_not_called()
@@ -137,7 +137,7 @@ def test_none_export(otel_patches, app):
 
 
 def test_invalid_export_type(otel_patches, app):
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "invalid"
+    app.config["OTEL_EXPORT_TYPE"] = "invalid"
     with pytest.raises(ValueError, match="Invalid OTEL_EXPORT_TYPE: invalid. Expected 'console', 'otlp', or 'none'."):
         init_otel_app(app)
 
@@ -151,7 +151,7 @@ def test_default_export_type_is_none(otel_patches, app):
 
 
 def test_instrumentation_sets_flag(otel_patches, app):
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "console"
+    app.config["OTEL_EXPORT_TYPE"] = "console"
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     assert app._otel_instrumented is True
@@ -165,9 +165,9 @@ def test_logger_debug_called_when_already_instrumented(otel_patches, app):
 
 
 def test_otlp_export_insecure_true(otel_patches, app):
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "otlp"
-    app.config["NOTIFY_OTEL_COLLECTOR_ENDPOINT"] = "test-endpoint:4317"
-    app.config["NOTIFY_OTEL_COLLECTOR_INSECURE"] = True
+    app.config["OTEL_EXPORT_TYPE"] = "otlp"
+    app.config["OTEL_COLLECTOR_ENDPOINT"] = "test-endpoint:4317"
+    app.config["OTEL_COLLECTOR_INSECURE"] = True
 
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
@@ -187,7 +187,7 @@ def test_otlp_export_insecure_true(otel_patches, app):
 
 
 def test_export_type_case_insensitive(otel_patches, app):
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "Console"
+    app.config["OTEL_EXPORT_TYPE"] = "Console"
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     app.logger.info.assert_any_call("OpenTelemetry metrics and spans will be exported to console")
@@ -214,7 +214,7 @@ def test_export_type_missing_logger(otel_patches, app):
     otel_patches["instrument_app"].assert_not_called()
 
     # Now test with a real app and otel_patches
-    app.config = {"NOTIFY_OTEL_EXPORT_TYPE": "console"}
+    app.config = {"OTEL_EXPORT_TYPE": "console"}
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     app.logger.info.assert_any_call("OpenTelemetry metrics and spans will be exported to console")
@@ -232,7 +232,7 @@ def test_export_type_missing_logger(otel_patches, app):
 
 def test_multiple_calls_are_idempotent(otel_patches, app):
     """Calling init_otel_app twice should not re-instrument."""
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "console"
+    app.config["OTEL_EXPORT_TYPE"] = "console"
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     otel_patches["instrument_app"].assert_called_once_with(app)
@@ -243,9 +243,9 @@ def test_multiple_calls_are_idempotent(otel_patches, app):
 
 
 def test_otlp_export_missing_insecure_defaults_false(otel_patches, app):
-    """If NOTIFY_OTEL_COLLECTOR_INSECURE is missing, should default to False."""
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "otlp"
-    app.config["NOTIFY_OTEL_COLLECTOR_ENDPOINT"] = "test-endpoint:4317"
+    """If OTEL_COLLECTOR_INSECURE is missing, should default to False."""
+    app.config["OTEL_EXPORT_TYPE"] = "otlp"
+    app.config["OTEL_COLLECTOR_ENDPOINT"] = "test-endpoint:4317"
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     app.logger.info.assert_any_call(
@@ -257,7 +257,7 @@ def test_otlp_export_missing_insecure_defaults_false(otel_patches, app):
 
 def test_export_type_with_whitespace(otel_patches, app):
     """Handles export type with leading/trailing whitespace."""
-    app.config["NOTIFY_OTEL_EXPORT_TYPE"] = "  console  "
+    app.config["OTEL_EXPORT_TYPE"] = "  console  "
     otel_patches["get_tracer_provider"].return_value = MagicMock()
     init_otel_app(app)
     app.logger.info.assert_any_call("OpenTelemetry metrics and spans will be exported to console")

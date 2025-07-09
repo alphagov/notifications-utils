@@ -25,7 +25,7 @@ def init_otel_app(app: Flask) -> None:
         app.logger.debug("OpenTelemetry instrumentation already applied, skipping.")
         return
 
-    export_mode = app.config.get("NOTIFY_OTEL_EXPORT_TYPE", "none").lower().strip()
+    export_mode = app.config.get("OTEL_EXPORT_TYPE", "none").lower().strip()
     metric_readers = []
 
     if export_mode == "console":
@@ -33,18 +33,18 @@ def init_otel_app(app: Flask) -> None:
         metric_readers.append(PeriodicExportingMetricReader(ConsoleMetricExporter()))
         span_processor = BatchSpanProcessor(ConsoleSpanExporter())
     elif export_mode == "otlp":
-        endpoint = app.config.get("NOTIFY_OTEL_COLLECTOR_ENDPOINT", "localhost:4317")
+        endpoint = app.config.get("OTEL_COLLECTOR_ENDPOINT", "localhost:4317")
         app.logger.info("OpenTelemetry metrics and spans will be exported to OTLP collector at %s", endpoint)
         otlp_exporter = OTLPMetricExporter(endpoint=endpoint, insecure=True)
         metric_readers.append(PeriodicExportingMetricReader(otlp_exporter))
 
-        os.environ["OTEL_METRIC_EXPORT_INTERVAL"] = app.config.get("NOTIFY_OTEL_METRIC_EXPORT_INTERVAL")
-        os.environ["OTEL_METRIC_EXPORT_TIMEOUT"] = app.config.get("NOTIFY_OTEL_METRIC_EXPORT_TIMEOUT")
+        os.environ["OTEL_METRIC_EXPORT_INTERVAL"] = app.config.get("OTEL_METRIC_EXPORT_INTERVAL")
+        os.environ["OTEL_METRIC_EXPORT_TIMEOUT"] = app.config.get("OTEL_METRIC_EXPORT_TIMEOUT")
 
         span_processor = BatchSpanProcessor(
             OTLPSpanExporter(
                 endpoint=endpoint,
-                insecure=app.config.get("NOTIFY_OTEL_COLLECTOR_INSECURE", True),
+                insecure=app.config.get("OTEL_COLLECTOR_INSECURE", True),
             )
         )
     elif export_mode == "none":
@@ -105,15 +105,15 @@ def _instrument_app(app: Flask) -> None:
 
     # Affects both requests and Flask instrumentation
     os.environ["OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST"] = app.config.get(
-        "NOTIFY_OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST"
+        "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST"
     )
 
     os.environ["OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE"] = app.config.get(
-        "NOTIFY_OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE"
+        "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE"
     )
 
     os.environ["OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS"] = app.config.get(
-        "NOTIFY_OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS"
+        "OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SANITIZE_FIELDS"
     )
 
     instrument_map = {
@@ -145,7 +145,7 @@ def _instrument_flask(app: Flask) -> None:
 
     FlaskInstrumentor().instrument_app(
         app,
-        excluded_urls=app.config.get("NOTIFY_OTEL_PYTHON_FLASK_EXCLUDED_URLS"),
+        excluded_urls=app.config.get("OTEL_PYTHON_FLASK_EXCLUDED_URLS"),
     )
 
 
