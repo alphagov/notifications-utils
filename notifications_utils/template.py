@@ -6,7 +6,7 @@ from html import unescape
 from os import path
 from typing import Literal
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 
 from notifications_utils import (
@@ -56,7 +56,8 @@ template_env = Environment(
             path.dirname(path.abspath(__file__)),
             "jinja_templates",
         )
-    )
+    ),
+    undefined=StrictUndefined,
 )
 
 
