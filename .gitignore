@@ -68,3 +68,7 @@ target/
 # Linux and Mac Dev Environment
 .DS_Store
 .envrc
+
+# Redis
+
+*.rdb
