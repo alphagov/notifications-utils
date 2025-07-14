@@ -6,7 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 import redis
-from filelock import FileLock
+from filelock import FileLock, Timeout
 from freezegun import freeze_time
 
 from notifications_utils.clients.redis.redis_client import (
@@ -34,13 +34,13 @@ def redis_client_with_live_instance(app, tmp_path_factory):
     app.config["REDIS_URL"] = "redis://localhost:6999/0"
     lock = FileLock(str(redis_lock_file) + ".lock")
     try:
-        with lock.acquire(blocking=False):
+        with lock.acquire(timeout=10):
             redis_client = RedisClient()
             redis_client.init_app(app)
             redis_client.redis_store.flushall()
             return redis_client
-    except Exception as e:
-        raise Exception("redis_client_with_live_instance fixture cannot be used in parallel.") from e
+    except Timeout as e:
+        raise Exception(f"Timeout while waiting for redis lock. Detail: {e}") from e
 
 
 @pytest.mark.parametrize(
