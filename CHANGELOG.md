@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 100.1.0
+
+* Updated `phonenumbers` to version 9.0.9 to keep phonenumber metadata uptodate
+
 ## 100.0.0
 
 * `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
