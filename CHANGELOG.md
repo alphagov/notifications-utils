@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 100.2.0
+
+* add `x_forwarded_for_{0..3}` fields to pre/post request flask logs
+
 ## 100.1.0
 
 * Updated `phonenumbers` to version 9.0.9 to keep phonenumber metadata uptodate
