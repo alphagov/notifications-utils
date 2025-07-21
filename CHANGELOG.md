@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 100.3.0
+
+* Add otel common code. Add common config base class.
+
 ## 100.2.0
 
 * add `x_forwarded_for_{0..3}` fields to pre/post request flask logs
