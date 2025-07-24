@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 101.0.0
+
+* Updated the estimated letter delivery timings to take into account the change that first class letters are now
+  the only postage class to be delivered on Saturdays, and delivery times for second class and economy mail are slower.
+
 ## 100.2.0
 
 * add `x_forwarded_for_{0..3}` fields to pre/post request flask logs
