@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 101.1.0
+
+* Added `tally-bucket-rate-limit` lua script to redis client and wrapper method: `get_remaining_bucket_tokens`
+* Added tests to test lua scripts against a real redis instance. (Read changes in README when testing locally)
+
 ## 101.0.0
 
 * Updated the estimated letter delivery timings to take into account the change that first class letters are now
