@@ -24,7 +24,7 @@ Install pre-commit system-wide with, eg `brew install pre-commit`. Then, install
 
 ### Redis
 
-We us a real [Redis](https://redis.io/) instance to test `notifications_utils.redis_client.RedisClient`. You can either [install locally with brew](https://redis.io/docs/latest/operate/oss_and_stack/install/archive/install-redis/install-redis-on-mac-os/) or [run inside a docker container](https://hub.docker.com/_/redis).
+We use a real [Redis](https://redis.io/) instance to test `notifications_utils.redis_client.RedisClient`. You can either [install locally with brew](https://redis.io/docs/latest/operate/oss_and_stack/install/archive/install-redis/install-redis-on-mac-os/) or [run inside a docker container](https://hub.docker.com/_/redis).
 
 The unit test fixture uses `FLUSHALL` every single time it is called. To prevent this from having unexpected side effects with a locally running redis instance (*e.g.* notifications-local) the tests expect redis to run on port 6999. In docker simply change the port mapping flag to `-p 6999:6379`. If running outside a container add the flag `--port 6999`.
 
