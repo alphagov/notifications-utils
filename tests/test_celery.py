@@ -4,6 +4,7 @@ import uuid
 
 import pytest
 from celery import Task
+from celery.backends.base import DisabledBackend
 from flask import g
 from freezegun import freeze_time
 
@@ -256,3 +257,13 @@ def test_method_signatures(celery_app, async_task, method, _value):
     if method == "run":
         return
     assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
+
+
+def test__get_backend_returns_DisabledBackground_object_when_result_backend_is_set_to_None(notify_celery):
+    notify_celery.conf.update({"result_backend": None})
+    assert isinstance(notify_celery._get_backend(), DisabledBackend)
+
+
+def test__get_backend_does_not_return_DisabledBackground_object_when_result_backend_has_a_value(notify_celery):
+    notify_celery.conf.update({"result_backend": "redis"})
+    assert not isinstance(notify_celery._get_backend(), DisabledBackend)

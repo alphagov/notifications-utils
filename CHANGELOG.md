@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 101.1.1
+
+* Override celery._get_backend to instantly return DisabledBackend object when result_backend is None.
+  This is to prevent expensive scans of importlib.metadata.entry_points for a result backend.
+
 ## 101.1.0
 
 * Added `tally-bucket-rate-limit` lua script to redis client and wrapper method: `get_remaining_bucket_tokens`
