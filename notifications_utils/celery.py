@@ -37,6 +37,9 @@ def make_task(app):
                 g.request_id = self.request_id
                 yield
 
+        def AsyncResult(self, *args, **kwargs):
+            return object()
+
         def on_success(self, retval, task_id, args, kwargs):
             # enables request id tracing for these logs
             with self.app_context():
