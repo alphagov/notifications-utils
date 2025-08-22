@@ -57,7 +57,7 @@ flask-redis==0.4.0
     # via notifications-utils (pyproject.toml)
 freezegun==1.5.1
     # via -r requirements_for_test_common.in
-govuk-bank-holidays==0.15
+govuk-bank-holidays==0.17
     # via notifications-utils (pyproject.toml)
 greenlet==3.1.1
     # via eventlet
