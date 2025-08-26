@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 101.1.1
+
+* Bump min version of `govuk-bank-holidays` to 0.17.0
+
 ## 101.1.0
 
 * Added `tally-bucket-rate-limit` lua script to redis client and wrapper method: `get_remaining_bucket_tokens`
