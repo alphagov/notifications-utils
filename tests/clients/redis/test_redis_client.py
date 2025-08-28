@@ -1,11 +1,12 @@
 import inspect
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import Mock
 
 import pytest
 import redis
+from filelock import FileLock, Timeout
 from freezegun import freeze_time
 
 from notifications_utils.clients.redis.redis_client import (
@@ -26,6 +27,98 @@ def delete_mock():
 
 
 @pytest.fixture(scope="function")
+def redis_client_with_live_instance(app, tmp_path_factory):
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    redis_lock_file = root_tmp_dir / "redis_lock"
+    app.config["REDIS_ENABLED"] = True
+    app.config["REDIS_URL"] = "redis://localhost:6999/0"
+    lock = FileLock(str(redis_lock_file) + ".lock")
+    try:
+        with lock.acquire(timeout=10):
+            redis_client = RedisClient()
+            redis_client.init_app(app)
+            redis_client.redis_store.flushall()
+            return redis_client
+    except Timeout as e:
+        raise Exception(f"Timeout while waiting for redis lock. Detail: {e}") from e
+
+
+@pytest.mark.parametrize(
+    "pattern, key_value_pairs, number_of_matches",
+    [
+        (
+            "h?llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("h3llo", "valid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            3,
+        ),
+        (
+            "h[a,e]llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("hullo", "invalid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            2,
+        ),
+    ],
+)
+def test_delete_by_key_script(app, redis_client_with_live_instance, pattern, key_value_pairs, number_of_matches):
+    for key, value in key_value_pairs:
+        redis_client_with_live_instance.redis_store.set(key, value)
+    assert redis_client_with_live_instance.delete_by_pattern(pattern) == number_of_matches
+
+
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
+def test_decrement_correct_number_of_tokens_for_multiple_calls_within_replenishment_interval(
+    app, redis_client_with_live_instance
+):
+    key = "rate-limit-test-key"
+    replenish_per_sec = 1
+    bucket_max = 100
+    bucket_min = -100
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+        key, replenish_per_sec, bucket_max, bucket_min
+    )
+    assert tokens_remaining == 97
+
+
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
+def test_do_not_decrement_below_bucket_min(app, redis_client_with_live_instance):
+    key = "rate-limit-test-key"
+    replenish_per_sec = 1
+    bucket_max = 1
+    bucket_min = -1
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+        key, replenish_per_sec, bucket_max, bucket_min
+    )
+    assert tokens_remaining == -1
+
+
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
+def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_with_live_instance):
+    key = "rate-limit-test-key"
+    replenish_per_sec = 5
+    bucket_max = 100
+    bucket_min = -100
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+        key, replenish_per_sec, bucket_max, bucket_min
+    )
+    assert tokens_remaining == 98
+
+
+@pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config["REDIS_ENABLED"] = True
 
@@ -42,7 +135,9 @@ def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     mocker.patch.object(redis_client, "scripts", {"delete-keys-by-pattern": delete_mock})
 
     mocker.patch.object(
-        redis_client.redis_store, "hgetall", return_value={b"template-1111": b"8", b"template-2222": b"8"}
+        redis_client.redis_store,
+        "hgetall",
+        return_value={b"template-1111": b"8", b"template-2222": b"8"},
     )
 
     return redis_client
@@ -201,7 +296,7 @@ def test_delete_multi(mocked_redis_client):
         (1.2, 1.2),
         (uuid.UUID(int=0), "00000000-0000-0000-0000-000000000000"),
         pytest.param({"a": 1}, None, marks=pytest.mark.xfail(raises=ValueError)),
-        pytest.param(datetime.utcnow(), None, marks=pytest.mark.xfail(raises=ValueError)),
+        pytest.param(datetime.now(UTC), None, marks=pytest.mark.xfail(raises=ValueError)),
     ],
 )
 def test_prepare_value(input, output):

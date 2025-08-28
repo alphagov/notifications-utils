@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 import pytz
@@ -13,7 +13,8 @@ from notifications_utils.letter_timings import (
     get_previous_royal_mail_working_day,
     get_royal_mail_working_day_offset_by,
     is_dvla_working_day,
-    is_royal_mail_working_day,
+    is_royal_mail_working_day_default,
+    is_royal_mail_working_day_first_class,
     letter_can_be_cancelled,
 )
 
@@ -27,6 +28,8 @@ from notifications_utils.letter_timings import (
         "first_class, "
         "expected_earliest_second_class, "
         "expected_latest_second_class, "
+        "expected_earliest_economy, "
+        "expected_latest_economy, "
         "expected_earliest_europe, "
         "expected_latest_europe, "
         "expected_earliest_rest_of_world, "
@@ -41,12 +44,14 @@ from notifications_utils.letter_timings import (
             "Tuesday 2017-07-11 15:00",
             True,
             "Wednesday 2017-07-12 16:00",
-            "Thursday 2017-07-13 16:00",
-            "Friday 2017-07-14 16:00",
-            "Saturday 2017-07-15 16:00",
+            "Monday 2017-07-17 16:00",
             "Tuesday 2017-07-18 16:00",
-            "Tuesday 2017-07-18 16:00",
+            "Monday 2017-07-17 16:00",
             "Thursday 2017-07-20 16:00",
+            "Monday 2017-07-17 16:00",
+            "Wednesday 2017-07-19 16:00",
+            "Wednesday 2017-07-19 16:00",
+            "Friday 2017-07-21 16:00",
         ),
         #  Monday at 17:29 BST (sent on monday)
         (
@@ -54,12 +59,14 @@ from notifications_utils.letter_timings import (
             "Tuesday 2017-07-11 15:00",
             True,
             "Wednesday 2017-07-12 16:00",
-            "Thursday 2017-07-13 16:00",
-            "Friday 2017-07-14 16:00",
-            "Saturday 2017-07-15 16:00",
+            "Monday 2017-07-17 16:00",
             "Tuesday 2017-07-18 16:00",
-            "Tuesday 2017-07-18 16:00",
+            "Monday 2017-07-17 16:00",
             "Thursday 2017-07-20 16:00",
+            "Monday 2017-07-17 16:00",
+            "Wednesday 2017-07-19 16:00",
+            "Wednesday 2017-07-19 16:00",
+            "Friday 2017-07-21 16:00",
         ),
         #  Monday at 17:30 BST (sent on tuesday)
         (
@@ -67,12 +74,14 @@ from notifications_utils.letter_timings import (
             "Wednesday 2017-07-12 15:00",
             True,
             "Thursday 2017-07-13 16:00",
-            "Friday 2017-07-14 16:00",
-            "Saturday 2017-07-15 16:00",
-            "Monday 2017-07-17 16:00",
+            "Tuesday 2017-07-18 16:00",
             "Wednesday 2017-07-19 16:00",
-            "Wednesday 2017-07-19 16:00",
+            "Tuesday 2017-07-18 16:00",
             "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-18 16:00",
+            "Thursday 2017-07-20 16:00",
+            "Thursday 2017-07-20 16:00",
+            "Monday 2017-07-24 16:00",
         ),
         #  Tuesday before 17:30 BST
         (
@@ -80,12 +89,14 @@ from notifications_utils.letter_timings import (
             "Wednesday 2017-07-12 15:00",
             True,
             "Thursday 2017-07-13 16:00",
-            "Friday 2017-07-14 16:00",
-            "Saturday 2017-07-15 16:00",
-            "Monday 2017-07-17 16:00",
+            "Tuesday 2017-07-18 16:00",
             "Wednesday 2017-07-19 16:00",
-            "Wednesday 2017-07-19 16:00",
+            "Tuesday 2017-07-18 16:00",
             "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-18 16:00",
+            "Thursday 2017-07-20 16:00",
+            "Thursday 2017-07-20 16:00",
+            "Monday 2017-07-24 16:00",
         ),
         #  Wednesday before 17:30 BST
         (
@@ -93,12 +104,14 @@ from notifications_utils.letter_timings import (
             "Thursday 2017-07-13 15:00",
             True,
             "Friday 2017-07-14 16:00",
-            "Saturday 2017-07-15 16:00",
-            "Monday 2017-07-17 16:00",
-            "Tuesday 2017-07-18 16:00",
+            "Wednesday 2017-07-19 16:00",
             "Thursday 2017-07-20 16:00",
-            "Thursday 2017-07-20 16:00",
-            "Saturday 2017-07-22 16:00",
+            "Wednesday 2017-07-19 16:00",
+            "Monday 2017-07-24 16:00",
+            "Wednesday 2017-07-19 16:00",
+            "Friday 2017-07-21 16:00",
+            "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-25 16:00",
         ),
         #  Thursday before 17:30 BST
         (
@@ -106,12 +119,14 @@ from notifications_utils.letter_timings import (
             "Friday 2017-07-14 15:00",
             False,
             "Saturday 2017-07-15 16:00",
-            "Monday 2017-07-17 16:00",
-            "Tuesday 2017-07-18 16:00",
-            "Wednesday 2017-07-19 16:00",
+            "Thursday 2017-07-20 16:00",
             "Friday 2017-07-21 16:00",
-            "Friday 2017-07-21 16:00",
+            "Thursday 2017-07-20 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Thursday 2017-07-20 16:00",
             "Monday 2017-07-24 16:00",
+            "Monday 2017-07-24 16:00",
+            "Wednesday 2017-07-26 16:00",
         ),
         #  Friday anytime
         (
@@ -119,36 +134,42 @@ from notifications_utils.letter_timings import (
             "Monday 2017-07-17 15:00",
             False,
             "Tuesday 2017-07-18 16:00",
-            "Wednesday 2017-07-19 16:00",
-            "Thursday 2017-07-20 16:00",
             "Friday 2017-07-21 16:00",
             "Monday 2017-07-24 16:00",
-            "Monday 2017-07-24 16:00",
+            "Friday 2017-07-21 16:00",
             "Wednesday 2017-07-26 16:00",
+            "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Thursday 2017-07-27 16:00",
         ),
         (
             "Friday 2017-07-14 12:00:00",
             "Monday 2017-07-17 15:00",
             False,
             "Tuesday 2017-07-18 16:00",
-            "Wednesday 2017-07-19 16:00",
-            "Thursday 2017-07-20 16:00",
             "Friday 2017-07-21 16:00",
             "Monday 2017-07-24 16:00",
-            "Monday 2017-07-24 16:00",
+            "Friday 2017-07-21 16:00",
             "Wednesday 2017-07-26 16:00",
+            "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Thursday 2017-07-27 16:00",
         ),
         (
             "Friday 2017-07-14 22:00:00",
             "Monday 2017-07-17 15:00",
             False,
             "Tuesday 2017-07-18 16:00",
-            "Wednesday 2017-07-19 16:00",
-            "Thursday 2017-07-20 16:00",
             "Friday 2017-07-21 16:00",
             "Monday 2017-07-24 16:00",
-            "Monday 2017-07-24 16:00",
+            "Friday 2017-07-21 16:00",
             "Wednesday 2017-07-26 16:00",
+            "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Thursday 2017-07-27 16:00",
         ),
         #  Saturday anytime
         (
@@ -156,12 +177,14 @@ from notifications_utils.letter_timings import (
             "Monday 2017-07-17 15:00",
             False,
             "Tuesday 2017-07-18 16:00",
-            "Wednesday 2017-07-19 16:00",
-            "Thursday 2017-07-20 16:00",
             "Friday 2017-07-21 16:00",
             "Monday 2017-07-24 16:00",
-            "Monday 2017-07-24 16:00",
+            "Friday 2017-07-21 16:00",
             "Wednesday 2017-07-26 16:00",
+            "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Thursday 2017-07-27 16:00",
         ),
         #  Sunday before 1730 BST
         (
@@ -169,12 +192,14 @@ from notifications_utils.letter_timings import (
             "Monday 2017-07-17 15:00",
             False,
             "Tuesday 2017-07-18 16:00",
-            "Wednesday 2017-07-19 16:00",
-            "Thursday 2017-07-20 16:00",
             "Friday 2017-07-21 16:00",
             "Monday 2017-07-24 16:00",
-            "Monday 2017-07-24 16:00",
+            "Friday 2017-07-21 16:00",
             "Wednesday 2017-07-26 16:00",
+            "Friday 2017-07-21 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Tuesday 2017-07-25 16:00",
+            "Thursday 2017-07-27 16:00",
         ),
         #  Sunday after 17:30 BST
         (
@@ -182,12 +207,14 @@ from notifications_utils.letter_timings import (
             "Tuesday 2017-07-18 15:00",
             False,
             "Wednesday 2017-07-19 16:00",
-            "Thursday 2017-07-20 16:00",
-            "Friday 2017-07-21 16:00",
-            "Saturday 2017-07-22 16:00",
+            "Monday 2017-07-24 16:00",
             "Tuesday 2017-07-25 16:00",
-            "Tuesday 2017-07-25 16:00",
+            "Monday 2017-07-24 16:00",
             "Thursday 2017-07-27 16:00",
+            "Monday 2017-07-24 16:00",
+            "Wednesday 2017-07-26 16:00",
+            "Wednesday 2017-07-26 16:00",
+            "Friday 2017-07-28 16:00",
         ),
         # GMT
         # ==================================================================
@@ -197,12 +224,14 @@ from notifications_utils.letter_timings import (
             "Tuesday 2017-01-03 15:00",
             True,
             "Wednesday 2017-01-04 16:00",
-            "Thursday 2017-01-05 16:00",
-            "Friday 2017-01-06 16:00",
-            "Saturday 2017-01-07 16:00",
+            "Monday 2017-01-09 16:00",
             "Tuesday 2017-01-10 16:00",
-            "Tuesday 2017-01-10 16:00",
+            "Monday 2017-01-09 16:00",
             "Thursday 2017-01-12 16:00",
+            "Monday 2017-01-09 16:00",
+            "Wednesday 2017-01-11 16:00",
+            "Wednesday 2017-01-11 16:00",
+            "Friday 2017-01-13 16:00",
         ),
         #  Monday at 17:00 GMT
         (
@@ -210,12 +239,14 @@ from notifications_utils.letter_timings import (
             "Wednesday 2017-01-04 15:00",
             True,
             "Thursday 2017-01-05 16:00",
-            "Friday 2017-01-06 16:00",
-            "Saturday 2017-01-07 16:00",
-            "Monday 2017-01-09 16:00",
+            "Tuesday 2017-01-10 16:00",
             "Wednesday 2017-01-11 16:00",
-            "Wednesday 2017-01-11 16:00",
+            "Tuesday 2017-01-10 16:00",
             "Friday 2017-01-13 16:00",
+            "Tuesday 2017-01-10 16:00",
+            "Thursday 2017-01-12 16:00",
+            "Thursday 2017-01-12 16:00",
+            "Monday 2017-01-16 16:00",
         ),
         # Over Easter bank holiday weekend
         (
@@ -223,12 +254,14 @@ from notifications_utils.letter_timings import (
             "Tuesday 2020-04-14 15:00",
             False,
             "Wednesday 2020-04-15 16:00",
-            "Thursday 2020-04-16 16:00",
-            "Friday 2020-04-17 16:00",
-            "Saturday 2020-04-18 16:00",
+            "Monday 2020-04-20 16:00",
             "Tuesday 2020-04-21 16:00",
-            "Tuesday 2020-04-21 16:00",
+            "Monday 2020-04-20 16:00",
             "Thursday 2020-04-23 16:00",
+            "Monday 2020-04-20 16:00",
+            "Wednesday 2020-04-22 16:00",
+            "Wednesday 2020-04-22 16:00",
+            "Friday 2020-04-24 16:00",
         ),
     ],
 )
@@ -239,6 +272,8 @@ def test_get_estimated_delivery_date_for_letter(
     first_class,
     expected_earliest_second_class,
     expected_latest_second_class,
+    expected_earliest_economy,
+    expected_latest_economy,
     expected_earliest_europe,
     expected_latest_europe,
     expected_earliest_rest_of_world,
@@ -250,12 +285,19 @@ def test_get_estimated_delivery_date_for_letter(
 
     upload_time = upload_time.split(" ", 1)[1]
 
-    timings = get_letter_timings(upload_time, postage="second")
+    second_class_timings = get_letter_timings(upload_time, postage="second")
 
-    assert format_dt(timings.printed_by) == expected_print_time
-    assert timings.is_printed == is_printed
-    assert format_dt(timings.earliest_delivery) == expected_earliest_second_class
-    assert format_dt(timings.latest_delivery) == expected_latest_second_class
+    assert format_dt(second_class_timings.printed_by) == expected_print_time
+    assert second_class_timings.is_printed == is_printed
+    assert format_dt(second_class_timings.earliest_delivery) == expected_earliest_second_class
+    assert format_dt(second_class_timings.latest_delivery) == expected_latest_second_class
+
+    economy_timings = get_letter_timings(upload_time, postage="economy")
+
+    assert format_dt(economy_timings.printed_by) == expected_print_time
+    assert economy_timings.is_printed == is_printed
+    assert format_dt(economy_timings.earliest_delivery) == expected_earliest_economy
+    assert format_dt(economy_timings.latest_delivery) == expected_latest_economy
 
     first_class_timings = get_letter_timings(upload_time, postage="first")
 
@@ -281,12 +323,12 @@ def test_get_estimated_delivery_date_for_letter(
 
 def test_letter_timings_only_accept_real_postage_values():
     with pytest.raises(KeyError):
-        get_letter_timings(datetime.utcnow().isoformat(), postage="foo")
+        get_letter_timings(datetime.now(UTC).isoformat(), postage="foo")
 
 
 @pytest.mark.parametrize("status", ["sending", "pending"])
 def test_letter_cannot_be_cancelled_if_letter_status_is_not_created_or_pending_virus_check(status):
-    notification_created_at = datetime.utcnow()
+    notification_created_at = datetime.now(UTC)
 
     assert not letter_can_be_cancelled(status, notification_created_at)
 
@@ -388,18 +430,35 @@ def test_next_previous_working_days():
     assert not is_dvla_working_day(tuesday_27_december)
     assert get_next_dvla_working_day(monday_26_december) == wednesday_28_december
 
-    assert not is_royal_mail_working_day(sunday_25_december)
-    assert not is_royal_mail_working_day(monday_26_december)
-    assert not is_royal_mail_working_day(tuesday_27_december)
-    assert get_next_royal_mail_working_day(monday_26_december) == wednesday_28_december
+    assert not is_royal_mail_working_day_default(sunday_25_december)
+    assert not is_royal_mail_working_day_default(monday_26_december)
+    assert not is_royal_mail_working_day_default(tuesday_27_december)
+    assert get_next_royal_mail_working_day(monday_26_december, "second") == wednesday_28_december
 
     # DVLA don’t work Saturdays
     assert not is_dvla_working_day(saturday_24_december)
     assert get_previous_dvla_working_day(monday_26_december) == friday_23_december
 
-    # Royal Mail do work Saturdays
-    assert is_royal_mail_working_day(saturday_24_december)
-    assert get_previous_royal_mail_working_day(monday_26_december) == saturday_24_december
+    # Royal Mail don't work Saturdays for non-first class mail
+    assert not is_royal_mail_working_day_default(saturday_24_december)
+    assert get_previous_royal_mail_working_day(monday_26_december, "second") == friday_23_december
+
+
+def test_next_previous_working_days_royal_mail_first_class():
+    saturday_24_december = datetime(2022, 12, 24, 12, 0, 0)
+    sunday_25_december = datetime(2022, 12, 25, 12, 0, 0)
+    monday_26_december = datetime(2022, 12, 26, 12, 0, 0)
+    tuesday_27_december = datetime(2022, 12, 27, 12, 0, 0)
+    wednesday_28_december = datetime(2022, 12, 28, 12, 0, 0)
+
+    assert not is_royal_mail_working_day_first_class(sunday_25_december)
+    assert not is_royal_mail_working_day_first_class(monday_26_december)
+    assert not is_royal_mail_working_day_first_class(tuesday_27_december)
+    assert get_next_royal_mail_working_day(monday_26_december, "first") == wednesday_28_december
+
+    # Royal Mail do work Saturdays for first class mail
+    assert is_royal_mail_working_day_first_class(saturday_24_december)
+    assert get_previous_royal_mail_working_day(monday_26_december, "first") == saturday_24_december
 
 
 def test_get_offset_working_day():
@@ -419,12 +478,19 @@ def test_get_offset_working_day():
     assert get_dvla_working_day_offset_by(friday_23_december, days=-1) == thursday_22_december
     # 5 days backward, skipping weekend
     assert get_dvla_working_day_offset_by(friday_23_december, days=-5) == friday_16_december
-    # 5 days backward, skipping Saturday only
-    assert get_royal_mail_working_day_offset_by(friday_23_december, days=-5) == saturday_17_december
+    # 5 days backward, skipping Saturday only for first class mail
+    assert get_royal_mail_working_day_offset_by(friday_23_december, days=-5, postage="first") == saturday_17_december
+    # 5 days backward, skipping weekend for non-first class mail
+    assert get_royal_mail_working_day_offset_by(friday_23_december, days=-5, postage="economy") == friday_16_december
 
 
-@pytest.mark.parametrize("function", (get_dvla_working_day_offset_by, get_royal_mail_working_day_offset_by))
-def test_get_0_offset_working_days(function):
+def test_get_0_offset_working_days_dvla():
     with pytest.raises(ValueError) as error:
-        function(datetime.now(), days=0)
+        get_dvla_working_day_offset_by(datetime.now(), days=0)
+    assert str(error.value) == "days argument must not be 0"
+
+
+def test_get_0_offset_working_days_royal_mail():
+    with pytest.raises(ValueError) as error:
+        get_royal_mail_working_day_offset_by(datetime.now(), days=0, postage="second")
     assert str(error.value) == "days argument must not be 0"

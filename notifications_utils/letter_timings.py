@@ -6,7 +6,7 @@ import pytz
 from notifications_utils.bank_holidays import BankHolidays
 from notifications_utils.countries.data import Postage
 from notifications_utils.timezones import (
-    convert_utc_to_bst,
+    local_timezone,
     utc_string_to_aware_gmt_datetime,
 )
 
@@ -25,9 +25,13 @@ non_working_days_dvla = BankHolidays(
     use_cached_holidays=True,
     weekend=(5, 6),
 )
-non_working_days_royal_mail = BankHolidays(
+non_working_days_royal_mail_first_class = BankHolidays(
     use_cached_holidays=True,
-    weekend=(6,),  # Only Sunday (day 6 of the week) is a non-working day
+    weekend=(6,),  # Only Sunday (day 6 of the week) is a non-working day for first class mail
+)
+non_working_days_royal_mail_default = BankHolidays(
+    use_cached_holidays=True,
+    weekend=(5, 6),  # Saturday and Sunday are non-working days
 )
 
 
@@ -38,8 +42,15 @@ def is_dvla_working_day(datetime_object):
     )
 
 
-def is_royal_mail_working_day(datetime_object):
-    return non_working_days_royal_mail.is_work_day(
+def is_royal_mail_working_day_first_class(datetime_object):
+    return non_working_days_royal_mail_first_class.is_work_day(
+        datetime_object.date(),
+        division=BankHolidays.ENGLAND_AND_WALES,
+    )
+
+
+def is_royal_mail_working_day_default(datetime_object):
+    return non_working_days_royal_mail_default.is_work_day(
         datetime_object.date(),
         division=BankHolidays.ENGLAND_AND_WALES,
     )
@@ -80,26 +91,32 @@ def get_previous_dvla_working_day(date):
     return get_dvla_working_day_offset_by(date, days=-1)
 
 
-def get_royal_mail_working_day_offset_by(date, *, days):
-    return get_offset_working_day(date, is_work_day=is_royal_mail_working_day, days=days)
-
-
-def get_next_royal_mail_working_day(date):
+def get_royal_mail_working_day_offset_by(date, *, days, postage):
     """
-    Royal mail deliver letters on monday to saturday
+    Royal mail deliver letters on Monday to Friday, with deliveries also taking place on Saturday
+    for First class mail
     """
-    return get_royal_mail_working_day_offset_by(date, days=1)
+    if postage == Postage.FIRST:
+        is_work_day = is_royal_mail_working_day_first_class
+    else:
+        is_work_day = is_royal_mail_working_day_default
+
+    return get_offset_working_day(date, is_work_day=is_work_day, days=days)
 
 
-def get_previous_royal_mail_working_day(date):
-    return get_royal_mail_working_day_offset_by(date, days=-1)
+def get_next_royal_mail_working_day(date, postage):
+    return get_royal_mail_working_day_offset_by(date, days=1, postage=postage)
 
 
-def get_delivery_day(date, *, days_to_deliver):
-    next_day = get_next_royal_mail_working_day(date)
+def get_previous_royal_mail_working_day(date, postage):
+    return get_royal_mail_working_day_offset_by(date, days=-1, postage=postage)
+
+
+def get_delivery_day(date, *, days_to_deliver, postage):
+    next_day = get_next_royal_mail_working_day(date, postage)
     if days_to_deliver == 1:
         return next_day
-    return get_delivery_day(next_day, days_to_deliver=(days_to_deliver - 1))
+    return get_delivery_day(next_day, days_to_deliver=(days_to_deliver - 1), postage=postage)
 
 
 def get_min_and_max_days_in_transit(postage):
@@ -108,8 +125,8 @@ def get_min_and_max_days_in_transit(postage):
         # actually transit on the printing day, and be delivered the next
         # day, so effectively spends no full days in transit
         Postage.FIRST: (0, 0),
-        Postage.SECOND: (1, 2),
-        Postage.ECONOMY: (2, 6),
+        Postage.SECOND: (3, 4),
+        Postage.ECONOMY: (3, 6),
         Postage.EUROPE: (3, 5),
         Postage.REST_OF_WORLD: (5, 7),
     }[postage]
@@ -117,7 +134,7 @@ def get_min_and_max_days_in_transit(postage):
 
 def get_earliest_and_latest_delivery(print_day, postage):
     for days_to_transit in get_min_and_max_days_in_transit(postage):
-        yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit)
+        yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit, postage=postage)
 
 
 def get_letter_timings(upload_time, postage):
@@ -131,7 +148,7 @@ def get_letter_timings(upload_time, postage):
 
     # print deadline is 3pm BST
     printed_by = set_gmt_hour(print_day, hour=15)
-    now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Europe/London"))
+    now = datetime.now(local_timezone)
 
     return LetterTimings(
         printed_by=printed_by,
@@ -158,11 +175,9 @@ def letter_can_be_cancelled(notification_status, notification_created_at):
 
 
 def too_late_to_cancel_letter(notification_created_at):
-    time_created_at = convert_utc_to_bst(notification_created_at)
-    day_created_on = time_created_at.date()
+    day_created_on = utc_string_to_aware_gmt_datetime(notification_created_at).date()
 
-    current_time = convert_utc_to_bst(datetime.utcnow())
-    current_day = current_time.date()
+    current_day = datetime.now(local_timezone).date()
     if _after_letter_processing_deadline() and _notification_created_before_today_deadline(notification_created_at):
         return True
     if _notification_created_before_that_day_deadline(notification_created_at) and day_created_on < current_day:
@@ -172,26 +187,19 @@ def too_late_to_cancel_letter(notification_created_at):
 
 
 def _after_letter_processing_deadline():
-    current_utc_datetime = datetime.utcnow()
-    bst_time = convert_utc_to_bst(current_utc_datetime).time()
-
-    return bst_time >= LETTER_PROCESSING_DEADLINE
+    return datetime.now(local_timezone).time() >= LETTER_PROCESSING_DEADLINE
 
 
 def _notification_created_before_today_deadline(notification_created_at):
-    current_bst_datetime = convert_utc_to_bst(datetime.utcnow())
-    todays_deadline = current_bst_datetime.replace(
+    todays_deadline = datetime.now(local_timezone).replace(
         hour=LETTER_PROCESSING_DEADLINE.hour,
         minute=LETTER_PROCESSING_DEADLINE.minute,
     )
-
-    notification_created_at_in_bst = convert_utc_to_bst(notification_created_at)
-
-    return notification_created_at_in_bst <= todays_deadline
+    return utc_string_to_aware_gmt_datetime(notification_created_at) <= todays_deadline
 
 
 def _notification_created_before_that_day_deadline(notification_created_at):
-    notification_created_at_bst_datetime = convert_utc_to_bst(notification_created_at)
+    notification_created_at_bst_datetime = utc_string_to_aware_gmt_datetime(notification_created_at)
     created_at_day_deadline = notification_created_at_bst_datetime.replace(
         hour=LETTER_PROCESSING_DEADLINE.hour,
         minute=LETTER_PROCESSING_DEADLINE.minute,

@@ -1,12 +1,12 @@
 import math
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import lru_cache
 from html import unescape
 from os import path
 from typing import Literal
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 
 from notifications_utils import (
@@ -56,7 +56,8 @@ template_env = Environment(
             path.dirname(path.abspath(__file__)),
             "jinja_templates",
         )
-    )
+    ),
+    undefined=StrictUndefined,
 )
 
 
@@ -515,6 +516,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         brand_colour=None,
         brand_banner=False,
         brand_alt_text=None,
+        rebrand=False,
         **kwargs,
     ):
         super().__init__(template, values, **kwargs)
@@ -525,6 +527,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         self.brand_colour = brand_colour
         self.brand_banner = brand_banner
         self.brand_alt_text = brand_alt_text
+        self.rebrand = rebrand
 
     @property
     def preheader(self):
@@ -558,6 +561,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
                 "brand_colour": self.brand_colour,
                 "brand_banner": self.brand_banner,
                 "brand_alt_text": self.brand_alt_text,
+                "rebrand": self.rebrand,
             }
         )
 
@@ -587,7 +591,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
         )
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
-        self.date = date or datetime.utcnow()
+        self.date = date or datetime.now(UTC)
         self.language = language
         if language == "english":
             self.content = template["content"]

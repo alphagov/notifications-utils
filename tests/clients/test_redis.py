@@ -10,8 +10,12 @@ from notifications_utils.clients.redis import (
 @pytest.mark.parametrize(
     "kwargs, expected_cache_key",
     (
-        ({}, "{sample_service.id}-2016-01-01-count"),
-        ({"notification_type": None}, "{sample_service.id}-2016-01-01-count"),
+        pytest.param({}, "{sample_service.id}-2016-01-01-count", marks=pytest.mark.xfail(raises=TypeError)),
+        pytest.param(
+            {"notification_type": None},
+            "{sample_service.id}-2016-01-01-count",
+            marks=pytest.mark.xfail(raises=TypeError),
+        ),
         ({"notification_type": "sms"}, "{sample_service.id}-sms-2016-01-01-count"),
         ({"notification_type": "letter"}, "{sample_service.id}-letter-2016-01-01-count"),
         ({"notification_type": "email"}, "{sample_service.id}-email-2016-01-01-count"),

@@ -1,5 +1,67 @@
 # CHANGELOG
 
+## 101.1.1
+
+* Bump min version of `govuk-bank-holidays` to 0.17.0
+
+## 101.1.0
+
+* Added `tally-bucket-rate-limit` lua script to redis client and wrapper method: `get_remaining_bucket_tokens`
+* Added tests to test lua scripts against a real redis instance. (Read changes in README when testing locally)
+
+## 101.0.0
+
+* Updated the estimated letter delivery timings to take into account the change that first class letters are now
+  the only postage class to be delivered on Saturdays, and delivery times for second class and economy mail are slower.
+
+## 100.2.0
+
+* add `x_forwarded_for_{0..3}` fields to pre/post request flask logs
+
+## 100.1.0
+
+* Updated `phonenumbers` to version 9.0.9 to keep phonenumber metadata uptodate
+
+## 100.0.0
+
+* `notification_type` is now a required argument of `clients.redis.daily_limit_cache_key` (apps have already been updated)
+
+## 99.8.0
+
+* Add new version of GOV.UK brand to email template, behind a flag
+
+## 99.7.0
+
+* Update economy letter transit dates to max 8 days
+
+## 99.6.0
+
+* Improve celery json logging. Include beat with separate log level options and testing
+
+## 99.5.2
+
+* Make inheritence of annotations on SerialisedModel work on both the class and its instances
+
+## 99.5.1
+
+* Bump minimum Flask version to 3.1.1
+
+## 99.5.0
+
+* Update economy letter transit date to 5 days
+
+## 99.4.1
+
+* Fix celery beat logging so that it will log in json
+
+## 99.4.0
+
+* Add celery logging configuration for json logging
+
+## 99.3.4
+
+* `celery.NotifyTask`: don't emit early log if called synchronously
+
 ## 99.3.3
 
 * Fix bug with non-SMS templates considering international SMS limits
