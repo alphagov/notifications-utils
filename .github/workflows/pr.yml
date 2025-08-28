@@ -27,6 +27,11 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
     steps:
       - uses: szenius/set-timezone@v2.0
         with:
@@ -62,3 +67,14 @@ jobs:
           verbose: false
           emoji: false
           custom-arguments: --junitxml=reports/pytest-unit.xml
+
+
+      - uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: PyTest Tests
+          path: reports/pytest-*.xml
+          reporter: java-junit
+          only-summary: true
+          use-actions-summary: false
+          badge-title: PYTEST
