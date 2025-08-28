@@ -795,6 +795,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+.venv
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -840,3 +841,7 @@ target/
 # Linux and Mac Dev Environment
 .DS_Store
 .envrc
+
+# Redis
+
+*.rdb

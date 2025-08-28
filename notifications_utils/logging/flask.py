@@ -32,7 +32,7 @@ _ns_per_s = 1.0e-9
 
 
 def _common_request_extra_log_context():
-    return {
+    context = {
         "method": request.method,
         "url": request.url,
         "environment": current_app.config["NOTIFY_ENVIRONMENT"] if "NOTIFY_ENVIRONMENT" in current_app.config else "",
@@ -50,6 +50,21 @@ def _common_request_extra_log_context():
         # existing parameter name to prevent LogRecord from complaining
         "process_": getpid(),
     }
+
+    # Parse X-Forwarded-For header to get the full IP chain
+    # This provides more detail than ProxyFix by not trusting any single IP
+    # and preserving the full chain for analysis
+    x_forwarded_for = request.headers.get("X-Forwarded-For")
+    if x_forwarded_for:
+        # Split by comma, strip whitespace, and reverse to get chain from server to client
+        ip_chain = [ip.strip() for ip in x_forwarded_for.split(",") if ip.strip()]
+        ip_chain.reverse()
+
+        # Add indexed entries (max 3 to prevent log bloat)
+        for i, ip in enumerate(ip_chain[:3]):
+            context[f"x_forwarded_for_{i}"] = ip
+
+    return context
 
 
 def _eventlet_stats_extra_log_context(request_time: float | None) -> dict:

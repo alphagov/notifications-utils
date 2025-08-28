@@ -47,7 +47,9 @@ eventlet==0.38.2
     # via gunicorn
 execnet==2.1.1
     # via pytest-xdist
-flask==3.1.0
+filelock==3.12.4
+    # via -r requirements_for_test.in
+flask==3.1.1
     # via
     #   notifications-utils (pyproject.toml)
     #   flask-redis
@@ -55,7 +57,7 @@ flask-redis==0.4.0
     # via notifications-utils (pyproject.toml)
 freezegun==1.5.1
     # via -r requirements_for_test_common.in
-govuk-bank-holidays==0.15
+govuk-bank-holidays==0.17
     # via notifications-utils (pyproject.toml)
 greenlet==3.1.1
     # via eventlet
@@ -81,6 +83,7 @@ kombu==5.4.2
     # via celery
 markupsafe==3.0.2
     # via
+    #   flask
     #   jinja2
     #   werkzeug
 mistune==0.8.4
@@ -92,7 +95,7 @@ packaging==24.1
     #   build
     #   gunicorn
     #   pytest
-phonenumbers==8.13.52
+phonenumbers==9.0.9
     # via notifications-utils (pyproject.toml)
 pluggy==1.5.0
     # via pytest
@@ -119,6 +122,7 @@ pytest-xdist==3.6.1
     # via -r requirements_for_test_common.in
 python-dateutil==2.9.0.post0
     # via
+    #   notifications-utils (pyproject.toml)
     #   botocore
     #   celery
     #   freezegun

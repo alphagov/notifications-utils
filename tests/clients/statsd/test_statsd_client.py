@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import Mock, patch
 
 import pytest
@@ -74,18 +74,18 @@ def test_should_call_timing_with_params_if_enabled(enabled_statsd_client):
 
 
 def test_should_not_call_timing_from_dates_method_if_not_enabled(disabled_statsd_client):
-    disabled_statsd_client.timing_with_dates("key", datetime.utcnow(), datetime.utcnow())
+    disabled_statsd_client.timing_with_dates("key", datetime.now(UTC), datetime.now(UTC))
     disabled_statsd_client.statsd_client.timing.assert_not_called()
 
 
 def test_should_call_timing_from_dates_method_if_enabled(enabled_statsd_client):
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     enabled_statsd_client.timing_with_dates("key", now + timedelta(seconds=3), now)
     enabled_statsd_client.statsd_client.timing.assert_called_with("test.notifications.api.key", 3000, 1)
 
 
 def test_should_call_timing_from_dates_method_with_params_if_enabled(enabled_statsd_client):
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     enabled_statsd_client.timing_with_dates("key", now + timedelta(seconds=3), now, 99)
     enabled_statsd_client.statsd_client.timing.assert_called_with("test.notifications.api.key", 3000, 99)
 

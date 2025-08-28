@@ -133,6 +133,7 @@ def test_app_request_logs_level_by_status_code(
             "x-b3-parentspanid": "deadbeef",
             "x-b3-spanid": "abadcafe",
             "x-b3-traceid": "feedface",
+            "x-forwarded-for": "1.2.3.4, 5.6.7.8",
         },
     )
 
@@ -152,6 +153,8 @@ def test_app_request_logs_level_by_status_code(
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": "deadbeef" if with_request_helper else None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
+                "x_forwarded_for_1": "1.2.3.4",
+                "x_forwarded_for_0": "5.6.7.8",
             },
             extra={
                 "url": "http://localhost/",
@@ -165,6 +168,8 @@ def test_app_request_logs_level_by_status_code(
                 "remote_addr": "127.0.0.1",
                 "parent_span_id": "deadbeef" if with_request_helper else None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
+                "x_forwarded_for_1": "1.2.3.4",
+                "x_forwarded_for_0": "5.6.7.8",
             },
         )
         in mock_req_logger.log.call_args_list
@@ -191,6 +196,8 @@ def test_app_request_logs_level_by_status_code(
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
                 "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
+                "x_forwarded_for_1": "1.2.3.4",
+                "x_forwarded_for_0": "5.6.7.8",
             },
             extra={
                 "url": "http://localhost/",
@@ -209,6 +216,8 @@ def test_app_request_logs_level_by_status_code(
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
                 "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
+                "x_forwarded_for_1": "1.2.3.4",
+                "x_forwarded_for_0": "5.6.7.8",
             },
         )
         in mock_req_logger.log.call_args_list
@@ -254,6 +263,8 @@ def test_app_request_logs_level_by_status_code(
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
                 "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
+                "x_forwarded_for_1": "1.2.3.4",
+                "x_forwarded_for_0": "5.6.7.8",
             },
             extra={
                 "url": "http://localhost/",
@@ -275,6 +286,8 @@ def test_app_request_logs_level_by_status_code(
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.1 <= value),
                 "request_cpu_time": RestrictedAny(lambda value: isinstance(value, float)),
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
+                "x_forwarded_for_1": "1.2.3.4",
+                "x_forwarded_for_0": "5.6.7.8",
             },
         )
         in mock_req_logger.log.call_args_list
