@@ -16,6 +16,17 @@ jobs:
       matrix:
         python-version: ["3.11"]
 
+    services:
+      redis:
+        image: redis:6.2
+        ports:
+          - 6999:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: szenius/set-timezone@v2.0
         with:
