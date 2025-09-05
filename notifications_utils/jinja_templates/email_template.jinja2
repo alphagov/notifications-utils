@@ -46,7 +46,7 @@
 {% if govuk_banner %}
   <table role="presentation" width="100%" style="border-collapse: collapse;min-width: 100%;width: 100% !important;" cellpadding="0" cellspacing="0" border="0">
     <tr>
-      <td width="100%" height="{% if rebrand %}60{% else %}53{% endif %}" bgcolor="{% if rebrand %}#1d70b8{% else %}#0b0c0c{% endif %}" class="brand__banner">
+      <td width="100%" height="60" bgcolor="#1d70b8" class="brand__banner">
         <!--[if (gte mso 9)|(IE)]>
           <table role="presentation" width="580" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;width: 580px;">
             <tr>
@@ -54,7 +54,6 @@
         <![endif]-->
         <table role="presentation" width="100%" style="border-collapse: collapse;max-width: 580px;" cellpadding="0" cellspacing="0" border="0" align="center">
           <tr>
-            {% if rebrand %}
             <!--[if mso]>
             <td width="70" valign="middle">
               <a href="https://www.gov.uk" title="Go to the GOV.UK homepage" style="text-decoration: none;">
@@ -119,35 +118,6 @@
               </a>
             </td>
             <!--<![endif]-->
-            {% else %}
-            <td width="70" valign="middle">
-              <a href="https://www.gov.uk" title="Go to the GOV.UK homepage" style="text-decoration: none">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
-                  <tr>
-                    <td style="padding-left: 10px" class="logo__crown">
-                      <img
-                        src="https://static.notifications.service.gov.uk/images/govuk-logotype-tudor-crown.png"
-                        alt=""
-                        height="32"
-                        border="0"
-                        style="Margin-top: 2px; max-height: 32px"
-                      >
-                    </td>
-                    <td style="font-size: 28px; line-height: 1.315789474; Margin-top: 4px; padding-left: 8px;" class="logo__text">
-                      <span style="
-                        font-family: Helvetica, Arial, 'Noto Sans', sans-serif;
-                        font-weight: 700;
-                        color: #ffffff;
-                        text-decoration: none;
-                        vertical-align:middle;
-                        display: inline-block;
-                          ">GOV.UK</span>
-                    </td>
-                  </tr>
-                </table>
-              </a>
-            </td>
-            {% endif %}
           </tr>
         </table>
         <!--[if (gte mso 9)|(IE)]>
@@ -158,40 +128,6 @@
       </td>
     </tr>
   </table>
-  {% if not rebrand %}
-  <table
-      role="presentation"
-      class="content"
-      align="center"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      style="border-collapse: collapse;max-width: 580px; width: 100% !important;"
-      width="100%"
-  >
-    <tr>
-      <td width="10" height="10" valign="middle"></td>
-      <td>
-        <!--[if (gte mso 9)|(IE)]>
-          <table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;width: 560px;">
-            <tr>
-              <td height="10">
-        <![endif]-->
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
-                  <tr>
-                    <td bgcolor="#1D70B8" width="100%" height="10"></td>
-                  </tr>
-                </table>
-        <!--[if (gte mso 9)|(IE)]>
-              </td>
-            </tr>
-          </table>
-        <![endif]-->
-      </td>
-      <td width="10" valign="middle" height="10"></td>
-    </tr>
-  </table>
-  {% endif %}
 {% endif %}
 {% if brand_banner %}
   {% set brand_colour = brand_colour if brand_colour else '#0b0c0c' %}
