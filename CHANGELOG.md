@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 102.0.1
+
+* Remove old GOV.UK branding from email template
+
 ## 102.0.0
 
 * Remove `pytz` dependency. Downstream projects should explicitly specify `pytz` in their requirements file or instead take steps to remove it.
@@ -15,7 +19,7 @@
 
 ## 101.2.1
 
-- Remove `clients.redis.rate_limit_cache_key` (no longer used)
+* Remove `clients.redis.rate_limit_cache_key` (no longer used)
 
 ## 101.2.0
 
