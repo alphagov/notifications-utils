@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 101.2.0
+
+* Override celery's _get_backend() method to instantly return a DisabledBackend object if result_backend is None. 
+  This is to improve performance by preventing unnecessary calls to celery's backend.
+
 ## 101.1.1
 
 * Bump min version of `govuk-bank-holidays` to 0.17.0
