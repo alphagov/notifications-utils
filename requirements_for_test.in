@@ -1,6 +1,6 @@
 -r requirements_for_test_common.in
 
 build==1.2.2
-celery==5.3.6
+celery==5.4.0
 redis>=4.3.4  # Earlier versions of redis miss features the tests need
 filelock==3.12.4

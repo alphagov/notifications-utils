@@ -4,6 +4,8 @@ import uuid
 
 import pytest
 from celery import Task
+from celery.backends.base import DisabledBackend
+from celery.backends.redis import RedisBackend
 from flask import g
 from freezegun import freeze_time
 
@@ -256,3 +258,32 @@ def test_method_signatures(celery_app, async_task, method, _value):
     if method == "run":
         return
     assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
+
+
+def test__get_backend_returns_DisabledBackground_object_when_result_backend_is_set_to_None(notify_celery, mocker):
+    # result_backend is None by default
+    assert isinstance(notify_celery._get_backend(), DisabledBackend)
+
+
+def test_get_backend_does_not_return_DisabledBackground_object_when_result_backend_has_a_value(notify_celery, mocker):
+    notify_celery.conf.update({"result_backend": "redis"})
+    assert isinstance(notify_celery._get_backend(), RedisBackend)
+
+
+def test_backends_by_url_is_not_called_when_result_backend_is_None(notify_celery, mocker):
+    # Celery.app.backends.by_url is the function notify_celery.get_backend calls to get/construct a backend
+    # This test validates that it is not called when no value has been provided for result_backend
+    mock_backend_cls = mocker.MagicMock()
+    mock_by_url = mocker.patch("celery.app.backends.by_url", return_value=(mock_backend_cls, "redis"))
+    notify_celery._get_backend()
+    mock_by_url.assert_not_called()
+
+
+def test_celery_backends_by_url_is_called_when_result_backend_has_a_value(notify_celery, mocker):
+    # Celery.app.backends.by_url is the function notify_celery.get_backend calls to get/construct a backend
+    # This test validates that it is called when a value has been provided for result_backend
+    notify_celery.conf.update({"result_backend": "redis"})
+    mock_backend_cls = mocker.MagicMock()
+    mock_by_url = mocker.patch("celery.app.backends.by_url", return_value=(mock_backend_cls, "redis"))
+    notify_celery._get_backend()
+    mock_by_url.assert_called()

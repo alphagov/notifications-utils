@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from os import getpid
 
 from celery import Celery, Task
+from celery.backends.base import DisabledBackend
 from flask import g, request
 from flask.ctx import has_app_context, has_request_context
 
@@ -157,3 +158,10 @@ class NotifyCelery(Celery):
             other_kwargs["headers"]["notify_request_id"] = g.request_id
 
         return super().send_task(name, args, kwargs, **other_kwargs)
+
+    def _get_backend(self):
+        # We want it to instantly return a DisabledBackend object if result_backend is None without expending
+        # resources in scanning for a none existent backend store.
+        if self.conf.result_backend is None:
+            return DisabledBackend(app=self)
+        return super()._get_backend()
