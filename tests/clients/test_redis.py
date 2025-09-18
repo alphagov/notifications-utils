@@ -1,10 +1,7 @@
 import pytest
 from freezegun import freeze_time
 
-from notifications_utils.clients.redis import (
-    daily_limit_cache_key,
-    rate_limit_cache_key,
-)
+from notifications_utils.clients.redis import daily_limit_cache_key
 
 
 @pytest.mark.parametrize(
@@ -26,7 +23,3 @@ def test_daily_limit_cache_key(sample_service, kwargs, expected_cache_key):
         assert daily_limit_cache_key(sample_service.id, **kwargs) == expected_cache_key.format(
             sample_service=sample_service
         )
-
-
-def test_rate_limit_cache_key(sample_service):
-    assert rate_limit_cache_key(sample_service.id, "TEST") == f"{sample_service.id}-TEST"

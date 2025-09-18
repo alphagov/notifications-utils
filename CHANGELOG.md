@@ -1,8 +1,12 @@
 # CHANGELOG
 
+## 101.2.1
+
+- Remove `clients.redis.rate_limit_cache_key` (no longer used)
+
 ## 101.2.0
 
-* Override celery's _get_backend() method to instantly return a DisabledBackend object if result_backend is None. 
+* Override celery's _get_backend() method to instantly return a DisabledBackend object if result_backend is None.
   This is to improve performance by preventing unnecessary calls to celery's backend.
 
 ## 101.1.1
