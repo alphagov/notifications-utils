@@ -2,8 +2,6 @@
 #    uv pip compile requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt
 amqp==5.2.0
     # via kombu
-async-timeout==5.0.1
-    # via redis
 awscrt==0.22.0
     # via botocore
 beautifulsoup4==4.12.3
@@ -138,7 +136,7 @@ redis==5.2.0
     # via
     #   -r requirements_for_test.in
     #   flask-redis
-requests==2.32.3
+requests==2.32.5
     # via
     #   notifications-utils (pyproject.toml)
     #   govuk-bank-holidays
