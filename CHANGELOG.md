@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 101.2.2
+
+* Bump minimum version of requests to 2.32.5
+
 ## 101.2.1
 
 - Remove `clients.redis.rate_limit_cache_key` (no longer used)
