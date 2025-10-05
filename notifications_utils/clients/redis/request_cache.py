@@ -1,3 +1,4 @@
+import logging
 import msgpack
 import time
 from contextlib import suppress
@@ -9,6 +10,9 @@ from typing import TypeAlias
 from uuid import UUID
 
 _JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
+
+
+logger = logging.getLogger("request_cache")
 
 
 class RequestCache:
@@ -104,7 +108,7 @@ class RequestCache:
             }
         )
 
-    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL):
+    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL, schema_version=1):
         def _set(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
@@ -113,7 +117,21 @@ class RequestCache:
                 if cached:
                     outer = msgpack.loadb(cached)
                     if not outer.get("is_tombstone"):
-                        return msgpack.loadb(outer["value"])
+                        cached_sv = outer.get("schema_version")
+                        if cached_sv == schema_version:
+                            return msgpack.loadb(outer["value"])
+                        else:
+                            logger.warning(
+                                "Cached value has schema mismatch: "
+                                "cached %s, expecting %s. Will ignore and overwrite.",
+                                cached_sv,
+                                schema_version,
+                                extra={
+                                    "cached_schema_version": cached_sv,
+                                    "expected_schema_version": schema_version,
+                                    "client_method_name": client_method.__name__,
+                                },
+                            )
 
                 # the most out-of-date data this inner result could possibly contain
                 pessimistic_timestamp = time.time()
@@ -131,6 +149,7 @@ class RequestCache:
                         "timestamp": pessimistic_timestamp,
                         "is_tombstone": False,
                         "value": msgpack.dumpb(value),
+                        "schema_version": schema_version,
                     }
 
                     self.redis_client.set_if_timestamp_newer(
