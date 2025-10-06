@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 101.3.0
+
+* Upgrade Python version to 3.13
+* Adjust get_remote_version() to compensate for changes in locals() in Python 3.13
+
 ## 101.2.1
 
 - Remove `clients.redis.rate_limit_cache_key` (no longer used)
