@@ -329,6 +329,6 @@ def test_PlainTextField():
 
 
 def test_handling_html_entities():
-    assert str(Field("&lsqb; &rsqb; &lpar; &rpar; &ast; &sol; &num; &amp; &Hat;")) == (
-        "[ ] &lpar; &rpar; * / # &amp; ^"
+    assert str(Field("&lsqb; &rsqb; &lpar; &rpar; &ast; &sol; &num; &amp; &nbsp; &Hat;")) == (
+        "[ ] ( ) * / # &amp; &nbsp; ^"
     )

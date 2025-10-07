@@ -40,8 +40,6 @@ multiple_newlines = re.compile(r"((\n)\2{2,})")
 HTML_ENTITY_MAPPING = (
     ("&nbsp;", "👾🐦🥴"),
     ("&amp;", "➕🐦🥴"),
-    ("&lpar;", "◀️🐦🥴"),
-    ("&rpar;", "▶️🐦🥴"),
 )
 
 url = re.compile(
