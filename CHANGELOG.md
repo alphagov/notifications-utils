@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 101.3.1
+
+* Fix rendering of parentheses in some HTML email clients
+
 ## 101.3.0
 
 * Upgrade Python version to 3.13
