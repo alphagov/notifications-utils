@@ -2307,3 +2307,27 @@ def test_unsubscribe_link_is_rendered(
             )
         )
     )
+
+
+def test_html_entities_in_html_email():
+    assert "[ ] &lpar; &rpar; * / # &amp; ^" in str(
+        HTMLEmailTemplate(
+            {
+                "content": "&lsqb; &rsqb; &lpar; &rpar; &ast; &sol; &num; &amp; &Hat;",
+                "subject": "subject",
+                "template_type": "email",
+            }
+        )
+    )
+
+
+def test_html_entities_in_plain_text_email():
+    assert "[ ] ( ) * / # & ^\n" == str(
+        PlainTextEmailTemplate(
+            {
+                "content": "&lsqb; &rsqb; &lpar; &rpar; &ast; &sol; &num; &amp; &Hat;",
+                "subject": "subject",
+                "template_type": "email",
+            }
+        )
+    )
