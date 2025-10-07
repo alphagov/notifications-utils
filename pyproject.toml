@@ -38,6 +38,9 @@ Homepage = "https://github.com/alphagov/notifications-utils"
 
 [tool.pytest.ini_options]
 xfail_strict = true
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "notifications_utils.version.__version__"}
