@@ -326,3 +326,9 @@ def test_PlainTextField():
     assert str(PlainTextField("((foo)) ((foo??bar))")) == "((foo)) ((foo??bar))"
     assert str(PlainTextField("((foo)) ((foo??bar))", redact_missing_personalisation=True)) == "[hidden] [hidden]"
     assert str(PlainTextField("((foo??bar??baz))")) == "((foo??bar??baz))"
+
+
+def test_handling_html_entities():
+    assert str(Field("&lsqb; &rsqb; &lpar; &rpar; &ast; &sol; &num; &amp; &nbsp; &Hat;")) == (
+        "[ ] ( ) * / # &amp; &nbsp; ^"
+    )
