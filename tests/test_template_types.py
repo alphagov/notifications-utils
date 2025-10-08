@@ -2331,3 +2331,16 @@ def test_html_entities_in_plain_text_email():
             }
         )
     )
+
+
+def test_lpar_rpar_in_conditional_placeholder():
+    assert "(with brackets)" in str(
+        HTMLEmailTemplate(
+            {
+                "content": "((conditional?&lpar;with brackets&rpar;))",
+                "subject": "subject",
+                "template_type": "email",
+            },
+            values={"conditonal": "yes"},
+        )
+    )
