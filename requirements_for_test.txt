@@ -128,8 +128,6 @@ python-dateutil==2.9.0.post0
     #   freezegun
 python-json-logger==3.3.0
     # via notifications-utils (pyproject.toml)
-pytz==2024.2
-    # via notifications-utils (pyproject.toml)
 pyyaml==6.0.2
     # via notifications-utils (pyproject.toml)
 redis==5.2.0
