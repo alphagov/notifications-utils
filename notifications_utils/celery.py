@@ -52,7 +52,8 @@ def make_task(app):
                         "celery_task": self.name,
                         "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
-                        "time_taken": elapsed_time,
+                        "retry_number": self.request.retries,
+                        "duration": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
                         "process_": getpid(),
                     },
@@ -77,7 +78,8 @@ def make_task(app):
                         "celery_task": self.name,
                         "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
-                        "time_taken": elapsed_time,
+                        "retry_number": self.request.retries,
+                        "duration": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
                         "process_": getpid(),
                     },
@@ -102,7 +104,8 @@ def make_task(app):
                         "celery_task": self.name,
                         "celery_task_id": self.request.id,
                         "queue_name": self.queue_name,
-                        "time_taken": elapsed_time,
+                        "retry_number": self.request.retries,
+                        "duration": elapsed_time,
                         # avoid name collision with LogRecord's own `process` attribute
                         "process_": getpid(),
                     },
@@ -126,6 +129,7 @@ def make_task(app):
                             "celery_task": self.name,
                             "celery_task_id": self.request.id,
                             "queue_name": self.queue_name,
+                            "retry_number": self.request.retries,
                             # avoid name collision with LogRecord's own `process` attribute
                             "process_": getpid(),
                         },
