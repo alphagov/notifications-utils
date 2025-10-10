@@ -221,6 +221,40 @@ def test_notify_support_ticket_request_data_custom_fields(
     ]
 
 
+def test_notify_support_ticket_request_data_accepts_custom_topics():
+    notify_ticket_form = NotifySupportTicket(
+        "subject", "message", "question", custom_topics=[{"123": "topic_1", "345": "topic_2", "678": "topic_3"}]
+    )
+
+    assert notify_ticket_form.request_data["ticket"]["custom_fields"] == [
+        {
+            "id": "14229641690396",
+            "value": None,
+        },
+        {
+            "id": "360022943959",
+            "value": None,
+        },
+        {
+            "id": "360022943979",
+            "value": None,
+        },
+        {
+            "id": "1900000745014",
+            "value": None,
+        },
+        {
+            "id": "15925693889308",
+            "value": None,
+        },
+        {
+            "123": "topic_1",
+            "345": "topic_2",
+            "678": "topic_3",
+        },
+    ]
+
+
 def test_notify_support_ticket_request_data_email_ccs():
     notify_ticket_form = NotifySupportTicket("subject", "message", "question", email_ccs=["someone@example.com"])
 
