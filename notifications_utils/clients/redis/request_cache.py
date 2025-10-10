@@ -148,13 +148,13 @@ class RequestCache:
                     outer = {
                         "timestamp": pessimistic_timestamp,
                         "is_tombstone": False,
-                        "value": msgpack.dumpd(value),
+                        "value": msgpack.dumps(value),
                         "schema_version": schema_version,
                     }
 
                     self.redis_client.set_if_timestamp_newer(
                         redis_key,
-                        msgpack.dumpd(outer),
+                        msgpack.dumps(outer),
                         ex=int(final_ttl),
                     )
 
@@ -165,7 +165,7 @@ class RequestCache:
         return _set
 
     def _set_tombstone(self, key, ex=TOMBSTONE_TTL, raise_exception=False):
-        tombstone = msgpack.dumpd(
+        tombstone = msgpack.dumps(
             {
                 "is_tombstone": True,
                 "timestamp": time.time(),
@@ -205,7 +205,7 @@ class RequestCache:
         return _delete
 
     def _set_tombstone_by_pattern(self, pattern, raise_exception=False):
-        tombstone = msgpack.dumpd(
+        tombstone = msgpack.dumps(
             {
                 "is_tombstone": True,
                 "timestamp": time.time(),

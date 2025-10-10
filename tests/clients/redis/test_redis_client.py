@@ -31,7 +31,7 @@ def redis_client_with_live_instance(app, tmp_path_factory):
     root_tmp_dir = tmp_path_factory.getbasetemp().parent
     redis_lock_file = root_tmp_dir / "redis_lock"
     app.config["REDIS_ENABLED"] = True
-    app.config["REDIS_URL"] = "redis://localhost:6999/0"
+    app.config["REDIS_URL"] = "redis://localhost:7000/0"
     lock = FileLock(str(redis_lock_file) + ".lock")
     try:
         with lock.acquire(timeout=10):
