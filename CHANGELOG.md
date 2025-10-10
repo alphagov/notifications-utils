@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 102.0.1
+
+* Let `notifications_utils.serialised_model` handle complex type annotations in Python 3.13
+
 ## 102.0.0
 
 * Remove `pytz` dependency. Downstream projects should explicitly specify `pytz` in their requirements file or instead take steps to remove it.
