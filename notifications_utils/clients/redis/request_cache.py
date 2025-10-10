@@ -1,5 +1,4 @@
 import logging
-import msgpack
 import time
 from contextlib import suppress
 from dataclasses import dataclass
@@ -8,6 +7,8 @@ from functools import singledispatch, wraps
 from inspect import signature
 from typing import TypeAlias
 from uuid import UUID
+
+import msgpack
 
 _JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
 
@@ -122,8 +123,7 @@ class RequestCache:
                             return msgpack.loadb(outer["value"])
                         else:
                             logger.warning(
-                                "Cached value has schema mismatch: "
-                                "cached %s, expecting %s. Will ignore and overwrite.",
+                                "Cached value has schema mismatch: cached %s, expecting %s. Will ignore and overwrite.",
                                 cached_sv,
                                 schema_version,
                                 extra={
@@ -148,13 +148,13 @@ class RequestCache:
                     outer = {
                         "timestamp": pessimistic_timestamp,
                         "is_tombstone": False,
-                        "value": msgpack.dumpb(value),
+                        "value": msgpack.dumpd(value),
                         "schema_version": schema_version,
                     }
 
                     self.redis_client.set_if_timestamp_newer(
                         redis_key,
-                        msgpack.dumpb(outer),
+                        msgpack.dumpd(outer),
                         ex=int(final_ttl),
                     )
 
@@ -165,10 +165,12 @@ class RequestCache:
         return _set
 
     def _set_tombstone(self, key, ex=TOMBSTONE_TTL, raise_exception=False):
-        tombstone = msgpack.dumpb({
-            "is_tombstone": True,
-            "timestamp": time.time(),
-        })
+        tombstone = msgpack.dumpd(
+            {
+                "is_tombstone": True,
+                "timestamp": time.time(),
+            }
+        )
         # this *could* use set_if_timestamp_newer but doesn't really need to
         # because the only timestamp we'd ever use would be "now", i.e. the
         # latest possible value we could manage, which should be able to
@@ -203,10 +205,12 @@ class RequestCache:
         return _delete
 
     def _set_tombstone_by_pattern(self, pattern, raise_exception=False):
-        tombstone = msgpack.dumpb({
-            "is_tombstone": True,
-            "timestamp": time.time(),
-        })
+        tombstone = msgpack.dumpd(
+            {
+                "is_tombstone": True,
+                "timestamp": time.time(),
+            }
+        )
         # as in _set_tombstone, we luckily don't actually need to do a conditional
         # set for tombstones because the timestamp we want to use here will always
         # be the latest-possible
