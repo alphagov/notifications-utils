@@ -116,11 +116,11 @@ class RequestCache:
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
                 cached = self.redis_client.get(redis_key)
                 if cached:
-                    outer = msgpack.loadb(cached)
+                    outer = msgpack.loads(cached)
                     if not outer.get("is_tombstone"):
                         cached_sv = outer.get("schema_version")
                         if cached_sv == schema_version:
-                            return msgpack.loadb(outer["value"])
+                            return msgpack.loads(outer["value"])
                         else:
                             logger.warning(
                                 "Cached value has schema mismatch: cached %s, expecting %s. Will ignore and overwrite.",

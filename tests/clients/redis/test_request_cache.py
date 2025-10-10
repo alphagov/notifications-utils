@@ -214,6 +214,7 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
         ),
     ),
 )
+@freeze_time("2001-01-01 12:00:00.000000")
 def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
