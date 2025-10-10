@@ -291,6 +291,7 @@ def test_delete_by_pattern(mocked_redis_client, cache, mocker):
 
 def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker):
     mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
+    mocker.patch.object(mocked_redis_client, "overwrite_by_pattern", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
     @cache.delete_by_pattern("bar-???")
