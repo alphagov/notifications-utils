@@ -158,6 +158,7 @@ def test_types_are_coerced():
         version: int
         rate: float
         created_at: datetime
+        permissions: list[str]
 
     instance = Custom(
         {
@@ -166,6 +167,7 @@ def test_types_are_coerced():
             "version": "9",
             "rate": "1.234",
             "created_at": "2024-03-02T01:00:00.000000Z",
+            "permissions": ["send_messages", "manage_api_keys"],
         }
     )
 
@@ -174,6 +176,7 @@ def test_types_are_coerced():
     assert instance.version == 9
     assert instance.rate == 1.234
     assert instance.created_at == datetime(2024, 3, 2, 1, 0, tzinfo=UTC)
+    assert instance.permissions == ["send_messages", "manage_api_keys"]
 
 
 def test_raises_if_coercion_fails():
