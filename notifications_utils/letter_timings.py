@@ -1,7 +1,5 @@
 from collections import namedtuple
-from datetime import datetime, time, timedelta
-
-import pytz
+from datetime import UTC, datetime, time, timedelta
 
 from notifications_utils.bank_holidays import BankHolidays
 from notifications_utils.countries.data import Postage
@@ -57,7 +55,7 @@ def is_royal_mail_working_day_default(datetime_object):
 
 
 def set_gmt_hour(day, hour):
-    return day.astimezone(pytz.timezone("Europe/London")).replace(hour=hour, minute=0).astimezone(pytz.utc)
+    return day.astimezone(local_timezone).replace(hour=hour, minute=0).astimezone(UTC)
 
 
 def get_offset_working_day(date, *, is_work_day, days):

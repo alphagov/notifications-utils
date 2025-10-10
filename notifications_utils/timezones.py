@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
-import pytz
 from dateutil import parser
 
-local_timezone = pytz.timezone("Europe/London")
+local_timezone = ZoneInfo("Europe/London")
 
 
 def utc_string_to_aware_gmt_datetime(date):
@@ -14,7 +14,7 @@ def utc_string_to_aware_gmt_datetime(date):
     if not isinstance(date, datetime):
         date = parser.parse(date)
 
-    forced_utc = date.replace(tzinfo=pytz.utc)
+    forced_utc = date.replace(tzinfo=UTC)
     return forced_utc.astimezone(local_timezone)
 
 
@@ -22,11 +22,11 @@ def convert_utc_to_bst(utc_dt):
     """
     Takes a naive UTC datetime and returns a naive London datetime
     """
-    return pytz.utc.localize(utc_dt).astimezone(local_timezone).replace(tzinfo=None)
+    return utc_dt.replace(tzinfo=UTC).astimezone(local_timezone).replace(tzinfo=None)
 
 
 def convert_bst_to_utc(date):
     """
     Takes a naive London datetime and returns a naive UTC datetime
     """
-    return local_timezone.localize(date).astimezone(pytz.UTC).replace(tzinfo=None)
+    return date.replace(tzinfo=local_timezone).astimezone(UTC).replace(tzinfo=None)

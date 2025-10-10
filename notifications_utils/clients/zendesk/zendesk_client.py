@@ -4,9 +4,10 @@ import enum
 import typing
 from urllib.parse import urlencode
 
-import pytz
 import requests
 from flask import current_app
+
+from notifications_utils.timezones import local_timezone
 
 
 class ZendeskError(Exception):
@@ -247,7 +248,7 @@ class NotifySupportTicket:
         with the Zendesk calendar picker
         """
         if created_at_datetime:
-            user_created_at_as_london_datetime = created_at_datetime.astimezone(pytz.timezone("Europe/London"))
+            user_created_at_as_london_datetime = created_at_datetime.astimezone(local_timezone)
 
             formatted_date = user_created_at_as_london_datetime.strftime("%Y-%m-%d")
 

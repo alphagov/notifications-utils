@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 102.0.0
+
+* Remove `pytz` dependency. Downstream projects should explicitly specify `pytz` in their requirements file or instead take steps to remove it.
+
 ## 101.3.1
 
 * Fix rendering of parentheses in some HTML email clients
