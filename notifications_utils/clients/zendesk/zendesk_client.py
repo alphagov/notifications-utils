@@ -197,6 +197,7 @@ class NotifySupportTicket:
         email_ccs=None,
         message_as_html=False,
         user_created_at=None,
+        custom_topics: list[dict] | None = None,
     ):
         self.subject = subject
         self.message = message
@@ -213,6 +214,7 @@ class NotifySupportTicket:
         self.email_ccs = email_ccs
         self.message_as_html = message_as_html
         self.user_created_at = user_created_at
+        self.custom_topics = custom_topics
 
     @property
     def request_data(self):
@@ -272,5 +274,8 @@ class NotifySupportTicket:
         if self.notify_ticket_type:
             # Notify Responder field
             custom_fields.append({"id": "1900000744994", "value": self.notify_ticket_type.value})
+
+        if self.custom_topics:
+            custom_fields = custom_fields + self.custom_topics
 
         return custom_fields
