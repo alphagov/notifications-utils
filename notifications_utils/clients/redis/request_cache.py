@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 from contextlib import suppress
@@ -116,19 +117,28 @@ class RequestCache:
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
                 cached = self.redis_client.get(redis_key)
                 if cached:
-                    outer = msgpack.loadb(cached)
-                    if not outer.get("is_tombstone"):
+                    try:
+                        outer = msgpack.loadb(cached)
+                        cached_is_tombstone = outer.get("is_tombstone")
                         cached_sv = outer.get("schema_version")
+                        cached_value = msgpack.loadb(outer["value"]) if outer.get("value") else None
+                    except ValueError:
+                        # assume this is an old-style RequestCache payload
+                        cached_value = json.loads(cached)
+                        cached_is_tombstone = False  # old-style RequestCache didn't have tombstones
+                        cached_sv = 0  # old-style RequestCache payloads are notionally schema_version 0
+
+                    if not cached_is_tombstone:
                         if cached_sv == schema_version:
-                            return msgpack.loadb(outer["value"])
+                            return cached_value
                         else:
                             logger.warning(
                                 "Cached value has schema mismatch: cached %s, expecting %s. Will ignore and overwrite.",
                                 cached_sv,
                                 schema_version,
                                 extra={
-                                    "cached_schema_version": cached_sv,
-                                    "expected_schema_version": schema_version,
+                                    "schema_version_cached": cached_sv,
+                                    "schema_version_expected": schema_version,
                                     "client_method_name": client_method.__name__,
                                 },
                             )
@@ -145,18 +155,24 @@ class RequestCache:
                     if final_ttl is None:
                         final_ttl = ttl_in_seconds
 
-                    outer = {
-                        "timestamp": pessimistic_timestamp,
-                        "is_tombstone": False,
-                        "value": msgpack.dumpb(value),
-                        "schema_version": schema_version,
-                    }
-
-                    self.redis_client.set_if_timestamp_newer(
-                        redis_key,
-                        msgpack.dumpb(outer),
-                        ex=int(final_ttl),
-                    )
+                    if schema_version == 0:
+                        # behave like old-style RequestCache, unconditionally setting an un-wrapped payload
+                        self.redis_client.set(
+                            redis_key,
+                            json.dumps(value),
+                            ex=int(final_ttl),
+                        )
+                    else:
+                        self.redis_client.set_if_timestamp_newer(
+                            redis_key,
+                            msgpack.dumpb({
+                                "timestamp": pessimistic_timestamp,
+                                "is_tombstone": False,
+                                "value": msgpack.dumpb(value),
+                                "schema_version": schema_version,
+                            }),
+                            ex=int(final_ttl),
+                        )
 
                 return value
 
