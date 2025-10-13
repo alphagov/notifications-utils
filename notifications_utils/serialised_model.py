@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
+from inspect import isclass
 from typing import Any
 
 from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
@@ -41,7 +42,7 @@ class SerialisedModel(metaclass=SerialisedModelMeta):
         if type_ is Any or value is None:
             return value
 
-        if issubclass(type_, datetime):
+        if isclass(type_) and issubclass(type_, datetime):
             return utc_string_to_aware_gmt_datetime(value).astimezone(UTC)
 
         return type_(value)

@@ -66,6 +66,13 @@ def update_foo_baz(...):
 ```
 
 Yet further consideration needs to be made for situations where multiple different apps cooperate in use of the same `key_format`. These situations do exist but finding them is an exercise left to the reader.
+## 102.0.1
+
+* Remove old GOV.UK branding from email template
+
+## 102.0.0
+
+* Remove `pytz` dependency. Downstream projects should explicitly specify `pytz` in their requirements file or instead take steps to remove it.
 
 ## 101.3.1
 
@@ -78,7 +85,7 @@ Yet further consideration needs to be made for situations where multiple differe
 
 ## 101.2.1
 
-- Remove `clients.redis.rate_limit_cache_key` (no longer used)
+* Remove `clients.redis.rate_limit_cache_key` (no longer used)
 
 ## 101.2.0
 
