@@ -124,6 +124,60 @@ class RedisClient:
             """
         )
 
+        self.scripts["overwrite-keys-by-pattern"] = self.redis_store.register_script(
+            """
+            local pattern = ARGV[1]
+            local new_value = ARGV[2]
+
+            local keys = redis.call('keys', pattern)
+            local overwritten = 0
+            for i=1, #keys, 2500 do
+                local mset_args = {}
+                for j=i, math.min(i + 2499, #keys) do
+                    table.insert(mset_args, keys[j])
+                    table.insert(mset_args, new_value)
+                end
+
+                redis.call('mset', unpack(mset_args))
+                overwritten = overwritten + #mset_args/2
+            end
+            return overwritten
+            """
+        )
+        self.scripts["set-if-timestamp-newer"] = self.redis_store.register_script(
+            """
+            local key = ARGV[1]
+            local new_value = ARGV[2]
+            local ttl = ARGV[3]
+
+            local existing_value = redis.call('get', key)
+            if existing_value then
+                -- if unpacking the new value fails or we can't find a timestamp in it, we
+                -- probably want to let this throw an error - calling this script with an
+                -- inappropriate payload is Wrong.
+                local unpacked_new_value = cmsgpack.unpack(new_value)
+
+                -- if unpacking the existing value fails or we can't find a timestamp
+                -- key in it, we'll just fall through and overwrite it like normal set would
+                local success, unpacked_existing_value = pcall(cmsgpack.unpack, existing_value)
+                if success and type(unpacked_existing_value) == 'table' and unpacked_existing_value['timestamp'] then
+                    if unpacked_existing_value['timestamp'] > unpacked_new_value['timestamp'] then
+                        -- existing value is "newer" according to the timestamp, so don't replace
+                        return false
+                    end
+                end
+            end
+
+            local maybe_ex_args = {}
+            if ttl then
+                maybe_ex_args = {'ex', ttl}
+            end
+            redis.call('set', key, new_value, unpack(maybe_ex_args))
+
+            return true
+            """
+        )
+
     def get_remaining_bucket_tokens(self, key, replenish_per_sec, bucket_max, bucket_min, raise_exception=False):
         if self.active:
             try:
@@ -133,6 +187,19 @@ class RedisClient:
                 )
             except Exception as e:
                 self.__handle_exception(e, raise_exception, "tally-bucket-rate-limit", key)
+
+    def overwrite_by_pattern(self, pattern, value, raise_exception=False):
+        """
+        similar to `delete_by_pattern`, will overwrite all keys matching `pattern` with
+        `value`
+        """
+        if self.active:
+            try:
+                return self.scripts["overwrite-keys-by-pattern"](args=[pattern, value])
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, "overwrite-by-pattern", pattern)
+
+        return 0
 
     def delete_by_pattern(self, pattern, raise_exception=False):
         r"""
@@ -202,6 +269,31 @@ class RedisClient:
                 return False
         else:
             return False
+
+    def set_if_timestamp_newer(self, key, value, ex=None, raise_exception=False):
+        """
+        Expects `value` to be a bytestring containing a msgpack-encoded dict
+        with a `timestamp` toplevel key containing a float unix timestamp.
+
+        If existing redis contents are also a msgpack-encoded dict containing
+        a `timestamp` toplevel key, these two (float) timestamps are compared
+        and the new value is only set if its timestamp is the higher of the
+        two.
+
+        If a timestamp can't be found in the existing value, the new value
+        is set unconditionally.
+
+        The other contents of the msgpack-encoded dict can be arbitrary.
+
+        Returns a boolean signifying whether the new value was set.
+        """
+        if self.active:
+            try:
+                return self.scripts["set-if-timestamp-newer"](args=[key, value, ex], keys=[key])
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, "set-if-timestamp-newer", key)
+
+        return False
 
     def set(self, key, value, ex=None, px=None, nx=False, xx=False, raise_exception=False):
         key = prepare_value(key)
