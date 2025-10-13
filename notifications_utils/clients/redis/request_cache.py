@@ -118,10 +118,10 @@ class RequestCache:
                 cached = self.redis_client.get(redis_key)
                 if cached:
                     try:
-                        outer = msgpack.loadb(cached)
+                        outer = msgpack.loads(cached)
                         cached_is_tombstone = outer.get("is_tombstone")
                         cached_sv = outer.get("schema_version")
-                        cached_value = msgpack.loadb(outer["value"]) if outer.get("value") else None
+                        cached_value = msgpack.loads(outer["value"]) if outer.get("value") else None
                     except ValueError:
                         # assume this is an old-style RequestCache payload
                         cached_value = json.loads(cached)
@@ -165,10 +165,10 @@ class RequestCache:
                     else:
                         self.redis_client.set_if_timestamp_newer(
                             redis_key,
-                            msgpack.dumpb({
+                            msgpack.dumps({
                                 "timestamp": pessimistic_timestamp,
                                 "is_tombstone": False,
-                                "value": msgpack.dumpb(value),
+                                "value": msgpack.dumps(value),
                                 "schema_version": schema_version,
                             }),
                             ex=int(final_ttl),
