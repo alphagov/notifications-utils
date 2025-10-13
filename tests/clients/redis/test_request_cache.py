@@ -97,6 +97,7 @@ def test_set(
         ("2000", 2_000),
     ),
 )
+@freeze_time("2001-01-01 12:00:00.000000")
 def test_set_with_custom_ttl(
     mocked_redis_client,
     cache,
@@ -120,9 +121,18 @@ def test_set_with_custom_ttl(
 
     foo()
 
+    value = msgpack.dumps(
+        {
+            "timestamp": time.time(),
+            "is_tombstone": False,
+            "value": msgpack.dumps("bar"),
+            "schema_version": 1,
+        }
+    )
+
     mock_redis_set.assert_called_once_with(
         "foo",
-        '"bar"',
+        value,
         ex=expected_redis_client_ttl,
     )
 
