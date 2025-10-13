@@ -1,12 +1,13 @@
+import time
 from unittest.mock import MagicMock, call
 
+import msgpack
 import pytest
+from freezegun import freeze_time
 
 from notifications_utils.clients.redis import RequestCache
 from notifications_utils.clients.redis.redis_client import RedisClient
-from freezegun import freeze_time
-import msgpack
-import time
+
 
 @pytest.fixture(scope="function")
 def mocked_redis_client(app):
@@ -216,13 +217,14 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 )
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
-
-    return_value = msgpack.dumps({
-        "timestamp": 600,
-        "is_tombstone": False,
-        "value": msgpack.dumps("bar"),
-        "schema_version": 1,
-                            })
+    return_value = msgpack.dumps(
+        {
+            "timestamp": 600,
+            "is_tombstone": False,
+            "value": msgpack.dumps("bar"),
+            "schema_version": 1,
+        }
+    )
 
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
@@ -276,7 +278,7 @@ def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
 
     tombstone_ttl = 600
 
-    expected_call = call(expected_cache_key, tombstone, ex = tombstone_ttl, raise_exception=True)
+    expected_call = call(expected_cache_key, tombstone, ex=tombstone_ttl, raise_exception=True)
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
@@ -293,9 +295,9 @@ def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, moc
 
     fake_api_call.assert_not_called()
 
+
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_delete_by_pattern(mocked_redis_client, cache, mocker):
-
     mock_redis_overwrite = mocker.patch.object(
         mocked_redis_client,
         "overwrite_by_pattern",
@@ -304,6 +306,7 @@ def test_delete_by_pattern(mocked_redis_client, cache, mocker):
     @cache.delete_by_pattern("{a}-{b}-{c}-???")
     def foo(a, b, c):
         return "bar"
+
     assert foo(1, 2, 3) == "bar"
     tombstone = msgpack.dumps(
         {
@@ -312,7 +315,7 @@ def test_delete_by_pattern(mocked_redis_client, cache, mocker):
         }
     )
 
-    expected_call = call('1-2-3-???',tombstone, raise_exception=True)
+    expected_call = call("1-2-3-???", tombstone, raise_exception=True)
     mock_redis_overwrite.assert_has_calls([expected_call, expected_call])
 
 

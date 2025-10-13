@@ -166,12 +166,14 @@ class RequestCache:
                     else:
                         self.redis_client.set_if_timestamp_newer(
                             redis_key,
-                            msgpack.dumps({
-                                "timestamp": pessimistic_timestamp,
-                                "is_tombstone": False,
-                                "value": msgpack.dumps(value),
-                                "schema_version": schema_version,
-                            }),
+                            msgpack.dumps(
+                                {
+                                    "timestamp": pessimistic_timestamp,
+                                    "is_tombstone": False,
+                                    "value": msgpack.dumps(value),
+                                    "schema_version": schema_version,
+                                }
+                            ),
                             ex=int(final_ttl),
                         )
 
