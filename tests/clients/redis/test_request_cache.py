@@ -45,6 +45,7 @@ def cache(mocked_redis_client):
         ),
     ),
 )
+@freeze_time("2001-01-01 12:00:00.000000")
 def test_set(
     mocked_redis_client,
     cache,
@@ -55,7 +56,7 @@ def test_set(
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
@@ -71,9 +72,18 @@ def test_set(
 
     mock_redis_get.assert_called_once_with(expected_cache_key)
 
+    value = msgpack.dumps(
+        {
+            "timestamp": time.time(),
+            "is_tombstone": False,
+            "value": msgpack.dumps("bar"),
+            "schema_version": 1,
+        }
+    )
+
     mock_redis_set.assert_called_once_with(
         expected_cache_key,
-        '"bar"',
+        value,
         ex=2_419_200,
     )
 
@@ -96,7 +106,7 @@ def test_set_with_custom_ttl(
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mocker.patch.object(
         mocked_redis_client,

@@ -149,7 +149,6 @@ class RequestCache:
                 result = client_method(*args, **kwargs)
 
                 value = self.get_cache_value(result)
-
                 if self.get_cache_decision(result):
                     final_ttl = self.get_ttl_in_seconds_override(result)
                     if final_ttl is None:
