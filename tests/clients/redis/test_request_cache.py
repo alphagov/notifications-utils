@@ -216,10 +216,18 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 )
 @freeze_time("2001-01-01 12:00:00.000000")
 def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
+
+    return_value = msgpack.dumps({
+        "timestamp": 600,
+        "is_tombstone": False,
+        "value": msgpack.dumps("bar"),
+        "schema_version": 1,
+                            })
+
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
         "get",
-        return_value=b'"bar"',
+        return_value=return_value,
     )
 
     @cache.set("{a}-{b}-{c}")
