@@ -3,6 +3,7 @@
 ## 102.0.1
 
 * Remove old GOV.UK branding from email template
+* Let `notifications_utils.serialised_model` handle complex type annotations in Python 3.13
 
 ## 102.0.0
 
