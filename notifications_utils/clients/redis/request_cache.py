@@ -123,6 +123,7 @@ class RequestCache:
                         cached_sv = outer.get("schema_version")
                         cached_value = msgpack.loads(outer["value"]) if outer.get("value") else None
                     except ValueError:
+                        breakpoint()
                         # assume this is an old-style RequestCache payload
                         cached_value = json.loads(cached)
                         cached_is_tombstone = False  # old-style RequestCache didn't have tombstones
