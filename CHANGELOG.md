@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 103.0.0
+
+* NOTABLE CHANGE: the `user_id` structured log annotation (sourced from the flask `g["user_id"]` global) is now annotated as `current_user_id` to make way for more general use of `user_id` without collisions. Update any dashboards/alerts/saved queries that expect this field.
+* Changed several logging sites to include more structured parameters via the `extra=` argument and use more systematic parameter names for existing ones.
+
 ## 102.1.1
 
 * Removed HTML and CSS from the email template that fixed the width of the main content column for
