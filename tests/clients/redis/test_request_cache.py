@@ -186,6 +186,7 @@ def test_set_result_wrapper(
     )
 
 
+@freeze_time("2001-01-01 12:00:00.000000")
 def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
     @cache.get_cache_decision.register
     def _(result: float):
@@ -201,7 +202,7 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mocker.patch.object(
         mocked_redis_client,
@@ -219,7 +220,16 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 
     assert ret2 == 80.0
 
-    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=160)]
+    return_value = msgpack.dumps(
+        {
+            "timestamp": time.time(),
+            "is_tombstone": False,
+            "value": msgpack.dumps(80.0),
+            "schema_version": 1,
+        }
+    )
+
+    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", return_value, ex=160)]
 
 
 @pytest.mark.parametrize(
