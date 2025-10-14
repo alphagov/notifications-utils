@@ -8,6 +8,7 @@ import pytest
 import redis
 from filelock import FileLock, Timeout
 from freezegun import freeze_time
+import msgpack
 
 from notifications_utils.clients.redis.redis_client import (
     RedisClient,
@@ -117,6 +118,30 @@ def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_wi
     )
     assert tokens_remaining == 98
 
+def test_set_timestamp_if_newer(redis_client_with_live_instance):
+    key = "test-key"
+    old_value = msgpack.dumps(
+        {
+            "timestamp": datetime.fromisoformat("2001-01-01 12:00:00.000000").timestamp(),
+            "is_tombstone": False,
+            "value": msgpack.dumps("foo"),
+            "schema_version": 1,
+        }
+    )
+    new_value = msgpack.dumps(
+        {
+            "timestamp": datetime.fromisoformat("2001-01-01 12:00:01.000000").timestamp(),
+            "is_tombstone": False,
+            "value": msgpack.dumps("bar"),
+            "schema_version": 1,
+        }
+    )
+    redis_client_with_live_instance.set_if_timestamp_newer(key, old_value)
+    redis_client_with_live_instance.set_if_timestamp_newer(key, new_value)
+    cached_value = redis_client_with_live_instance.get(key)
+    cached_value_dict = msgpack.loads(cached_value)
+    assert cached_value_dict.get("value") == "foo"
+    assert cached_value_dict.get("timestamp") == datetime.fromisoformat("2001-01-01 12:00:01.000000").timestamp()
 
 @pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):

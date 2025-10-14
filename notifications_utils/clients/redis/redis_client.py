@@ -287,6 +287,7 @@ class RedisClient:
 
         Returns a boolean signifying whether the new value was set.
         """
+        breakpoint()
         if self.active:
             try:
                 return self.scripts["set-if-timestamp-newer"](args=[key, value, ex], keys=[key])
