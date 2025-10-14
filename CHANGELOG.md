@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 102.1.0
+
+* Added a new optional argument `custom_topics` to `NotifySupportTicket`. This takes IDs and values for the topic fields on the Notify support form
+  so that the topic fields can be populated when creating a Zendesk ticket.
+
 ## 102.0.1
 
 * Remove old GOV.UK branding from email template
