@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 102.1.1
+
+* Removed HTML and CSS from the email template that fixed the width of the main content column for
+  older versions of Outlook
+
 ## 102.1.0
 
 * Added a new optional argument `custom_topics` to `NotifySupportTicket`. This takes IDs and values for the topic fields on the Notify support form

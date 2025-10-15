@@ -97,9 +97,7 @@ def test_brand_banner_shows():
         )
     )
     assert ('<td width="10" height="10" valign="middle"></td>') not in email
-    assert (
-        'role="presentation" width="100%" style="border-collapse: collapse;min-width: 100%;width: 100% !important;"'
-    ) in email
+    assert ('<td width="100%" height="53" bgcolor="#0b0c0c">') in email
 
 
 @pytest.mark.parametrize(
