@@ -12,9 +12,9 @@ RUN apt-get update && \
         redis \
     && rm -rf /var/lib/apt/lists/*
 
+COPY . .
+
 RUN echo "Installing python requirements" && \
     python3 -m venv /opt/venv && \
-    uv pip install -r requirements_for_test.txt && \
-    uv pip install -e .
+    make bootstrap
 
-COPY . .
