@@ -14,6 +14,10 @@ bootstrap: ## Build project
 	uv pip install -r requirements_for_test.txt
 	uv pip install -e .
 
+.PHONY: bootstrap-with-docker
+bootstrap-with-docker: ## Build project with Docker
+	docker build -f docker/Dockerfile .
+
 .PHONY: test
 test: ## Run tests
 	redis-server --daemonize yes --port 6999 || redis --daemonize yes --port 6999 || echo "using local version of redis"
