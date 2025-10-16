@@ -130,18 +130,20 @@ def test_set_timestamp_if_newer(redis_client_with_live_instance):
     )
     new_value = msgpack.dumps(
         {
-            "timestamp": datetime.fromisoformat("2001-01-01 12:00:01.000000").timestamp(),
+            "timestamp": datetime.fromisoformat("2002-01-01 12:00:00.000000").timestamp(),
             "is_tombstone": False,
             "value": msgpack.dumps("bar"),
             "schema_version": 1,
         }
     )
-    redis_client_with_live_instance.set_if_timestamp_newer(key, old_value)
-    redis_client_with_live_instance.set_if_timestamp_newer(key, new_value)
+    old = redis_client_with_live_instance.set_if_timestamp_newer(key, old_value, ex = 30000000)
+    assert old
+    new = redis_client_with_live_instance.set_if_timestamp_newer(key, new_value, ex = 30000000)
+    assert new
     cached_value = redis_client_with_live_instance.get(key)
     cached_value_dict = msgpack.loads(cached_value)
-    assert cached_value_dict.get("value") == "foo"
-    assert cached_value_dict.get("timestamp") == datetime.fromisoformat("2001-01-01 12:00:01.000000").timestamp()
+    assert msgpack.loads(cached_value_dict.get("value")) == "foo"
+    assert cached_value_dict.get("timestamp") == datetime.fromisoformat("2002-01-01 12:00:00.000000").timestamp()
 
 @pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
