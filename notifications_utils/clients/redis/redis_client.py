@@ -152,10 +152,11 @@ class RedisClient:
 
             local existing_value = redis.call('get', key)
             if existing_value then
+
                 -- if unpacking the new value fails or we can't find a timestamp in it, we
                 -- probably want to let this throw an error - calling this script with an
                 -- inappropriate payload is Wrong.
-                local unpacked_new_value = cmsgpack.unpack(new_value)
+                local unpacked_new_value = pcall(cmsgpack.unpack, existing_value)
 
                 -- if unpacking the existing value fails or we can't find a timestamp
                 -- key in it, we'll just fall through and overwrite it like normal set would
@@ -163,6 +164,11 @@ class RedisClient:
                 if success and type(unpacked_existing_value) == 'table' and unpacked_existing_value['timestamp'] then
                     if unpacked_existing_value['timestamp'] > unpacked_new_value['timestamp'] then
                         -- existing value is "newer" according to the timestamp, so don't replace
+                        local maybe_ex_args = {}
+                        if ttl then
+                            maybe_ex_args = {'ex', ttl}
+                        end
+                        redis.call('set', key, new_value, unpack(maybe_ex_args))
                         return false
                     end
                 end
