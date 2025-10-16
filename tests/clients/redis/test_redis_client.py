@@ -142,7 +142,7 @@ def test_set_timestamp_if_newer(redis_client_with_live_instance):
     assert new
     cached_value = redis_client_with_live_instance.get(key)
     cached_value_dict = msgpack.loads(cached_value)
-    assert msgpack.loads(cached_value_dict.get("value")) == "foo"
+    assert msgpack.loads(cached_value_dict.get("value")) == "bar"
     assert cached_value_dict.get("timestamp") == datetime.fromisoformat("2002-01-01 12:00:00.000000").timestamp()
 
 @pytest.fixture(scope="function")
