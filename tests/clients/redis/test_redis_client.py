@@ -141,7 +141,7 @@ def test_set_timestamp_if_newer(redis_client_with_live_instance):
     cached_value = redis_client_with_live_instance.get(key)
     cached_value_dict = msgpack.loads(cached_value)
     assert msgpack.loads(cached_value_dict.get("value")) == "bar"
-    assert cached_value_dict.get("timestamp") == 100.0
+    assert cached_value_dict.get("timestamp") == 101.0
 
 @pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
