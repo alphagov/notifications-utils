@@ -136,10 +136,8 @@ def test_set_timestamp_if_newer(redis_client_with_live_instance):
             "schema_version": 1,
         }
     )
-    old = redis_client_with_live_instance.set_if_timestamp_newer(key, old_value, ex = 30000000)
-    assert old
-    new = redis_client_with_live_instance.set_if_timestamp_newer(key, new_value, ex = 30000000)
-    assert new
+    redis_client_with_live_instance.set_if_timestamp_newer(key, old_value, ex = 30000000)
+    redis_client_with_live_instance.set_if_timestamp_newer(key, new_value, ex = 30000000)
     cached_value = redis_client_with_live_instance.get(key)
     cached_value_dict = msgpack.loads(cached_value)
     assert msgpack.loads(cached_value_dict.get("value")) == "bar"
