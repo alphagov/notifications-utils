@@ -155,54 +155,6 @@ class RedisClient:
 
         return 0
 
-    def exceeded_rate_limit(self, cache_key, limit, interval, raise_exception=False):
-        """
-        Rate limiting.
-        - Uses Redis sorted sets
-        - Also uses redis "multi" which is abstracted into pipeline() by FlaskRedis/PyRedis
-        - Sends all commands to redis as a group to be executed atomically
-
-        Method:
-        (1) Add event, scored by timestamp (zadd). The score determines order in set.
-        (2) Use zremrangebyscore to delete all set members with a score between
-            - Earliest entry (lowest score == earliest timestamp) - represented as '-inf'
-                and
-            - Current timestamp minus the interval
-            - Leaves only relevant entries in the set (those between now and now - interval)
-        (3) Count the set
-        (4) If count > limit fail request
-        (5) Ensure we expire the set key to preserve space
-
-        Notes:
-        - Failed requests count. If over the limit and keep making requests you'll stay over the limit.
-        - The actual value in the set is just the timestamp, the same as the score. We don't store any requets details.
-        - return value of pipe.execute() is an array containing the outcome of each call.
-            - result[2] == outcome of pipe.zcard()
-        - If redis is inactive, or we get an exception, allow the request
-
-        :param cache_key:
-        :param limit: Number of requests permitted within interval
-        :param interval: Interval we measure requests in
-        :param raise_exception: Should throw exception
-        :return:
-        """
-        cache_key = prepare_value(cache_key)
-        if self.active:
-            try:
-                pipe = self.redis_store.pipeline()
-                when = time()
-                pipe.zadd(cache_key, {when: when})
-                pipe.zremrangebyscore(cache_key, "-inf", when - interval)
-                pipe.zcard(cache_key)
-                pipe.expire(cache_key, interval)
-                result = pipe.execute()
-                return result[2] > limit
-            except Exception as e:
-                self.__handle_exception(e, raise_exception, "rate-limit-pipeline", cache_key)
-                return False
-        else:
-            return False
-
     def set(self, key, value, ex=None, px=None, nx=False, xx=False, raise_exception=False):
         key = prepare_value(key)
         value = prepare_value(value)
