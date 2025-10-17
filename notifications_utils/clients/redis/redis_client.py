@@ -9,6 +9,7 @@ from typing import Type  # noqa: UP035
 
 from flask import current_app
 from flask_redis import FlaskRedis
+from redis.exceptions import ReadOnlyError, ResponseError
 from redis.lock import Lock
 from redis.typing import Number
 
@@ -258,6 +259,13 @@ class RedisClient:
             key_name,
             extra={"redis_operation": operation, "redis_key": key_name},
         )
+
+        if isinstance(e, ReadOnlyError) or (isinstance(e, ResponseError) and "READONLY" in str(e)):
+            current_app.logger.warning(
+                "Reacting to %r by disconnecting redis connection pool's idle connections", e
+            )
+            self.redis_store.connection_pool.disconnect()
+
         if raise_exception:
             raise e
 
