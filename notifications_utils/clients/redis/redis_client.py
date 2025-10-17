@@ -12,6 +12,7 @@ from typing import (  # noqa: UP035
 
 from flask import current_app
 from flask_redis import FlaskRedis
+from redis.exceptions import ReadOnlyError, ResponseError
 from redis.lock import Lock
 from redis.typing import Number
 
@@ -281,6 +282,15 @@ class RedisClient:
             key_name,
             extra={"redis_operation": operation, "redis_key": key_name},
         )
+
+        if isinstance(e, ReadOnlyError) or (isinstance(e, ResponseError) and "READONLY" in str(e)):
+            # it's likely we're in the middle of a failover of some sort and it's possible
+            # that any number of our pooled connections are connected to the "wrong" redis
+            # instance. give these a chance to do a fresh dns lookup and connect to the
+            # "right" instance.
+            current_app.logger.warning("Reacting to %r by disconnecting redis connection pool's idle connections", e)
+            self.redis_store.connection_pool.disconnect()
+
         if always_raise is INSTANCE_DEFAULT:
             always_raise = self.always_raise
         if raise_exception or isinstance(e, always_raise or ()):
