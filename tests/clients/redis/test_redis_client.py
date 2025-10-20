@@ -4,11 +4,11 @@ import uuid
 from datetime import UTC, datetime
 from unittest.mock import Mock
 
+import msgpack
 import pytest
 import redis
 from filelock import FileLock, Timeout
 from freezegun import freeze_time
-import msgpack
 
 from notifications_utils.clients.redis.redis_client import (
     RedisClient,
