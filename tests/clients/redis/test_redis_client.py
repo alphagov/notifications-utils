@@ -119,30 +119,57 @@ def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_wi
     assert tokens_remaining == 98
 
 
-def test_set_timestamp_if_newer(redis_client_with_live_instance):
-    key = "test-key"
-    old_value = msgpack.dumps(
-        {
-            "timestamp": 100.0,
-            "is_tombstone": False,
-            "value": msgpack.dumps("foo"),
-            "schema_version": 1,
-        }
+@pytest.mark.parametrize(
+    "old_timestamp, old_value, new_timestamp, new_value, new_timestamp_is_newer",
+    [(100.0, "foo", 101.0, "bar", True), (101.0, "foo", 100.0, "bar", False)],
+)
+def test_set_timestamp_if_newer(
+    redis_client_with_live_instance,
+    old_timestamp,
+    old_value,
+    new_timestamp,
+    new_value,
+    new_timestamp_is_newer,
+):
+    KEY = "TEST-KEY"
+    EXPIRARY = 30000000
+    SCHEMA_VERSION = 1
+    IS_TOMBSTONE = False
+    old_is_set = redis_client_with_live_instance.set_if_timestamp_newer(
+        KEY,
+        msgpack.dumps(
+            {
+                "timestamp": old_timestamp,
+                "is_tombstone": IS_TOMBSTONE,
+                "value": msgpack.dumps(old_value),
+                "schema_version": SCHEMA_VERSION,
+            }
+        ),
+        ex=EXPIRARY,
     )
-    new_value = msgpack.dumps(
-        {
-            "timestamp": 101.0,
-            "is_tombstone": False,
-            "value": msgpack.dumps("bar"),
-            "schema_version": 1,
-        }
+    new_is_set = redis_client_with_live_instance.set_if_timestamp_newer(
+        KEY,
+        msgpack.dumps(
+            {
+                "timestamp": new_timestamp,
+                "is_tombstone": IS_TOMBSTONE,
+                "value": msgpack.dumps(new_value),
+                "schema_version": SCHEMA_VERSION,
+            }
+        ),
+        ex=EXPIRARY,
     )
-    redis_client_with_live_instance.set_if_timestamp_newer(key, old_value, ex=30000000)
-    redis_client_with_live_instance.set_if_timestamp_newer(key, new_value, ex=30000000)
-    cached_value = redis_client_with_live_instance.get(key)
+    cached_value = redis_client_with_live_instance.get(KEY)
     cached_value_dict = msgpack.loads(cached_value)
-    assert msgpack.loads(cached_value_dict.get("value")) == "bar"
-    assert cached_value_dict.get("timestamp") == 101.0
+    assert old_is_set
+    if new_timestamp_is_newer:
+        assert new_is_set
+        assert msgpack.loads(cached_value_dict.get("value")) == new_value
+        assert cached_value_dict.get("timestamp") == new_timestamp
+    else:
+        assert not new_is_set
+        assert msgpack.loads(cached_value_dict.get("value")) == old_value
+        assert cached_value_dict.get("timestamp") == old_timestamp
 
 
 @pytest.fixture(scope="function")
