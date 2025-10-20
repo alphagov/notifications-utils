@@ -164,11 +164,6 @@ class RedisClient:
                 if success and type(unpacked_existing_value) == 'table' and unpacked_existing_value['timestamp'] then
                     if unpacked_existing_value['timestamp'] > unpacked_new_value['timestamp'] then
                         -- existing value is "newer" according to the timestamp, so don't replace
-                        local maybe_ex_args = {}
-                        if ttl then
-                            maybe_ex_args = {'ex', ttl}
-                        end
-                        redis.call('set', key, new_value, unpack(maybe_ex_args))
                         return false
                     end
                 end
