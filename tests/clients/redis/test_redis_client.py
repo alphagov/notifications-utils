@@ -7,6 +7,7 @@ from unittest.mock import Mock
 import msgpack
 import pytest
 import redis
+from redis.exceptions import ResponseError
 from filelock import FileLock, Timeout
 from freezegun import freeze_time
 
@@ -117,6 +118,31 @@ def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_wi
         key, replenish_per_sec, bucket_max, bucket_min
     )
     assert tokens_remaining == 98
+
+def test_set_new_timestamp_not_msgpackd_raises_exception(redis_client_with_live_instance):
+    KEY = "TEST-KEY"
+    EXPIRARY = 30000000
+    SCHEMA_VERSION = 1
+    IS_TOMBSTONE = False
+    old_is_set = redis_client_with_live_instance.set_if_timestamp_newer(
+        KEY,
+        msgpack.dumps(
+            {
+                "timestamp": 100.0,
+                "is_tombstone": IS_TOMBSTONE,
+                "value": msgpack.dumps("foo"),
+                "schema_version": SCHEMA_VERSION,
+            }
+        ),
+        ex=EXPIRARY,
+    )
+    assert old_is_set
+    with pytest.raises(ResponseError):
+        redis_client_with_live_instance.set_if_timestamp_newer(
+            KEY,
+            "bar",
+            ex=EXPIRARY,
+        )
 
 
 @pytest.mark.parametrize(
