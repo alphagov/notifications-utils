@@ -123,7 +123,7 @@ def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_wi
     "old_timestamp, old_value, new_timestamp, new_value, new_timestamp_is_newer",
     [(100.0, "foo", 101.0, "bar", True), (101.0, "foo", 100.0, "bar", False)],
 )
-def test_set_timestamp(
+def test_set_timestamp_if_newer(
     redis_client_with_live_instance,
     old_timestamp,
     old_value,
