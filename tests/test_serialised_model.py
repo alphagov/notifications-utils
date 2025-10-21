@@ -1,4 +1,3 @@
-import sys
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
@@ -18,23 +17,17 @@ def test_cant_be_instatiated_with_abstract_properties():
     with pytest.raises(TypeError) as e:
         SerialisedModelCollection()
 
-    if sys.version_info >= (3, 12):
-        assert str(e.value) == (
-            "Can't instantiate abstract class SerialisedModelCollection without an implementation "
-            "for abstract method 'model'"
-        )
-    else:
-        assert str(e.value) == "Can't instantiate abstract class SerialisedModelCollection with abstract method model"
+    assert str(e.value) == (
+        "Can't instantiate abstract class SerialisedModelCollection without an implementation "
+        "for abstract method 'model'"
+    )
 
     with pytest.raises(TypeError) as e:
         CustomCollection()
 
-    if sys.version_info >= (3, 12):
-        assert str(e.value) == (
-            "Can't instantiate abstract class CustomCollection without an implementation for abstract method 'model'"
-        )
-    else:
-        assert str(e.value) == "Can't instantiate abstract class CustomCollection with abstract method model"
+    assert str(e.value) == (
+        "Can't instantiate abstract class CustomCollection without an implementation for abstract method 'model'"
+    )
 
 
 def test_looks_up_from_dict():

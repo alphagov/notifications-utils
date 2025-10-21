@@ -4,10 +4,9 @@ from dataclasses import dataclass
 from datetime import timedelta
 from functools import singledispatch, wraps
 from inspect import signature
-from typing import TypeAlias
 from uuid import UUID
 
-_JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
+type _JSON = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
 
 
 class RequestCache:
