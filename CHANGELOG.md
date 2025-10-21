@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.0.0
+
+* Drop support for Python < 3.13 (don’t upgrade to this version until your app is running on 3.13)
+
 ## 103.1.0
 
 * Reduce precision of request_time printed in human-readable message of flask `app.request` logs. Precision in structured field is retained.
