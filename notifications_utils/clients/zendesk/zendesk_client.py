@@ -1,6 +1,7 @@
 import dataclasses
 import datetime
 import enum
+import os
 import typing
 from urllib.parse import urlencode
 
@@ -56,11 +57,13 @@ class ZendeskClient:
     """
 
     # the account used to authenticate with. If no requester is provided, the ticket will come from this account.
-    NOTIFY_ZENDESK_EMAIL = "zd-api-notify@digital.cabinet-office.gov.uk"
+    NOTIFY_ZENDESK_EMAIL = os.getenv("NOTIFY_ZENDESK_EMAIL")
 
-    ZENDESK_TICKET_URL = "https://govuk.zendesk.com/api/v2/tickets.json"
-    ZENDESK_UPDATE_TICKET_URL = "https://govuk.zendesk.com/api/v2/tickets/{ticket_id}"
-    ZENDESK_UPLOAD_FILE_URL = "https://govuk.zendesk.com/api/v2/uploads.json"
+    ZENDESK_URL = os.getenv("ZENDESK_URL")
+
+    ZENDESK_TICKET_URL = f"{ZENDESK_URL}/api/v2/tickets.json"
+    ZENDESK_UPDATE_TICKET_URL = f"{ZENDESK_URL}/api/v2/tickets/{{ticket_id}}"
+    ZENDESK_UPLOAD_FILE_URL = f"{ZENDESK_URL}/api/v2/uploads.json"
 
     def __init__(self, api_key):
         self.api_key = api_key
@@ -165,8 +168,8 @@ class NotifySupportTicket:
     PRIORITY_NORMAL = "normal"
     PRIORITY_LOW = "low"
 
-    TAGS_P2 = "govuk_notify_support"
-    TAGS_P1 = "govuk_notify_emergency"
+    TAGS_P2 = os.getenv("ZENDESK_TAGS_P2")
+    TAGS_P1 = os.getenv("ZENDESK_TAGS_P1")
 
     TYPE_PROBLEM = "problem"
     TYPE_INCIDENT = "incident"
@@ -174,10 +177,10 @@ class NotifySupportTicket:
     TYPE_TASK = "task"
 
     # Group: 3rd Line--Notify Support
-    NOTIFY_GROUP_ID = 360000036529
+    NOTIFY_GROUP_ID = os.getenv("ZENDESK_GROUP_ID")
     # Organization: GDS
-    NOTIFY_ORG_ID = 21891972
-    NOTIFY_TICKET_FORM_ID = 14226867890588
+    NOTIFY_ORG_ID = os.getenv("ZENDESK_ORG_ID")
+    NOTIFY_TICKET_FORM_ID = os.getenv("ZENDESK_TICKET_FORM_ID")
 
     def __init__(
         self,

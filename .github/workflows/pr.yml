@@ -68,7 +68,6 @@ jobs:
           emoji: false
           custom-arguments: --junitxml=reports/pytest-unit.xml
 
-
       - uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
         with:
