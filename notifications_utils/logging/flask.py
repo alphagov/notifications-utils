@@ -208,7 +208,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
                         "request_id": RequestIdFilter().request_id,
                         "service_id": ServiceIdFilter().service_id,
                         "span_id": SpanIdFilter().span_id,
-                        "user_id": UserIdFilter().user_id,
+                        "current_user_id": UserIdFilter().user_id,
                         **_common_request_extra_log_context(),
                     },
                 )
@@ -355,5 +355,5 @@ class UserIdFilter(logging.Filter):
             return None
 
     def filter(self, record):
-        record.user_id = self.user_id or getattr(record, "user_id", None)
+        record.current_user_id = self.user_id or getattr(record, "current_user_id", None)
         return record

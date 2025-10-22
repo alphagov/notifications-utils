@@ -54,7 +54,7 @@ def test_zendesk_client_send_ticket_to_zendesk_error(zendesk_client, app, rmock,
     with pytest.raises(ZendeskError), caplog.at_level(logging.ERROR):
         zendesk_client.send_ticket_to_zendesk(ticket)
 
-    assert "Zendesk create ticket request failed with 401 '{'foo': 'bar'}'" in caplog.messages
+    assert "Zendesk create ticket request failed with 401: {'foo': 'bar'}" in caplog.messages
 
 
 def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk_client, app, rmock, caplog):
@@ -72,8 +72,8 @@ def test_zendesk_client_send_ticket_to_zendesk_with_user_suspended_error(zendesk
     response = zendesk_client.send_ticket_to_zendesk(ticket)
 
     assert caplog.messages == [
-        "Zendesk create ticket failed because user is suspended "
-        "'{'requester': [{'description': 'Requester: Joe Bloggs is suspended.'}]}'"
+        "Zendesk create ticket failed because user is suspended: "
+        "{'requester': [{'description': 'Requester: Joe Bloggs is suspended.'}]}"
     ]
     assert response is None
 
