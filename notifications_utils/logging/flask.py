@@ -116,7 +116,7 @@ def _log_response_closed(
     }
     logger.getChild("request").log(
         log_level,
-        "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time)ss",
+        "Streaming response for %(method)s %(url)s %(status)s closed after %(request_time).4gs",
         context,
         extra=context,
     )
@@ -187,7 +187,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
 
         current_app.logger.getChild("request").log(
             log_level,
-            "%(method)s %(url)s %(status)s took %(request_time)ss",
+            "%(method)s %(url)s %(status)s took %(request_time).4gs",
             context,
             extra=context,
         )
