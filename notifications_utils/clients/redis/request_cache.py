@@ -23,6 +23,14 @@ class RequestCache:
     # function invocation to take
     TOMBSTONE_TTL = int(timedelta(minutes=10).total_seconds())
 
+    DEFAULT_SCHEMA_VERSION = 1
+    DEFAULT_FORCE_DELETE = False
+
+    # for use as kwarg defaults to avoid early-binding problems making
+    # the above defaults un-alterable
+    _DEFAULT_SCHEMA_VERSION_SENTINEL = object()
+    _DEFAULT_FORCE_DELETE_SENTINEL = object()
+
     @dataclass
     class CacheResultWrapper:
         """
@@ -110,10 +118,14 @@ class RequestCache:
             }
         )
 
-    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL, schema_version=1):
+    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL, schema_version=_DEFAULT_SCHEMA_VERSION_SENTINEL):
         def _set(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                nonlocal schema_version
+                if schema_version is self._DEFAULT_SCHEMA_VERSION_SENTINEL:
+                    schema_version = self.DEFAULT_SCHEMA_VERSION
+
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
                 cached = self.redis_client.get(redis_key)
                 if cached:
@@ -164,14 +176,12 @@ class RequestCache:
                     else:
                         self.redis_client.set_if_timestamp_newer(
                             redis_key,
-                            msgpack.dumps(
-                                {
-                                    "timestamp": pessimistic_timestamp,
-                                    "is_tombstone": False,
-                                    "value": msgpack.dumps(value),
-                                    "schema_version": schema_version,
-                                }
-                            ),
+                            msgpack.dumps({
+                                "timestamp": pessimistic_timestamp,
+                                "is_tombstone": False,
+                                "value": msgpack.dumps(value),
+                                "schema_version": schema_version,
+                            }),
                             ex=int(final_ttl),
                         )
 
@@ -194,10 +204,14 @@ class RequestCache:
         # overwrite any existing values anyway
         self.redis_client.set(key, tombstone, ex=ex, raise_exception=raise_exception)
 
-    def delete(self, key_format, force_delete=False):
+    def delete(self, key_format, force_delete=_DEFAULT_FORCE_DELETE_SENTINEL):
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                nonlocal force_delete
+                if force_delete is self._DEFAULT_FORCE_DELETE_SENTINEL:
+                    force_delete = self.DEFAULT_FORCE_DELETE
+
                 redis_key = self._make_key(key_format, client_method, args, kwargs)
                 delete_method = self.redis_client.delete if force_delete else self._set_tombstone
 
@@ -233,10 +247,14 @@ class RequestCache:
         # be the latest-possible
         self.redis_client.overwrite_by_pattern(pattern, tombstone, raise_exception=raise_exception)
 
-    def delete_by_pattern(self, key_format, force_delete=False):
+    def delete_by_pattern(self, key_format, force_delete=_DEFAULT_FORCE_DELETE_SENTINEL):
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                nonlocal force_delete
+                if force_delete is self._DEFAULT_FORCE_DELETE_SENTINEL:
+                    force_delete = self.DEFAULT_FORCE_DELETE
+
                 delete_method = self.redis_client.delete_by_pattern if force_delete else self._set_tombstone_by_pattern
 
                 # See equivalent comments above for why we attempt the redis delete before and
