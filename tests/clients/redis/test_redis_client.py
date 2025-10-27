@@ -118,6 +118,24 @@ def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_wi
     assert tokens_remaining == 98
 
 
+@pytest.mark.parametrize(
+    "replenish_per_sec, bucket_max, bucket_min, error_message",
+    [
+        (-10, 100, 0, "replenish_per_sec: '-10' cannot be < 0"),
+        (10, 0, 0, "bucket_max: '0' cannot be <= 0"),
+        (10, -10, 0, "bucket_max: '-10' cannot be <= 0"),
+        (10, 10, 1, "bucket_min: '1' cannot be > 0"),
+    ],
+)
+def test_get_remaining_bucket_tokens_raises_value_error_invalid_input(
+    app, redis_client_with_live_instance, replenish_per_sec, error_message, bucket_max, bucket_min
+):
+    key = "rate-limit-test-key"
+    with pytest.raises(ValueError) as e:
+        redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    assert str(e.value) == error_message
+
+
 @pytest.fixture(scope="function")
 def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     app.config["REDIS_ENABLED"] = True
