@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 103.1.0
+
+* Reduce precision of request_time printed in human-readable message of flask `app.request` logs. Precision in structured field is retained.
+
 ## 103.0.0
 
 * NOTABLE CHANGE: the `user_id` structured log annotation (sourced from the flask `g["user_id"]` global) is now annotated as `current_user_id` to make way for more general use of `user_id` without collisions. Update any dashboards/alerts/saved queries that expect this field.
