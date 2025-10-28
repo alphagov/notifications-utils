@@ -147,7 +147,7 @@ def test_set_new_timestamp_not_msgpackd_raises_exception(redis_client_with_live_
 
 @pytest.mark.parametrize(
     "old_timestamp, old_value, new_timestamp, new_value, new_timestamp_is_newer",
-    [(100.0, "foo", 101.0, "bar", True), (101.0, "foo", 100.0, "bar", False)],
+    [(100.0, b"foo", 101.0, b"bar", True), (101.0, b"foo", 100.0, b"bar", False)],
 )
 def test_set_timestamp_if_newer(
     redis_client_with_live_instance,
@@ -163,39 +163,43 @@ def test_set_timestamp_if_newer(
     IS_TOMBSTONE = False
     old_is_set = redis_client_with_live_instance.set_if_timestamp_newer(
         KEY,
-        msgpack.dumps(
+        msgpack.packb(
             {
                 "timestamp": old_timestamp,
                 "is_tombstone": IS_TOMBSTONE,
-                "value": msgpack.dumps(old_value),
+                "value": msgpack.packb(old_value),
                 "schema_version": SCHEMA_VERSION,
-            }
+            },
+            use_bin_type=False,
         ),
         ex=EXPIRARY,
+        raise_exception=True,
     )
     new_is_set = redis_client_with_live_instance.set_if_timestamp_newer(
         KEY,
-        msgpack.dumps(
+        msgpack.packb(
             {
                 "timestamp": new_timestamp,
                 "is_tombstone": IS_TOMBSTONE,
-                "value": msgpack.dumps(new_value),
+                "value": msgpack.packb(new_value),
                 "schema_version": SCHEMA_VERSION,
-            }
+            },
+            use_bin_type=False,
         ),
         ex=EXPIRARY,
+        raise_exception=True,
     )
     cached_value = redis_client_with_live_instance.get(KEY)
-    cached_value_dict = msgpack.loads(cached_value)
+    cached_value_dict = msgpack.unpackb(cached_value, raw=True)
     assert old_is_set
     if new_timestamp_is_newer:
         assert new_is_set
-        assert msgpack.loads(cached_value_dict.get("value")) == new_value
-        assert cached_value_dict.get("timestamp") == new_timestamp
+        assert msgpack.unpackb(cached_value_dict.get(b"value"), raw=True) == new_value
+        assert cached_value_dict.get(b"timestamp") == new_timestamp
     else:
         assert not new_is_set
-        assert msgpack.loads(cached_value_dict.get("value")) == old_value
-        assert cached_value_dict.get("timestamp") == old_timestamp
+        assert msgpack.unpackb(cached_value_dict.get(b"value"), raw=True) == old_value
+        assert cached_value_dict.get(b"timestamp") == old_timestamp
 
 
 @pytest.fixture(scope="function")
