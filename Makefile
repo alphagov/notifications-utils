@@ -11,8 +11,12 @@ freeze-requirements: ## Pin all test requirements including sub dependencies int
 
 .PHONY: bootstrap
 bootstrap: ## Build project
-	pip install -r requirements_for_test.txt
-	pip install -e .
+	uv pip install -r requirements_for_test.txt
+	uv pip install -e .
+
+.PHONY: bootstrap-with-docker
+bootstrap-with-docker: ## Build project with Docker
+	docker build -f docker/Dockerfile .
 
 .PHONY: test
 test: ## Run tests
