@@ -1,9 +1,5 @@
 # CHANGELOG
 
-## 104.0.0
-
-* Remove `notifications_utils.clients.redis.exceeded_rate_limit`
-
 ## 103.1.0
 
 * Reduce precision of request_time printed in human-readable message of flask `app.request` logs. Precision in structured field is retained.
