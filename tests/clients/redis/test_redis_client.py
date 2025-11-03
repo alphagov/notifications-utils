@@ -149,6 +149,7 @@ def failing_redis_client(mocked_redis_client, delete_mock):
     mocked_redis_client.redis_store.set.side_effect = Exception("set failed")
     mocked_redis_client.redis_store.incr.side_effect = Exception("incr failed")
     mocked_redis_client.redis_store.decrby.side_effect = Exception("decrby failed")
+    mocked_redis_client.redis_store.pipeline.side_effect = Exception("pipeline failed")
     mocked_redis_client.redis_store.delete.side_effect = Exception("delete failed")
     delete_mock.side_effect = Exception("delete by pattern failed")
     return mocked_redis_client
@@ -160,6 +161,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_r
         assert failing_redis_client.set("set_key", "set_value") is None
         assert failing_redis_client.incr("incr_key") is None
         assert failing_redis_client.decrby("decrby_key", 5) is None
+        assert failing_redis_client.exceeded_rate_limit("rate_limit_key", 100, 100) is False
         assert failing_redis_client.delete("delete_key") is None
         assert failing_redis_client.delete("a", "b", "c") is None
         assert failing_redis_client.delete_by_pattern("pattern") == 0
@@ -169,6 +171,7 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_r
         "Redis error performing set on set_key",
         "Redis error performing incr on incr_key",
         "Redis error performing decrby on decrby_key",
+        "Redis error performing rate-limit-pipeline on rate_limit_key",
         "Redis error performing delete on delete_key",
         "Redis error performing delete on a, b, c",
         "Redis error performing delete-by-pattern on pattern",
@@ -196,6 +199,10 @@ def test_should_raise_exception_if_raise_set_to_true(
     assert str(e.value) == "decrby failed"
 
     with pytest.raises(Exception) as e:
+        failing_redis_client.exceeded_rate_limit("test", 100, 200, raise_exception=True)
+    assert str(e.value) == "pipeline failed"
+
+    with pytest.raises(Exception) as e:
         failing_redis_client.delete("test", raise_exception=True)
     assert str(e.value) == "delete failed"
 
@@ -211,6 +218,7 @@ def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     assert mocked_redis_client.set("set_key", "set_value") is None
     assert mocked_redis_client.incr("incr_key") is None
     assert mocked_redis_client.decrby("decrby_key", 5) is None
+    assert mocked_redis_client.exceeded_rate_limit("rate_limit_key", 100, 100) is False
     assert mocked_redis_client.delete("delete_key") is None
     assert mocked_redis_client.delete_by_pattern("pattern") == 0
 
@@ -230,6 +238,42 @@ def test_should_call_set_if_enabled(mocked_redis_client):
 def test_should_call_get_if_enabled(mocked_redis_client):
     assert mocked_redis_client.get("key") == 100
     mocked_redis_client.redis_store.get.assert_called_with("key")
+
+
+@freeze_time("2001-01-01 12:00:00.000000")
+def test_exceeded_rate_limit_should_add_correct_calls_to_the_pipe(mocked_redis_client, mocked_redis_pipeline):
+    mocked_redis_client.exceeded_rate_limit("key", 100, 100)
+    assert mocked_redis_client.redis_store.pipeline.called
+    mocked_redis_pipeline.zadd.assert_called_with("key", {978350400.0: 978350400.0})
+    mocked_redis_pipeline.zremrangebyscore.assert_called_with("key", "-inf", 978350300.0)
+    mocked_redis_pipeline.zcard.assert_called_with("key")
+    mocked_redis_pipeline.expire.assert_called_with("key", 100)
+    assert mocked_redis_pipeline.execute.called
+
+
+@freeze_time("2001-01-01 12:00:00.000000")
+def test_exceeded_rate_limit_should_fail_request_if_over_limit(mocked_redis_client, mocked_redis_pipeline):
+    mocked_redis_pipeline.execute.return_value = [True, True, 100, True]
+    assert mocked_redis_client.exceeded_rate_limit("key", 99, 100)
+
+
+@freeze_time("2001-01-01 12:00:00.000000")
+def test_exceeded_rate_limit_should_allow_request_if_not_over_limit(mocked_redis_client, mocked_redis_pipeline):
+    mocked_redis_pipeline.execute.return_value = [True, True, 100, True]
+    assert not mocked_redis_client.exceeded_rate_limit("key", 101, 100)
+
+
+@freeze_time("2001-01-01 12:00:00.000000")
+def test_exceeded_rate_limit_not_exceeded(mocked_redis_client, mocked_redis_pipeline):
+    mocked_redis_pipeline.execute.return_value = [True, True, 80, True]
+    assert not mocked_redis_client.exceeded_rate_limit("key", 90, 100)
+
+
+def test_exceeded_rate_limit_should_not_call_if_not_enabled(mocked_redis_client, mocked_redis_pipeline):
+    mocked_redis_client.active = False
+
+    assert not mocked_redis_client.exceeded_rate_limit("key", 100, 100)
+    assert not mocked_redis_client.redis_store.pipeline.called
 
 
 def test_delete(mocked_redis_client):
