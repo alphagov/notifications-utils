@@ -13,6 +13,11 @@ from redis.lock import Lock
 from redis.typing import Number
 
 
+class TokenBucketError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 def prepare_value(val):
     """
     Only bytes, strings and numbers (ints, longs and floats) are acceptable
@@ -126,6 +131,12 @@ class RedisClient:
 
     def get_remaining_bucket_tokens(self, key, replenish_per_sec, bucket_max, bucket_min, raise_exception=False):
         if self.active:
+            if replenish_per_sec < 0:
+                raise ValueError(f"replenish_per_sec: '{replenish_per_sec}' cannot be < 0")
+            if bucket_max <= 0:
+                raise ValueError(f"bucket_max: '{bucket_max}' cannot be <= 0")
+            if bucket_min > 0:
+                raise ValueError(f"bucket_min: '{bucket_min}' cannot be > 0")
             try:
                 now = time()
                 return self.scripts["tally-bucket-rate-limit"](

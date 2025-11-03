@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 103.2.0
+
+* Add input validation into `RedisClient.get_remaining_bucket_tokens` wrapper method. We want to validate replenishment, bucket_max and bucket_min so that the first two are positive integers, and the latter is 0 or negative.
+
 ## 103.1.0
 
 * Reduce precision of request_time printed in human-readable message of flask `app.request` logs. Precision in structured field is retained.

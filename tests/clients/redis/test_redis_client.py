@@ -90,32 +90,66 @@ def test_decrement_correct_number_of_tokens_for_multiple_calls_within_replenishm
     assert tokens_remaining == 97
 
 
-@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
-def test_do_not_decrement_below_bucket_min(app, redis_client_with_live_instance):
+@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.01)
+@pytest.mark.parametrize(
+    "replenish_per_sec, bucket_max, bucket_min, number_of_client_calls, expected_tokens_remaining",
+    [(1, 1, -1, 3, -1), (1, 1, -1, 30, -1), (1, 10, -10, 30, -10), (1, 10, 0, 30, 0)],
+)
+def test_do_not_decrement_below_bucket_min(
+    app,
+    redis_client_with_live_instance,
+    replenish_per_sec,
+    bucket_max,
+    bucket_min,
+    number_of_client_calls,
+    expected_tokens_remaining,
+):
     key = "rate-limit-test-key"
-    replenish_per_sec = 1
-    bucket_max = 1
-    bucket_min = -1
-    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
-    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
-    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
-        key, replenish_per_sec, bucket_max, bucket_min
-    )
-    assert tokens_remaining == -1
+    for _ in range(number_of_client_calls):
+        tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+            key, replenish_per_sec, bucket_max, bucket_min
+        )
+    assert tokens_remaining == expected_tokens_remaining
 
 
 @freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
-def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_with_live_instance):
+@pytest.mark.parametrize(
+    "replenish_per_sec, bucket_max, bucket_min, number_of_client_calls, expected_tokens_remaining",
+    [(5, 100, -100, 3, 98), (5, 100, -100, 6, 96), (1, 100, -100, 11, 90), (5, 100, 0, 3, 98), (5, 50, 0, 3, 48)],
+)
+def test_bucket_replenishment_tops_up_bucket_after_interval(
+    app,
+    redis_client_with_live_instance,
+    replenish_per_sec,
+    bucket_max,
+    bucket_min,
+    number_of_client_calls,
+    expected_tokens_remaining,
+):
     key = "rate-limit-test-key"
-    replenish_per_sec = 5
-    bucket_max = 100
-    bucket_min = -100
-    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
-    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
-    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
-        key, replenish_per_sec, bucket_max, bucket_min
-    )
-    assert tokens_remaining == 98
+    for _ in range(number_of_client_calls):
+        tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
+            key, replenish_per_sec, bucket_max, bucket_min
+        )
+    assert tokens_remaining == expected_tokens_remaining
+
+
+@pytest.mark.parametrize(
+    "replenish_per_sec, bucket_max, bucket_min, error_message",
+    [
+        (-10, 100, 0, "replenish_per_sec: '-10' cannot be < 0"),
+        (10, 0, 0, "bucket_max: '0' cannot be <= 0"),
+        (10, -10, 0, "bucket_max: '-10' cannot be <= 0"),
+        (10, 10, 1, "bucket_min: '1' cannot be > 0"),
+    ],
+)
+def test_get_remaining_bucket_tokens_raises_value_error_invalid_input(
+    app, redis_client_with_live_instance, replenish_per_sec, error_message, bucket_max, bucket_min
+):
+    key = "rate-limit-test-key"
+    with pytest.raises(ValueError) as e:
+        redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
+    assert str(e.value) == error_message
 
 
 @pytest.fixture(scope="function")
