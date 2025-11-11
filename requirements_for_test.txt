@@ -20,7 +20,7 @@ build==1.2.2
     # via -r requirements_for_test.in
 cachetools==5.5.0
     # via notifications-utils (pyproject.toml)
-celery==5.4.0
+celery==5.5.3
     # via -r requirements_for_test.in
 certifi==2024.8.30
     # via requests
