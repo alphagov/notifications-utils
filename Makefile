@@ -19,12 +19,15 @@ bootstrap-with-docker: ## Build project with Docker
 	docker build -f docker/Dockerfile .
 
 .PHONY: test
-test: ## Run tests
+test: lint ## Run tests
 	redis-server --daemonize yes --port 6999 || redis --daemonize yes --port 6999 || echo "using local version of redis"
-	ruff check .
-	ruff format --check .
 	pytest -n auto
 	python -m build
+
+.PHONY: lint
+lint: ## Run static analysis
+	ruff check .
+	ruff format --check .
 
 .PHONY: watch-tests
 watch-tests: ## Automatically rerun tests
