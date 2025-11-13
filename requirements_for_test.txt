@@ -79,7 +79,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-kombu==5.4.2
+kombu==5.5.4
     # via celery
 markupsafe==3.0.2
     # via
