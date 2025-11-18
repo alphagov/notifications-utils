@@ -403,6 +403,41 @@ def test_file_with_lots_of_empty_columns():
     assert process.call_count == 100
 
 
+def test_file_with_lots_of_empty_columns_but_populated_headers():
+    process = Mock()
+
+    column_count = 16_384  # Max number of columns in Excel 2010
+    row_count = 100
+
+    lots_of_headers = "phone_number,security code" + (",name" * (column_count - 2))
+    lots_of_commas = "," * column_count
+    modest_number_of_rows = f"07900900900{lots_of_commas}\n" * row_count
+    contents = f"{lots_of_headers}\n{modest_number_of_rows}"
+
+    recipients = RecipientCSV(
+        contents,
+        template=_sample_template("sms", content="Hello ((name))"),
+    )
+
+    for row in recipients:
+        assert [(key, cell.data) for key, cell in row.items()] == [
+            ("phonenumber", "07900900900"),
+            # Note that we’ve only stored the empty columns once
+            ("securitycode", None),
+            ("name", None),
+        ]
+        assert row.recipient == "07900900900"
+        assert row.personalisation == {
+            "phonenumber": "07900900900",
+            # securitycode not present because not in template personalisation
+            "name": None,
+        }
+        process()
+
+    assert process.call_count == row_count
+    assert recipients.column_headers == ["phone_number", "security code", "name"]
+
+
 def test_empty_column_names():
     recipient_csv = RecipientCSV(
         """
@@ -1208,12 +1243,12 @@ def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     assert recipients.column_headers_as_column_keys == {"phonenumber": "", "names": ""}.keys()
     # A piece of weirdness uncovered: since rows are created before spaces in column names are normalised, when
     # there are duplicate recipient columns and there is data for only one of the columns, if the columns have the same
-    # spacing, phone number data will be a list of this one phone number and None, while if the spacing style differs
-    # between two duplicate column names, the phone number data will be None. If there are no duplicate columns
-    # then our code finds the phone number well regardless of the spacing, so this should not affect our users.
+    # spacing, phone number data will be the correct phone number, while if the spacing style differs between two
+    # duplicate column names, the phone number data will be None. If there are no duplicate columns then our code
+    # finds the phone number well regardless of the spacing, so this should not affect our users.
     phone_number_data = None
     if column_name == "phone number":
-        phone_number_data = ["07900 900111", None]
+        phone_number_data = "07900 900111"
     assert recipients.rows[0]["phonenumber"].data == phone_number_data
     assert recipients.rows[0].get("phone number").error is None
     expected_duplicated_columns = ["phone number"]
