@@ -58,3 +58,7 @@ To do this in the app repo:
 - Run `make bump-utils`
 - Run `make freeze-requirements`
 - Commit with the recommended message and raise a PR. 
+
+## Licence
+
+Unless stated otherwise, the codebase is released under [the MIT License](LICENSE). This covers both the codebase and any sample code in the documentation.
