@@ -16,7 +16,7 @@ bootstrap: ## Build project
 
 .PHONY: bootstrap-with-docker
 bootstrap-with-docker: ## Build project with Docker
-	docker build -f docker/Dockerfile .
+	docker build --tag notifications-utils:latest -f docker/Dockerfile .
 
 .PHONY: test
 test: lint ## Run tests
@@ -32,6 +32,10 @@ lint: ## Run static analysis
 .PHONY: watch-tests
 watch-tests: ## Automatically rerun tests
 	ptw --runner "pytest --testmon -n auto"
+
+.PHONY: test-with-docker
+test-with-docker: ## Run tests inside a Docker container
+	docker run -it --rm notifications-utils make test
 
 clean:
 	rm -rf cache venv
