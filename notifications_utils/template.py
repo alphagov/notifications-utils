@@ -45,7 +45,7 @@ from notifications_utils.markdown import (
     notify_plain_text_email_markdown,
 )
 from notifications_utils.qr_code import QrCodeTooLong
-from notifications_utils.recipient_validation.postal_address import PostalAddress, address_lines_1_to_7_keys
+from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress, address_lines_1_to_7_keys
 from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
