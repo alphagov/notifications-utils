@@ -269,7 +269,7 @@ class RecipientCSV:
     def initial_rows_with_errors(self):
         return islice(self.rows_with_errors, self.max_errors_shown)
 
-    @property
+    @cached_property
     def _raw_column_headers(self):
         for row in self._rows:
             return row

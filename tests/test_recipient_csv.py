@@ -3,7 +3,7 @@ import string
 import unicodedata
 from functools import partial
 from random import choice, randrange
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 
 import pytest
 from ordered_set import OrderedSet
@@ -1445,3 +1445,18 @@ def test_errors_on_qr_codes_with_too_much_data():
     assert recipients.rows_as_list[0].qr_code_too_long is None
     assert recipients.rows_as_list[1].has_error is True
     assert isinstance(recipients.rows_as_list[1].qr_code_too_long, QrCodeTooLong)
+
+
+def test_column_headers_are_cached(mocker):
+    mock_csv_reader = mocker.patch(
+        "notifications_utils.recipients.csv.reader", return_value=(("phone_number", "PhoneNumber", "name", "name"),)
+    )
+    template = _sample_template("sms", content="Hello")
+    recipients = RecipientCSV("mocked", template=template)
+
+    for _ in range(3):
+        assert recipients._raw_column_headers == ("phone_number", "PhoneNumber", "name", "name")
+        assert recipients.column_headers == ["phone_number", "PhoneNumber", "name"]
+        assert recipients.column_headers_as_column_keys == OrderedSet(["phonenumber", "name"])
+
+    assert mock_csv_reader.call_args_list == [mocker.call(ANY, quoting=0, skipinitialspace=True)]
