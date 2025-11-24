@@ -294,7 +294,7 @@ class RecipientCSV:
             )
         }
 
-    @property
+    @cached_property
     def duplicate_recipient_column_headers(self):
         raw_recipient_column_headers = [
             InsensitiveDict.make_key(column_header)

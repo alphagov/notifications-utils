@@ -3,7 +3,7 @@ import string
 import unicodedata
 from functools import partial
 from random import choice, randrange
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, Mock, PropertyMock
 
 import pytest
 from ordered_set import OrderedSet
@@ -1460,3 +1460,23 @@ def test_column_headers_are_cached(mocker):
         assert recipients.column_headers_as_column_keys == OrderedSet(["phonenumber", "name"])
 
     assert mock_csv_reader.call_args_list == [mocker.call(ANY, quoting=0, skipinitialspace=True)]
+
+
+def test_duplicate_headers_are_cached(mocker):
+    mock_column_headers = mocker.patch.object(
+        RecipientCSV,
+        "_raw_column_headers",
+        new_callable=PropertyMock,
+        return_value=("phone_number", "PhoneNumber", "name", "name"),
+    )
+    template = _sample_template("sms", content="Hello")
+    recipients = RecipientCSV("mocked", template=template)
+
+    for _ in range(3):
+        assert recipients.duplicate_recipient_column_headers == OrderedSet(("phone_number", "PhoneNumber"))
+
+    assert mock_column_headers.call_args_list == [
+        # 2 calls per loop, but cached after the first of 3 loops
+        mocker.call(),
+        mocker.call(),
+    ]
