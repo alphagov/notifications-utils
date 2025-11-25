@@ -165,9 +165,21 @@ class RecipientCSV:
             skipinitialspace=True,
         )
 
+    @property
+    def _first_empty_column_indices(self):
+        for row_index, row in enumerate(self._rows):
+            if row_index == 0:
+                continue  # skip the header row
+            yield max((column_index for column_index, column in enumerate(row) if column), default=-1) + 1
+
     def get_rows(self):
-        column_headers = self._raw_column_headers  # this is for caching
+        index_of_first_empty_column = max(self._first_empty_column_indices, default=0)
+        headers_of_populated_columns = self._raw_column_headers[:index_of_first_empty_column]
+        headers_of_empty_columns = self._raw_column_headers[index_of_first_empty_column:]
+        unique_headers_of_empty_columns = list(OrderedSet(headers_of_empty_columns) - set(headers_of_populated_columns))
+        column_headers = headers_of_populated_columns + unique_headers_of_empty_columns
         length_of_column_headers = len(column_headers)
+        length_of_widest_row = max(index_of_first_empty_column, length_of_column_headers)
 
         rows_as_lists_of_columns = self._rows
 
@@ -180,7 +192,7 @@ class RecipientCSV:
 
             output_dict = {}
 
-            for column_name, column_value in zip(column_headers, row, strict=False):
+            for column_name, column_value in zip(column_headers, row[:length_of_widest_row], strict=False):
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
                 if InsensitiveDict.make_key(column_name) in self.recipient_column_headers_as_column_keys:
@@ -191,7 +203,8 @@ class RecipientCSV:
             length_of_row = len(row)
 
             if length_of_column_headers < length_of_row:
-                output_dict[None] = row[length_of_column_headers:]
+                if extra_columns_with_no_headers := row[length_of_column_headers:length_of_widest_row]:
+                    output_dict[None] = extra_columns_with_no_headers
             elif length_of_column_headers > length_of_row:
                 for key in column_headers[length_of_row:]:
                     insert_or_append_to_dict(output_dict, key, None)
@@ -256,7 +269,7 @@ class RecipientCSV:
     def initial_rows_with_errors(self):
         return islice(self.rows_with_errors, self.max_errors_shown)
 
-    @property
+    @cached_property
     def _raw_column_headers(self):
         for row in self._rows:
             return row
@@ -281,7 +294,7 @@ class RecipientCSV:
             )
         }
 
-    @property
+    @cached_property
     def duplicate_recipient_column_headers(self):
         raw_recipient_column_headers = [
             InsensitiveDict.make_key(column_header)

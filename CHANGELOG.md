@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.0.1
+
+* Improve handling of CSV files with thousands of empty columns
+
 ## 104.0.0
 
 * Drop support for Python < 3.13 (don’t upgrade to this version until your app is running on 3.13)
