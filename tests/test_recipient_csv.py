@@ -186,6 +186,20 @@ def test_recipient_column_headers(template_type, expected):
                 [("phone number", "07900900003"), ("list", ["elephant", None, None])],
             ],
         ),
+        (
+            """
+                phone number
+                07900900001, cat, rat, gnat
+                07900900002, dog, hog, frog
+                07900900003, elephant
+            """,
+            "sms",
+            [
+                [("phone number", "07900900001"), (None, ["cat", "rat", "gnat"])],
+                [("phone number", "07900900002"), (None, ["dog", "hog", "frog"])],
+                [("phone number", "07900900003"), (None, ["elephant"])],
+            ],
+        ),
     ],
 )
 def test_get_rows(file_contents, template_type, expected):
