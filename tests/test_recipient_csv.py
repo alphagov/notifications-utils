@@ -453,6 +453,26 @@ def test_empty_column_names():
 
 
 @pytest.mark.parametrize(
+    "contents",
+    (
+        """
+        phone number, name
+
+        07900900123, Anne Example
+    """,
+        """
+        phone number, name
+        ,
+        07900900123, Anne Example
+    """,
+    ),
+)
+def test_empty_rows(contents):
+    template = _sample_template("sms", content="Hello")
+    assert len(list(RecipientCSV(contents, template=template).rows_with_errors)) == 1
+
+
+@pytest.mark.parametrize(
     "file_contents,template,expected_recipients,expected_personalisation",
     [
         (

@@ -170,7 +170,7 @@ class RecipientCSV:
         for row_index, row in enumerate(self._rows):
             if row_index == 0:
                 continue  # skip the header row
-            yield max(column_index for column_index, column in enumerate(row) if column) + 1
+            yield max((column_index for column_index, column in enumerate(row) if column), default=-1) + 1
 
     def get_rows(self):
         index_of_first_empty_column = max(self._first_empty_column_indices, default=0)
