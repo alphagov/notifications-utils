@@ -12,6 +12,20 @@ country_NL = Country("Netherlands")
 NL_POSTCODE_REGEX = r"\b[1-9][0-9]{3}\s?[A-Z]{2}\b"
 
 
+address_lines_1_to_6_keys = [
+    # The API only accepts snake_case placeholders
+    "address_line_1",
+    "address_line_2",
+    "address_line_3",
+    "address_line_4",
+    "address_line_5",
+    "address_line_6",
+]
+address_lines_1_to_6_and_postcode_keys = address_lines_1_to_6_keys + ["postcode"]
+address_line_7_key = "address_line_7"
+address_lines_1_to_7_keys = address_lines_1_to_6_keys + [address_line_7_key]
+
+
 def _is_a_real_nl_postcode(postcode):
     if not postcode:
         return False
