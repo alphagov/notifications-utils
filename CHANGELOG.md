@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 104.1.0
+
+* Add `key_type` as a parameter to `daily_limit_cache_key` to facilitate implementation of daily rate limits 
+  for `test` API keys. `key_type` has a default of `None` in order to maintain backwards compatibility.
+
 ## 104.0.1
 
 * Improve handling of CSV files with thousands of empty columns
