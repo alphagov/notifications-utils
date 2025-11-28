@@ -38,6 +38,9 @@ jobs:
           timezoneLinux: "Europe/Amsterdam"
 
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - uses: gerlero/apt-install@v1
         with:
@@ -57,6 +60,71 @@ jobs:
         run: uv sync
 
       - uses: astral-sh/ruff-action@v3
+
+      - name: Get latest release
+        id: release
+        run: |
+          LATEST_RELEASE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')
+          echo "version_release=$LATEST_RELEASE"
+          echo "version_release=$LATEST_RELEASE"  >> $GITHUB_OUTPUT
+
+      - name: Get project version
+        id: project
+        run: |
+          PROJECT_VERSION=$(grep -oP '(?<=__version__ = ")[^"]+' notifications_utils/version.py)
+          echo "version_project=$PROJECT_VERSION"
+          echo "version_project=$PROJECT_VERSION"  >> $GITHUB_OUTPUT
+
+      - name: Check project and latest release versions
+        id: compare
+        run: |
+          set -e
+
+          echo "Latest Github release tag: ${{ steps.release.outputs.version_release }}"
+          echo "Project version: ${{ steps.project.outputs.version_project }}"
+
+          compare_versions() {
+            local v1=(${1//./ })  # Split LATEST_RELEASE into array
+            local v2=(${2//./ })  # Split PROJECT_VERSION into array
+
+            for i in {0..2}; do
+              if [[ ${v1[i]:-0} -lt ${v2[i]:-0} ]]; then
+                echo "✅  PROJECT_VERSION is higher :: [$1 < $2]"
+                return 0
+              elif [[ ${v1[i]:-0} -gt ${v2[i]:-0} ]]; then
+                echo "⛔  LATEST_RELEASE is higher :: [$1 > $2]"
+                echo "⚠️  Double-check that you've pulled/merged the latest version before continuing." | tee -a $GITHUB_STEP_SUMMARY
+                echo "⛔  Project version [$2] needs to be higher than latest release [$1], please adjust the version in [notifications_utils/version.py]" | tee -a $GITHUB_STEP_SUMMARY
+                return 2
+              fi
+
+            done
+
+            echo "⚠️  Versions are equal :: [$1 == $2]"
+            echo "needsBumping=true"  >> $GITHUB_OUTPUT
+            return 0
+          }
+          compare_versions "${{ steps.release.outputs.version_release }}" "${{ steps.project.outputs.version_project }}"
+
+      - name: Bump version
+        if: steps.compare.outputs.needsBumping == 'true'
+        id: bump
+        run: |
+          make version-patch
+          NEW_PROJECT_VERSION=$(grep -oP '(?<=__version__ = ")[^"]+' notifications_utils/version.py)
+          echo "version_bumped=$NEW_PROJECT_VERSION"
+          echo "version_bumped=$NEW_PROJECT_VERSION"  >> $GITHUB_OUTPUT
+
+      - name: Commit bumped version
+        if: steps.compare.outputs.needsBumping == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 chore: bump version to ${{ steps.bump.outputs.version_bumped }}"
+          file_pattern: notifications_utils/version.py
+
+      - name: Exit workflow when version is auto bumped
+        if: steps.compare.outputs.needsBumping == 'true'
+        run: exit 0
 
       - name: Build [${{ matrix.python-version }}]
         run: uv build
