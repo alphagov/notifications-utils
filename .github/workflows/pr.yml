@@ -127,9 +127,11 @@ jobs:
         run: exit 0
 
       - name: Build [${{ matrix.python-version }}]
+        if: success()
         run: uv build
 
       - uses: pavelzw/pytest-action@v2
+        if: success()
         with:
           job-summary: false
           verbose: false
@@ -137,7 +139,7 @@ jobs:
           custom-arguments: --junitxml=reports/pytest-unit.xml
 
       - uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}
+        if: ${{ success() && !cancelled() }}
         with:
           name: PyTest Tests
           path: reports/pytest-*.xml
