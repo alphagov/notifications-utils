@@ -82,6 +82,7 @@ jobs:
 
           echo "Latest Github release tag: ${{ steps.release.outputs.version_release }}"
           echo "Project version: ${{ steps.project.outputs.version_project }}"
+          echo "needsBumping=false"  >> $GITHUB_OUTPUT
 
           compare_versions() {
             local v1=(${1//./ })  # Split LATEST_RELEASE into array
