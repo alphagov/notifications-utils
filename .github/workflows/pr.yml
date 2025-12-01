@@ -127,11 +127,11 @@ jobs:
         run: exit 0
 
       - name: Build [${{ matrix.python-version }}]
-        if: success()
+        if: steps.compare.outputs.needsBumping == 'false'
         run: uv build
 
       - uses: pavelzw/pytest-action@v2
-        if: success()
+        if: steps.compare.outputs.needsBumping == 'false'
         with:
           job-summary: false
           verbose: false
@@ -139,7 +139,7 @@ jobs:
           custom-arguments: --junitxml=reports/pytest-unit.xml
 
       - uses: dorny/test-reporter@v2
-        if: ${{ success() && !cancelled() }}
+        if: ${{ steps.compare.outputs.needsBumping == 'false' && !cancelled() }}
         with:
           name: PyTest Tests
           path: reports/pytest-*.xml
