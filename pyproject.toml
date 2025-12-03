@@ -29,7 +29,6 @@ dependencies = [
     "requests>=2.32.2",  # Can’t go past 2.32.2 until https://github.com/psf/requests/issues/6730 is fixed
     "segno>=1.6.1",
     "smartypants>=2.0.1",
-    "statsd>=4.0.1",
 ]
 
 [project.urls]
