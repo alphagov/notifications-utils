@@ -41,8 +41,8 @@ def _index_rows(rows):
 @pytest.mark.parametrize(
     "template_type, expected",
     (
-        ("email", ["email address"]),
-        ("sms", ["phone number"]),
+        ("email", ["e-mailadres"]),
+        ("sms", ["telefoonnummer"]),
         (
             "letter",
             [
@@ -206,7 +206,7 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
 
     recipients = RecipientCSV(
         """
-            email address, name
+            e-mailadres, name
             a@b.com,
             a@b.com, My Name
             a@b.com,
@@ -369,7 +369,7 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
     )
 
     big_csv = RecipientCSV(
-        "phonenumber,name\n" + ("07700900123,example\n" * 123),
+        "telefoonnummer,name\n" + ("07700900123,example\n" * 123),
         template=_sample_template("sms", content="hello ((name))"),
     )
     big_csv.max_rows = 10
@@ -424,7 +424,7 @@ def test_empty_column_names():
     [
         (
             """
-                phone number,name, date
+                telefoonnummer,name, date
                 +44 123,test1,today
                 +44456,    ,tomorrow
                 ,,
@@ -436,7 +436,7 @@ def test_empty_column_names():
         ),
         (
             """
-                email address,name,colour
+                e-mailadres,name,colour
                 test@example.com,test1,red
                 testatexampledotcom,test2,blue
             """,
@@ -446,7 +446,7 @@ def test_empty_column_names():
         ),
         (
             """
-                email address
+                e-mailadres
                 test@example.com,test1,red
                 testatexampledotcom,test2,blue
             """,
@@ -469,16 +469,15 @@ def test_get_recipient(file_contents, template, expected_recipients, expected_pe
     "file_contents,template,expected_recipients,expected_personalisation",
     [
         (
-            """
-                email address,test
-                test@example.com,test1,red
-                testatexampledotcom,test2,blue
+            """e-mailadres,test
+            test@example.com,test1,red
+            testatexampledotcom,test2,blue
             """,
             _sample_template("email", "((test))"),
             [(0, "test@example.com"), (1, "testatexampledotcom")],
             [
-                {"emailaddress": "test@example.com", "test": "test1"},
-                {"emailaddress": "testatexampledotcom", "test": "test2"},
+                {"emailadres": "test@example.com", "test": "test1"},
+                {"emailadres": "testatexampledotcom", "test": "test2"},
             ],
         )
     ],
@@ -501,24 +500,24 @@ def test_get_recipient_respects_order(file_contents, template, expected_recipien
 @pytest.mark.parametrize(
     "file_contents,template_type,expected,expected_missing",
     [
-        ("", "sms", [], {"phone number", "name"}),
+        ("", "sms", [], {"telefoonnummer", "name"}),
         (
             """
-                phone number,name
+                telefoonnummer,name
                 07700900460,test1
                 07700900460,test1
                 07700900460,test1
             """,
             "sms",
-            ["phone number", "name"],
+            ["telefoonnummer", "name"],
             set(),
         ),
         (
             """
-                email address,name,colour
+                e-mailadres,name,colour
             """,
             "email",
-            ["email address", "name", "colour"],
+            ["e-mailadres", "name", "colour"],
             set(),
         ),
         (
@@ -531,10 +530,10 @@ def test_get_recipient_respects_order(file_contents, template, expected_recipien
         ),
         (
             """
-                email address,colour
+                e-mailadres,colour
             """,
             "email",
-            ["email address", "colour"],
+            ["e-mailadres", "colour"],
             {"name"},
         ),
         (
@@ -547,10 +546,10 @@ def test_get_recipient_respects_order(file_contents, template, expected_recipien
         ),
         (
             """
-                phone number,list,list,name,list
+                telefoonnummer,list,list,name,list
             """,
             "sms",
-            ["phone number", "list", "name"],
+            ["telefoonnummer", "list", "name"],
             set(),
         ),
     ],
@@ -574,7 +573,7 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
     [
         pytest.param("", "sms", marks=pytest.mark.xfail),
         pytest.param("name", "sms", marks=pytest.mark.xfail),
-        pytest.param("email address", "sms", marks=pytest.mark.xfail),
+        pytest.param("e-mailadres", "sms", marks=pytest.mark.xfail),
         pytest.param(
             "address_line_1",
             "letter",
@@ -595,12 +594,12 @@ def test_column_headers(file_contents, template_type, expected, expected_missing
             "letter",
             marks=pytest.mark.xfail,
         ),
-        ("phone number", "sms"),
-        ("phone number,name", "sms"),
-        ("email address", "email"),
-        ("email address,name", "email"),
-        ("PHONENUMBER", "sms"),
-        ("email_address", "email"),
+        ("telefoonnummer", "sms"),
+        ("telefoonnummer,name", "sms"),
+        ("e-mailadres", "email"),
+        ("e-mailadres,name", "email"),
+        ("TELEFOONNUMMER", "sms"),
+        ("e-mailadres", "email"),
         ("address_line_1, address_line_2, postcode", "letter"),
         ("address_line_1, address_line_2, address_line_7", "letter"),
         ("address_line_1, address_line_2, address_line_3", "letter"),
@@ -620,7 +619,7 @@ def test_recipient_column(content, file_contents, template_type):
     [
         (
             """
-                phone number,name,date
+                telefoonnummer,name,date
                 07700900460,test1,test1
                 07700900460,test1
                 +44 123,test1,test1
@@ -635,7 +634,7 @@ def test_recipient_column(content, file_contents, template_type):
         ),
         (
             """
-                phone number,name
+                telefoonnummer,name
                 07700900460,test1,test2
             """,
             "sms",
@@ -693,7 +692,7 @@ def test_recipient_column(content, file_contents, template_type):
         ),
         (
             """
-                ,,,,,,,,,Phone number
+                ,,,,,,,,,telefoonnummer
                 ,,,,,,,,,07700900100
                 ,,,,,,,,,07700900100
             """,
