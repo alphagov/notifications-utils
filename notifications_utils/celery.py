@@ -59,11 +59,6 @@ def make_task(app):
                     },
                 )
 
-                app.statsd_client.timing(
-                    f"celery.{self.queue_name}.{self.name}.success",
-                    elapsed_time,
-                )
-
         def on_retry(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
             with self.app_context():
@@ -86,11 +81,6 @@ def make_task(app):
                     },
                 )
 
-                app.statsd_client.timing(
-                    f"celery.{self.queue_name}.{self.name}.retry",
-                    elapsed_time,
-                )
-
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             # enables request id tracing for these logs
             with self.app_context():
@@ -111,8 +101,6 @@ def make_task(app):
                         "process_": getpid(),
                     },
                 )
-
-                app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
 
         def __call__(self, *args, **kwargs):
             # ensure task has flask context to access config, logger, etc
@@ -146,9 +134,6 @@ class NotifyCelery(Celery):
         super().__init__(
             task_cls=make_task(app),
         )
-
-        # Make sure this is present upfront to avoid errors later on.
-        assert app.statsd_client
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])
