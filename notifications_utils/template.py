@@ -501,7 +501,7 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
 
 
 class HTMLEmailTemplate(BaseEmailTemplate):
-    jinja_template = template_env.get_template("email_template.jinja2")
+    jinja_template = template_env.get_template("email_template_nl.jinja2")
 
     PREHEADER_LENGTH_IN_CHARACTERS = 256
 
@@ -509,7 +509,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         self,
         template,
         values=None,
-        govuk_banner=True,
+        govuk_banner=False,
         complete_html=True,
         brand_logo=None,
         brand_text=None,
