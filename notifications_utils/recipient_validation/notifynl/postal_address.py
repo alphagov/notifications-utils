@@ -23,7 +23,7 @@ address_line_7_key = "address_line_7"
 address_lines_1_to_7_keys = address_lines_1_to_6_keys + [address_line_7_key]
 
 
-class PostalAddressNL(PostalAddressUK):
+class PostalAddress(PostalAddressUK):
     MIN_LINES = 2
     MAX_LINES = 7  # same shape for template compatibility
 
