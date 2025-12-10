@@ -1,12 +1,21 @@
 import sys
 import time
 from collections.abc import Callable
+from contextlib import nullcontext
 
 
 # eventlet's own Timeout class inherits from BaseException instead of
 # Exception, which makes more likely that an attempted catch-all
 # handler will miss it.
 class EventletTimeout(Exception):
+    pass
+
+
+class HardEventletTimeout(EventletTimeout):
+    "This should not be caught by app code"
+
+
+class SoftEventletTimeout(EventletTimeout):
     pass
 
 
@@ -37,24 +46,49 @@ if using_eventlet:
         """
         A WSGI middleware that will raise `exception` after `timeout_seconds` of request
         processing, *but only when* the next I/O context switch occurs.
+
+        If `soft_timeout_seconds` is specified, will similarly raise `soft_exception` after
+        `soft_timeout_seconds`. This is intended to be an exception that is raised shortly
+        before the "hard" timeout and is safer for application code to handle itself for
+        providing a nicer response to the user.
         """
 
         _app: Callable
         _timeout_seconds: float
-        _exception: BaseException
+        _exception: type[BaseException]
+        _soft_timeout_seconds: float | None
+        _soft_exception: type[BaseException]
 
         def __init__(
             self,
             app: Callable,
             timeout_seconds: float = 30,
-            exception: BaseException = EventletTimeout,
+            exception: type[BaseException] = HardEventletTimeout,
+            soft_timeout_seconds: float | None = None,
+            soft_exception: type[BaseException] = SoftEventletTimeout,
         ):
+            if soft_timeout_seconds is not None and soft_timeout_seconds >= timeout_seconds:
+                raise ValueError("soft_timeout_seconds must be less than timeout_seconds")
+
             self._app = app
             self._timeout_seconds = timeout_seconds
             self._exception = exception
+            self._soft_timeout_seconds = soft_timeout_seconds
+            self._soft_exception = soft_exception
 
         def __call__(self, *args, **kwargs):
-            with Timeout(self._timeout_seconds, exception=self._exception):
+            with (
+                Timeout(self._timeout_seconds, exception=self._exception),
+                # setting the "soft" timer here has the advantage of being started at (almost) exactly
+                # the same time as the first, leaving little room for the soft timer to expire *after*
+                # the hard timer (provided there are I/O context switches between the two timers
+                # expiring)
+                (
+                    nullcontext()
+                    if self._soft_timeout_seconds is None
+                    else Timeout(self._soft_timeout_seconds, exception=self._soft_exception)
+                ),
+            ):
                 return self._app(*args, **kwargs)
 
     def account_greenlet_times(event: str, args) -> None:
