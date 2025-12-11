@@ -1,7 +1,7 @@
 import logging
 import re
 
-from notifications_utils.countries import Country, CountryNotFoundError
+from notifications_utils.countries_nl import Country, CountryNotFoundError, Postage
 
 from ..postal_address import PostalAddress as PostalAddressUK
 
@@ -25,9 +25,13 @@ address_lines_1_to_7_keys = address_lines_1_to_6_keys + [address_line_7_key]
 
 class PostalAddress(PostalAddressUK):
     MIN_LINES = 2
-    MAX_LINES = 7  # same shape for template compatibility
+    MAX_LINES = 7  # template compatibility
 
-    def __init__(self, address: str | list, allow_international_letters: bool = False):
+    def __init__(self, raw_address=None, address=None, allow_international_letters=False):
+        # Match UK behaviour exactly
+        if address is None:
+            address = raw_address
+
         if isinstance(address, list):
             address = "\n".join(address)
 
@@ -37,7 +41,7 @@ class PostalAddress(PostalAddressUK):
 
         super().__init__(address, allow_international_letters)
 
-        # Reinterpret the last line as NL (UK parent assumes UK)
+        # Reinterpret last line as NL (UK parent assumes UK)
         try:
             detected_country = Country(self._lines_without_bfpo[-1])
             if str(detected_country).lower() not in ("netherlands", "nederland"):
@@ -58,19 +62,19 @@ class PostalAddress(PostalAddressUK):
         if not self._lines_without_country_or_bfpo:
             return None
 
+        # Search lines in reverse order for postcode
         for line in reversed(self._lines_without_country_or_bfpo):
             match = re.search(NL_POSTCODE_REGEX, line.upper())
             if match:
                 cleaned = match.group(0).replace(" ", "")
                 return cleaned[:4] + " " + cleaned[4:]
-
         return None
 
     # ---------------------------------------------------------
     # OVERRIDE UK BFPO LOGIC
     # ---------------------------------------------------------
     def _parse_and_extract_bfpo(self, lines):
-        # NL does not use BFPO → ignore completely
+        # NL ignores BFPO completely
         return None, lines
 
     @property
@@ -93,11 +97,43 @@ class PostalAddress(PostalAddressUK):
         return self.postcode is not None
 
     @property
+    def international(self):
+        return self.postage != Postage.NL
+
+    @property
     def normalised_lines(self):
-        base = list(self._lines_without_country_or_bfpo)
-        if self.postcode:
-            return base[:-1] + [self.postcode]
-        return base
+        """
+        Rebuild NL address lines:
+        - Strip country if present in last line
+        - Keep postcode + city on last line
+        - Remove empty lines
+        """
+        lines = list(self._lines_without_country_or_bfpo)
+
+        if not lines:
+            return []
+
+        postcode = self.postcode
+        if postcode:
+            new_lines = []
+            # Remove postcode from any line to avoid duplication
+            for line in lines:
+                line = re.sub(NL_POSTCODE_REGEX, "", line, flags=re.IGNORECASE).strip()
+                # Skip empty lines and country lines
+                if line and line.lower() not in ("netherlands", "nederland"):
+                    new_lines.append(line)
+
+            if new_lines:
+                # Pop last line as city (or last meaningful line)
+                city_line = new_lines.pop(-1)
+                last_line = f"{postcode} {city_line}".strip()
+            else:
+                last_line = postcode
+
+            new_lines.append(last_line)
+            return new_lines
+
+        return [line.strip() for line in lines if line.strip()]
 
     @property
     def valid(self):
