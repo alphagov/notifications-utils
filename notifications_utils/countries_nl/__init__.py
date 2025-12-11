@@ -1,8 +1,7 @@
 from notifications_utils.countries import Country as BaseCountry
 from notifications_utils.countries import CountryMapping as BaseCountryMapping
 from notifications_utils.countries import CountryNotFoundError as BaseCountryNotFoundError
-
-from .data import (
+from notifications_utils.countries.data import (
     ADDITIONAL_SYNONYMS,
     COUNTRIES_AND_TERRITORIES,
     EUROPEAN_ISLANDS,
