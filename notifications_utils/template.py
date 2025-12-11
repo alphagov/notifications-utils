@@ -83,6 +83,7 @@ class Template(ABC):
         self.values = values
         self._template = template
         self.redact_missing_personalisation = redact_missing_personalisation
+        self.template_email_files = template.get("template_email_files", [])
 
     def __repr__(self):
         return f'{self.__class__.__name__}("{self.content}", {self.values})'

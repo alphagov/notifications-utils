@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 104.3.0
+
+* Added template_email_files attribute to templates rich objects
+
 ## 104.2.0
 
 * Add support for, earlier, "soft timeouts" to `EventletTimeoutMiddleware`
