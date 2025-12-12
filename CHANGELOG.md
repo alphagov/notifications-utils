@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.3.0
+
+* Upgrade celery version to `5.6.0`
+
 ## 104.2.0
 
 * Add support for, earlier, "soft timeouts" to `EventletTimeoutMiddleware`
