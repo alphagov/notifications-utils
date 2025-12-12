@@ -1,12 +1,16 @@
 # CHANGELOG
 
+## 104.2.1
+
+* Bump minimum version of `requests` to 2.32.5
+
 ## 104.2.0
 
 * Add support for, earlier, "soft timeouts" to `EventletTimeoutMiddleware`
 
 ## 104.1.0
 
-* Add `key_type` as a parameter to `daily_limit_cache_key` to facilitate implementation of daily rate limits 
+* Add `key_type` as a parameter to `daily_limit_cache_key` to facilitate implementation of daily rate limits
   for `test` API keys. `key_type` has a default of `None` in order to maintain backwards compatibility.
 
 ## 104.0.1
