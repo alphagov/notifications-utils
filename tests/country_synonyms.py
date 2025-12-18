@@ -357,6 +357,7 @@ ALL = (
     ("dprk", "North Korea"),
     ("druk yul", "Bhutan"),
     ("drukyul", "Bhutan"),
+    ("dubai U.A.E.", "Dubai"),
     ("ducie and oeno islands", "Pitcairn, Henderson, Ducie and Oeno Islands"),
     ("ducieandoenoislands", "Pitcairn, Henderson, Ducie and Oeno Islands"),
     ("dutch east indies", "Indonesia"),
