@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.3.1
+
+* Fix handling of empty UK addresses
+
 ## 104.3.0
 
 * Normalise some additional countries in postal addresses
