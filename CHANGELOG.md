@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 104.4.0
+
+* Add email_files_removed property to TemplateChange object
+* Add is_breaking_change property to TemplateChange object - this checks whether 
+  any placeholders were added or any email files removed
+
 ## 104.3.1
 
 * Fix handling of empty UK addresses
