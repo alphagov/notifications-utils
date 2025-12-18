@@ -236,6 +236,8 @@ class PostalAddress:
     def postcode(self):
         if self.international:
             return None
+        if not self._lines_without_country_or_bfpo:
+            return None
         return format_postcode_or_none(self._lines_without_country_or_bfpo[-1])
 
     @property
