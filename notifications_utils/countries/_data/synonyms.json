@@ -3,6 +3,7 @@
   "Northern Ireland": "United Kingdom",
   "Scotland": "United Kingdom",
   "Wales": "United Kingdom",
+  "Cymru": "United Kingdom",
   "ROI": "Ireland",
   "Irish Republic": "Ireland",
   "Rep of Ireland": "Ireland",
@@ -11,8 +12,12 @@
   "N Ireland": "United Kingdom",
   "North Ireland": "United Kingdom",
   "GBR": "United Kingdom",
+  "Channel Islands": "United Kingdom",
   "United States America": "United States",
+  "United States Amercia": "United States",
+  "United States of Amercia": "United States",
   "America": "United States",
+  "Amercia": "United States",
   "Macedonia": "North Macedonia",
   "Autonomous Region of the Azores": "Azores",
   "Islas Canarias": "Canary Islands",
@@ -71,6 +76,10 @@
   "Korea, Republic of": "South Korea",
   "Micronesia, Federated States of": "Micronesia",
   "Palestinian Territory": "Occupied Palestinian Territories",
+  "Palestine, state of": "Occupied Palestinian Territories",
+  "State of Palestine": "Occupied Palestinian Territories",
   "Rwanda, Republic of": "Rwanda",
-  "San Marino, Republic of": "San Marino"
+  "San Marino, Republic of": "San Marino",
+  "the united states of amercia": "United States",
+  "Dubai UAE": "Dubai"
 }
