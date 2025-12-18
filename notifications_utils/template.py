@@ -48,7 +48,6 @@ from notifications_utils.qr_code import QrCodeTooLong
 from notifications_utils.recipient_validation.postal_address import PostalAddress, address_lines_1_to_7_keys
 from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
-from notifications_utils.template_change import TemplateChange
 
 template_env = Environment(
     loader=FileSystemLoader(
@@ -139,9 +138,6 @@ class Template(ABC):
 
     def get_raw(self, key, default=None):
         return self._template.get(key, default)
-
-    def compare_to(self, new):
-        return TemplateChange(self, new)
 
     @property
     def content_count(self):
