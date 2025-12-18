@@ -51,6 +51,12 @@ def test_raw_address():
         """,
             Country("Germany"),
         ),
+        (
+            """
+        GBR
+        """,
+            Country("United Kingdom"),
+        ),
     ),
 )
 def test_country(address, expected_country):
@@ -554,6 +560,28 @@ def test_from_personalisation(personalisation):
     assert PostalAddress.from_personalisation(personalisation).normalised == (
         "123 Example Street\nCity of Town\nSW1A 1AA"
     )
+
+
+@pytest.mark.parametrize(
+    "postal_address",
+    (
+        PostalAddress("""
+        Northern Ireland
+        United Kingdom
+    """),
+        PostalAddress.from_personalisation(
+            {
+                "address_line_1": "",
+                "address_line_3": "GBR",
+                "address_line_7": "",
+            }
+        ),
+    ),
+)
+def test_handles_addresses_which_are_exclusively_uk_countries(postal_address):
+    assert postal_address.normalised == ""
+    assert postal_address.postcode is None
+    assert postal_address.valid is False
 
 
 def test_from_personalisation_handles_int():
