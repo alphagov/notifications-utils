@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.3.0
+
+* Normalise some additional countries in postal addresses
+
 ## 104.2.1
 
 * Bump minimum version of `requests` to 2.32.5
