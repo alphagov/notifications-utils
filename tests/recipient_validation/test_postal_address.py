@@ -83,6 +83,15 @@ def test_country(address, expected_country):
         (
             """
         123 Example Street
+        City of Town
+        Scotland
+        United Kingdom
+        """,
+            False,
+        ),
+        (
+            """
+        123 Example Street
 
 
         City of Town
@@ -167,6 +176,20 @@ def test_has_enough_lines(address, enough_lines_expected):
         Line 5
         Line 6
         Line 7
+        Scotland
+        United Kingdom
+        """,
+            False,
+        ),
+        (
+            """
+        Line 1
+        Line 2
+        Line 3
+        Line 4
+        Line 5
+        Line 6
+        Line 7
         Line 8
         """,
             True,
@@ -191,6 +214,16 @@ def test_has_too_many_lines(address, too_many_lines_expected):
         SW1A 1AA
         """,
             "SW1A 1AA",
+        ),
+        (
+            """
+        123 Example Street
+        City of Town
+        EH1 1TG
+        Scotland
+        United Kingdom
+        """,
+            "EH1 1TG",
         ),
         (
             """
@@ -420,6 +453,17 @@ def test_international(address, expected_international):
         """,
             ("123 Example Straße\nGermany"),
             ("123 Example Straße, Germany"),
+        ),
+        (
+            """
+                Senedd Cymru
+                Cardiff
+                CF99 1SN
+                Cymru
+                UK
+        """,
+            ("Senedd Cymru\nCardiff\nCF99 1SN"),
+            ("Senedd Cymru, Cardiff, CF99 1SN"),
         ),
     ),
 )
