@@ -124,6 +124,8 @@ def test_crowdsourced_test_data():
         ("Korea, Republic of", "South Korea"),
         ("Micronesia, Federated States of", "Micronesia"),
         ("Palestinian Territory", "Occupied Palestinian Territories"),
+        ("Palestine, state of", "Occupied Palestinian Territories"),
+        ("State of Palestine", "Occupied Palestinian Territories"),
         ("Rwanda, Republic of", "Rwanda"),
         ("San Marino, Republic of", "San Marino"),
         ("Virgin Islands, British", "British Virgin Islands"),
