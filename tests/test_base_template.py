@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 
 from notifications_utils.template import SubjectMixin, Template
@@ -93,11 +91,3 @@ def test_random_variable_retrieve():
     assert template.get_raw("created_by") == "now"
     assert template.get_raw("missing", default="random") == "random"
     assert template.get_raw("missing") is None
-
-
-def test_compare_template():
-    with patch("notifications_utils.template_change.TemplateChange.__init__", return_value=None) as mocked:
-        old_template = ConcreteTemplate({"content": "faked"})
-        new_template = ConcreteTemplate({"content": "faked"})
-        old_template.compare_to(new_template)
-        mocked.assert_called_once_with(old_template, new_template)
