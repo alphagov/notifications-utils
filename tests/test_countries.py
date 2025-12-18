@@ -166,6 +166,7 @@ def test_non_existant_countries(search, expected_error_message):
         ("UK", "united-kingdom"),
         ("Jersey", "united-kingdom"),
         ("Guernsey", "united-kingdom"),
+        ("Channel Islands", "united-kingdom"),
         ("isle-of-man", "united-kingdom"),
         ("ESPAÑA", "europe"),
     ),

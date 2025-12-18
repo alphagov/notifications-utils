@@ -275,6 +275,7 @@ ALL = (
     ("cf", "Central African Republic"),
     ("cg", "Congo"),
     ("ch", "Switzerland"),
+    ("channel islands", "United Kingdom"),
     ("chinese taipei", "Taiwan"),
     ("chinesetaipei", "Taiwan"),
     ("christmasisland", "Christmas Island"),
