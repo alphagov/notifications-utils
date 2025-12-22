@@ -12,6 +12,9 @@ from notifications_utils.countries.data import (
 
 
 class Postage:
+    # FIRST = "netherlands"
+    # SECOND = "netherlands"
+    # ECONOMY = "netherlands"
     NL = "netherlands"
     EUROPE = "europe"
     REST_OF_WORLD = "rest-of-world"
