@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.3.2
+
+* add `exc_info` to warning logs arising from retries of `NotifyTask`
+
 ## 104.3.1
 
 * Fix handling of empty UK addresses

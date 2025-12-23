@@ -74,6 +74,7 @@ def make_task(app):
                     self.name,
                     self.queue_name,
                     elapsed_time,
+                    exc_info=True,
                     extra={
                         "celery_task": self.name,
                         "celery_task_id": self.request.id,
