@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.4.0
+
+* `RedisClient`: add `always_raise` mechanism for specific exception raising, set to `always_raise` `EventletTimeout` by default.
+
 ## 104.3.3
 
 * Added bank holidays for 2027 to the `bank-holidays.json` file
