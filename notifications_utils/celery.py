@@ -5,7 +5,7 @@ from os import getpid
 
 from celery import Celery, Task
 from celery.backends.base import DisabledBackend
-from flask import g, request
+from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 
 
@@ -141,6 +141,9 @@ def make_task(app):
     return NotifyTask
 
 
+_fallback_logger = logging.Logger(__name__)
+
+
 class NotifyCelery(Celery):
     def init_app(self, app):
         super().__init__(
@@ -161,6 +164,25 @@ class NotifyCelery(Celery):
 
         elif has_app_context() and "request_id" in g:
             other_kwargs["headers"]["notify_request_id"] = g.request_id
+
+        if "MessageGroupId" in other_kwargs and not other_kwargs["MessageGroupId"]:
+            # this is likely to be unintentional, perhaps a call site expecting to be able to
+            # propagate a group id that isn't present in some cases
+            extra = {
+                "celery_task": name,
+            }
+            ((has_app_context() and current_app.logger) or _fallback_logger).warning(
+                "MessageGroupId argument specified explicitly with empty value when calling task %(celery_task)s",
+                extra,
+                extra=extra,
+            )
+
+        if has_app_context() and not current_app.config.get("ENABLE_SQS_MESSAGE_GROUP_IDS", True):
+            other_kwargs.pop("MessageGroupId", None)
+
+        # kombu doesn't fetch the MessageGroupId from received SQS messages, so we also need to
+        # explicitly annotate this on as a header to allow downstream tasks to propagate it
+        other_kwargs["headers"]["notify_message_group_id"] = other_kwargs.get("MessageGroupId")
 
         return super().send_task(name, args, kwargs, **other_kwargs)
 
