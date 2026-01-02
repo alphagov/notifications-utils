@@ -5,7 +5,7 @@ from os import getpid
 
 from celery import Celery, Task
 from celery.backends.base import DisabledBackend
-from flask import g, request
+from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 
 
@@ -30,6 +30,10 @@ def make_task(app):
             # Note that each header is a direct attribute of the
             # task context (aka "request").
             return self.request.get("notify_request_id") or self.request.id
+
+        @property
+        def message_group_id(self):
+            return self.request.get("notify_message_group_id")
 
         @contextmanager
         def app_context(self):
@@ -141,6 +145,9 @@ def make_task(app):
     return NotifyTask
 
 
+_fallback_logger = logging.Logger(__name__)
+
+
 class NotifyCelery(Celery):
     def init_app(self, app):
         super().__init__(
@@ -161,6 +168,31 @@ class NotifyCelery(Celery):
 
         elif has_app_context() and "request_id" in g:
             other_kwargs["headers"]["notify_request_id"] = g.request_id
+
+        mgid = other_kwargs.pop("MessageGroupId", None)
+        mgid_from = other_kwargs.pop("MessageGroupId_from", None)
+
+        if mgid_from and mgid is not None:
+            raise TypeError("Can't specify both MessageGroupId and MessageGroupId_from arguments together")
+
+        if mgid_from:
+            mgid = mgid_from.request.get("notify_message_group_id")
+
+            if not mgid:
+                extra = {
+                    "celery_task": name,
+                }
+                ((has_app_context() and current_app.logger) or _fallback_logger).warning(
+                    "MessageGroupId_from argument used but no notify_message_group_id header found "
+                    "when calling task %(celery_task)s",
+                    extra,
+                    extra=extra,
+                )
+
+        if (not has_app_context()) or current_app.config.get("ENABLE_SQS_MESSAGE_GROUP_IDS", True):
+            # kombu doesn't fetch the MessageGroupId from received SQS messages, so we also need to
+            # explicitly annotate this on as a header to allow downstream tasks to propagate it
+            other_kwargs["headers"]["notify_message_group_id"] = other_kwargs["MessageGroupId"] = mgid
 
         return super().send_task(name, args, kwargs, **other_kwargs)
 
