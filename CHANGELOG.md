@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 104.3.3
+
+* Added bank holidays for 2027 to the `bank-holidays.json` file
+
 ## 104.3.2
 
 * add `exc_info` to warning logs arising from retries of `NotifyTask`
