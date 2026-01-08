@@ -5,12 +5,17 @@ from types import TracebackType
 
 # (`Type` is deprecated in favour of `type` but we need to match the
 # signature of the method we are stubbing)
-from typing import Type  # noqa: UP035
+from typing import (  # noqa: UP035
+    Type,
+    final,
+)
 
 from flask import current_app
 from flask_redis import FlaskRedis
 from redis.lock import Lock
 from redis.typing import Number
+
+from notifications_utils.eventlet import EventletTimeout
 
 
 def prepare_value(val):
@@ -36,10 +41,17 @@ def prepare_value(val):
         raise ValueError(f"cannot cast {type(val)} to a string")
 
 
+# a sentinel argument, defined as a class so we can make typing happy
+@final
+class INSTANCE_DEFAULT:
+    pass
+
+
 class RedisClient:
     redis_store = FlaskRedis()
     active = False
     scripts = {}
+    always_raise: tuple[type[BaseException], ...] = (EventletTimeout,)
 
     def init_app(self, app):
         self.active = app.config.get("REDIS_ENABLED")
@@ -124,7 +136,9 @@ class RedisClient:
             """
         )
 
-    def get_remaining_bucket_tokens(self, key, replenish_per_sec, bucket_max, bucket_min, raise_exception=False):
+    def get_remaining_bucket_tokens(
+        self, key, replenish_per_sec, bucket_max, bucket_min, raise_exception=False, always_raise=INSTANCE_DEFAULT
+    ):
         if self.active:
             try:
                 now = time()
@@ -132,9 +146,9 @@ class RedisClient:
                     args=[key, now, replenish_per_sec, bucket_max, bucket_min]
                 )
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "tally-bucket-rate-limit", key)
+                self.__handle_exception(e, raise_exception, always_raise, "tally-bucket-rate-limit", key)
 
-    def delete_by_pattern(self, pattern, raise_exception=False):
+    def delete_by_pattern(self, pattern, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         r"""
         Deletes all keys matching a given pattern, and returns how many keys were deleted.
         Pattern is defined as in the KEYS command: https://redis.io/commands/keys
@@ -151,11 +165,11 @@ class RedisClient:
             try:
                 return self.scripts["delete-keys-by-pattern"](args=[pattern])
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "delete-by-pattern", pattern)
+                self.__handle_exception(e, raise_exception, always_raise, "delete-by-pattern", pattern)
 
         return 0
 
-    def exceeded_rate_limit(self, cache_key, limit, interval, raise_exception=False):
+    def exceeded_rate_limit(self, cache_key, limit, interval, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         """
         Rate limiting.
         - Uses Redis sorted sets
@@ -198,52 +212,54 @@ class RedisClient:
                 result = pipe.execute()
                 return result[2] > limit
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "rate-limit-pipeline", cache_key)
+                self.__handle_exception(e, raise_exception, always_raise, "rate-limit-pipeline", cache_key)
                 return False
         else:
             return False
 
-    def set(self, key, value, ex=None, px=None, nx=False, xx=False, raise_exception=False):
+    def set(
+        self, key, value, ex=None, px=None, nx=False, xx=False, raise_exception=False, always_raise=INSTANCE_DEFAULT
+    ):
         key = prepare_value(key)
         value = prepare_value(value)
         if self.active:
             try:
                 self.redis_store.set(key, value, ex, px, nx, xx)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "set", key)
+                self.__handle_exception(e, raise_exception, always_raise, "set", key)
 
-    def incr(self, key, raise_exception=False):
+    def incr(self, key, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         key = prepare_value(key)
         if self.active:
             try:
                 return self.redis_store.incr(key)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "incr", key)
+                self.__handle_exception(e, raise_exception, always_raise, "incr", key)
 
-    def decrby(self, key, amount, raise_exception=False):
+    def decrby(self, key, amount, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         if self.active:
             try:
                 return self.redis_store.decrby(key, amount)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "decrby", key)
+                self.__handle_exception(e, raise_exception, always_raise, "decrby", key)
 
-    def get(self, key, raise_exception=False):
+    def get(self, key, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         key = prepare_value(key)
         if self.active:
             try:
                 return self.redis_store.get(key)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "get", key)
+                self.__handle_exception(e, raise_exception, always_raise, "get", key)
 
         return None
 
-    def delete(self, *keys, raise_exception=False):
+    def delete(self, *keys, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         keys = [prepare_value(k) for k in keys]
         if self.active:
             try:
                 self.redis_store.delete(*keys)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "delete", ", ".join(keys))
+                self.__handle_exception(e, raise_exception, always_raise, "delete", ", ".join(keys))
 
     def get_lock(self, key_name, **kwargs):
         if self.active:
@@ -251,14 +267,23 @@ class RedisClient:
         else:
             return StubLock(redis=None, name="")
 
-    def __handle_exception(self, e, raise_exception, operation, key_name):
+    def __handle_exception(
+        self,
+        e: BaseException,
+        raise_exception: bool,
+        always_raise: tuple[type[BaseException], ...] | type[INSTANCE_DEFAULT],
+        operation: str,
+        key_name,
+    ) -> None:
         current_app.logger.exception(
             "Redis error performing %s on %s",
             operation,
             key_name,
             extra={"redis_operation": operation, "redis_key": key_name},
         )
-        if raise_exception:
+        if always_raise is INSTANCE_DEFAULT:
+            always_raise = self.always_raise
+        if raise_exception or isinstance(e, always_raise or ()):
             raise e
 
 
