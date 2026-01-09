@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 105.0.0
+
+* Remove TemplateChange class - it is moved to notifications-admin now
+* Remove compare_to method from Template class - the only usage of this was in     
+  notifications-admin and we don't use that method anymore. Instead admin uses TemplateChange class directly
+
 ## 104.4.0
 
 * `RedisClient`: add `always_raise` mechanism for specific exception raising, set to `always_raise` `EventletTimeout` by default.
