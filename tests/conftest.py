@@ -32,7 +32,6 @@ def celery_app(mocker):
     app = Flask(__name__)
     app.config["CELERY"] = {"broker_url": "foo"}
     app.config["NOTIFY_TRACE_ID_HEADER"] = "Ex-Notify-Request-Id"
-    app.statsd_client = mocker.Mock()
     request_helper.init_app(app)
 
     ctx = app.app_context()
