@@ -1,6 +1,6 @@
 import logging
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from os import getpid
 
 from celery import Celery, Task
@@ -32,9 +32,10 @@ class NotifyTask(Task):
 
     @contextmanager
     def app_context(self):
-        with self.app.flask_app.app_context():
+        # we don't want to push a *another* app context if we already have one
+        with nullcontext() if has_app_context() else self.app.flask_app.app_context():
             # Add 'request_id' to 'g' so that it gets logged.
-            g.request_id = self.request_id
+            g.request_id = getattr(g, "request_id", self.request_id)
             yield
 
     def on_success(self, retval, task_id, args, kwargs):

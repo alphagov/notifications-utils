@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 106.0.1
+
+* Bugfix - reintroduce accidentally omitted change for `NotifyTask`
+
 ## 106.0.0
 
 * Don't generate `NotifyTask` dynamically, instead having `NotifyTask` statically defined in the `notifications_utils.celery` module. This doesn't require any *specific* any code changes, but it does have the side effect that synchronous calls to celery tasks will now *actually* be using `NotifyTask`, and any tasks delcared with `bind=True` will be receiving a `NotifyTask` instance as their `self` argument. Previously this would have been a vanilla celery `Task` instance for synchronous calls, so this might be a surprising difference.

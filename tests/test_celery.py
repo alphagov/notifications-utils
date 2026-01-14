@@ -160,20 +160,20 @@ def test_failure_queue_when_applied_synchronously(celery_app, celery_task, caplo
 
 
 def test_call_exports_request_id_from_headers(mocker, request_id_task):
-    g = mocker.patch("notifications_utils.celery.g")
+    g = mocker.patch("notifications_utils.celery.g", spec=())
     request_id_task()
     assert g.request_id == "1234"
 
 
 def test_copes_if_request_id_not_in_headers(mocker, celery_task):
-    g = mocker.patch("notifications_utils.celery.g")
+    g = mocker.patch("notifications_utils.celery.g", spec=())
     celery_task()
     assert g.request_id is None
 
 
 def test_injects_celery_task_id_if_no_request_id(mocker, celery_task):
     mocker.patch("celery.app.task.uuid", return_value="my-random-uuid")
-    g = mocker.patch("notifications_utils.celery.g")
+    g = mocker.patch("notifications_utils.celery.g", spec=())
     celery_task.apply()
     assert g.request_id == "my-random-uuid"
 
