@@ -46,6 +46,8 @@ class NotifyStatsClient(StatsClientBase):
 class StatsdClient:
     def __init__(self):
         self.statsd_client = None
+        self.active = False
+        self.namespace = ""
 
     def init_app(self, app, *args, **kwargs):
         app.statsd_client = self
