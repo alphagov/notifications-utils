@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from inspect import isclass
+from inspect import get_annotations, isclass
 from typing import Any
 
 from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
@@ -9,7 +9,7 @@ from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
 class SerialisedModelMeta(type):
     def __init__(cls, name, bases, dict_):
         for parent in cls.__mro__:
-            cls.__annotations__ = getattr(parent, "__annotations__", {}) | cls.__annotations__
+            cls.__annotations__ = get_annotations(parent) | get_annotations(cls)
         super().__init__(name, bases, dict_)
 
 
@@ -33,7 +33,7 @@ class SerialisedModel(metaclass=SerialisedModelMeta):
     """
 
     def __init__(self, _dict):
-        for property, type_ in self.__annotations__.items():
+        for property, type_ in get_annotations(type(self)).items():
             value = self.coerce_value_to_type(_dict[property], type_)
             setattr(self, property, value)
 
