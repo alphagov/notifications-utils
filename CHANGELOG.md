@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 110.0.1
+
+* Use `inspect.get_annotations` instead of the `__annotations__` property (no functional changes)
+
 ## 110.0.0
 
 * `requirements_for_test_common.in` no longer has pinned versions. Running `make freeze-requirements` in apps may cause versions of these dependencies to be bumped
