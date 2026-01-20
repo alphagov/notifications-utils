@@ -41,7 +41,7 @@ Homepage = "https://github.com/worthnl/notifynl-utils"
 [tool.pytest.ini_options]
 xfail_strict = true
 testpaths = ["tests"]
-addopts = "-p no:warnings -n auto"
+addopts = "-p no:warnings -n auto -vv"
 
 [tool.ruff]
 extend-exclude = [
