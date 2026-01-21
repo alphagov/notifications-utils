@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 106.1.0
+
+* Let consumers of `Template` rely on `Template._template` being defined when setting `Template.values`
+
 ## 106.0.1
 
 * Bugfix - reintroduce accidentally omitted change for `NotifyTask`
@@ -11,7 +15,7 @@
 ## 105.0.0
 
 * Remove TemplateChange class - it is moved to notifications-admin now
-* Remove compare_to method from Template class - the only usage of this was in     
+* Remove compare_to method from Template class - the only usage of this was in
   notifications-admin and we don't use that method anymore. Instead admin uses TemplateChange class directly
 
 ## 104.4.0
