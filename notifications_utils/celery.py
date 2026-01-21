@@ -8,6 +8,8 @@ from celery.backends.base import DisabledBackend
 from flask import Flask, g, request
 from flask.ctx import has_app_context, has_request_context
 
+from notifications_utils.clients.statsd.statsd_client import StatsdClient
+
 
 class NotifyTask(Task):
     abstract = True
@@ -149,8 +151,9 @@ class NotifyCelery(Celery):
     def init_app(self, app):
         self.flask_app = app
 
-        # Make sure this is present upfront to avoid errors later on.
-        assert app.statsd_client
+        # Make sure we have a StatsD client (even if it's just a stub) to avoid errors later on.
+        if not hasattr(app, "statsd_client"):
+            app.statsd_client = StatsdClient()
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])
