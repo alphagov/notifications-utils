@@ -79,8 +79,8 @@ class Template(ABC):
         self.name = template.get("name", None)
         self.content = template["content"]
         self.welsh_content = template.get("letter_welsh_content", None)
-        self.values = values
         self._template = template
+        self.values = values
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __repr__(self):
