@@ -30,6 +30,7 @@ dependencies = [
     "segno>=1.6.1",
     "smartypants>=2.0.1",
     "statsd>=4.0.1",
+    "opentelemetry-api",
 ]
 
 [project.urls]

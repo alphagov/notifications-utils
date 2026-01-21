@@ -7,8 +7,12 @@ from celery import Celery, Task
 from celery.backends.base import DisabledBackend
 from flask import Flask, g, request
 from flask.ctx import has_app_context, has_request_context
+from opentelemetry import metrics
 
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
+
+meter = metrics.get_meter("notify.celery")
+task_duration_histogram = meter.create_histogram(name="notify.celery.task_duration", unit="s")
 
 
 class NotifyTask(Task):
@@ -64,6 +68,8 @@ class NotifyTask(Task):
                 f"celery.{self.queue_name}.{self.name}.success",
                 elapsed_time,
             )
+
+            task_duration_histogram.record(elapsed_time, {"status": "success"})
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
