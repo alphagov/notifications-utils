@@ -91,3 +91,14 @@ def test_random_variable_retrieve():
     assert template.get_raw("created_by") == "now"
     assert template.get_raw("missing", default="random") == "random"
     assert template.get_raw("missing") is None
+
+
+def test__template_property_defined_early_enough():
+    class Custom(ConcreteTemplate):
+        @property
+        def placeholders(self):
+            # This will raise if self._template is not yet defined
+            if self._template:
+                return super().placeholders
+
+    assert Custom({"content": "foo"}, {"foo": "bar"}).placeholders == {}
