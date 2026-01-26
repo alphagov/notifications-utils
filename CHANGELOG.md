@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 107.0.0
+
+* Revert `NotifyCelery`/`NotifyTask` to version as-of 105.0.0 until we figure out the right way to address our celery workers' context issues. In the very unlikely event your code started referencing a statically-defined `NotifyTask`, you'll have undo that for now.
+
 ## 106.1.1
 
 * Fix `NotifyTask` to force-set `g.request_id` when entering a flask app context
