@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 106.1.1
+
+* Fix `NotifyTask` to force-set `g.request_id` when entering a flask app context
+
 ## 106.1.0
 
 * Let consumers of `Template` rely on `Template._template` being defined when setting `Template.values`
