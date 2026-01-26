@@ -34,8 +34,6 @@ class NotifyTask(Task):
     def app_context(self):
         # we don't want to push a *another* app context if we already have one
         with nullcontext() if has_app_context() else self.app.flask_app.app_context():
-            # Add 'request_id' to 'g' so that it gets logged.
-            g.request_id = getattr(g, "request_id", self.request_id)
             yield
 
     def on_success(self, retval, task_id, args, kwargs):
@@ -118,6 +116,8 @@ class NotifyTask(Task):
         # ensure task has flask context to access config, logger, etc
         with self.app_context():
             self.start = time.monotonic()
+            # Add 'request_id' to 'g' so that it gets logged.
+            g.request_id = self.request_id
 
             if self.request.id is not None:
                 # we're not being called synchronously
