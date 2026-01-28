@@ -4,6 +4,7 @@ requires = ["setuptools"]
 [project]
 name = "notifications-utils"
 dynamic = ["version"]
+requires-python = ">=3.13"
 description = "Shared python code for GOV.UK Notify."
 readme = "README.md"
 license = "MIT"
@@ -22,7 +23,7 @@ dependencies = [
     "mistune<2.0.0",  # v2 is totally incompatible with unclear benefit
     "ordered-set>=4.1.0",
     "phonenumbers>=9.0.9",
-    "pypdf>=3.13.0",
+    "pypdf>=6.6.0",
     "python-dateutil>=2.9.0",
     "python-json-logger>=3.3.0",
     "pyyaml>=6.0.2",
