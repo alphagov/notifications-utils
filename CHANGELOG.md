@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 108.0.0
+
+* Upgrade `PyPDF` version to `6.6.0` which is the latest stable version
+* Ensure that Python version is always `3.13` or higher
+
 ## 107.0.0
 
 * Revert `NotifyCelery`/`NotifyTask` to version as-of 105.0.0 until we figure out the right way to address our celery workers' context issues. In the very unlikely event your code started referencing a statically-defined `NotifyTask`, you'll have undo that for now.
