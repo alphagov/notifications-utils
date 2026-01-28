@@ -101,7 +101,7 @@ pluggy==1.5.0
     # via pytest
 prompt-toolkit==3.0.48
     # via click-repl
-pypdf==5.1.0
+pypdf==6.6.0
     # via notifications-utils (pyproject.toml)
 pyproject-hooks==1.2.0
     # via build
