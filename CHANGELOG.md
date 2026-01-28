@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 107.0.1
+
+* Allow letters to be addressed to ‘Palestine’ specifically
+
 ## 107.0.0
 
 * Revert `NotifyCelery`/`NotifyTask` to version as-of 105.0.0 until we figure out the right way to address our celery workers' context issues. In the very unlikely event your code started referencing a statically-defined `NotifyTask`, you'll have undo that for now.
