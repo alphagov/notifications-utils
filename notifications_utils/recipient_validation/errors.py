@@ -30,18 +30,24 @@ class InvalidPhoneError(InvalidRecipientError):
         # this catches numbers with the right length but wrong digits
         # for example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom,
         # or a 9 digit UK number that does not start "01" or "0800".
-        Codes.INVALID_NUMBER: "Number is not valid – double check the phone number you entered",  # TODO: CONTENT!
-        Codes.TOO_LONG: "Mobile number is too long",
-        Codes.TOO_SHORT: "Mobile number is too short",
+        Codes.INVALID_NUMBER: "Het telefoonnummer is ongeldig – controleer het telefoonnummer dat je hebt ingevoerd",
+        Codes.TOO_LONG: "Het mobiele telefoonnummer is te lang",
+        Codes.TOO_SHORT: "Het mobiele telefoonnummer is te kort",
         Codes.NOT_A_UK_MOBILE: (
-            "This does not look like a UK mobile number – double check the mobile number you entered"
+            "Dit lijkt geen Brits mobiel telefoonnummer te zijn – controleer het \
+            mobiele nummtelefoonnummerr dat je hebt ingevoerd"
         ),
         Codes.NOT_A_DUTCH_MOBILE: (
-            "This does not look like a dutch mobile number – double check the mobile number you entered"
+            "Dit lijkt geen Nederlands mobiel telefoonnummer te zijn – controleer \
+            het mobiele telefoonnummer dat je hebt ingevoerd"
         ),
-        Codes.UNKNOWN_CHARACTER: "Mobile numbers can only include: 0 1 2 3 4 5 6 7 8 9 ( ) + -",
-        Codes.UNSUPPORTED_COUNTRY_CODE: "Country code not found - double check the mobile number you entered",
-        Codes.UNSUPPORTED_EMERGENCY_NUMBER: "Phone number cannot be an emergency number",
+        Codes.UNKNOWN_CHARACTER: (
+            "Mobiele nummers mogen alleen de volgende tekens bevatten: 0 1 2 3 4 5 6 7 8 9 ( ) + -"
+        ),
+        Codes.UNSUPPORTED_COUNTRY_CODE: (
+            "Landcode niet gevonden – controleer het mobiele telefoonnummer dat je hebt ingevoerd"
+        ),
+        Codes.UNSUPPORTED_EMERGENCY_NUMBER: ("Het telefoonnummer mag geen alarmnummer zijn"),
     }
 
     LEGACY_V2_API_ERROR_MESSAGES = ERROR_MESSAGES | {
