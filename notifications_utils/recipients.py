@@ -448,7 +448,7 @@ class Row(InsensitiveDict):
 
     @property
     def as_postal_address(self):
-        from notifications_utils.recipient_validation.postal_address import PostalAddress
+        from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress
 
         return PostalAddress.from_personalisation(
             self.recipient_and_personalisation,

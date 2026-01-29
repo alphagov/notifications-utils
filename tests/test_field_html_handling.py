@@ -3,6 +3,7 @@ import pytest
 from notifications_utils.field import Field
 
 
+@pytest.mark.skip("[NOTIFYNL] Broken by conditional placeholders change")
 @pytest.mark.parametrize(
     "content, values, expected_escaped, expected_passthrough",
     [
@@ -56,7 +57,6 @@ from notifications_utils.field import Field
         ),
     ],
 )
-@pytest.mark.skip("[NOTIFYNL] Broken by conditional placeholders change")
 def test_field_handles_html(content, values, expected_escaped, expected_passthrough):
     assert str(Field(content, values)) == expected_escaped
     assert str(Field(content, values, html="escape")) == expected_escaped

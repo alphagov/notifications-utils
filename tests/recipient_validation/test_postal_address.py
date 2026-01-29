@@ -1,6 +1,7 @@
 import pytest
 
-from notifications_utils.countries_nl import Country, Postage
+from notifications_utils.countries import Country
+from notifications_utils.countries.data import Postage
 from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.recipient_validation.postal_address import (
     PostalAddress,

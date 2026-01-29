@@ -614,6 +614,7 @@ def test_recipient_column(content, file_contents, template_type):
     assert RecipientCSV(file_contents, template=_sample_template(template_type, content)).has_recipient_columns
 
 
+# commented out parameters are tested on test_nl_recipient_csv.py because of [NOTIFYNL] Dutch postal address changes.")
 @pytest.mark.parametrize(
     "file_contents,template_type,rows_with_bad_recipients,rows_with_missing_data",
     [
@@ -648,48 +649,48 @@ def test_recipient_column(content, file_contents, template_type):
             set(),
             set(),
         ),
-        (
-            # missing postcode
-            """
-                address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
-                name,          building,      street,        town,          county,        SE1 7LS,today
-                name,          building,      street,        town,          county,        ,        today
-            """,
-            "letter",
-            {1},
-            set(),
-        ),
-        (
-            # not enough address fields
-            """
-                address_line_1, postcode, date
-                name,           SE1 7LS, today
-            """,
-            "letter",
-            {0},
-            set(),
-        ),
-        (
-            # optional address fields not filled in
-            """
-                address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
-                name          ,123 fake st.  ,              ,              ,              ,SE1 7LS,today
-                name          ,              ,              ,              ,              ,SE1 7LS,today
-            """,
-            "letter",
-            {1},
-            set(),
-        ),
-        (
-            # Can use any address columns
-            """
-                address_line_3, address_line_4, address_line_7, date
-                name          , 123 fake st.,   SE1 7LS,        today
-            """,
-            "letter",
-            set(),
-            set(),
-        ),
+        # (
+        #     # missing postcode
+        #     """
+        #         address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
+        #         name,          building,      street,        town,          county,        SE1 7LS,today
+        #         name,          building,      street,        town,          county,        ,        today
+        #     """,
+        #     "letter",
+        #     {1},
+        #     set(),
+        # ),
+        # (
+        #     # not enough address fields
+        #     """
+        #         address_line_1, postcode, date
+        #         name,           SE1 7LS, today
+        #     """,
+        #     "letter",
+        #     {0},
+        #     set(),
+        # ),
+        # (
+        #     # optional address fields not filled in
+        #     """
+        #         address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
+        #         name          ,123 fake st.  ,              ,              ,              ,SE1 7LS,today
+        #         name          ,              ,              ,              ,              ,SE1 7LS,today
+        #     """,
+        #     "letter",
+        #     {1},
+        #     set(),
+        # ),
+        # (
+        #     # Can use any address columns
+        #     """
+        #         address_line_3, address_line_4, address_line_7, date
+        #         name          , 123 fake st.,   SE1 7LS,        today
+        #     """,
+        #     "letter",
+        #     set(),
+        #     set(),
+        # ),
         (
             """
                 ,,,,,,,,,telefoonnummer
@@ -1313,6 +1314,7 @@ def test_multi_line_placeholders_work():
     assert recipients.rows[0].personalisation["data"] == "a\nb\n\nc"
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on test_nl_test_recipients.py")
 @pytest.mark.parametrize(
     "extra_args, expected_errors, expected_bad_rows",
     (
@@ -1337,6 +1339,7 @@ def test_accepts_international_addresses_when_allowed(extra_args, expected_error
     assert recipients[0].as_postal_address.country == Country("Fiji")
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on test_nl_test_recipients.py")
 def test_address_validation_speed():
     # We should be able to validate 1000 lines of address data in about
     # a second – if it starts to get slow, something is inefficient
@@ -1402,6 +1405,7 @@ def test_recipient_csv_checks_should_validate_flag(should_validate):
     assert recipients._get_error_for_field.called is should_validate
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on test_nl_test_recipients.py")
 def test_errors_on_qr_codes_with_too_much_data():
     template = _sample_template("letter", content="QR: ((qr_code))")
     template.is_message_empty = Mock(return_value=False)

@@ -12,9 +12,6 @@ from notifications_utils.countries.data import (
 
 
 class Postage:
-    # FIRST = "netherlands"
-    # SECOND = "netherlands"
-    # ECONOMY = "netherlands"
     NL = "netherlands"
     EUROPE = "europe"
     REST_OF_WORLD = "rest-of-world"
@@ -30,10 +27,17 @@ countries = CountryMapping(
 
 
 class Country(BaseCountry):
+    def __init__(self, value):
+        try:
+            super().__init__(value)
+        except BaseCountryNotFoundError as e:
+            message = e.args[0] if e.args else str(e)
+            raise CountryNotFoundError(message) from e
+
     @property
     def postage_zone(self):
-        if self.canonical_name.lower() in ("netherlands", "nederland"):
-            return Postage.NL  # or whatever zone you want
+        if self.canonical_name.lower() in ("netherlands", "nederland", "the netherlands"):
+            return Postage.NL
         if self.canonical_name in ROYAL_MAIL_EUROPEAN:
             return Postage.EUROPE
         if self.canonical_name in EUROPEAN_ISLANDS:
