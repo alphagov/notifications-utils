@@ -130,6 +130,7 @@ def init_app(app, statsd_client=None, extra_filters: Sequence[logging.Filter] = 
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
     app.config.setdefault("NOTIFY_EVENTLET_STATS", False)
     app.config.setdefault("NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS", 1.0)
+    app.config.setdefault("ENABLE_SQS_MESSAGE_GROUP_IDS", True)
 
     @app.before_request
     def before_request():

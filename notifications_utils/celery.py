@@ -5,8 +5,10 @@ from os import getpid
 
 from celery import Celery, Task
 from celery.backends.base import DisabledBackend
-from flask import g, request
+from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
+
+from notifications_utils.patch_kombu_sqs import patch_kombu_sqs_send_message_group_id_for_standard
 
 
 def make_task(app):
@@ -31,11 +33,32 @@ def make_task(app):
             # task context (aka "request").
             return self.request.get("notify_request_id") or self.request.id
 
+        @property
+        def message_group_id(self):
+            """
+            Read the message group id from the current task context.
+
+            Celery reliably exposes custom headers on self.request as top-level keys.
+            Message properties may or may not be present depending on kombu/celery versions,
+            so we check both.
+            """
+            # Prefer header (most reliable across celery versions)
+            mgid = self.request.get("notify_message_group_id")
+            if mgid:
+                return mgid
+
+            # Fallback: kombu properties (if available)
+            props = self.request.get("properties") or {}
+            return props.get("MessageGroupId")
+
         @contextmanager
         def app_context(self):
             with app.app_context():
                 # Add 'request_id' to 'g' so that it gets logged.
                 g.request_id = self.request_id
+
+                # Make current task's MessageGroupId available for inheritance
+                g.message_group_id = self.message_group_id
                 yield
 
         def on_success(self, retval, task_id, args, kwargs):
@@ -114,6 +137,43 @@ def make_task(app):
 
                 app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
 
+        def apply_async(self, args=None, kwargs=None, **options):
+            """
+            Bridge Celery options -> Kombu message properties.
+
+            Your kombu SQS patch reads:
+                message["properties"]["MessageGroupId"]
+
+            But Celery does NOT automatically put MessageGroupId there.
+            So we move it into `properties` (and mirror into headers for reliability).
+            """
+            # Pull out caller-supplied MessageGroupId
+            mgid = options.pop("MessageGroupId", None)
+            print("🔥 APPLY_ASYNC CALLED 🔥", mgid)
+
+            # Optional inheritance: if not supplied, inherit from current Flask context
+            # (useful when a task enqueues sub-tasks)
+            if not mgid and current_app.config.get("ENABLE_SQS_MESSAGE_GROUP_IDS", True):
+                if has_app_context() and getattr(g, "message_group_id", None):
+                    mgid = g.message_group_id
+
+            if mgid:
+                current_app.logger.info(
+                    "Enqueueing celery task with MessageGroupId",
+                    extra={"celery_task": self.name, "message_group_id": mgid},
+                )
+                # Ensure properties dict exists and set MessageGroupId where kombu patch expects it
+                properties = options.setdefault("properties", {}) or {}
+                properties["MessageGroupId"] = mgid
+                options["properties"] = properties  # re-attach in case it was None-ish
+
+                # Mirror into headers so tasks can read it reliably via self.request["notify_message_group_id"]
+                headers = options.setdefault("headers", {}) or {}
+                headers["notify_message_group_id"] = mgid
+                options["headers"] = headers
+
+            return super().apply_async(args=args, kwargs=kwargs, **options)
+
         def __call__(self, *args, **kwargs):
             # ensure task has flask context to access config, logger, etc
             with self.app_context():
@@ -143,6 +203,7 @@ def make_task(app):
 
 class NotifyCelery(Celery):
     def init_app(self, app):
+        patch_kombu_sqs_send_message_group_id_for_standard()
         super().__init__(
             task_cls=make_task(app),
         )
@@ -161,6 +222,18 @@ class NotifyCelery(Celery):
 
         elif has_app_context() and "request_id" in g:
             other_kwargs["headers"]["notify_request_id"] = g.request_id
+
+        # ---- MessageGroupId bridge for send_task callers ----
+        mgid = other_kwargs.pop("MessageGroupId", None)
+        if not mgid and current_app.config.get("ENABLE_SQS_MESSAGE_GROUP_IDS", True):
+            if has_app_context() and getattr(g, "message_group_id", None):
+                mgid = g.message_group_id
+
+        if mgid:
+            props = other_kwargs.get("properties") or {}
+            props["MessageGroupId"] = mgid
+            other_kwargs["properties"] = props
+            other_kwargs["headers"]["notify_message_group_id"] = mgid
 
         return super().send_task(name, args, kwargs, **other_kwargs)
 
