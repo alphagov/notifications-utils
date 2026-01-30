@@ -8,6 +8,8 @@ from celery.backends.base import DisabledBackend
 from flask import g, request
 from flask.ctx import has_app_context, has_request_context
 
+from notifications_utils.patch_kombu_sqs import patch_kombu_sqs_send_message_group_id_for_standard
+
 
 def make_task(app):
     class NotifyTask(Task):
@@ -143,6 +145,7 @@ def make_task(app):
 
 class NotifyCelery(Celery):
     def init_app(self, app):
+        patch_kombu_sqs_send_message_group_id_for_standard()
         super().__init__(
             task_cls=make_task(app),
         )
