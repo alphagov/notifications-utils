@@ -50,7 +50,7 @@
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
                   <tr>
                     <td style="padding-left: 10px">
-                      <img src="https://static.notifications.service.gov.uk/images/govuk-logotype-tudor-crown.png" alt="" height="32" border="0" style="Margin-top: 2px;">
+                      <img src="https://static.notifications.service.gov.uk/images/govuk-logotype-tudor-crown.png" alt="" height="32" border="0" style="Margin-top: 2px;" aria-hidden="true">
                     </td>
                     <td style="font-size: 28px; line-height: 1.315789474; padding-left: 8px; padding-bottom: 8px">
                       <span style="
@@ -135,6 +135,7 @@
                     style="display: block; border: 0;"
                     height="{% if brand_text -%} 27 {%- else -%} 54 {%- endif %}"
                     alt="{% if brand_text %}{% else -%}{{ brand_alt_text }}{%- endif %}"
+                    {% if brand_text %}aria-hidden="true"{% endif %}
                   >
                 </td>
               {% endif %}
@@ -180,7 +181,7 @@
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">
                 <tr>
                   <td style="padding: 0 5px 0{% if brand_colour %} 7px; border-left: solid 2px {{ brand_colour }}{% else %} 0{% endif %}{% if not brand_text -%}; max-height: 54px{%- endif %}">
-                    <img src="{{ brand_logo }}" style="display: block; border: 0{% if not brand_text -%}; max-height: 54px{%- endif %}" height="{% if brand_text -%}27{%- else -%}54{%- endif %}" alt="{% if brand_text %}{% else -%}{{ brand_alt_text }}{%- endif %}">
+                    <img src="{{ brand_logo }}" style="display: block; border: 0{% if not brand_text -%}; max-height: 54px{%- endif %}" height="{% if brand_text -%}27{%- else -%}54{%- endif %}" alt="{% if brand_text %}{% else -%}{{ brand_alt_text }}{%- endif %}"{% if brand_text %} aria-hidden="true"{% endif %}>
                   </td>
                   {% if brand_text %}
                   <td width="100%" style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; line-height: 23px;" valign="center">
