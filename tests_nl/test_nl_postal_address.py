@@ -136,6 +136,13 @@ def test_city_detected_next_to_postcode(line, expected_city):
     assert pa.city == expected_city
 
 
+def test_city_detected_in_next_line_to_postcode():
+    pa = PostalAddress(raw_address="Name\nSome street 1\n1234AB\nDen Haag\nNederland")
+    assert pa.postcode == "1234 AB"
+    assert pa.city == "Den Haag"
+    assert pa.valid is True
+
+
 def test_international_address_with_country_last_line():
     address = """
     Baker Street 221B

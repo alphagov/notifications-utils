@@ -75,6 +75,7 @@ class PostalAddress:
 
     def __init__(self, raw_address=None, address=None, allow_international_letters=False):
         self._country = None
+        self._to_delete_city_line_index = None
         self.allow_international_letters = allow_international_letters
 
         if address is None:
@@ -154,15 +155,23 @@ class PostalAddress:
     # ---------------------------------------------------------
     @property
     def city(self):
-        for line in self._lines:
-            # detect postcode and city line
-            if has_nl_postcode([line]):  # already case-insensitive
-                # check if the city is next to postcode
-                before, after, _postcode = split_postcode_line(line)
-                city_candidate = before or after
-                # city_candidate string must NOT be a country
-                if city_candidate and not is_country_string(city_candidate):
-                    return city_candidate
+        for i, line in enumerate(self._lines):
+            if has_nl_postcode([line]):
+                before, after, _ = split_postcode_line(line)
+
+                if before and not is_country_string(before):
+                    return before.strip()
+
+                if after and not is_country_string(after):
+                    return after.strip()
+
+                # fallback: next line
+                if i + 1 < len(self._lines):
+                    next_line = self._lines[i + 1].strip()
+                    if next_line and not is_country_string(next_line):
+                        self._to_delete_city_line_index = i + 1  # mark line for deletion
+                        return next_line.strip()
+
         return None
 
     # ---------------------------------------------------------
@@ -188,14 +197,34 @@ class PostalAddress:
         )
 
     @property
+    def as_personalisation(self):
+        lines = dict.fromkeys(address_lines_1_to_6_keys, "")
+        normalised = self.normalised_lines or []
+
+        # Fill address_line_1 .. address_line_6
+        for index, value in enumerate(normalised[:6], start=1):
+            lines[f"address_line_{index}"] = value
+
+        if self.international:
+            # International letters
+            lines["postcode"] = ""
+            lines["address_line_7"] = self.country.canonical_name
+        else:
+            # NL letters
+            lines["postcode"] = self.postcode or ""
+            lines["address_line_7"] = normalised[-1] if normalised else ""
+
+        return lines
+
+    @property
     def normalised_lines(self):
         lines = list(self._lines)
+        postcode = self.postcode
+        city = self.city.strip() if self.city else None
+        international = self.international
 
         if not lines:
             return []
-
-        international = self.international
-        postcode = self.postcode
 
         # If the address is international or there is no postcode found (NL postcode),
         # stop with the normalization and return all non-empty address lines
@@ -203,22 +232,24 @@ class PostalAddress:
             return [line.strip() for line in lines if line.strip()]
 
         # only for NL addresses
-        cleaned_lines = []
-        for line in lines:
-            # Remove the line with the NLpostcode to be Replaced with the normalised (eg uppercase with spaces)
-            if re.search(NL_POSTCODE_REGEX, line, flags=re.IGNORECASE):
-                continue
+        # remove the city-only line (deleted first so the index is correct)
+        if self._to_delete_city_line_index is not None and self._to_delete_city_line_index < len(lines):
+            del lines[self._to_delete_city_line_index]
 
-            # Remove netherlands from the lines (and invalid lines)
-            if not line or line.lower() in ("netherlands", "nederland", "the netherlands"):
-                continue
+        # remove postcode line
+        lines = [line for line in lines if not re.search(NL_POSTCODE_REGEX, line, flags=re.IGNORECASE)]
 
-            cleaned_lines.append(line)
+        # remove Netherlands country lines
+        lines = [line for line in lines if line.lower() not in ("netherlands", "nederland", "the netherlands")]
 
-        if cleaned_lines:
+        # strip all remaining lines
+        cleaned_lines = [line.strip() for line in lines if line.strip()]
+
+        # append formatted postcode + city
+        if cleaned_lines and city:
             # recomended by postNL double spacing between postode and city
             # do not remove the extraspace after the postode
-            cleaned_lines.append(f"{postcode}\u00a0\u00a0{self.city}")
+            cleaned_lines.append(f"{postcode}\u00a0\u00a0{city}")
         else:
             cleaned_lines.append(postcode)
 
@@ -290,6 +321,13 @@ class PostalAddress:
     def has_valid_local_or_international_address(self):
         if self.international:
             return self.has_valid_international_address
+        else:
+            return self.has_valid_local_address
+
+    @property
+    def has_valid_last_line(self):
+        if self.international:
+            return is_country_string(self.last_line)
         else:
             return self.has_valid_local_address
 
