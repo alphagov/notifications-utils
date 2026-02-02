@@ -9,7 +9,7 @@ import pytest
 from ordered_set import OrderedSet
 
 from notifications_utils import SMS_CHAR_COUNT_LIMIT
-from notifications_utils.countries_nl import Country
+from notifications_utils.countries import Country
 from notifications_utils.qr_code import QrCodeTooLong
 from notifications_utils.recipients import (
     Cell,
