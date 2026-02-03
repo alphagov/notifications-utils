@@ -8,7 +8,7 @@ from celery.backends.base import DisabledBackend
 from flask import current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 
-from notifications_utils.patch_kombu_sqs import patch_kombu_sqs_send_message_group_id_for_standard
+# from notifications_utils.patch_kombu_sqs import patch_kombu_sqs_send_message_group_id_for_standard
 
 
 def make_task(app):
@@ -162,15 +162,36 @@ def make_task(app):
                     "Enqueueing celery task with MessageGroupId",
                     extra={"celery_task": self.name, "message_group_id": mgid},
                 )
-                # Ensure properties dict exists and set MessageGroupId where kombu patch expects it
+
+                # Ensure properties dict exists
                 properties = options.setdefault("properties", {}) or {}
+
+                # Correct shape: top-level MessageGroupId (what kombu SQS transport expects)
                 properties["MessageGroupId"] = mgid
+
+                # Sanitize any accidental nested shape: properties.properties.MessageGroupId
+                # This can happen if some caller passes properties={"properties": {...}}.
+                nested = properties.get("properties")
+                if isinstance(nested, dict) and nested.get("MessageGroupId") and nested.get("MessageGroupId") != mgid:
+                    # If there’s disagreement, keep the explicit mgid we computed
+                    pass
+                elif isinstance(nested, dict) and nested.get("MessageGroupId"):
+                    # If nested matches, remove it to avoid emitting properties.properties.*
+                    del properties["properties"]
+
                 options["properties"] = properties  # re-attach in case it was None-ish
 
-                # Mirror into headers so tasks can read it reliably via self.request["notify_message_group_id"]
+                # Mirror into headers for runtime access in task context
                 headers = options.setdefault("headers", {}) or {}
                 headers["notify_message_group_id"] = mgid
                 options["headers"] = headers
+
+            props = options.get("properties") or {}
+            if isinstance(props.get("properties"), dict) and "MessageGroupId" in props["properties"]:
+                current_app.logger.warning(
+                    "Nested MessageGroupId detected (properties.properties.MessageGroupId) - flattening applied",
+                    extra={"celery_task": self.name},
+                )
 
             return super().apply_async(args=args, kwargs=kwargs, **options)
 
@@ -203,7 +224,7 @@ def make_task(app):
 
 class NotifyCelery(Celery):
     def init_app(self, app):
-        patch_kombu_sqs_send_message_group_id_for_standard()
+        # patch_kombu_sqs_send_message_group_id_for_standard()
         super().__init__(
             task_cls=make_task(app),
         )
@@ -231,7 +252,15 @@ class NotifyCelery(Celery):
 
         if mgid:
             props = other_kwargs.get("properties") or {}
+
+            # Correct shape
             props["MessageGroupId"] = mgid
+
+            #  Remove nested shape if some caller created it
+            nested = props.get("properties")
+            if isinstance(nested, dict) and nested.get("MessageGroupId") == mgid:
+                del props["properties"]
+
             other_kwargs["properties"] = props
             other_kwargs["headers"]["notify_message_group_id"] = mgid
 
