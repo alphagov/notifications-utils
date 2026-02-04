@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 107.0.2
+
+Hide logo images from assistive tech. They already have alt='', which should do this, but the
+Outlook app on Android and iOS phones doesn't recognise it so we also add aria-hidden.
+
 ## 107.0.1
 
 * Allow letters to be addressed to ‘Palestine’ specifically
