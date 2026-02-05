@@ -1,16 +1,19 @@
 import logging
 import re
+from functools import lru_cache
 
 from notifications_utils.countries_nl import Country, CountryNotFoundError, Postage
 from notifications_utils.formatters import (
     get_lines_with_normalised_whitespace,
+    remove_whitespace,
     remove_whitespace_before_punctuation,
 )
 
 log = logging.getLogger(__name__)
 
 country_NL = Country("Netherlands")
-NL_POSTCODE_REGEX = r"\b[1-9][0-9]{3}\s?[A-Z]{2}\b"
+NL_POSTCODE_REGEX = r"\b[1-9][0-9]{3}\s?[A-Z]{2}\b"  # For finding a postcode inside a longer line
+NL_POSTCODE_COMPACT_REGEX = r"[1-9][0-9]{3}[A-Z]{2}"  # For validating a compact, already-normalized string
 
 address_lines_1_to_5_keys = [
     "address_line_1",
@@ -32,10 +35,6 @@ class MissingCityError(Exception):
     pass
 
 
-def has_nl_postcode(lines):
-    return any(re.search(NL_POSTCODE_REGEX, line, flags=re.IGNORECASE) for line in lines)
-
-
 def is_country_string(value):
     try:
         Country(value)
@@ -49,10 +48,39 @@ def split_postcode_line(line):
     if not match:
         return None, None, None  # before, after, postcode
 
-    postcode = match.group().upper()  # normalized postcode
+    postcode = match.group().upper()  # uppercased postcode
     before = line[: match.start()].strip()
     after = line[match.end() :].strip()
     return before, after, postcode
+
+
+def normalise_postcode(postcode):
+    return remove_whitespace(postcode).upper()
+
+
+def _is_a_real_nl_postcode(postcode):
+    normalised = normalise_postcode(postcode)
+    pattern = re.compile(rf"{NL_POSTCODE_COMPACT_REGEX}")
+    return bool(pattern.fullmatch(normalised))
+
+
+def format_postcode_for_printing(postcode):
+    """
+    This function formats the postcode so that it is ready for automatic sorting by PostNL.
+    :param String postcode: A postcode that's already been validated by _is_a_real_nl_postcode
+    """
+    postcode = normalise_postcode(postcode)
+    return f"{postcode[:4]} {postcode[4:]}"
+
+
+# When processing an address we look at the postcode twice when
+# normalising it, and once when validating it. So 8 is chosen because
+# it’s 3, doubled to give some headroom then rounded up to the nearest
+# power of 2
+@lru_cache(maxsize=8)
+def format_nl_postcode_or_none(postcode):
+    if _is_a_real_nl_postcode(postcode):
+        return format_postcode_for_printing(postcode)
 
 
 def country_is_netherlands(country):
@@ -132,15 +160,15 @@ class PostalAddress:
     # ---------------------------------------------------------
     # POSTCODE - (NL match)
     # ---------------------------------------------------------
+
     @property
     def postcode(self):
-        if not self.international:
-            for line in reversed(self._lines):
-                match = re.search(NL_POSTCODE_REGEX, line.upper())
-                if match:
-                    cleaned = match.group(0).replace(" ", "")
-                    return f"{cleaned[:4]} {cleaned[4:]}"
-                return None
+        if self.international:
+            return None
+        for line in reversed(self._lines):
+            _, _, postcode = split_postcode_line(line)
+            if postcode:
+                return format_nl_postcode_or_none(postcode)
         return None
 
     # ---------------------------------------------------------
@@ -149,9 +177,8 @@ class PostalAddress:
     @property
     def city(self):
         for i, line in enumerate(self._lines):
-            if has_nl_postcode([line]):
-                before, after, _ = split_postcode_line(line)
-
+            before, after, postcode = split_postcode_line(line)
+            if postcode:
                 if before and not is_country_string(before):
                     return before.strip()
 
@@ -254,6 +281,10 @@ class PostalAddress:
     @property
     def normalised(self):
         return "\n".join(self.normalised_lines)
+
+    @property
+    def as_single_line(self):
+        return ", ".join(self.normalised_lines)
 
     # ---------------------------------------------------------
     # POSTAGE / INTERNATIONAL
