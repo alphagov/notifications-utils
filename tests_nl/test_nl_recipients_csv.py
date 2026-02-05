@@ -68,8 +68,8 @@ def _index_rows(rows):
         (
             # Can use any address columns
             """
-                address_line_3, address_line_4, address_line_7, date
-                name          , 123 fake st.,   2552HN Den Haag,        today
+                address_line_3, address_line_4, address_line_5,  date
+                name,           123 fake st.,   2552HN Den Haag, today
             """,
             "letter",
             set(),

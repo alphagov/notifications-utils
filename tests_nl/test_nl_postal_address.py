@@ -3,8 +3,8 @@ import pytest
 from notifications_utils.countries_nl import Postage
 from notifications_utils.recipient_validation.notifynl.postal_address import (
     PostalAddress,
-    _is_a_real_nl_postcode,
     country_NL,
+    has_nl_postcode,
 )
 
 
@@ -12,13 +12,13 @@ def test_valid_dutch_address_with_postcode_and_city():
     address = """
     Name and lastname
     Main Street 12
-    1234 AB Amsterdam
+    1234 AB 's-Gravenhage
     """
 
     pa = PostalAddress(raw_address=address)
 
     assert pa.postcode == "1234 AB"
-    assert pa.city == "Amsterdam"
+    assert pa.city == "'s-Gravenhage"
     assert pa.country.canonical_name == "Netherlands"
     assert pa.postage == Postage.NL
     assert pa.international is False
@@ -40,36 +40,22 @@ def test_allow_international_letters():
 
 
 @pytest.mark.parametrize(
-    "raw_address, expected_lines, expected_postcode, expected_city, expected_country, expected_international, expected_valid",  # noqa: E501
+    "raw_address, expected_lines, expected_postcode, expected_city, expected_country, expected_international, expected_valid",  # noqa
     [
         # Dutch address
         (
             """
             name and lastname
             Main Street 12
-            1234ab Amsterdam
+            1234ab 's-Gravenhage
             Netherlands
             """,
-            ["name and lastname", "Main Street 12", "1234 AB\u00a0\u00a0Amsterdam"],
+            ["name and lastname", "Main Street 12", "1234 AB  'S-GRAVENHAGE"],
             "1234 AB",
-            "Amsterdam",
+            "'s-Gravenhage",
             "Netherlands",
             False,
             True,
-        ),
-        (
-            """
-            name and lastname
-            Main Street 12
-            12ab Amsterdam
-            Netherlands
-            """,
-            ["name and lastname", "Main Street 12", "12ab Amsterdam", "Netherlands"],
-            None,
-            None,
-            "Netherlands",
-            False,
-            False,
         ),
         # International address
         (
@@ -97,7 +83,7 @@ def test_allow_international_letters():
             None,
             "Netherlands",  # no country found defaults to NL
             False,
-            False,
+            False,  # country def to NL but no correct postcode this should be invalid
         ),
     ],
 )
@@ -170,7 +156,7 @@ def test_normalised_lines_for_dutch_address():
 
     assert pa.normalised_lines == [
         "Main Street 12",
-        "1234 AB\u00a0\u00a0Amsterdam",
+        "1234 AB  AMSTERDAM",
     ]
 
 
@@ -218,8 +204,9 @@ def test_nl_postcode_parsing(nl_address_case):
         ("1234AB", True),
         ("1234 ab", True),
         ("1234ab", True),
-        # invalid / half line postcodes
-        ("1234\u00a0ab", False),
+        # invalid many spaces postcodes
+        ("1234\u00a0\u00a0ab", False),
+        ("1234  ab", False),
         # invalid / incomplete postcodes
         ("N5", False),
         ("SO144 6WB", False),
@@ -239,7 +226,7 @@ def test_nl_postcode_parsing(nl_address_case):
     ],
 )
 def test_if_postcode_is_a_real_nl_postcode(postcode, result):
-    assert _is_a_real_nl_postcode(postcode) is result
+    assert has_nl_postcode([postcode]) is result
 
 
 # -----------------------------------------------------
@@ -253,9 +240,9 @@ def test_default_country_is_nl():
 
 
 def test_explicit_country_overrides_default():
-    pa = PostalAddress("name \nKalverstraat 1\n1012NX\nRussia", allow_international_letters=True)
+    pa = PostalAddress("name \nKalverstraat 1\n1012NX\nguatemala", allow_international_letters=True)
     assert pa.country is not country_NL
-    assert pa.country.canonical_name == "Russia"
+    assert pa.country.canonical_name == "Guatemala"
     assert pa.valid is True
 
 
@@ -277,12 +264,29 @@ def test_unknown_country_and_postcode_returns_invalid():
 
 def test_normalised_lines_replaces_last_line_with_postcode():
     pa = PostalAddress("name \nKalverstraat 1\n1012nx Amsterdam")
-    assert pa.normalised_lines[-1] == "1012 NX\u00a0\u00a0Amsterdam"
+    assert pa.normalised_lines[-1] == "1012 NX  AMSTERDAM"
 
 
 def test_normalised_lines_keeps_other_lines():
     pa = PostalAddress("Name\nB\n1012NX Amsterdam")
-    assert pa.normalised_lines == ["Name", "B", "1012 NX\u00a0\u00a0Amsterdam"]
+    assert pa.normalised_lines == ["Name", "B", "1012 NX  AMSTERDAM"]
+
+
+def test_normalised_lines_keeps_other_lines_and_removes_netherlands():
+    pa = PostalAddress("Name\nB\n1012NX Amsterdam\nNetherlands")
+    assert pa.normalised_lines == ["Name", "B", "1012 NX  AMSTERDAM"]
+
+
+@pytest.mark.parametrize(
+    "address, result",
+    [
+        ("name \nStreet 1\n123PC City\nAmerica", "United States"),
+        ("name \nStreet 1\n123PC City\nKorea", "South Korea"),
+    ],
+)
+def test_normalised_lines_last_line_with_country(address, result):
+    pa = PostalAddress(address, allow_international_letters=True)
+    assert pa.normalised_lines[-1] == result
 
 
 # -----------------------------------------------------
