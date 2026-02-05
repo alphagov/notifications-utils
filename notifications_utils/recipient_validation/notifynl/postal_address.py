@@ -84,8 +84,12 @@ def format_nl_postcode_or_none(postcode):
 
 
 def country_is_netherlands(country):
-    if str(country).lower() in ("netherlands", "nederland"):
-        return True
+    return str(country).lower() in (
+        "netherlands",
+        "nederland",
+        "the netherlands",
+        "de netherland",
+    )
 
 
 class PostalAddress:
@@ -245,10 +249,10 @@ class PostalAddress:
 
         # If the address is international or there is no postcode found (NL postcode),
         # stop with the normalization and return all non-empty address lines
-        if self.has_valid_international_address:
+        if self.country and not country_is_netherlands(self.country.canonical_name):
             cleaned = [line.strip() for line in lines if line.strip()]
 
-            if cleaned and self.country:
+            if cleaned:
                 cleaned[-1] = self.country.canonical_name
 
             return cleaned

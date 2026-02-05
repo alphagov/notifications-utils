@@ -153,6 +153,54 @@ def test_international_address_with_country_last_line():
     assert pa.valid is True
 
 
+@pytest.mark.parametrize(
+    "address, expected_international",
+    (
+        (
+            "",
+            False,
+        ),
+        (
+            """
+                Name
+                123 Example Street
+                1234 AB City
+                Netherlands
+            """,
+            False,
+        ),
+        (
+            """
+                Name
+                123 Example Street
+                City of Town
+                United Kingdom
+            """,
+            True,
+        ),
+        (
+            """
+                Name
+                123 Example Street
+                City of Town
+                Guernsey
+            """,
+            True,
+        ),
+        (
+            """
+                Name
+                123 Example Straße
+                Deutschland
+            """,
+            True,
+        ),
+    ),
+)
+def test_international(address, expected_international):
+    assert PostalAddress(address, allow_international_letters=True).international is expected_international
+
+
 def test_normalised_lines_for_dutch_address():
     address = """
     Main Street 12
@@ -166,6 +214,47 @@ def test_normalised_lines_for_dutch_address():
         "Main Street 12",
         "1234 AB  AMSTERDAM",
     ]
+
+
+@pytest.mark.parametrize(
+    "address, expected_normalised, expected_as_single_line",
+    (
+        (
+            "",
+            "",
+            "",
+        ),
+        (
+            """
+        Name   LastName   .
+        Street    and     Number
+
+        1234  AB   City
+        """,
+            ("Name LastName.\nStreet and Number\n1234 AB  CITY"),
+            ("Name LastName., Street and Number, 1234 AB  CITY"),
+        ),
+        (
+            ("Name LastName. \t  ,    \n, , ,  ,   ,     ,        ,\nStreet and Number, Extra,\n1234 AB City,,\n"),
+            ("Name LastName.\nStreet and Number, Extra\n1234 AB  CITY"),
+            ("Name LastName., Street and Number, Extra, 1234 AB  CITY"),
+        ),
+        (
+            """
+            Name LastName
+          123  Example Straße
+        Deutschland
+
+
+        """,
+            ("Name LastName\n123 Example Straße\nGermany"),
+            ("Name LastName, 123 Example Straße, Germany"),
+        ),
+    ),
+)
+def test_normalised(address, expected_normalised, expected_as_single_line):
+    assert PostalAddress(address).normalised == expected_normalised
+    assert PostalAddress(address).as_single_line == expected_as_single_line
 
 
 def test_invalid_characters_in_address_line():
@@ -389,3 +478,117 @@ def test_does_not_treat_bfpo_as_special():
     assert not getattr(pa, "is_bfpo_address", False)
     assert pa.postcode == "1012 NX"
     assert pa.valid is True
+
+
+@pytest.mark.parametrize(
+    "address, expected_personalisation",
+    (
+        (
+            "",
+            {
+                "address_line_1": "",
+                "address_line_2": "",
+                "address_line_3": "",
+                "address_line_4": "",
+                "address_line_5": "",
+                "address_line_6": "",
+                "postcode": "",
+            },
+        ),
+        (
+            """
+        name
+        123 Example Street
+        1234AB City
+        """,
+            {
+                "address_line_1": "name",
+                "address_line_2": "123 Example Street",
+                "address_line_3": "",
+                "address_line_4": "",
+                "address_line_5": "",
+                "address_line_6": "1234 AB  CITY",
+                "postcode": "1234 AB",
+            },
+        ),
+        (
+            """
+        One
+        Two
+        Three
+        Four
+        Five
+        Six
+        """,
+            {
+                "address_line_1": "One",
+                "address_line_2": "Two",
+                "address_line_3": "Three",
+                "address_line_4": "Four",
+                "address_line_5": "Five",
+                "address_line_6": "Six",
+                "postcode": "",
+            },
+        ),
+    ),
+)
+def test_as_personalisation(address, expected_personalisation):
+    assert PostalAddress(address).as_personalisation == expected_personalisation
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        (""),
+        (
+            """
+            Example name
+            123 Example Street
+            1234 AB City
+            """
+        ),
+        (
+            """
+            User with no Fixed Address,
+            1234 AB City
+            """
+        ),
+        (
+            """
+            A Person
+            NFA
+            1234 AB Den Haag
+            """
+        ),
+        (
+            """
+            A Person
+            NFA,
+            1234 AB Den Haag
+            """
+        ),
+        (
+            """
+            A Person
+            no fixed Abode
+            1234 AB Den Haag
+            """
+        ),
+        (
+            """
+            A Person
+            NO FIXED ADDRESS
+            1234 AB Den Haag
+            """
+        ),
+        (
+            """
+            nfa
+            1234 AB Den Haag
+            Netherlands
+            """
+        ),
+    ],
+)
+def test_has_no_fixed_abode_address(address):
+    assert PostalAddress(address).has_no_fixed_abode_address is False  # NL always returns False for no fixed abode

@@ -273,6 +273,7 @@ def test_has_invalid_characters(address, expected_result):
     assert PostalAddress(address).has_invalid_characters is expected_result
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_result",
     [
@@ -342,6 +343,7 @@ def test_has_no_fixed_abode_address(address, expected_result):
     assert PostalAddress(address).has_no_fixed_abode_address is expected_result
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_international",
     (
@@ -386,6 +388,7 @@ def test_international(address, expected_international):
     assert PostalAddress(address).international is expected_international
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_normalised, expected_as_single_line",
     (
