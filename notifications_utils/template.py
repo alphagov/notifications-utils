@@ -640,8 +640,8 @@ class BaseLetterTemplate(SubjectMixin, Template):
         if self.postal_address.has_enough_lines and not self.postal_address.has_too_many_lines:
             return self.postal_address.normalised_lines
 
-        if "address line 7" not in self.values and "postcode" in self.values:
-            self.values["address line 7"] = self.values["postcode"]
+        if "address line 6" not in self.values and "postcode" in self.values:
+            self.values["address line 6"] = self.values["postcode"]
 
         return Field(
             self.address_block,
