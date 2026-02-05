@@ -323,6 +323,10 @@ class PostalAddress:
         )
 
     @property
+    def has_valid_postcode(self):
+        return self.postcode is not None
+
+    @property
     def has_no_fixed_abode_address(self):
         return False
 
@@ -361,7 +365,7 @@ class PostalAddress:
     @property
     def has_valid_last_line(self):
         if self.international:
-            return is_country_string(self.last_line)
+            return self.allow_international_letters and is_country_string(self.last_line)
         else:
             return self.has_valid_local_address
 

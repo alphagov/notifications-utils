@@ -14,6 +14,7 @@ def test_raw_address():
     assert PostalAddress(raw_address).raw_address == raw_address
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - NL is now default")
 @pytest.mark.parametrize(
     "address, expected_country",
     (
@@ -55,6 +56,7 @@ def test_country(address, expected_country):
     assert PostalAddress(address).country == expected_country
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, enough_lines_expected",
     (
@@ -106,6 +108,7 @@ def test_has_enough_lines(address, enough_lines_expected):
     assert PostalAddress(address).has_enough_lines is enough_lines_expected
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, too_many_lines_expected",
     (
@@ -175,6 +178,7 @@ def test_has_too_many_lines(address, too_many_lines_expected):
     assert PostalAddress(address).has_too_many_lines is too_many_lines_expected
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_postcode",
     (
@@ -429,6 +433,7 @@ def test_normalised(address, expected_normalised, expected_as_single_line):
     assert PostalAddress(address).as_single_line == expected_as_single_line
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch Postage implementation")
 @pytest.mark.parametrize(
     "address, expected_postage",
     (
@@ -472,6 +477,7 @@ def test_postage(address, expected_postage):
     assert PostalAddress(address).postage == expected_postage
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "personalisation",
     (
@@ -513,6 +519,7 @@ def test_from_personalisation(personalisation):
     )
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 def test_from_personalisation_handles_int():
     personalisation = {
         "address_line_1": 123,
@@ -525,6 +532,7 @@ def test_from_personalisation_handles_int():
     )
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_personalisation",
     (
@@ -759,6 +767,7 @@ def test_normalise_postcode(postcode, normalised_postcode):
 #     assert format_postcode_for_printing(postcode) == postcode_with_space
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, international, expected_valid",
     (
@@ -879,6 +888,7 @@ def test_valid_with_international_parameter(address, international, expected_val
     assert postal_address.has_valid_last_line is expected_valid
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address",
     (
@@ -923,6 +933,7 @@ def test_valid_with_invalid_characters():
     assert PostalAddress(address, allow_international_letters=True).valid is False
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation NO NFA")
 def test_valid_with_nfa_address():
     postal_address = PostalAddress("User\nNo fixed abode\nSW1 1AA")
     assert postal_address.valid is False
@@ -946,6 +957,7 @@ def test_valid_from_personalisation_with_international_parameter(international, 
     )
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 def test_from_personalisation_to_normalisation_doesnt_stringify_nones():
     assert PostalAddress.from_personalisation(
         InsensitiveDict(
@@ -962,6 +974,7 @@ def test_from_personalisation_to_normalisation_doesnt_stringify_nones():
     ).normalised_lines == ["Notify user", "Notifyland", "SW1 1AA"]
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, is_bfpo",
     (
@@ -981,6 +994,7 @@ def test_bfpo_addresses(address, is_bfpo):
     assert PostalAddress(address).is_bfpo_address == is_bfpo
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation No VFPO")
 @pytest.mark.parametrize(
     "address, bfpo_number",
     (
@@ -1006,6 +1020,7 @@ def test_bfpo_number_parsing(address, bfpo_number):
     assert PostalAddress(address).bfpo_number == bfpo_number
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_normalised_lines",
     (
@@ -1024,6 +1039,7 @@ def test_normalised_lines(address, expected_normalised_lines):
     assert PostalAddress(address).normalised_lines == expected_normalised_lines
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 @pytest.mark.parametrize(
     "address, expected_bfpo_address_lines",
     (
@@ -1037,11 +1053,13 @@ def test_bfpo_address_lines(address, expected_bfpo_address_lines):
     assert PostalAddress(address).bfpo_address_lines == expected_bfpo_address_lines
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 def test_bfpo_address_lines_error():
     with pytest.raises(ValueError):
         assert PostalAddress("Mr X\nLondon\nSW1 1AA").bfpo_address_lines
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation")
 def test_bfpo_address_with_country_still_shows_country_in_normalised_lines_even_if_invalid():
     assert PostalAddress(
         """International BFPO

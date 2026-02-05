@@ -1,6 +1,7 @@
 import pytest
 
 from notifications_utils.countries_nl import Postage
+from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.recipient_validation.notifynl.postal_address import (
     PostalAddress,
     _is_a_real_nl_postcode,
@@ -592,3 +593,303 @@ def test_as_personalisation(address, expected_personalisation):
 )
 def test_has_no_fixed_abode_address(address):
     assert PostalAddress(address).has_no_fixed_abode_address is False  # NL always returns False for no fixed abode
+
+
+def test_from_personalisation_handles_int():
+    personalisation = {
+        "address_line_1": 123,
+        "address_line_2": "Example Street",
+        "address_line_3": "1234 AB City",
+        "address_line_4": "Netherlands",
+    }
+    assert PostalAddress.from_personalisation(personalisation).normalised == ("123\nExample Street\n1234 AB  CITY")
+
+
+@pytest.mark.parametrize(
+    "address, expected_postage",
+    (
+        (
+            "",
+            Postage.NL,
+        ),
+        (
+            """
+        Name
+        123 Example Street
+        1234 AB City of Town
+        """,
+            Postage.NL,
+        ),
+        (
+            """
+            123 Example Street
+            City of Town
+            Scotland
+        """,
+            Postage.REST_OF_WORLD,
+        ),
+        (
+            """
+            123 Example Straße
+            Deutschland
+        """,
+            Postage.EUROPE,
+        ),
+        (
+            """
+        123 Rue Example
+        Côte d'Ivoire
+        """,
+            Postage.REST_OF_WORLD,
+        ),
+    ),
+)
+def test_postage(address, expected_postage):
+    assert PostalAddress(address).postage == expected_postage
+
+
+@pytest.mark.parametrize(
+    "personalisation",
+    (
+        {
+            "address_line_1": "Name",
+            "address_line_3": "123 Example Street",
+            "address_line_4": "",
+            "postcode": "1234AB City",
+            "ignore me": "ignore me",
+        },
+        {
+            "address_line_1": "Name",
+            "address_line_3": "123 Example Street",
+            "address_line_4": "1234AB City",
+        },
+        {
+            "address_line_2": "Name",
+            "address_line_5": "123 Example Street",
+            "address_line_6": "1234 AB City",
+        },
+        {
+            "address_line_1": "Name",
+            "address_line_3": "123 Example Street",
+            "address_line_6": "1234 AB City ",
+            "postcode": "ignored if address line 6 provided",
+        },
+        InsensitiveDict(
+            {
+                "address_line_1": "Name",
+                "address line 2": "123 Example Street",
+                "ADDRESS_LINE_3": "",
+                "Address-Line-6": "1234  AB City",
+            }
+        ),
+    ),
+)
+def test_from_personalisation(personalisation):
+    assert PostalAddress.from_personalisation(personalisation).normalised == ("Name\n123 Example Street\n1234 AB  CITY")
+
+
+@pytest.mark.parametrize(
+    "address, expected_postcode",
+    (
+        (
+            "",
+            None,
+        ),
+        (
+            """
+        Name LastName
+        123 Example Street
+        1234AB City of Town
+        """,
+            "1234 AB",
+        ),
+        (
+            """
+        Name LastName
+        123 Example Street
+        1234 AB City of Town
+        """,
+            "1234 AB",
+        ),
+        (
+            """
+        Name LastName
+        123 Example Straße
+        Deutschland
+        """,
+            None,
+        ),
+        (
+            """
+        123 Example Straße
+        1234 AB City
+        Deutschland
+        """,
+            None,
+        ),
+    ),
+)
+def test_postcode(address, expected_postcode):
+    assert PostalAddress(address).has_valid_postcode is bool(expected_postcode)
+    assert PostalAddress(address).postcode == expected_postcode
+
+
+def test_from_personalisation_to_normalisation_doesnt_stringify_nones():
+    assert PostalAddress.from_personalisation(
+        InsensitiveDict(
+            {
+                "addressline1": "Notify user",
+                "addressline2": "Notifyland",
+                "addressline3": None,
+                "addressline4": None,
+                "addressline5": None,
+                "addressline6": "1234 AB City",
+            }
+        )
+    ).normalised_lines == ["Notify user", "Notifyland", "1234 AB  CITY"]
+
+
+@pytest.mark.parametrize(
+    "address",
+    (
+        """
+        Too short, valid postcode
+        1234AB City
+    """,
+        """
+        Too short, valid country
+        Bhutan
+    """,
+        """
+        Too long, valid postcode
+        2
+        3
+        4
+        5
+        6
+        1234 AB CITY
+    """,
+        """
+        Too long, valid country
+        2
+        3
+        4
+        5
+        6
+        Bhutan
+    """,
+    ),
+)
+def test_valid_last_line_too_short_too_long(address):
+    postal_address = PostalAddress(address, allow_international_letters=True)
+    assert postal_address.valid is False
+    assert postal_address.has_valid_last_line is True
+
+
+@pytest.mark.parametrize(
+    "address, international, expected_valid",
+    (
+        (
+            """
+            NL Address
+            Service can’t send internationally
+            1234AB City
+        """,
+            False,
+            True,
+        ),
+        (
+            """
+            NL Address
+            Service can send internationally
+            1234AB City
+        """,
+            True,
+            True,
+        ),
+        (
+            """
+            Overseas address
+            Service can’t send internationally
+            Guinea-Bissau
+        """,
+            False,
+            False,
+        ),
+        (
+            """
+            Overseas address
+            Service can send internationally
+            Guinea-Bissau
+        """,
+            True,
+            True,
+        ),
+        (
+            """
+            Overly long address
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+        """,
+            True,
+            False,
+        ),
+        (
+            """
+            Address too short
+            2
+        """,
+            True,
+            False,
+        ),
+        (
+            """
+            House
+            Service can’t send internationally
+            France
+        """,
+            False,
+            False,
+        ),
+        (
+            """
+            No postcode or country
+            Service can’t send internationally
+            3
+        """,
+            False,
+            False,
+        ),
+        (
+            """
+            No postcode or country
+            Service can send internationally
+            3
+        """,
+            True,
+            False,
+        ),
+        (
+            """
+            Postcode and country
+            Service can’t send internationally
+            1234 AB
+            France
+        """,
+            False,
+            False,
+        ),
+    ),
+)
+def test_valid_with_international_parameter(address, international, expected_valid):
+    postal_address = PostalAddress(
+        address,
+        allow_international_letters=international,
+    )
+    assert postal_address.valid is expected_valid
+    assert postal_address.has_valid_last_line is expected_valid
