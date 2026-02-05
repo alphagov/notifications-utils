@@ -23,24 +23,37 @@
     body { margin:0 !important; }
     div[style*="margin: 16px 0"] { margin:0 !important; }
   </style>
-
-  <!--[if gte mso 9]>
-    <style>
-      li {
-        margin-left: 4px !important;
-      }
-      table {
-        mso-table-lspace: 0pt;
-        mso-table-rspace: 0pt;
-      }
-    </style>
-  <![endif]-->
-
 </head>
 
 <body style="font-family: Helvetica, Arial, sans-serif;font-size: 16px;margin: 0;color:#0b0c0c;">
 {% endif %}
+
+
 <span style="display: none;font-size: 1px;color: #fff; max-height: 0;" hidden>{{ preheader }}…</span>
+
+{% if govuk_banner %}
+  <table role="presentation" width="100%" style="border-collapse: collapse;min-width: 100%;width: 100% !important;" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td width="100%" height="60" class="brand__banner">
+        <table role="presentation" width="100%" style="border-collapse: collapse;max-width: 580px;" cellpadding="0" cellspacing="0" border="0" align="center">
+          <tr>
+            <td valign="bottom">
+              <a href="https://www.rijksoverheid.nl/" title="Ga naar de website van de rijksoverheid." style="text-decoration: none;color: #fff">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;margin:0 auto">
+                  <tr>
+                      <td valign="bottom" height="60" class="logo__goverment">
+                          {% include '_default_logo_svg.jinja2' %}
+                      </td>
+                  </tr>
+                </table>
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+{%endif%}
 {% if brand_banner %}
   {% set brand_colour = brand_colour if brand_colour else '#0b0c0c' %}
   <table role="presentation" width="100%" style="border-collapse: collapse;min-width: 100%;width: 100% !important;" cellpadding="0" cellspacing="0" border="0">

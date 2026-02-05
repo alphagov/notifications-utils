@@ -45,7 +45,7 @@ from notifications_utils.markdown import (
     notify_plain_text_email_markdown,
 )
 from notifications_utils.qr_code import QrCodeTooLong
-from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress, address_lines_1_to_7_keys
+from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress, address_lines_1_to_6_keys
 from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
@@ -571,7 +571,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     max_page_count = LETTER_MAX_PAGE_COUNT
     max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
 
-    address_block = "\n".join(f"(({line.replace('_', ' ')}))" for line in address_lines_1_to_7_keys)
+    address_block = "\n".join(f"(({line.replace('_', ' ')}))" for line in address_lines_1_to_6_keys)
 
     def __init__(
         self,
