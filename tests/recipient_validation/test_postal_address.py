@@ -3,10 +3,8 @@ import pytest
 from notifications_utils.countries import Country
 from notifications_utils.countries.data import Postage
 from notifications_utils.insensitive_dict import InsensitiveDict
-from notifications_utils.recipient_validation.postal_address import (
+from notifications_utils.recipient_validation.notifynl.postal_address import (
     PostalAddress,
-    _is_a_real_uk_postcode,
-    format_postcode_for_printing,
     normalise_postcode,
 )
 
@@ -689,69 +687,73 @@ def test_normalise_postcode(postcode, normalised_postcode):
     assert normalise_postcode(postcode) == normalised_postcode
 
 
-@pytest.mark.parametrize(
-    "postcode, result",
-    [
-        # real standard UK poscodes
-        ("SW1 3EF", True),
-        ("SW13EF", True),
-        ("SE1 63EF", True),
-        ("N5 1AA", True),
-        ("SO14 6WB", True),
-        ("so14 6wb", True),
-        ("so14\u00a06wb", True),
-        # invalida / incomplete postcodes
-        ("N5", False),
-        ("SO144 6WB", False),
-        ("SO14 6WBA", False),
-        ("NF1 1AA", False),
-        ("", False),
-        ("Bad postcode", False),
-        # British Forces Post Office numbers are not postcodes
-        ("BFPO1234", False),
-        ("BFPO C/O 1234", False),
-        ("BFPO 1234", False),
-        ("BFPO1", False),
-        ("BFPO", False),
-        ("BFPO12345", False),
-        # But actual BFPO post codes are still valid post codes
-        ("BF1 3AA", True),
-        ("BF13AA", True),
-        (" BF2 0FR ", True),
-        # Giro Bank’s vanity postcode is deprecated
-        ("GIR0AA", False),
-        # Gibraltar’s one postcode is not valid because it’s in the
-        # Europe postal zone
-        ("GX111AA", False),
-    ],
-)
-def test_if_postcode_is_a_real_uk_postcode(postcode, result):
-    assert _is_a_real_uk_postcode(postcode) is result
+# @pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on tests_nl/test_nl_postal_address.py")
+# @pytest.mark.parametrize(
+#     "postcode, result",
+#     [
+#         # real standard UK poscodes
+#         ("SW1 3EF", True),
+#         ("SW13EF", True),
+#         ("SE1 63EF", True),
+#         ("N5 1AA", True),
+#         ("SO14 6WB", True),
+#         ("so14 6wb", True),
+#         ("so14\u00a06wb", True),
+#         # invalida / incomplete postcodes
+#         ("N5", False),
+#         ("SO144 6WB", False),
+#         ("SO14 6WBA", False),
+#         ("NF1 1AA", False),
+#         ("", False),
+#         ("Bad postcode", False),
+#         # British Forces Post Office numbers are not postcodes
+#         ("BFPO1234", False),
+#         ("BFPO C/O 1234", False),
+#         ("BFPO 1234", False),
+#         ("BFPO1", False),
+#         ("BFPO", False),
+#         ("BFPO12345", False),
+#         # But actual BFPO post codes are still valid post codes
+#         ("BF1 3AA", True),
+#         ("BF13AA", True),
+#         (" BF2 0FR ", True),
+#         # Giro Bank’s vanity postcode is deprecated
+#         ("GIR0AA", False),
+#         # Gibraltar’s one postcode is not valid because it’s in the
+#         # Europe postal zone
+#         ("GX111AA", False),
+#     ],
+# )
+
+# def test_if_postcode_is_a_real_uk_postcode(postcode, result):
+#     assert _is_a_real_uk_postcode(postcode) is result
 
 
-def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(mocker):
-    normalise_postcode_mock = mocker.patch("notifications_utils.recipient_validation.postal_address.normalise_postcode")
-    normalise_postcode_mock.return_value = "SW11AA"
-    assert _is_a_real_uk_postcode("sw1  1aa") is True
+# def test_if_postcode_is_a_real_uk_postcode_normalises_before_checking_postcode(mocker):
+#     normalise_postcode_mock = mocker.patch(
+#       "notifications_utils.recipient_validation.postal_address.normalise_postcode"
+#     )
+#     normalise_postcode_mock.return_value = "SW11AA"
+#     assert _is_a_real_uk_postcode("sw1  1aa") is True
 
 
-@pytest.mark.parametrize(
-    "postcode, postcode_with_space",
-    [
-        ("SW13EF", "SW1 3EF"),
-        ("SW1 3EF", "SW1 3EF"),
-        ("N5 3EF", "N5 3EF"),
-        ("N5     3EF", "N5 3EF"),
-        ("N53EF   ", "N5 3EF"),
-        ("n53Ef", "N5 3EF"),
-        ("n5 \u00a0 \t 3Ef", "N5 3EF"),
-        ("SO146WB", "SO14 6WB"),
-        ("GIR0AA", "GIR 0AA"),
-        ("BF11AA", "BF1 1AA"),
-    ],
-)
-def test_format_postcode_for_printing(postcode, postcode_with_space):
-    assert format_postcode_for_printing(postcode) == postcode_with_space
+# @pytest.mark.parametrize(
+#     "postcode, postcode_with_space",
+#     [
+#         ("SW13EF", "SW1 3EF"),
+#         ("SW1 3EF", "SW1 3EF"),
+#         ("N5 3EF", "N5 3EF"),
+#         ("N5     3EF", "N5 3EF"),
+#         ("N53EF   ", "N5 3EF"),
+#         ("n53Ef", "N5 3EF"),
+#         ("n5 \u00a0 \t 3Ef", "N5 3EF"),
+#         ("SO146WB", "SO14 6WB"),
+#         ("GIR0AA", "GIR 0AA"),
+#         ("BF11AA", "BF1 1AA"),
+#     ],
+# )
+# def test_format_postcode_for_printing(postcode, postcode_with_space):
+#     assert format_postcode_for_printing(postcode) == postcode_with_space
 
 
 @pytest.mark.parametrize(

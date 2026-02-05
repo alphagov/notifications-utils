@@ -3,8 +3,9 @@ import pytest
 from notifications_utils.countries_nl import Postage
 from notifications_utils.recipient_validation.notifynl.postal_address import (
     PostalAddress,
+    _is_a_real_nl_postcode,
     country_NL,
-    has_nl_postcode,
+    format_postcode_for_printing,
 )
 
 
@@ -110,7 +111,7 @@ def test_normalised_lines_for_addresses(
     "line, expected_city",
     [
         ("Amsterdam 1234 AB", "Amsterdam"),
-        ("1234 AB Amsterdam", "Amsterdam"),
+        ("1234 AB Den Haag", "Den Haag"),
         ("1234ab Amsterdam", "Amsterdam"),
         ("Amsterdam 1234ab", "Amsterdam"),
     ],
@@ -123,7 +124,14 @@ def test_city_detected_next_to_postcode(line, expected_city):
 
 
 def test_city_detected_in_next_line_to_postcode():
-    pa = PostalAddress(raw_address="Name\nSome street 1\n1234AB\nDen Haag\nNederland")
+    address = """
+    Name
+    Some Street
+    1234 AB
+    Den Haag
+    Netherlands
+    """
+    pa = PostalAddress(raw_address=address)
     assert pa.postcode == "1234 AB"
     assert pa.city == "Den Haag"
     assert pa.valid is True
@@ -205,8 +213,8 @@ def test_nl_postcode_parsing(nl_address_case):
         ("1234 ab", True),
         ("1234ab", True),
         # invalid many spaces postcodes
-        ("1234\u00a0\u00a0ab", False),
-        ("1234  ab", False),
+        ("1234\u00a0\u00a0ab", True),
+        ("1234  ab", True),
         # invalid / incomplete postcodes
         ("N5", False),
         ("SO144 6WB", False),
@@ -226,7 +234,29 @@ def test_nl_postcode_parsing(nl_address_case):
     ],
 )
 def test_if_postcode_is_a_real_nl_postcode(postcode, result):
-    assert has_nl_postcode([postcode]) is result
+    assert _is_a_real_nl_postcode(postcode) is result
+
+
+def test_is_a_real_nl_postcode_normalises_before_checking_postcode(mocker):
+    normalise_postcode_mock = mocker.patch(
+        "notifications_utils.recipient_validation.notifynl.postal_address.normalise_postcode"
+    )
+    normalise_postcode_mock.return_value = "1234AB"
+    assert _is_a_real_nl_postcode("1234 ab") is True
+
+
+@pytest.mark.parametrize(
+    "postcode, postcode_with_space",
+    [
+        ("1234ab", "1234 AB"),
+        ("1234AB", "1234 AB"),
+        ("1234 ab", "1234 AB"),
+        ("1234  ab", "1234 AB"),
+        (" 1234  ab   ", "1234 AB"),
+    ],
+)
+def test_format_postcode_for_printing(postcode, postcode_with_space):
+    assert format_postcode_for_printing(postcode) == postcode_with_space
 
 
 # -----------------------------------------------------
