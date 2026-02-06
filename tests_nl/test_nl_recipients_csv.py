@@ -76,6 +76,47 @@ def _index_rows(rows):
             set(),
             set(),
         ),
+        (
+            """
+                telefoonnummer,name,date
+                07700900460,test1,test1
+                07700900460,test1
+                +44 123,test1,test1
+                07700900460,test1,test1
+                07700900460,test1
+                +1644000000,test1,test1
+                ,test1,test1
+            """,
+            "sms",
+            {2, 5},
+            {1, 4, 6},
+        ),
+        (
+            """
+                telefoonnummer,name
+                07700900460,test1,test2
+            """,
+            "sms",
+            set(),
+            set(),
+        ),
+        (
+            """
+            """,
+            "sms",
+            set(),
+            set(),
+        ),
+        (
+            """
+                ,,,,,,,,,telefoonnummer
+                ,,,,,,,,,07700900100
+                ,,,,,,,,,07700900100
+            """,
+            "sms",
+            set(),
+            set(),
+        ),
     ],
 )
 @pytest.mark.parametrize(

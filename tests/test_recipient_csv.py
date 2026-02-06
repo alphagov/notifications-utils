@@ -616,7 +616,7 @@ def test_recipient_column(content, file_contents, template_type):
     assert RecipientCSV(file_contents, template=_sample_template(template_type, content)).has_recipient_columns
 
 
-# commented out parameters are tested on test_nl_recipient_csv.py because of [NOTIFYNL] Dutch postal address changes.")
+@pytest.mark.skip(reason="[NOTIFYNL] PostalAdress issue")
 @pytest.mark.parametrize(
     "file_contents,template_type,rows_with_bad_recipients,rows_with_missing_data",
     [
@@ -658,6 +658,48 @@ def test_recipient_column(content, file_contents, template_type):
                 ,,,,,,,,,07700900100
             """,
             "sms",
+            set(),
+            set(),
+        ),
+        (
+            # missing postcode
+            """
+                address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
+                name,          building,      street,        town,          county,        SE1 7LS,today
+                name,          building,      street,        town,          county,        ,        today
+            """,
+            "letter",
+            {1},
+            set(),
+        ),
+        (
+            # not enough address fields
+            """
+                address_line_1, postcode, date
+                name,           SE1 7LS, today
+            """,
+            "letter",
+            {0},
+            set(),
+        ),
+        (
+            # optional address fields not filled in
+            """
+                address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,date
+                name          ,123 fake st.  ,              ,              ,              ,SE1 7LS,today
+                name          ,              ,              ,              ,              ,SE1 7LS,today
+            """,
+            "letter",
+            {1},
+            set(),
+        ),
+        (
+            # Can use any address columns
+            """
+                address_line_3, address_line_4, address_line_7, date
+                name          , 123 fake st.,   SE1 7LS,        today
+            """,
+            "letter",
             set(),
             set(),
         ),
