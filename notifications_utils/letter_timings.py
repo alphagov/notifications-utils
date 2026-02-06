@@ -4,7 +4,7 @@ from datetime import datetime, time, timedelta
 import pytz
 
 from notifications_utils.bank_holidays import BankHolidays
-from notifications_utils.countries.data import Postage
+from notifications_utils.countries_nl import Postage
 from notifications_utils.timezones import (
     local_timezone,
     utc_string_to_aware_gmt_datetime,
@@ -96,7 +96,7 @@ def get_royal_mail_working_day_offset_by(date, *, days, postage):
     Royal mail deliver letters on Monday to Friday, with deliveries also taking place on Saturday
     for First class mail
     """
-    if postage == Postage.FIRST:
+    if postage == Postage.NL:
         is_work_day = is_royal_mail_working_day_first_class
     else:
         is_work_day = is_royal_mail_working_day_default
@@ -121,12 +121,8 @@ def get_delivery_day(date, *, days_to_deliver, postage):
 
 def get_min_and_max_days_in_transit(postage):
     return {
-        # first class post is printed earlier in the day, so will
-        # actually transit on the printing day, and be delivered the next
-        # day, so effectively spends no full days in transit
-        Postage.FIRST: (0, 0),
-        Postage.SECOND: (3, 4),
-        Postage.ECONOMY: (3, 6),
+        # TODO postage NL VERIFY this timing
+        Postage.NL: (0, 0),
         Postage.EUROPE: (3, 5),
         Postage.REST_OF_WORLD: (5, 7),
     }[postage]

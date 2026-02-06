@@ -45,7 +45,7 @@ from notifications_utils.markdown import (
     notify_plain_text_email_markdown,
 )
 from notifications_utils.qr_code import QrCodeTooLong
-from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress, address_lines_1_to_7_keys
+from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress, address_lines_1_to_6_keys
 from notifications_utils.sanitise_text import SanitiseSMS
 from notifications_utils.take import Take
 from notifications_utils.template_change import TemplateChange
@@ -501,7 +501,7 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
 
 
 class HTMLEmailTemplate(BaseEmailTemplate):
-    jinja_template = template_env.get_template("email_template.jinja2")
+    jinja_template = template_env.get_template("email_template_nl.jinja2")
 
     PREHEADER_LENGTH_IN_CHARACTERS = 256
 
@@ -509,7 +509,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         self,
         template,
         values=None,
-        govuk_banner=True,
+        govuk_banner=False,
         complete_html=True,
         brand_logo=None,
         brand_text=None,
@@ -571,7 +571,7 @@ class BaseLetterTemplate(SubjectMixin, Template):
     max_page_count = LETTER_MAX_PAGE_COUNT
     max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
 
-    address_block = "\n".join(f"(({line.replace('_', ' ')}))" for line in address_lines_1_to_7_keys)
+    address_block = "\n".join(f"(({line.replace('_', ' ')}))" for line in address_lines_1_to_6_keys)
 
     def __init__(
         self,
@@ -640,8 +640,8 @@ class BaseLetterTemplate(SubjectMixin, Template):
         if self.postal_address.has_enough_lines and not self.postal_address.has_too_many_lines:
             return self.postal_address.normalised_lines
 
-        if "address line 7" not in self.values and "postcode" in self.values:
-            self.values["address line 7"] = self.values["postcode"]
+        if "address line 6" not in self.values and "postcode" in self.values:
+            self.values["address line 6"] = self.values["postcode"]
 
         return Field(
             self.address_block,

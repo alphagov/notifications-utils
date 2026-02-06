@@ -17,10 +17,10 @@ from notifications_utils.insensitive_dict import InsensitiveDict
 from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
 from notifications_utils.recipient_validation.notifynl.phone_number import PhoneNumber
-from notifications_utils.recipient_validation.postal_address import (
-    address_line_7_key,
-    address_lines_1_to_6_and_postcode_keys,
-    address_lines_1_to_7_keys,
+from notifications_utils.recipient_validation.notifynl.postal_address import (
+    address_line_6_key,
+    address_lines_1_to_5_and_postcode_keys,
+    address_lines_1_to_6_keys,
 )
 from notifications_utils.template import BaseLetterTemplate, Template
 
@@ -29,7 +29,7 @@ from .qr_code import QrCodeTooLong
 first_column_headings = {
     "email": ["e-mailadres"],
     "sms": ["telefoonnummer"],
-    "letter": [line.replace("_", " ") for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]],
+    "letter": [line.replace("_", " ") for line in address_lines_1_to_5_and_postcode_keys + [address_line_6_key]],
 }
 
 address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
@@ -306,8 +306,8 @@ class RecipientCSV:
     def has_recipient_columns(self) -> bool:
         if self.template_type == "letter":
             sets_to_check = [
-                InsensitiveDict.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
-                InsensitiveDict.from_keys(address_lines_1_to_7_keys).keys(),
+                InsensitiveDict.from_keys(address_lines_1_to_5_and_postcode_keys).keys(),
+                InsensitiveDict.from_keys(address_lines_1_to_6_keys).keys(),
             ]
         else:
             sets_to_check = [
@@ -448,7 +448,7 @@ class Row(InsensitiveDict):
 
     @property
     def as_postal_address(self):
-        from notifications_utils.recipient_validation.postal_address import PostalAddress
+        from notifications_utils.recipient_validation.notifynl.postal_address import PostalAddress
 
         return PostalAddress.from_personalisation(
             self.recipient_and_personalisation,

@@ -1,6 +1,6 @@
 import pytest
 
-from notifications_utils.countries import Country, CountryMapping, CountryNotFoundError
+from notifications_utils.countries import Country, CountryMapping, CountryNotFoundError, Postage
 from notifications_utils.countries.data import (
     _EUROPEAN_ISLANDS_LIST,
     _UK_ISLANDS_LIST,
@@ -10,7 +10,6 @@ from notifications_utils.countries.data import (
     UK,
     UK_ISLANDS,
     WELSH_NAMES,
-    Postage,
 )
 
 from .country_synonyms import ALL as ALL_SYNONYMS

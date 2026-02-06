@@ -4,54 +4,6 @@
     "events": [
       {
         "title": "New Year’s Day",
-        "date": "2018-01-01",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Good Friday",
-        "date": "2018-03-30",
-        "notes": "",
-        "bunting": false
-      },
-      {
-        "title": "Easter Monday",
-        "date": "2018-04-02",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Early May bank holiday",
-        "date": "2018-05-07",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Spring bank holiday",
-        "date": "2018-05-28",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Summer bank holiday",
-        "date": "2018-08-27",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Christmas Day",
-        "date": "2018-12-25",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Boxing Day",
-        "date": "2018-12-26",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "New Year’s Day",
         "date": "2019-01-01",
         "notes": "",
         "bunting": true
@@ -451,66 +403,108 @@
         "date": "2026-12-28",
         "notes": "Substitute day",
         "bunting": true
+      },
+      {
+        "title": "New Year’s Day",
+        "date": "2027-01-01",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Good Friday",
+        "date": "2027-03-26",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Easter Monday",
+        "date": "2027-03-29",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Early May bank holiday",
+        "date": "2027-05-03",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Spring bank holiday",
+        "date": "2027-05-31",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Summer bank holiday",
+        "date": "2027-08-30",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Christmas Day",
+        "date": "2027-12-27",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "Boxing Day",
+        "date": "2027-12-28",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "New Year’s Day",
+        "date": "2028-01-03",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "Good Friday",
+        "date": "2028-04-14",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Easter Monday",
+        "date": "2028-04-17",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Early May bank holiday",
+        "date": "2028-05-01",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Spring bank holiday",
+        "date": "2028-05-29",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Summer bank holiday",
+        "date": "2028-08-28",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Christmas Day",
+        "date": "2028-12-25",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Boxing Day",
+        "date": "2028-12-26",
+        "notes": "",
+        "bunting": true
       }
     ]
   },
   "scotland": {
     "division": "scotland",
     "events": [
-      {
-        "title": "New Year’s Day",
-        "date": "2018-01-01",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "2nd January",
-        "date": "2018-01-02",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Good Friday",
-        "date": "2018-03-30",
-        "notes": "",
-        "bunting": false
-      },
-      {
-        "title": "Early May bank holiday",
-        "date": "2018-05-07",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Spring bank holiday",
-        "date": "2018-05-28",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Summer bank holiday",
-        "date": "2018-08-06",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "St Andrew’s Day",
-        "date": "2018-11-30",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Christmas Day",
-        "date": "2018-12-25",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Boxing Day",
-        "date": "2018-12-26",
-        "notes": "",
-        "bunting": true
-      },
       {
         "title": "New Year’s Day",
         "date": "2019-01-01",
@@ -960,72 +954,120 @@
         "date": "2026-12-28",
         "notes": "Substitute day",
         "bunting": true
+      },
+      {
+        "title": "New Year’s Day",
+        "date": "2027-01-01",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "2nd January",
+        "date": "2027-01-04",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "Good Friday",
+        "date": "2027-03-26",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Early May bank holiday",
+        "date": "2027-05-03",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Spring bank holiday",
+        "date": "2027-05-31",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Summer bank holiday",
+        "date": "2027-08-02",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "St Andrew’s Day",
+        "date": "2027-11-30",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Christmas Day",
+        "date": "2027-12-27",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "Boxing Day",
+        "date": "2027-12-28",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "New Year’s Day",
+        "date": "2028-01-03",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "2nd January",
+        "date": "2028-01-04",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "Good Friday",
+        "date": "2028-04-14",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Early May bank holiday",
+        "date": "2028-05-01",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Spring bank holiday",
+        "date": "2028-05-29",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Summer bank holiday",
+        "date": "2028-08-07",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "St Andrew’s Day",
+        "date": "2028-11-30",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Christmas Day",
+        "date": "2028-12-25",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Boxing Day",
+        "date": "2028-12-26",
+        "notes": "",
+        "bunting": true
       }
     ]
   },
   "northern-ireland": {
     "division": "northern-ireland",
     "events": [
-      {
-        "title": "New Year’s Day",
-        "date": "2018-01-01",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "St Patrick’s Day",
-        "date": "2018-03-19",
-        "notes": "Substitute day",
-        "bunting": true
-      },
-      {
-        "title": "Good Friday",
-        "date": "2018-03-30",
-        "notes": "",
-        "bunting": false
-      },
-      {
-        "title": "Easter Monday",
-        "date": "2018-04-02",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Early May bank holiday",
-        "date": "2018-05-07",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Spring bank holiday",
-        "date": "2018-05-28",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Battle of the Boyne (Orangemen’s Day)",
-        "date": "2018-07-12",
-        "notes": "",
-        "bunting": false
-      },
-      {
-        "title": "Summer bank holiday",
-        "date": "2018-08-27",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Christmas Day",
-        "date": "2018-12-25",
-        "notes": "",
-        "bunting": true
-      },
-      {
-        "title": "Boxing Day",
-        "date": "2018-12-26",
-        "notes": "",
-        "bunting": true
-      },
       {
         "title": "New Year’s Day",
         "date": "2019-01-01",
@@ -1522,6 +1564,126 @@
         "title": "Boxing Day",
         "date": "2026-12-28",
         "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "New Year’s Day",
+        "date": "2027-01-01",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "St Patrick’s Day",
+        "date": "2027-03-17",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Good Friday",
+        "date": "2027-03-26",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Easter Monday",
+        "date": "2027-03-29",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Early May bank holiday",
+        "date": "2027-05-03",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Spring bank holiday",
+        "date": "2027-05-31",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Battle of the Boyne (Orangemen’s Day)",
+        "date": "2027-07-12",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Summer bank holiday",
+        "date": "2027-08-30",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Christmas Day",
+        "date": "2027-12-27",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "Boxing Day",
+        "date": "2027-12-28",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "New Year’s Day",
+        "date": "2028-01-03",
+        "notes": "Substitute day",
+        "bunting": true
+      },
+      {
+        "title": "St Patrick’s Day",
+        "date": "2028-03-17",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Good Friday",
+        "date": "2028-04-14",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Easter Monday",
+        "date": "2028-04-17",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Early May bank holiday",
+        "date": "2028-05-01",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Spring bank holiday",
+        "date": "2028-05-29",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Battle of the Boyne (Orangemen’s Day)",
+        "date": "2028-07-12",
+        "notes": "",
+        "bunting": false
+      },
+      {
+        "title": "Summer bank holiday",
+        "date": "2028-08-28",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Christmas Day",
+        "date": "2028-12-25",
+        "notes": "",
+        "bunting": true
+      },
+      {
+        "title": "Boxing Day",
+        "date": "2028-12-26",
+        "notes": "",
         "bunting": true
       }
     ]

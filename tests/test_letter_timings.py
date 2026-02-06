@@ -19,6 +19,7 @@ from notifications_utils.letter_timings import (
 )
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on test_nl_letter_timmings.py")
 @freeze_time("2017-07-14 13:59:59")  # Friday, before print deadline (3PM BST)
 @pytest.mark.parametrize(
     (
@@ -444,6 +445,7 @@ def test_next_previous_working_days():
     assert get_previous_royal_mail_working_day(monday_26_december, "second") == friday_23_december
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on test_nl_letter_timmings.py")
 def test_next_previous_working_days_royal_mail_first_class():
     saturday_24_december = datetime(2022, 12, 24, 12, 0, 0)
     sunday_25_december = datetime(2022, 12, 25, 12, 0, 0)
@@ -461,6 +463,7 @@ def test_next_previous_working_days_royal_mail_first_class():
     assert get_previous_royal_mail_working_day(monday_26_december, "first") == saturday_24_december
 
 
+@pytest.mark.skip(reason="[NOTIFYNL] Dutch postal address implementation - now on test_nl_letter_timmings.py")
 def test_get_offset_working_day():
     friday_16_december = datetime(2022, 12, 16, 12, 0, 0)
     saturday_17_december = datetime(2022, 12, 17, 12, 0, 0)
