@@ -32,8 +32,8 @@ class NotifyTask(Task):
 
     @contextmanager
     def app_context(self):
-        # we don't want to push a *another* app context if we already have one
-        with nullcontext() if has_app_context() else self.app.flask_app.app_context():
+        # we don't want to push a *another* app context if we already have one and this isn't an async call
+        with self.app.flask_app.app_context() if self.request.id or not has_app_context() else nullcontext():
             # Add 'request_id' to 'g' so that it gets logged.
             g.request_id = self.request_id
             yield
