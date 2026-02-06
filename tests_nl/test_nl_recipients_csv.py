@@ -8,6 +8,7 @@ from notifications_utils.countries_nl import Country
 from notifications_utils.qr_code import QrCodeTooLong
 from notifications_utils.recipients import (
     RecipientCSV,
+    first_column_headings,
 )
 from notifications_utils.template import (
     HTMLEmailTemplate,
@@ -164,3 +165,80 @@ def test_errors_on_qr_codes_with_too_much_data():
     assert recipients.rows_as_list[0].qr_code_too_long is None
     assert recipients.rows_as_list[1].has_error is True
     assert isinstance(recipients.rows_as_list[1].qr_code_too_long, QrCodeTooLong)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        "hello",
+        "hello ((name))",
+    ],
+)
+@pytest.mark.parametrize(
+    "file_contents,template_type",
+    [
+        pytest.param("", "sms", marks=pytest.mark.xfail),
+        pytest.param("name", "sms", marks=pytest.mark.xfail),
+        pytest.param("e-mailadres", "sms", marks=pytest.mark.xfail),
+        pytest.param(
+            "address_line_1",
+            "letter",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "address_line_1, address_line_2",
+            "letter",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "address_line_6, postcode",
+            "letter",
+            marks=pytest.mark.xfail,
+        ),
+        pytest.param(
+            "address_line_1, postcode, address_line_6",
+            "letter",
+            marks=pytest.mark.xfail,
+        ),
+        ("telefoonnummer", "sms"),
+        ("telefoonnummer,name", "sms"),
+        ("e-mailadres", "email"),
+        ("e-mailadres,name", "email"),
+        ("TELEFOONNUMMER", "sms"),
+        ("e-mailadres", "email"),
+        ("address_line_1, address_line_2, postcode", "letter"),
+        ("address_line_1, address_line_2, address_line_6", "letter"),
+        ("address_line_1, address_line_2, address_line_3", "letter"),
+        ("address_line_4, address_line_5, address_line_6", "letter"),
+        (
+            "address_line_1, address_line_2, address_line_3, address_line_4, address_line_5, address_line_6, postcode",
+            "letter",
+        ),
+    ],
+)
+def test_recipient_column(content, file_contents, template_type):
+    assert RecipientCSV(file_contents, template=_sample_template(template_type, content)).has_recipient_columns
+
+
+@pytest.mark.parametrize(
+    "template_type, expected",
+    (
+        ("email", ["e-mailadres"]),
+        ("sms", ["telefoonnummer"]),
+        (
+            "letter",
+            [
+                "address line 1",
+                "address line 2",
+                "address line 3",
+                "address line 4",
+                "address line 5",
+                "postcode",
+                "address line 6",
+            ],
+        ),
+    ),
+)
+def test_recipient_column_headers(template_type, expected):
+    recipients = RecipientCSV("", template=_sample_template(template_type))
+    assert (recipients.recipient_column_headers) == (first_column_headings[template_type]) == (expected)
