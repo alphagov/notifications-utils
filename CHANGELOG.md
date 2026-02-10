@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 108.0.0
+
+Reintroduce `NotifyTask` changes from version 106, this time with (correct) accomodation for potentially already being in an app context when an async task is entered. Again, there are no explicit breaking changes, but it's best to check everything like e.g. request id propagation & db connection handling is working properly for celery tasks when upgrading past this.
+
 ## 107.0.2
 
 Hide logo images from assistive tech. They already have alt='', which should do this, but the
