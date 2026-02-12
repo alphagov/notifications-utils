@@ -9,19 +9,22 @@ from flask import Flask, g, request
 from flask.ctx import has_app_context, has_request_context
 
 
-def _flatten_message_properties_for_sqs(**kwargs):
-    """
-    Flatten nested message properties so SQS sees properties.MessageGroupId
-    instead of properties.properties.MessageGroupId.
-    """
-    properties = kwargs.get("properties")
-    if not properties or not isinstance(properties.get("properties"), dict):
-        return
-    nested = properties["properties"]
-    for key, value in nested.items():
-        if key not in properties:
-            properties[key] = value
-    del properties["properties"]
+def _prepare_message_group_id_for_sqs(headers, properties):
+    # flatten deeply nested MessageGroupId from properties.properties.MessageGroupId to properties.MessageGroupId
+    if "MessageGroupId" not in properties and isinstance(properties.get("properties"), dict):
+        mgid = properties["properties"].get("MessageGroupId")
+        if mgid is not None:
+            properties["MessageGroupId"] = mgid
+    
+    # copy MessageGroupId from properties to headers for task context (e.g. NotifyTask.message_group_id)
+    if headers is not None:
+        message_group_id = properties.get("MessageGroupId") or headers.get("notify_message_group_id")
+        if message_group_id is not None:
+            headers["notify_message_group_id"] = message_group_id
+    
+    # if MessageGroupId is empty, remove it from properties
+    if not properties.get("MessageGroupId"):
+        properties.pop("MessageGroupId", None)
 
 
 class NotifyTask(Task):
@@ -174,9 +177,13 @@ class NotifyCelery(Celery):
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])
 
-        # Flatten nested message properties before publish so SQS gets
-        # properties.MessageGroupId (not properties.properties.MessageGroupId).
-        signals.before_task_publish.connect(_flatten_message_properties_for_sqs)
+        # centralise handling of message group id by using `before_task_publish` signal
+        # this ensures that both `send_task` and `apply_async` and others  get the same behaviour
+        signals.before_task_publish.connect(
+            lambda **kwargs: _prepare_message_group_id_for_sqs(
+                kwargs.get("headers"), kwargs.get("properties")
+            )
+        )
 
     def send_task(self, name, args=None, kwargs=None, **other_kwargs):
         other_kwargs["headers"] = other_kwargs.get("headers") or {}
@@ -186,12 +193,6 @@ class NotifyCelery(Celery):
 
         elif has_app_context() and "request_id" in g:
             other_kwargs["headers"]["notify_request_id"] = g.request_id
-
-        other_kwargs["headers"]["notify_message_group_id"] = other_kwargs.get("MessageGroupId")
-
-        # SQS rejects MessageGroupId=None (we get errors back); omit it when empty so it never reaches to avoid the error.
-        if not other_kwargs.get("MessageGroupId"):
-            other_kwargs.pop("MessageGroupId", None)
 
         return super().send_task(name, args, kwargs, **other_kwargs)
 
