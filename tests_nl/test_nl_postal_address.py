@@ -10,14 +10,18 @@ from notifications_utils.recipient_validation.notifynl.postal_address import (
 )
 
 
-def test_valid_dutch_address_with_postcode_and_city():
-    address = """
-    Name and lastname
-    Main Street 12
-    1234 AB 's-Gravenhage
-    """
-
-    pa = PostalAddress(raw_address=address)
+@pytest.mark.parametrize(
+    "address",
+    [
+        "Name and lastname\nMain Street 12\n1234 AB 's-Gravenhage",
+        """Name and lastname
+            Main Street 12
+            1234 AB 's-Gravenhage""",
+        ["Name and lastname", "Main Street 12", "1234 AB 's-Gravenhage"],
+    ],
+)
+def test_valid_dutch_address_with_postcode_and_city(address):
+    pa = PostalAddress(address)
 
     assert pa.postcode == "1234 AB"
     assert pa.city == "'s-Gravenhage"
