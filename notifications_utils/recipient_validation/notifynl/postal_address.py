@@ -97,18 +97,17 @@ class PostalAddress:
     MAX_LINES = 6
     INVALID_CHARACTERS_AT_START_OF_ADDRESS_LINE = r'@()=[]"\/,<>~'
 
-    def __init__(self, raw_address=None, address=None, allow_international_letters=False):
+    def __init__(self, raw_address=None, allow_international_letters=False):
         self._country = None
         self._to_delete_city_line_index = None
         self.allow_international_letters = allow_international_letters
 
-        if address is None:
-            address = raw_address
+        if raw_address is not None and not isinstance(raw_address, str | list):
+            raise TypeError("raw_address must be a string or list of strings")
 
-        if isinstance(address, list):
-            address = "\n".join(address)
-
-        self.raw_address = address or ""
+        if isinstance(raw_address, list):
+            raw_address = "\n".join(raw_address)
+        self.raw_address = raw_address or ""
 
         self._lines = [
             remove_whitespace_before_punctuation(line.rstrip(" ,"))
