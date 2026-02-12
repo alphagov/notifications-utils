@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 108.2.0
+
+Use `extract_reraise_chained_exception` to wrap functions in the `s3` module, re-raising `EventletTimeout` if encountered.
+
 ## 108.1.0
 
 Add `extract_reraise_chained_exception` in the new `exception_handling` module.
