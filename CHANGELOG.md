@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 108.2.1
+
+* Use `inspect.get_annotations` instead of the `__annotations__` property (no functional changes)
+
 ## 108.2.0
 
 Use `extract_reraise_chained_exception` to wrap functions in the `s3` module, re-raising `EventletTimeout` if encountered.
