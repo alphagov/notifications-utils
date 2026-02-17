@@ -4,6 +4,7 @@ from markupsafe import Markup
 from notifications_utils.formatters import (
     autolink_urls,
     escape_html,
+    format_file_size,
     formatted_list,
     make_quotes_smart,
     normalise_whitespace,
@@ -536,3 +537,28 @@ def test_autolink_urls_applies_correct_attributes(extra_kwargs, expected_html):
 @pytest.mark.parametrize("content", ("without link", "with link to https://example.com"))
 def test_autolink_urls_returns_markup(content):
     assert isinstance(autolink_urls(content), Markup)
+
+
+@pytest.mark.parametrize(
+    "bytes,expected_result",
+    [
+        (0, "0.1KB"),
+        (1, "0.1KB"),
+        (51, "0.1KB"),  # 0.0498046875KB which rounds to 0.0KB but we force it to 0.1KB
+        (52, "0.1KB"),  # 0.05078125KB so rounds to 0.1KB
+        (153, "0.1KB"),  # 0.1494140625KB so rounds to 0.1KB
+        (154, "0.2KB"),  # 0.150390625KB so rounds to 0.2KB
+        (1023, "1KB"),
+        (1024, "1KB"),  # exactly 1KB
+        (1025, "1KB"),
+        (2048, "2KB"),  # exactly 2KB
+        (52428, "51.2KB"),  # 0.049999MB so stays as KB
+        (52429, "0.1MB"),  # 0.0500001MB so rounds to 0.1MB
+        (1048576, "1MB"),  # exactly 1MB
+        (2023751, "1.9MB"),
+        (2097151, "2MB"),
+        (2097152, "2MB"),  # exactly 2MB
+    ],
+)
+def test_format_file_size(bytes, expected_result):
+    assert format_file_size(bytes) == expected_result
