@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 108.3.0
+
+* Added `formatters.format_file_size`
+
 ## 108.2.0
 
 Use `extract_reraise_chained_exception` to wrap functions in the `s3` module, re-raising `EventletTimeout` if encountered.
