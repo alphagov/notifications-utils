@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 108.4.0
+
+* Added `file_types` module
+
 ## 108.3.0
 
 * Added `formatters.format_file_size`
