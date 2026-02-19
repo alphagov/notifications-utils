@@ -5,6 +5,7 @@ from notifications_utils.file_types import (
     format_file_type,
     is_allowed_file_extension,
     is_allowed_mime_type,
+    mime_type_from_extension,
 )
 
 
@@ -76,6 +77,29 @@ def test_is_allowed_mime_type(mime_type, allowed):
 )
 def test_extension_from_mime_type(mime_type, extension):
     assert extension_from_mime_type(mime_type) == extension
+
+
+@pytest.mark.parametrize(
+    "extension, mime_type",
+    (
+        ("pdf", "application/pdf"),
+        ("PDF", "application/pdf"),
+        ("csv", "text/csv"),
+        ("txt", "text/plain"),
+        ("json", "application/json"),
+        ("doc", "application/msword"),
+        ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+        ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+        ("odt", "application/vnd.oasis.opendocument.text"),
+        ("rtf", "application/rtf"),
+        ("jpg", "image/jpeg"),
+        ("jpeg", "image/jpeg"),
+        ("png", "image/png"),
+        pytest.param("exe", "application/octet-stream", marks=pytest.mark.xfail(raises=KeyError)),
+    ),
+)
+def test_mime_type_from_extension(extension, mime_type):
+    assert mime_type_from_extension(extension) == mime_type
 
 
 @pytest.mark.parametrize(

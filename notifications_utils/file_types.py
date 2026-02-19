@@ -15,6 +15,7 @@ EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES = (
 )
 EXTENSIONS = {ext for ext, _mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
 MIME_TYPES_TO_EXTENSIONS = {mime: ext for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
+EXTENSIONS_TO_MIME_TYPES = {ext: mime for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
 
 
 def is_allowed_file_extension(extension):
@@ -27,6 +28,10 @@ def is_allowed_mime_type(mime_type):
 
 def extension_from_mime_type(mime_type):
     return MIME_TYPES_TO_EXTENSIONS[mime_type]
+
+
+def mime_type_from_extension(extension):
+    return EXTENSIONS_TO_MIME_TYPES[extension.lower()]
 
 
 def format_file_type(extension):
