@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 109.0.0
+
+* Update `PostalAddress` validation to ensure that both the address line 1 (recipient) and the address line 2 (1st line of the address) contain at least one alphanumeric character. This prevents addresses consisting only of symbols from being marked as valid, which would otherwise be rejected by the DVLA.
+
 ## 108.4.0
 
 * Added `file_types` module

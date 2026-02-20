@@ -1133,3 +1133,62 @@ def test_postal_address_equality():
     assert PostalAddress.from_personalisation(
         {"address_line_1": "A", "address_line_2": "B", "address_line_3": "C"}
     ) == PostalAddress("A\nB\nC"), "Different instantiation of the same address should still match"
+
+
+@pytest.mark.parametrize(
+    "address, has_valid_address_line_1, has_valid_address_line_2",
+    [
+        # Invalid Address Line 1 (recipient name) - only symbols
+        (
+            """
+        !!!
+        123 Example Street
+        SW1A 1AA
+        """,
+            False,
+            True,
+        ),
+        # Invalid Address Line 2 (1st line of the address) - only symbols
+        (
+            """
+        Mr. Recipient
+        ???
+        SW1A 1AA
+        """,
+            True,
+            False,
+        ),
+        # Both invalid
+        (
+            """
+        !!!
+        ???
+        SW1A 1AA
+        """,
+            False,
+            False,
+        ),
+        # Address invalid
+        (
+            """
+        Mr. Recipient
+        SW1A 1AA
+        """,
+            True,
+            True,
+        ),
+        # Empty address
+        (
+            "",
+            False,
+            False,
+        ),
+    ],
+)
+def test_has_alphanumeric_character_in_address_lines_1_and_2(
+    address, has_valid_address_line_1, has_valid_address_line_2
+):
+    assert PostalAddress(address).valid is False
+    assert PostalAddress(address).has_alphanumeric_character_in_address_lines_1_and_2 is (
+        has_valid_address_line_1 and has_valid_address_line_2
+    )
