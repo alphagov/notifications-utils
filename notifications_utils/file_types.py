@@ -14,7 +14,6 @@ EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES = (
     ("png", "image/png", "PNG file"),
 )
 EXTENSIONS = {ext for ext, _mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
-EXTENSIONS_DOTTED = ", ".join(sorted(f".{ext}" for ext in EXTENSIONS))
 MIME_TYPES_TO_EXTENSIONS = {mime: ext for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
 
 

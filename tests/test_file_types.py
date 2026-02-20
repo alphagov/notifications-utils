@@ -1,7 +1,6 @@
 import pytest
 
 from notifications_utils.file_types import (
-    EXTENSIONS_DOTTED,
     extension_from_mime_type,
     format_file_type,
     is_allowed_file_extension,
@@ -100,7 +99,3 @@ def test_extension_from_mime_type(mime_type, extension):
 )
 def test_format_file_type(extension, pretty_description):
     assert format_file_type(extension) == pretty_description
-
-
-def test_extensions_dotted():
-    assert EXTENSIONS_DOTTED == ".csv, .doc, .docx, .jpeg, .jpg, .json, .odt, .pdf, .png, .rtf, .txt, .xlsx"
