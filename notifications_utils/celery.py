@@ -3,10 +3,28 @@ import time
 from contextlib import contextmanager, nullcontext
 from os import getpid
 
-from celery import Celery, Task
+from celery import Celery, signals, Task
 from celery.backends.base import DisabledBackend
 from flask import Flask, g, request
 from flask.ctx import has_app_context, has_request_context
+
+
+def _prepare_message_group_id_for_sqs(headers, properties):
+    # flatten deeply nested MessageGroupId from properties.properties.MessageGroupId to properties.MessageGroupId
+    if "MessageGroupId" not in properties and isinstance(properties.get("properties"), dict):
+        mgid = properties["properties"].get("MessageGroupId")
+        if mgid is not None:
+            properties["MessageGroupId"] = mgid
+    
+    # copy MessageGroupId from properties to headers for task context (e.g. NotifyTask.message_group_id)
+    if headers is not None:
+        message_group_id = properties.get("MessageGroupId") or headers.get("notify_message_group_id")
+        if message_group_id is not None:
+            headers["notify_message_group_id"] = message_group_id
+    
+    # if MessageGroupId is empty, remove it from properties
+    if not properties.get("MessageGroupId"):
+        properties.pop("MessageGroupId", None)
 
 
 class NotifyTask(Task):
@@ -29,6 +47,10 @@ class NotifyTask(Task):
         # Note that each header is a direct attribute of the
         # task context (aka "request").
         return self.request.get("notify_request_id") or self.request.id
+
+    @property
+    def message_group_id(self):
+        return self.request.get("notify_message_group_id")
 
     @contextmanager
     def app_context(self):
@@ -154,6 +176,14 @@ class NotifyCelery(Celery):
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])
+
+        # centralise handling of message group id by using `before_task_publish` signal
+        # this ensures that both `send_task` and `apply_async` and others  get the same behaviour
+        signals.before_task_publish.connect(
+            lambda **kwargs: _prepare_message_group_id_for_sqs(
+                kwargs.get("headers"), kwargs.get("properties")
+            )
+        )
 
     def send_task(self, name, args=None, kwargs=None, **other_kwargs):
         other_kwargs["headers"] = other_kwargs.get("headers") or {}
