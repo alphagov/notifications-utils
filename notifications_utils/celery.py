@@ -5,7 +5,7 @@ from os import getpid
 
 from celery import Celery, Task
 from celery.backends.base import DisabledBackend
-from flask import Flask, g, request
+from flask import Flask, current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 
 
@@ -29,6 +29,10 @@ class NotifyTask(Task):
         # Note that each header is a direct attribute of the
         # task context (aka "request").
         return self.request.get("notify_request_id") or self.request.id
+
+    @property
+    def message_group_id(self):
+        return self.request.get("notify_message_group_id")
 
     @contextmanager
     def app_context(self):
@@ -163,6 +167,25 @@ class NotifyCelery(Celery):
 
         elif has_app_context() and "request_id" in g:
             other_kwargs["headers"]["notify_request_id"] = g.request_id
+
+        use_message_group_ids = has_app_context() and current_app.config.get("ENABLE_SQS_MESSAGE_GROUP_IDS", False)
+        message_group_id = other_kwargs.get("MessageGroupId")
+        drop_message_group_id = not (use_message_group_ids and message_group_id)
+
+        if "MessageGroupId" in other_kwargs and not message_group_id:
+            logger = current_app.logger if has_app_context() else logging.getLogger(__name__)
+            logger.warning(
+                "MessageGroupId argument specified explicitly with empty value when calling task %s",
+                name,
+                extra={"celery_task": name},
+            )
+
+        if use_message_group_ids:
+            # Kombu doesn't expose MessageGroupId from received SQS messages, so store in headers
+            # so the running task can read it (e.g. for retries) via self.message_group_id
+            other_kwargs["headers"]["notify_message_group_id"] = message_group_id
+        if drop_message_group_id:
+            other_kwargs.pop("MessageGroupId", None)
 
         return super().send_task(name, args, kwargs, **other_kwargs)
 
