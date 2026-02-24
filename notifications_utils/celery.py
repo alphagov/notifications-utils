@@ -2,7 +2,7 @@ import logging
 import time
 from contextlib import contextmanager, nullcontext
 from os import getpid
-
+from flask import current_app
 from celery import Celery, Task
 from celery.backends.base import DisabledBackend
 from flask import Flask, g, request
@@ -156,6 +156,7 @@ class NotifyCelery(Celery):
         self.conf.update(app.config["CELERY"])
 
     def send_task(self, name, args=None, kwargs=None, **other_kwargs):
+        current_app.logger.info(f"⚠️ SEND TASK {name} with args {args} and kwargs {kwargs} and other_kwargs {other_kwargs}")
         other_kwargs["headers"] = other_kwargs.get("headers") or {}
 
         if has_request_context() and hasattr(request, "request_id"):
