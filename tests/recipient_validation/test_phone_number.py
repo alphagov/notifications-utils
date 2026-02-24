@@ -124,10 +124,12 @@ invalid_international_numbers = [
 invalid_mobile_phone_numbers = (
     list(
         filter(
-            lambda number: number[0]
-            not in {
-                "772345678910",  # Could be Russia
-            },
+            lambda number: (
+                number[0]
+                not in {
+                    "772345678910",  # Could be Russia
+                }
+            ),
             invalid_uk_mobile_phone_numbers,
         )
     )
