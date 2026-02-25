@@ -297,6 +297,7 @@ class StubLock:
         blocking: bool = True,
         blocking_timeout: Number | None = None,
         thread_local: bool = True,
+        raise_on_release_error: bool = True,
     ):
         self._locked = False
         return None
@@ -323,7 +324,7 @@ class StubLock:
         self._locked = True
         return True
 
-    def extend(self, additional_time: int, replace_ttl: bool = False) -> bool:
+    def extend(self, additional_time: int | float, replace_ttl: bool = False) -> bool:
         return True
 
     def locked(self) -> bool:
