@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 108.5.0
+
+* **Celery:** 
+1. Add optional support for `MessageGroupId` (fair queue). When the notifications-api sets `ENABLE_SQS_MESSAGE_GROUP_IDS` to `True`, `send_task` persists `MessageGroupId` and stores it in message headers as `notify_message_group_id` so the running task can read it via the new `NotifyTask.message_group_id` property (e.g. for retries). When the flag is `False`, `MessageGroupId` is stripped so behaviour is unchange. A warning is logged when `MessageGroupId` is passed explicitly but empty.
+
 ## 108.4.0
 
 * Added `file_types` module
