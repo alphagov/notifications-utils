@@ -287,3 +287,82 @@ def test_celery_backends_by_url_is_called_when_result_backend_has_a_value(notify
     mock_by_url = mocker.patch("celery.app.backends.by_url", return_value=(mock_backend_cls, "redis"))
     notify_celery._get_backend()
     mock_by_url.assert_called()
+
+
+def test_message_group_id_returns_header_when_present(celery_task):
+    celery_task.push_request(notify_message_group_id="my-group-123", id=1234)
+    try:
+        assert celery_task.message_group_id == "my-group-123"
+    finally:
+        celery_task.pop_request()
+
+
+def test_message_group_id_returns_none_when_header_absent(celery_task):
+    celery_task.push_request(id=1234)
+    try:
+        assert celery_task.message_group_id is None
+    finally:
+        celery_task.pop_request()
+
+
+def test_send_task_pops_message_group_id_when_sqs_message_group_ids_disabled(
+    notify_celery,
+    celery_app,
+    mocker,
+):
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = False
+    super_send = mocker.patch("celery.Celery.send_task")
+
+    notify_celery.send_task("some-task", MessageGroupId="some-group")
+
+    call_kwargs = super_send.call_args[1]
+    assert "MessageGroupId" not in call_kwargs
+    assert call_kwargs["headers"].get("notify_message_group_id") is None
+
+
+def test_send_task_propagates_message_group_id_in_headers_when_sqs_message_group_ids_enabled(
+    notify_celery,
+    celery_app,
+    mocker,
+):
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    super_send = mocker.patch("celery.Celery.send_task")
+
+    notify_celery.send_task("some-task", MessageGroupId="some-group")
+
+    call_kwargs = super_send.call_args[1]
+    assert call_kwargs["headers"]["notify_message_group_id"] == "some-group"
+
+
+def test_send_task_strips_falsy_message_group_id_when_sqs_message_group_ids_enabled(
+    notify_celery,
+    celery_app,
+    mocker,
+):
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    super_send = mocker.patch("celery.Celery.send_task")
+
+    notify_celery.send_task("some-task", MessageGroupId="")
+
+    call_kwargs = super_send.call_args[1]
+    assert "MessageGroupId" not in call_kwargs
+    assert call_kwargs["headers"]["notify_message_group_id"] == ""
+
+
+def test_send_task_warns_when_message_group_id_explicitly_empty(
+    notify_celery,
+    celery_app,
+    mocker,
+    caplog,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+
+    with caplog.at_level(logging.WARNING):
+        notify_celery.send_task("some-task", MessageGroupId="")
+
+    assert "MessageGroupId argument specified explicitly with empty value" in caplog.text
+    assert "some-task" in caplog.text
+    call_kwargs = super_send.call_args[1]
+    assert "MessageGroupId" not in call_kwargs
+    super_send.assert_called_once()
