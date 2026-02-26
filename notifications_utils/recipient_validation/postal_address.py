@@ -241,6 +241,12 @@ class PostalAddress:
         return format_postcode_or_none(self._lines_without_country_or_bfpo[-1])
 
     @property
+    def has_alphanumeric_character_in_address_lines_1_and_2(self):
+        if len(self.normalised_lines) < 2:
+            return False
+        return all(re.search(r"[a-zA-Z0-9]", line) for line in self.normalised_lines[:2])
+
+    @property
     def valid(self):
         return (
             self.has_valid_last_line
@@ -249,6 +255,7 @@ class PostalAddress:
             and not self.has_invalid_characters
             and not (self.international and self.is_bfpo_address)
             and not self.has_no_fixed_abode_address
+            and self.has_alphanumeric_character_in_address_lines_1_and_2
         )
 
 
