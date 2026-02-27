@@ -2,24 +2,12 @@
 #    uv pip compile requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt
 amqp==5.3.1
     # via kombu
-awscrt==0.31.2
-    # via botocore
 beautifulsoup4==4.14.3
     # via -r requirements_for_test_common.in
 billiard==4.2.4
     # via celery
-blinker==1.9.0
-    # via flask
-boto3==1.42.55
-    # via notifications-utils (pyproject.toml)
-botocore==1.42.55
-    # via
-    #   boto3
-    #   s3transfer
 build==1.4.0
     # via -r requirements_for_test.in
-cachetools==7.0.1
-    # via notifications-utils (pyproject.toml)
 celery==5.4.0
     # via -r requirements_for_test.in
 certifi==2026.1.4
@@ -32,7 +20,6 @@ click==8.3.1
     #   click-didyoumean
     #   click-plugins
     #   click-repl
-    #   flask
 click-didyoumean==0.3.1
     # via celery
 click-plugins==1.1.1.2
@@ -41,71 +28,29 @@ click-repl==0.3.0
     # via celery
 coverage==7.13.4
     # via pytest-testmon
-dnspython==2.8.0
-    # via eventlet
-eventlet==0.40.4
-    # via gunicorn
 execnet==2.1.2
     # via pytest-xdist
 filelock==3.24.3
     # via -r requirements_for_test.in
-flask==3.1.3
-    # via
-    #   notifications-utils (pyproject.toml)
-    #   flask-redis
-flask-redis==0.4.0
-    # via notifications-utils (pyproject.toml)
 freezegun==1.5.5
     # via -r requirements_for_test_common.in
-govuk-bank-holidays==0.18
-    # via notifications-utils (pyproject.toml)
-greenlet==3.3.2
-    # via eventlet
-gunicorn==25.1.0
-    # via notifications-utils (pyproject.toml)
 idna==3.11
     # via requests
 iniconfig==2.3.0
     # via pytest
-itsdangerous==2.2.0
-    # via
-    #   notifications-utils (pyproject.toml)
-    #   flask
-jinja2==3.1.6
-    # via
-    #   notifications-utils (pyproject.toml)
-    #   flask
-jmespath==1.1.0
-    # via
-    #   boto3
-    #   botocore
 kombu==5.6.2
     # via celery
-markupsafe==3.0.3
-    # via
-    #   flask
-    #   jinja2
-    #   werkzeug
-mistune==0.8.4
-    # via notifications-utils (pyproject.toml)
-ordered-set==4.1.0
-    # via notifications-utils (pyproject.toml)
 packaging==26.0
     # via
     #   build
-    #   gunicorn
     #   kombu
     #   pytest
-phonenumbers==9.0.24
-    # via notifications-utils (pyproject.toml)
 pluggy==1.6.0
     # via pytest
 prompt-toolkit==3.0.52
     # via click-repl
 pygments==2.19.2
     # via pytest
-pypdf==6.7.2
-    # via notifications-utils (pyproject.toml)
 pyproject-hooks==1.2.0
     # via build
 pytest==9.0.2
@@ -125,41 +70,22 @@ pytest-xdist==3.8.0
     # via -r requirements_for_test_common.in
 python-dateutil==2.9.0.post0
     # via
-    #   notifications-utils (pyproject.toml)
-    #   botocore
     #   celery
     #   freezegun
 python-dotenv==1.2.1
     # via pytest-env
-python-json-logger==4.0.0
-    # via notifications-utils (pyproject.toml)
-pyyaml==6.0.3
-    # via notifications-utils (pyproject.toml)
 redis==7.2.0
-    # via
-    #   -r requirements_for_test.in
-    #   flask-redis
+    # via -r requirements_for_test.in
 requests==2.32.5
-    # via
-    #   notifications-utils (pyproject.toml)
-    #   govuk-bank-holidays
-    #   requests-mock
+    # via requests-mock
 requests-mock==1.12.1
     # via -r requirements_for_test_common.in
 ruff==0.15.2
     # via -r requirements_for_test_common.in
-s3transfer==0.16.0
-    # via boto3
-segno==1.6.6
-    # via notifications-utils (pyproject.toml)
 six==1.17.0
     # via python-dateutil
-smartypants==2.0.2
-    # via notifications-utils (pyproject.toml)
 soupsieve==2.8.3
     # via beautifulsoup4
-statsd==4.0.1
-    # via notifications-utils (pyproject.toml)
 typing-extensions==4.15.0
     # via beautifulsoup4
 tzdata==2025.3
@@ -167,9 +93,7 @@ tzdata==2025.3
     #   celery
     #   kombu
 urllib3==2.6.3
-    # via
-    #   botocore
-    #   requests
+    # via requests
 vine==5.1.0
     # via
     #   amqp
@@ -177,5 +101,3 @@ vine==5.1.0
     #   kombu
 wcwidth==0.6.0
     # via prompt-toolkit
-werkzeug==3.1.6
-    # via flask
