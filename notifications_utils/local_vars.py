@@ -1,11 +1,11 @@
 from collections.abc import Callable
 from contextvars import ContextVar
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 T = TypeVar("T")
 
 
-class LazyLocalGetter(Generic[T]):
+class LazyLocalGetter[T]:
     """
     Wrapper for lazily-constructed context-local resources
     """

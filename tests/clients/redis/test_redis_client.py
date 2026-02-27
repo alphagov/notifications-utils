@@ -2,6 +2,7 @@ import inspect
 import logging
 import uuid
 from datetime import UTC, datetime
+from functools import partial
 from unittest.mock import Mock
 
 import pytest
@@ -104,17 +105,20 @@ def test_do_not_decrement_below_bucket_min(app, redis_client_with_live_instance)
     assert tokens_remaining == -1
 
 
-@freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
 def test_bucket_replenishment_tops_up_bucket_after_interval(app, redis_client_with_live_instance):
-    key = "rate-limit-test-key"
-    replenish_per_sec = 5
-    bucket_max = 100
-    bucket_min = -100
-    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
-    redis_client_with_live_instance.get_remaining_bucket_tokens(key, replenish_per_sec, bucket_max, bucket_min)
-    tokens_remaining = redis_client_with_live_instance.get_remaining_bucket_tokens(
-        key, replenish_per_sec, bucket_max, bucket_min
+    get = partial(
+        redis_client_with_live_instance.get_remaining_bucket_tokens,
+        key="rate-limit-test-key",
+        replenish_per_sec=5,
+        bucket_max=100,
+        bucket_min=-100,
     )
+    with freeze_time("2001-01-01 12:00:00.000000"):
+        get()
+    with freeze_time("2001-01-01 12:00:00.100000"):
+        get()
+    with freeze_time("2001-01-01 12:00:00.200000"):
+        tokens_remaining = get()
     assert tokens_remaining == 98
 
 
