@@ -1,12 +1,17 @@
 # CHANGELOG
 
+## 110.0.0
+
+* `requirements_for_test_common.in` no longer has pinned versions. Running `make freeze-requirements` in apps may cause versions of these dependencies to be bumped
+* Bumps `ruff` to version `0.15.2` which may introduce new linter errors
+
 ## 109.0.0
 
 * Update `PostalAddress` validation to ensure that both the address line 1 (recipient) and the address line 2 (1st line of the address) contain at least one alphanumeric character. This prevents addresses consisting only of symbols from being marked as valid, which would otherwise be rejected by the DVLA.
 
 ## 108.5.0
 
-* **Celery:** 
+* **Celery:**
 1. Add optional support for `MessageGroupId` (fair queue). When the notifications-api sets `ENABLE_SQS_MESSAGE_GROUP_IDS` to `True`, `send_task` persists `MessageGroupId` and stores it in message headers as `notify_message_group_id` so the running task can read it via the new `NotifyTask.message_group_id` property (e.g. for retries). When the flag is `False`, `MessageGroupId` is stripped so behaviour is unchange. A warning is logged when `MessageGroupId` is passed explicitly but empty.
 
 ## 108.4.0
