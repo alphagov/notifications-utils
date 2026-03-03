@@ -20,7 +20,7 @@ build==1.4.0
     # via -r requirements_for_test.in
 cachetools==7.0.1
     # via notifications-utils (pyproject.toml)
-celery==5.4.0
+celery==5.6.2
     # via -r requirements_for_test.in
 certifi==2026.1.4
     # via requests
@@ -163,9 +163,9 @@ statsd==4.0.1
 typing-extensions==4.15.0
     # via beautifulsoup4
 tzdata==2025.3
-    # via
-    #   celery
-    #   kombu
+    # via kombu
+tzlocal==5.3.1
+    # via celery
 urllib3==2.6.3
     # via
     #   botocore
