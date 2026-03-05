@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# 111.0.0
+
+* Removes `serialised_model.SerialisedModelMeta` (should only affect the admin app)
+
 ## 110.0.1
 
 * Use `inspect.get_annotations` instead of the `__annotations__` property (no functional changes)
