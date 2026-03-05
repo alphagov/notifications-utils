@@ -54,6 +54,8 @@ def _common_request_extra_log_context():
     # Parse X-Forwarded-For header to get the full IP chain
     # This provides more detail than ProxyFix by not trusting any single IP
     # and preserving the full chain for analysis
+    # If other headers are required (or this one no is longer needed) update the docs:
+    # https://github.com/alphagov/notifications-manuals/wiki/Request-headers-used
     x_forwarded_for = request.headers.get("X-Forwarded-For")
     if x_forwarded_for:
         # Split by comma, strip whitespace, and reverse to get chain from server to client
