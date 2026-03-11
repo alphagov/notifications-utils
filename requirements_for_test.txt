@@ -65,6 +65,8 @@ gunicorn==25.1.0
     # via notifications-utils (pyproject.toml)
 idna==3.11
     # via requests
+importlib-metadata==8.7.1
+    # via opentelemetry-api
 iniconfig==2.3.0
     # via pytest
 itsdangerous==2.2.0
@@ -87,6 +89,8 @@ markupsafe==3.0.3
     #   jinja2
     #   werkzeug
 mistune==0.8.4
+    # via notifications-utils (pyproject.toml)
+opentelemetry-api==1.40.0
     # via notifications-utils (pyproject.toml)
 ordered-set==4.1.0
     # via notifications-utils (pyproject.toml)
@@ -161,7 +165,9 @@ soupsieve==2.8.3
 statsd==4.0.1
     # via notifications-utils (pyproject.toml)
 typing-extensions==4.15.0
-    # via beautifulsoup4
+    # via
+    #   beautifulsoup4
+    #   opentelemetry-api
 tzdata==2025.3
     # via kombu
 tzlocal==5.3.1
@@ -179,3 +185,5 @@ wcwidth==0.6.0
     # via prompt-toolkit
 werkzeug==3.1.6
     # via flask
+zipp==3.23.0
+    # via importlib-metadata
