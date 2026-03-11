@@ -143,3 +143,14 @@ def test_insensitive_set_contains():
 )
 def test_overwrite_duplicates(extra_args, expected_dict):
     assert InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}, **extra_args) == expected_dict
+
+
+def test_insensitive_set_index():
+    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
+
+    assert foobarbaz.index("foo") == foobarbaz.index("FOO") == foobarbaz.index("f_o_o") == 0
+    assert foobarbaz.index("bar") == foobarbaz.index("BAR") == foobarbaz.index("B A R") == 1
+    assert foobarbaz.index("baz") == 2
+
+    with pytest.raises(KeyError):
+        foobarbaz.index("foobar")

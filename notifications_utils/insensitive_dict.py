@@ -66,3 +66,6 @@ class InsensitiveSet(OrderedSet):
 
     def __contains__(self, key):
         return key in InsensitiveDict.from_keys(self)
+
+    def index(self, key):
+        return InsensitiveDict.from_keys(self).keys().index(InsensitiveDict.make_key(key))
