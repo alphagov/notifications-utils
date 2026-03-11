@@ -154,3 +154,58 @@ def test_insensitive_set_index():
 
     with pytest.raises(KeyError):
         foobarbaz.index("foobar")
+
+
+def test_insensitive_set_is_disjoint():
+    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
+
+    assert foobarbaz.isdisjoint({"foobar"})
+    assert not foobarbaz.isdisjoint({"baz"})
+
+
+def test_insensitive_set_is_subset():
+    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
+    superset = {"foo", "bar", "BAZ", "foobar"}
+    assert foobarbaz.issubset(superset)
+
+    assert foobarbaz < superset
+    assert foobarbaz <= superset
+    assert not foobarbaz < {"foo", "bar", "BAZ"}
+
+
+def test_insensitive_set_is_superset():
+    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
+    subset = {"Foo", "Bar"}
+    assert foobarbaz.issuperset(subset)
+
+    assert foobarbaz > subset
+    assert foobarbaz >= subset
+    assert not foobarbaz > {"foo", "bar", "BAZ"}
+
+
+def test_insensitive_set_union():
+    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
+    barbaz = {"Bar", "B A Z"}
+    assert foobar.union(barbaz) == {"foo", "bar", "B A Z"}
+    assert foobar | barbaz == {"foo", "bar", "B A Z"}
+
+
+def test_insensitive_set_intersection():
+    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
+    barbaz = {"Bar", "B A Z"}
+    assert foobar.intersection(barbaz) == {"BAR"}
+    assert foobar & barbaz == {"BAR"}
+
+
+def test_insensitive_set_difference():
+    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
+    barbaz = {"Bar", "B A Z"}
+    assert foobar.difference(barbaz) == {"foo"}
+    assert foobar - barbaz == {"foo"}
+
+
+def test_insensitive_set_symetric_difference():
+    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
+    barbaz = {"Bar", "B A Z"}
+    assert foobar.symmetric_difference(barbaz) == {"foo", "B A Z"}
+    assert foobar ^ barbaz == {"foo", "B A Z"}
