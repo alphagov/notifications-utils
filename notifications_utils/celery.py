@@ -7,6 +7,20 @@ from celery import Celery, Task
 from celery.backends.base import DisabledBackend
 from flask import Flask, current_app, g, request
 from flask.ctx import has_app_context, has_request_context
+from opentelemetry import metrics
+
+from notifications_utils.clients.statsd.statsd_client import StatsdClient
+
+# fmt: off
+timing_histogram = metrics.get_meter("notifications-utils.celery").create_histogram(
+    "notify_celery_elapsed_time_seconds",
+    explicit_bucket_boundaries_advisory=[
+         0.01,  0.025, 0.05,  0.1,   0.25,   0.5,
+         1.0,   2.0,   4.0,   8.0,  15.0,   30.0,
+        60.0, 120.0, 240.0, 480.0, 900.0, 1800.0,
+    ],
+)
+# fmt: on
 
 
 class NotifyTask(Task):
@@ -45,6 +59,12 @@ class NotifyTask(Task):
     def on_success(self, retval, task_id, args, kwargs):
         # enables request id tracing for these logs
         with self.app_context():
+            shared_context = {
+                "celery_task": self.name,
+                "queue_name": self.queue_name,
+                "retry_number": self.request.retries,
+            }
+
             elapsed_time = time.monotonic() - self.start
 
             self.app.flask_app.logger.info(
@@ -53,13 +73,11 @@ class NotifyTask(Task):
                 self.queue_name,
                 elapsed_time,
                 extra={
-                    "celery_task": self.name,
                     "celery_task_id": self.request.id,
-                    "queue_name": self.queue_name,
-                    "retry_number": self.request.retries,
                     "duration": elapsed_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
+                    **shared_context,
                 },
             )
 
@@ -68,9 +86,17 @@ class NotifyTask(Task):
                 elapsed_time,
             )
 
+            timing_histogram.record(elapsed_time, {"status": "success", **shared_context})
+
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
         with self.app_context():
+            shared_context = {
+                "celery_task": self.name,
+                "queue_name": self.queue_name,
+                "retry_number": self.request.retries,
+            }
+
             elapsed_time = time.monotonic() - self.start
 
             self.app.flask_app.logger.warning(
@@ -80,13 +106,11 @@ class NotifyTask(Task):
                 elapsed_time,
                 exc_info=True,
                 extra={
-                    "celery_task": self.name,
                     "celery_task_id": self.request.id,
-                    "queue_name": self.queue_name,
-                    "retry_number": self.request.retries,
                     "duration": elapsed_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
+                    **shared_context,
                 },
             )
 
@@ -95,9 +119,17 @@ class NotifyTask(Task):
                 elapsed_time,
             )
 
+            timing_histogram.record(elapsed_time, {"status": "retry", **shared_context})
+
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
         with self.app_context():
+            shared_context = {
+                "celery_task": self.name,
+                "queue_name": self.queue_name,
+                "retry_number": self.request.retries,
+            }
+
             elapsed_time = time.monotonic() - self.start
 
             self.app.flask_app.logger.exception(
@@ -106,17 +138,17 @@ class NotifyTask(Task):
                 self.queue_name,
                 elapsed_time,
                 extra={
-                    "celery_task": self.name,
                     "celery_task_id": self.request.id,
-                    "queue_name": self.queue_name,
-                    "retry_number": self.request.retries,
                     "duration": elapsed_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
+                    **shared_context,
                 },
             )
 
             self.app.flask_app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
+
+            timing_histogram.record(elapsed_time, {"status": "failed", **shared_context})
 
     def __call__(self, *args, **kwargs):
         # ensure task has flask context to access config, logger, etc
@@ -153,8 +185,9 @@ class NotifyCelery(Celery):
     def init_app(self, app):
         self.flask_app = app
 
-        # Make sure this is present upfront to avoid errors later on.
-        assert app.statsd_client
+        # Make sure we have a StatsD client (even if it's just a stub) to avoid errors later on.
+        if not hasattr(app, "statsd_client"):
+            app.statsd_client = StatsdClient()
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 110.1.0
+
+* Make StatsD client optional for Celery apps
+* Instrument Celery tasks using OpenTelemetry API
+
 ## 110.0.1
 
 * Use `inspect.get_annotations` instead of the `__annotations__` property (no functional changes)
