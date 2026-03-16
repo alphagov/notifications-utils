@@ -1,4 +1,5 @@
 import pytest
+from ordered_set import OrderedSet
 
 from notifications_utils.field import Field, PlainTextField, str2bool
 
@@ -20,6 +21,67 @@ from notifications_utils.field import Field, PlainTextField, str2bool
 )
 def test_returns_a_string_without_placeholders(content):
     assert str(Field(content)) == content
+
+
+@pytest.mark.parametrize(
+    "template_content,expected",
+    [
+        (
+            "",
+            OrderedSet(),
+        ),
+        (
+            "((colour))",
+            OrderedSet(["colour"]),
+        ),
+        (
+            "the quick (((colour))) fox",
+            OrderedSet(["colour"]),
+        ),
+        (
+            "((name)) ((Name)) ((date_of_birth)) ((DateOfBirth))",
+            OrderedSet(["name", "date_of_birth"]),
+        ),
+        (
+            "((warning?))",
+            OrderedSet(["warning?"]),
+        ),
+        (
+            "((warning?warning))",
+            OrderedSet(["warning?warning"]),
+        ),
+        (
+            "((warning??This is a conditional warning))",
+            OrderedSet(["warning"]),
+        ),
+        (
+            "((warning??This is a conditional warning\nwith line break))",
+            OrderedSet(["warning"]),
+        ),
+        (
+            "((warning??foo??bar))",
+            OrderedSet(["warning"]),
+        ),
+        (
+            "Please report to the ((&gt;location)) office at ((&amp;time)) on ((&lt;day)).",
+            OrderedSet(["&gt;location", "&amp;time", "&lt;day"]),
+        ),
+        (
+            "Dear ((\name)), your passport is now ready for collection from ((/collection_point)).",
+            OrderedSet(["\name", "/collection_point"]),
+        ),
+        (
+            "Dear ((/\name)), your passport is now ready for collection from ((//collection_point)).",
+            OrderedSet(["/\name", "//collection_point"]),
+        ),
+    ],
+)
+@pytest.mark.parametrize("field_class", (Field, PlainTextField))
+def test_extracting_placeholders(field_class, template_content, expected):
+    placeholders = field_class(template_content).placeholders
+    assert placeholders == expected
+    with pytest.raises(KeyError):
+        placeholders.index("not in expected")
 
 
 @pytest.mark.parametrize(

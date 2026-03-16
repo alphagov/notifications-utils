@@ -61,8 +61,8 @@ class InsensitiveDict(dict):
 
 
 class InsensitiveSet(OrderedSet):
-    def __init__(self, iterable):
-        return super().__init__(InsensitiveDict.from_keys(iterable).values())
+    def __init__(self, iterable=None, /):
+        return super().__init__(InsensitiveDict.from_keys(iterable or ()).values())
 
     def __contains__(self, key):
         return key in InsensitiveDict.from_keys(self)
