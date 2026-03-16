@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width">
   <title>{{ subject }}</title>
 
-  <style>
+  <style {% if csp_nonce %}nonce="{{ csp_nonce }}"{% endif %}>
    @media only print {
       .logo__crown { display: none !important; }
       .logo__text, .logo__dot { color: #000000 !important; }
@@ -22,7 +22,7 @@
   </style>
 
   <!--[if gte mso 9]>
-    <style>
+    <style {% if csp_nonce %}nonce="{{ csp_nonce }}"{% endif %}>
       li {
         margin-left: 4px !important;
       }
