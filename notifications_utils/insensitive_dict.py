@@ -61,6 +61,20 @@ class InsensitiveDict(dict):
 
 
 class InsensitiveSet(OrderedSet):
+    """
+    `InsensitiveSet` behaves like a normal set, except:
+    - it is ordered
+    - it normalises case, whitespace, hypens and underscores in items
+
+    In other words:
+        InsensitiveSet(['FIRST_NAME']) == InsensitiveSet(['first name'])
+        >>> True
+
+    Note that the provided case and spacing is preserved for presentation, so:
+        InsensitiveSet(['FIRST-name'])[0]
+        >>> 'FIRST-name'
+    """
+
     def __init__(self, iterable=None, /):
         return super().__init__(InsensitiveDict.from_keys(iterable or ()).values())
 
