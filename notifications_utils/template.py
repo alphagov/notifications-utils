@@ -513,6 +513,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         brand_banner=False,
         brand_alt_text=None,
         rebrand=False,
+        csp_nonce=None,
         **kwargs,
     ):
         super().__init__(template, values, **kwargs)
@@ -524,6 +525,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         self.brand_banner = brand_banner
         self.brand_alt_text = brand_alt_text
         self.rebrand = rebrand
+        self.csp_nonce = csp_nonce
 
     @property
     def preheader(self):
@@ -558,6 +560,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
                 "brand_banner": self.brand_banner,
                 "brand_alt_text": self.brand_alt_text,
                 "rebrand": self.rebrand,
+                "csp_nonce": self.csp_nonce,
             }
         )
 
