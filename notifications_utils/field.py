@@ -1,14 +1,13 @@
 import re
 
 from markupsafe import Markup
-from ordered_set import OrderedSet
 
 from notifications_utils.formatters import (
     escape_html,
     strip_and_remove_obscure_whitespace,
     unescaped_formatted_list,
 )
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 
 
 class Placeholder:
@@ -163,8 +162,8 @@ class Field:
     @property
     def placeholders(self):
         if not getattr(self, "content", ""):
-            return set()
-        return OrderedSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
+            return InsensitiveSet()
+        return InsensitiveSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
 
     @property
     def replaced(self):

@@ -61,8 +61,48 @@ class InsensitiveDict(dict):
 
 
 class InsensitiveSet(OrderedSet):
-    def __init__(self, iterable):
-        return super().__init__(InsensitiveDict.from_keys(iterable).values())
+    """
+    `InsensitiveSet` behaves like a normal set, except:
+    - it is ordered
+    - it normalises case, whitespace, hypens and underscores in items
+
+    In other words:
+        InsensitiveSet(['FIRST_NAME']) == InsensitiveSet(['first name'])
+        >>> True
+
+    Note that the provided case and spacing is preserved for presentation, so:
+        InsensitiveSet(['FIRST-name'])[0]
+        >>> 'FIRST-name'
+    """
+
+    def __init__(self, iterable=None, /):
+        return super().__init__(InsensitiveDict.from_keys(iterable or ()).values())
 
     def __contains__(self, key):
         return key in InsensitiveDict.from_keys(self)
+
+    def __eq__(self, other):
+        return not self ^ other
+
+    def __le__(self, other):
+        return self.issubset(other)
+
+    def __lt__(self, other):
+        return self <= other and not self == other
+
+    def __sub__(self, other):
+        return self.difference(other)
+
+    def index(self, key):
+        return InsensitiveDict.from_keys(self).keys().index(InsensitiveDict.make_key(key))
+
+    def issubset(self, other):
+        return all(key in self.__class__(other) for key in self)
+
+    def intersection(self, other):
+        other_as_same_type_as_self = self.__class__(other)
+        both = self | other_as_same_type_as_self
+        return self.__class__(item for item in both if item in self and item in other_as_same_type_as_self)
+
+    def difference(self, other):
+        return self.__class__(item for item in self if item not in self.__class__(other))

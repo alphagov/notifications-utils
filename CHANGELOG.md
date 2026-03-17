@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 110.2.0
+
+* Adds `InsenstiveSet.index()`, `InsenstiveSet.union()`, `InsenstiveSet.issubset()`, etc
+* `Field.placeholders` and `Template.placeholders` are now instances of `InsenstiveSet`
+
 ## 110.1.0
 
 * Make StatsD client optional for Celery apps
