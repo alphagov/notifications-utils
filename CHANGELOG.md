@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 111.0.0
+
+* Remove `@statsd` decorator
+
 ## 110.2.0
 
 * Adds `InsenstiveSet.index()`, `InsenstiveSet.union()`, `InsenstiveSet.issubset()`, etc
