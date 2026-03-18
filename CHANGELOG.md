@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 112.0.0
+
+* Removes `serialised_model.SerialisedModelMeta` (should only affect the admin app)
+
 ## 111.0.0
 
 * Remove `@statsd` decorator
