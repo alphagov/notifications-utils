@@ -72,12 +72,6 @@ class NotifyTask(Task):
     def on_success(self, retval, task_id, args, kwargs):
         # enables request id tracing for these logs
         with self.app_context():
-            shared_context = {
-                "celery_task": self.name,
-                "queue_name": self.queue_name,
-                "retry_number": self.request.retries,
-            }
-
             elapsed_time = time.monotonic() - self.start
 
             self.app.flask_app.logger.info(
@@ -86,11 +80,13 @@ class NotifyTask(Task):
                 self.queue_name,
                 elapsed_time,
                 extra={
+                    "celery_task": self.name,
                     "celery_task_id": self.request.id,
+                    "queue_name": self.queue_name,
+                    "retry_number": self.request.retries,
                     "duration": elapsed_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
-                    **shared_context,
                 },
             )
 
@@ -104,12 +100,6 @@ class NotifyTask(Task):
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
         with self.app_context():
-            shared_context = {
-                "celery_task": self.name,
-                "queue_name": self.queue_name,
-                "retry_number": self.request.retries,
-            }
-
             elapsed_time = time.monotonic() - self.start
 
             self.app.flask_app.logger.warning(
@@ -119,11 +109,13 @@ class NotifyTask(Task):
                 elapsed_time,
                 exc_info=True,
                 extra={
+                    "celery_task": self.name,
                     "celery_task_id": self.request.id,
+                    "queue_name": self.queue_name,
+                    "retry_number": self.request.retries,
                     "duration": elapsed_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
-                    **shared_context,
                 },
             )
 
@@ -137,12 +129,6 @@ class NotifyTask(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
         with self.app_context():
-            shared_context = {
-                "celery_task": self.name,
-                "queue_name": self.queue_name,
-                "retry_number": self.request.retries,
-            }
-
             elapsed_time = time.monotonic() - self.start
 
             self.app.flask_app.logger.exception(
@@ -151,11 +137,13 @@ class NotifyTask(Task):
                 self.queue_name,
                 elapsed_time,
                 extra={
+                    "celery_task": self.name,
                     "celery_task_id": self.request.id,
+                    "queue_name": self.queue_name,
+                    "retry_number": self.request.retries,
                     "duration": elapsed_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
-                    **shared_context,
                 },
             )
 
