@@ -12,8 +12,10 @@ from opentelemetry import metrics
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
 # fmt: off
-timing_histogram = metrics.get_meter("notifications-utils.celery").create_histogram(
-    "notify_celery_elapsed_time_seconds",
+timing_histogram = metrics.get_meter(__name__).create_histogram(
+    "celery.task.duration",
+    unit="s",
+    description="The amount of time it took for the task to run.",
     explicit_bucket_boundaries_advisory=[
          0.01,  0.025, 0.05,  0.1,   0.25,   0.5,
          1.0,   2.0,   4.0,   8.0,  15.0,   30.0,
@@ -56,6 +58,17 @@ class NotifyTask(Task):
             g.request_id = self.request_id
             yield
 
+    def _record_duration(self, duration: float, status: str) -> None:
+        timing_histogram.record(
+            duration,
+            {
+                "celery.task.name": self.name,
+                "celery.task.retry_number": self.request.retries,
+                "celery.task.status": status,
+                "sqs.queue.name": self.queue_name,
+            },
+        )
+
     def on_success(self, retval, task_id, args, kwargs):
         # enables request id tracing for these logs
         with self.app_context():
@@ -86,7 +99,7 @@ class NotifyTask(Task):
                 elapsed_time,
             )
 
-            timing_histogram.record(elapsed_time, {"status": "success", **shared_context})
+            self._record_duration(elapsed_time, "success")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
@@ -119,7 +132,7 @@ class NotifyTask(Task):
                 elapsed_time,
             )
 
-            timing_histogram.record(elapsed_time, {"status": "retry", **shared_context})
+            self._record_duration(elapsed_time, "retry")
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
@@ -148,7 +161,7 @@ class NotifyTask(Task):
 
             self.app.flask_app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
 
-            timing_histogram.record(elapsed_time, {"status": "failed", **shared_context})
+            self._record_duration(elapsed_time, "failure")
 
     def __call__(self, *args, **kwargs):
         # ensure task has flask context to access config, logger, etc
