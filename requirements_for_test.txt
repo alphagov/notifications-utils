@@ -108,7 +108,7 @@ prompt-toolkit==3.0.52
     # via click-repl
 pygments==2.19.2
     # via pytest
-pypdf==6.7.5
+pypdf==6.9.1
     # via notifications-utils (pyproject.toml)
 pyproject-hooks==1.2.0
     # via build
