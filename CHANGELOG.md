@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.0.0
+
+* Update Celery duration metric to follow OpenTelemetry semantic conventions
+
 ## 112.0.0
 
 * Removes `serialised_model.SerialisedModelMeta` (should only affect the admin app)
