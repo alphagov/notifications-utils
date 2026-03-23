@@ -12,7 +12,7 @@ from opentelemetry import metrics
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
 
 # fmt: off
-timing_histogram = metrics.get_meter(__name__).create_histogram(
+duration_histogram = metrics.get_meter(__name__).create_histogram(
     "celery.task.duration",
     unit="s",
     description="The amount of time it took for the task to run.",
@@ -59,7 +59,7 @@ class NotifyTask(Task):
             yield
 
     def _record_duration(self, duration: float, status: str) -> None:
-        timing_histogram.record(
+        duration_histogram.record(
             duration,
             {
                 "celery.task.name": self.name,
