@@ -10,19 +10,14 @@ from flask.ctx import has_app_context, has_request_context
 from opentelemetry import metrics
 
 from notifications_utils.clients.statsd.statsd_client import StatsdClient
+from notifications_utils.semconv import TASK_DURATION_HISTOGRAM_BUCKETS
 
-# fmt: off
 duration_histogram = metrics.get_meter(__name__).create_histogram(
     "celery.task.duration",
     unit="s",
     description="The amount of time it took for the task to run.",
-    explicit_bucket_boundaries_advisory=[
-         0.01,  0.025, 0.05,  0.1,   0.25,   0.5,
-         1.0,   2.0,   4.0,   8.0,  15.0,   30.0,
-        60.0, 120.0, 240.0, 480.0, 900.0, 1800.0,
-    ],
+    explicit_bucket_boundaries_advisory=TASK_DURATION_HISTOGRAM_BUCKETS,
 )
-# fmt: on
 
 
 class NotifyTask(Task):
