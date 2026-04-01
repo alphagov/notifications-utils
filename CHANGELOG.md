@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.1.0
+
+Add `testing.comparisons.AnyInstanceOf`
+
 ## 113.0.0
 
 * Update Celery duration metric to follow OpenTelemetry semantic conventions
