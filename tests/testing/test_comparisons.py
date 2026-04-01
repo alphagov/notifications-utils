@@ -1,6 +1,7 @@
 import re
 
 from notifications_utils.testing.comparisons import (
+    AnyInstanceOf,
     AnyStringMatching,
     AnySupersetOf,
     ExactIdentity,
@@ -109,3 +110,28 @@ class TestExactIdentity:
             7,
             [],
         )
+
+
+class TestAnyInstanceOf:
+    class Parent:
+        pass
+
+    class Child(Parent):
+        pass
+
+    class Stranger:
+        pass
+
+    def test_compares_against_one_class(self):
+        assert self.Parent() == AnyInstanceOf(self.Parent)
+        assert self.Child() == AnyInstanceOf(self.Parent)
+        assert self.Child() == AnyInstanceOf(self.Child)
+        assert self.Parent() != AnyInstanceOf(self.Child)
+        assert self.Stranger() != AnyInstanceOf(self.Parent)
+
+    def test_compares_against_multiple_classes(self):
+        assert self.Stranger() != AnyInstanceOf(self.Parent, self.Child)
+        assert self.Stranger() == AnyInstanceOf(self.Parent, self.Stranger)
+
+    def test_does_not_match_if_left_side_is_not_instance(self):
+        assert self.Stranger != AnyInstanceOf(self.Stranger)

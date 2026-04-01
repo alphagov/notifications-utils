@@ -31,6 +31,16 @@ class RestrictedAny:
         return None
 
 
+class AnyInstanceOf(RestrictedAny):
+    """
+    Instance will appear to "equal" any object whose class matches, or is a subclass of, the constructor-supplied
+    ``class_``
+    """
+
+    def __init__(self, *classes):
+        self._condition = lambda instance: isinstance(instance, tuple(classes))
+
+
 class AnySupersetOf(RestrictedAny):
     """
     Instance will appear to "equal" any dictionary-like object that is a "superset" of the the constructor-supplied
