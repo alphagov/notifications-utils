@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 113.2.0
+
+* Add `semconv.set_error_type`
+* Add `semconv.TASK_DURATION_HISTOGRAM_BUCKETS`
+* Add `semconv.HTTP_DURATION_HISTOGRAM_BUCKETS`
+
 ## 113.1.0
 
 Add `testing.comparisons.AnyInstanceOf`
