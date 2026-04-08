@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 113.3.0
+
+* Add `semconv.set_service_instance_id`
+* Remove `celery.task.retry_number` attribute from `celery.task.duration` histogram metric
+
 ## 113.2.0
 
 * Add `semconv.set_error_type`
