@@ -1,5 +1,7 @@
+import os
 from collections.abc import MutableMapping
 from sys import exception
+from uuid import uuid4
 
 from opentelemetry.util.types import AttributeValue
 
@@ -53,3 +55,21 @@ def set_error_type(attributes: MutableMapping[str, AttributeValue]) -> None:
     e = exception()
     if e is not None:
         attributes["error.type"] = type(e).__module__ + "." + type(e).__qualname__
+
+
+def set_service_instance_id() -> None:
+    """Updates the `OTEL_RESOURCE_ATTRIBUTES` environment variable to set `service.instance.id` to a random UUIDv4.
+
+    For applications that use fork-based concurrency (which includes both Celery and Gunicorn), this should be called
+    in a post-fork hook, before the call to `opentelemetry.instrumentation.auto_instrumentation.initialize()`, to
+    ensure that each worker process gets a unique service instance ID.
+
+    Future versions of opentelemetry-python might do this automatically, in which case we can remove this.
+
+    See also:
+        https://github.com/open-telemetry/opentelemetry-python/issues/4390
+        https://opentelemetry.io/docs/specs/semconv/registry/attributes/service/
+    """
+    old_value = os.environ.get("OTEL_RESOURCE_ATTRIBUTES")
+    new_value = f"service.instance.id={uuid4()}"
+    os.environ["OTEL_RESOURCE_ATTRIBUTES"] = f"{old_value},{new_value}" if old_value is not None else new_value
