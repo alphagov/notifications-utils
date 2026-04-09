@@ -58,7 +58,6 @@ class NotifyTask(Task):
             duration,
             {
                 "celery.task.name": self.name,
-                "celery.task.retry_number": self.request.retries,
                 "celery.task.status": status,
                 "sqs.queue.name": self.queue_name,
             },
