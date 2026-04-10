@@ -4,6 +4,7 @@ from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
 from itertools import islice
+from time import sleep
 from typing import cast
 
 from ordered_set import OrderedSet
@@ -189,6 +190,9 @@ class RecipientCSV:
             if index >= self.max_rows:
                 yield None
                 continue
+
+            # Allows a greenthread event loop to interrupt processing here
+            sleep(0)
 
             output_dict = {}
 
