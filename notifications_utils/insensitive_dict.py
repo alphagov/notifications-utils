@@ -53,7 +53,7 @@ class InsensitiveDict(dict):
         return {key: self.get(key) for key in keys}
 
     @staticmethod
-    @lru_cache(maxsize=32, typed=False)
+    @lru_cache(maxsize=1_234, typed=False)  # Should match 1000 cols * number of workers
     def make_key(original_key):
         if original_key is None:
             return None
