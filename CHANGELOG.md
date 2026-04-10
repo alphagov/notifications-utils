@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.4.0
+
+* Add option to check_token and generate_token to take encrypt_secret. If it is there it will attempt to decrypt in check_token first, before falling back to verifying signing.  It will encrypt the token in generate_token if encrypt_secret is there.
+
 ## 113.3.0
 
 * Add `semconv.set_service_instance_id`
