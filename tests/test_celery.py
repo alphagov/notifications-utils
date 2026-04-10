@@ -75,7 +75,6 @@ def test_success_should_log_and_record_timing(celery_app, async_task, caplog, mo
         5.0,
         {
             "celery.task.name": async_task.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "success",
             "sqs.queue.name": "test-queue",
         },
@@ -99,7 +98,6 @@ def test_success_no_early_log(celery_app, async_task_early_debug, caplog, mocker
         5.0,
         {
             "celery.task.name": async_task_early_debug.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "success",
             "sqs.queue.name": "test-queue",
         },
@@ -123,7 +121,6 @@ def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplo
         5.0,
         {
             "celery.task.name": celery_task.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "success",
             "sqs.queue.name": "none",
         },
@@ -147,7 +144,6 @@ def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog, mocker
         5.0,
         {
             "celery.task.name": async_task.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "retry",
             "sqs.queue.name": "test-queue",
         },
@@ -171,7 +167,6 @@ def test_retry_queue_when_applied_synchronously(celery_app, celery_task, caplog,
         5.0,
         {
             "celery.task.name": celery_task.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "retry",
             "sqs.queue.name": "none",
         },
@@ -195,7 +190,6 @@ def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog, mock
         5.0,
         {
             "celery.task.name": async_task.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "failure",
             "sqs.queue.name": "test-queue",
         },
@@ -219,7 +213,6 @@ def test_failure_queue_when_applied_synchronously(celery_app, celery_task, caplo
         5.0,
         {
             "celery.task.name": celery_task.name,
-            "celery.task.retry_number": 0,
             "celery.task.status": "failure",
             "sqs.queue.name": "none",
         },

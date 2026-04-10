@@ -4,6 +4,10 @@
 
 * Add option to check_token and generate_token to take encrypt_secret. If it is there it will attempt to decrypt in check_token first, before falling back to verifying signing.  It will encrypt the token in generate_token if encrypt_secret is there.
 
+## 113.3.0
+
+* Add `semconv.set_service_instance_id`
+* Remove `celery.task.retry_number` attribute from `celery.task.duration` histogram metric
 
 ## 113.2.0
 
