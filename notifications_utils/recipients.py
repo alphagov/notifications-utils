@@ -486,8 +486,8 @@ class Cell:
 
     def __init__(self, key=None, value=None, error_fn=None, placeholders=None):
         self.data = value
-        self.error = error_fn(key, value) if error_fn else None
         self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
+        self.error = error_fn(key, value) if error_fn and not self.ignore else None
 
     def __eq__(self, other):
         if not other.__class__ == self.__class__:
