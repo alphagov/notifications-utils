@@ -53,7 +53,7 @@ class InsensitiveDict(dict):
         return {key: self.get(key) for key in keys}
 
     @staticmethod
-    @lru_cache(maxsize=32, typed=False)
+    @lru_cache(maxsize=1_024, typed=False)  # Corresponds to 1,000 column limit when reading Excel files
     def make_key(original_key):
         if original_key is None:
             return None
