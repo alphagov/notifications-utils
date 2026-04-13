@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.5.0
+
+* RecipientCSV.get_rows: sleep every `get_rows_loop_interruptible_every` iterations. This should allow greenthread libraries to yield to another thread when processing large CSVs instead of blocking them.
+
 ## 113.4.0
 
 * Add option to check_token and generate_token to take encrypt_secret. If it is there it will attempt to decrypt in check_token first, before falling back to verifying signing.  It will encrypt the token in generate_token if encrypt_secret is there.
