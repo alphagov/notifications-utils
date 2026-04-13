@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = "113.4.0"  # 17502ffbb541e4be73ddcb33244e3dd4
+__version__ = "113.5.0"  # ca4cdd49c9ce42c281ea0564e3819816
