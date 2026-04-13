@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.5.1
+
+* `RecipientCSV`: Performance improvements for files with large numbers of columns
+
 ## 113.5.0
 
 * RecipientCSV.get_rows: sleep every `get_rows_loop_interruptible_every` iterations. This should allow greenthread libraries to yield to another thread when processing large CSVs instead of blocking them.
