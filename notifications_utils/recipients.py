@@ -4,6 +4,7 @@ from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
 from itertools import islice
+from time import sleep
 from typing import cast
 
 from ordered_set import OrderedSet
@@ -37,6 +38,7 @@ address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
 
 class RecipientCSV:
     max_rows = 100_000
+    get_rows_loop_interruptible_every = 128
 
     def __init__(
         self,
@@ -189,6 +191,11 @@ class RecipientCSV:
             if index >= self.max_rows:
                 yield None
                 continue
+
+            if not (index + 1) % self.get_rows_loop_interruptible_every:
+                # all green thread libraries will monkeypatch this to yield to the event loop
+                # and the real implementation should at least drop the GIL
+                sleep(0)
 
             output_dict = {}
 
