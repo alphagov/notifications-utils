@@ -3,7 +3,7 @@ import string
 import unicodedata
 from functools import partial
 from random import choice, randrange
-from unittest.mock import ANY, Mock, PropertyMock
+from unittest.mock import ANY, Mock, PropertyMock, call
 
 import pytest
 from ordered_set import OrderedSet
@@ -1513,4 +1513,35 @@ def test_duplicate_headers_are_cached(mocker):
         # 2 calls per loop, but cached after the first of 3 loops
         mocker.call(),
         mocker.call(),
+    ]
+
+
+def test_cell_ignore_and_error_checking(mocker):
+    mock_get_error_for_field = mocker.patch.object(
+        RecipientCSV,
+        "_get_error_for_field",
+    )
+    recipients = RecipientCSV(
+        """
+        Phone Number, Name, Foo, Bar
+        123,          A,    foo, bar
+        456,          B,    foo, bar
+        789,          C,    foo, bar
+        """,
+        template=_sample_template("sms", content="Hello ((name))"),
+    )
+
+    assert [[cell.ignore for _header, cell in row.items()] for row in recipients] == [
+        [False, False, True, True],
+        [False, False, True, True],
+        [False, False, True, True],
+    ]
+    assert mock_get_error_for_field.call_args_list == [
+        # Only fields which have a recipient or a placeholder from the template get checked
+        call("Phone Number", "123"),
+        call("Name", "A"),
+        call("Phone Number", "456"),
+        call("Name", "B"),
+        call("Phone Number", "789"),
+        call("Name", "C"),
     ]
