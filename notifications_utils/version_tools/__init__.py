@@ -1,9 +1,12 @@
 import pathlib
+import re
 from base64 import b64decode
 from importlib import resources as importlib_resources
 from importlib.metadata import version
+from itertools import zip_longest
 
 import requests
+import requirements
 
 requirements_file = pathlib.Path("requirements.in")
 frozen_requirements_file = pathlib.Path("requirements.txt")
@@ -113,3 +116,71 @@ def copy_config():
                 )
             )
             f.write(file_bytes)
+
+
+def get_semver_parts(version):
+    return dict(zip_longest(("major", "minor", "patch"), version.split(".")))
+
+
+def get_latest_version_from_pypi(requirement_name):
+    pypi_response = requests.get(
+        f"https://pypi.org/simple/{requirement_name}", headers={"Accept": "application/vnd.pypi.simple.v1+json"}
+    ).json()
+    versions = pypi_response["versions"]
+    versions = sorted(
+        # Matches 0.1 and 1.2.3 but not 3.2.1a
+        [version for version in versions if re.fullmatch(r"((\d+\.)+(\d+))", version)],
+        key=lambda version: [int(part) for part in version.split(".")],
+    )
+    return get_semver_parts(versions[-1])
+
+
+def check_version_difference(specified, available, *, specificity):
+    for part in specified.keys():
+        if specified[part] != available[part]:
+            available = ".".join(filter(None, available.values()))
+            print(  # noqa: T201
+                f"    🚨 {color.RED}{color.BOLD}{part.capitalize()} upgrade needed: {available} is latest{color.END}"
+            )
+            return
+        if part == specificity:
+            print(  # noqa: T201
+                f"    {color.GREEN}{specificity.capitalize()} version up to date{color.END}"
+            )
+            return
+
+
+def show_outdated_requirements():
+    for requirement in requirements.parse(requirements_file.open()):
+        print(  # noqa: T201
+            requirement.line.strip()
+        )
+
+        if not requirement.specs:
+            if requirement.vcs == "git":
+                print(  # noqa: T201
+                    f"{color.YELLOW}{color.BOLD}    ⚠️  Warning: not a PyPi package{color.END}"
+                )
+            else:
+                print(  # noqa: T201
+                    f"{color.BLUE}    No version specified{color.END}"
+                )
+            continue
+
+        specifier, version = requirement.specs[0]
+        latest_pypi_version = get_latest_version_from_pypi(requirement.name)
+        specified_version = get_semver_parts(version)
+
+        if specifier == "==":
+            specificity = "patch"
+        elif specifier == "~=" and specified_version["patch"]:
+            specificity = "minor"
+        elif specifier == "~=" and specified_version["minor"]:
+            specificity = "major"
+        else:
+            print(  # noqa: T201
+                f"{color.YELLOW}{color.BOLD}    ⚠️  Warning: unsupported specifier: {specifier}{color.END}"
+            )
+            continue
+
+        check_version_difference(specified_version, latest_pypi_version, specificity=specificity)
