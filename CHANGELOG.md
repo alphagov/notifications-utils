@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.6.0
+
+* Adds `version_tools.show_outdated_requirements`. Consumers should add a make command like `python -c "from notifications_utils.version_tools import show_outdated_requirements; show_outdated_requirements()`
+
 ## 113.5.1
 
 * `RecipientCSV`: Performance improvements for files with large numbers of columns
