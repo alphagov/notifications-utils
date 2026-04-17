@@ -8,5 +8,3 @@ requests-mock
 freezegun
 
 ruff==0.15.2  # Also update `.pre-commit-config.yaml` if this changes
-
-requirements-parser
