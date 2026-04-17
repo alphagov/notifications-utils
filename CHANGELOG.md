@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.6.1
+
+* Adds `requirements-parser` dependency to project (fix for issue introduced in 113.6.0)
+
 ## 113.6.0
 
 * Adds `version_tools.show_outdated_requirements`. Consumers should add a make command like `python -c "from notifications_utils.version_tools import show_outdated_requirements; show_outdated_requirements()`
