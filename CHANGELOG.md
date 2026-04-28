@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 114.0.0
+
+* **Breaking change**: Make `SerialisedModelCollection` a proper `Iterable`. To achieve this, model instance construction from "item" dicts has been moved to a new dedicated method `_get_model_instance_from_item`. Subclasses that previously customised model instance construction by overriding `__getitem__` will need to be updated to move this to `_get_model_instance_from_item` (and as a result may be able to remove their custom `__getitem__` implementation.
+
 ## 113.6.2
 
 * Configure gunicorn with `control_socket_disable` as `True` by default
