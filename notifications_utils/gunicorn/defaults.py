@@ -42,6 +42,7 @@ def worker_abort(worker):
 def set_gunicorn_defaults(globals_dict: dict):
     globals_dict.update(
         bind=f"0.0.0.0:{os.getenv('PORT', '8080')}",
+        control_socket_disable=True,
         disable_redirect_access_to_syslog=True,
         logconfig_dict={
             **LOGGING_CONFIG_DEFAULTS,
