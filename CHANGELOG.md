@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 113.6.2
+
+* Configure gunicorn with `control_socket_disable` as `True` by default
+
 ## 113.6.1
 
 * Adds `requirements-parser` dependency to project (fix for issue introduced in 113.6.0)
