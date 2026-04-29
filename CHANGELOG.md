@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.0.0
+
+* Adds shared `uv.toml` with `require-hashes = true`. Run `make freeze-requirements` to re-generate `requirements.txt` with hashes
+
 ## 114.1.0
 
 * `RecipientCSV`: add some micro-optimizations for functions called from inner loops, use `__slots__` for `Cell`. The latter of these is technically a breaking change, but it's extremely unlikely consumers are mutating arbitrary attributes on `Cell` objects.
