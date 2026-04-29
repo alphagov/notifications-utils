@@ -1,1 +1,4 @@
 exclude-newer = "7 days"
+
+[pip]
+require-hashes = true

@@ -17,7 +17,7 @@ refreeze-requirements: ## Upgrade unpinned requirements
 .PHONY: bootstrap
 bootstrap: ## Build project
 	uv pip install -r requirements_for_test.txt
-	uv pip install -e .
+	uv pip install -e . --no-require-hashes
 
 .PHONY: bootstrap-with-docker
 bootstrap-with-docker: ## Build project with Docker
