@@ -493,15 +493,12 @@ class Cell:
         self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
         self.error = error_fn(key, value) if error_fn and not self.ignore else None
 
-    def __eq__(self, other):
-        if not other.__class__ == self.__class__:
-            return False
-        return all(
-            (
-                self.data == other.data,
-                self.error == other.error,
-                self.ignore == other.ignore,
-            )
+    def __eq__(self, other) -> bool:
+        return (
+            other.__class__ == self.__class__
+            and self.data == other.data
+            and self.error == other.error
+            and self.ignore == other.ignore
         )
 
     @property
