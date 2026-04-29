@@ -485,6 +485,7 @@ class Row(InsensitiveDict):
 
 
 class Cell:
+    __slots__ = ("data", "ignore", "error")
     missing_field_error = "Missing"
 
     def __init__(self, key=None, value=None, error_fn=None, placeholders=None):
@@ -492,20 +493,17 @@ class Cell:
         self.ignore = InsensitiveDict.make_key(key) not in (placeholders or [])
         self.error = error_fn(key, value) if error_fn and not self.ignore else None
 
-    def __eq__(self, other):
-        if not other.__class__ == self.__class__:
-            return False
-        return all(
-            (
-                self.data == other.data,
-                self.error == other.error,
-                self.ignore == other.ignore,
-            )
+    def __eq__(self, other) -> bool:
+        return (
+            other.__class__ == self.__class__
+            and self.data == other.data
+            and self.error == other.error
+            and self.ignore == other.ignore
         )
 
     @property
     def recipient_error(self):
-        return self.error not in {None, self.missing_field_error}
+        return self.error not in (None, self.missing_field_error)
 
 
 @lru_cache(maxsize=32, typed=False)
@@ -526,7 +524,7 @@ def get_phone_number_object(phone_number):
 
 
 def allowed_to_send_to(recipient, allowlist):
-    return format_recipient(recipient) in {format_recipient(x) for x in allowlist}
+    return format_recipient(recipient) in (format_recipient(x) for x in allowlist)
 
 
 def insert_or_append_to_dict(dict_, key, value):
@@ -535,10 +533,10 @@ def insert_or_append_to_dict(dict_, key, value):
         # ignore them rather than working out how to store them
         return
 
-    if dict_.get(key):
-        if isinstance(dict_[key], list):
-            dict_[key].append(value)
+    if existing_value := dict_.get(key):
+        if isinstance(existing_value, list):
+            existing_value.append(value)
         else:
-            dict_[key] = [dict_[key], value]
+            dict_[key] = [existing_value, value]
     else:
-        dict_.update({key: value})
+        dict_[key] = value
