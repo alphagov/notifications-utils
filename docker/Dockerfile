@@ -1,6 +1,6 @@
 FROM python:3.13-bookworm AS test
 
-COPY --from=ghcr.io/astral-sh/uv:0.5.30 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /bin/
 
 ENV UV_CACHE_DIR='/tmp/uv-cache/'
 ENV UV_COMPILE_BYTECODE=1
