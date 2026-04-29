@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 115.0.1
+
+* Don’t set `require-hashes` to `true` when running `uv pip install` etc.
+* Generate hashes by default when running `uv pip compile`
+
 ## 115.0.0
 
 * Adds shared `uv.toml` with `require-hashes = true`. Run `make freeze-requirements` to re-generate `requirements.txt` with hashes
