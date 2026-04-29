@@ -16,6 +16,7 @@ config_files = {
     for filename in (
         "ruff.toml",
         "requirements_for_test_common.in",
+        "uv.toml",
         ".pre-commit-config.yaml",
     )
 }
