@@ -535,10 +535,10 @@ def insert_or_append_to_dict(dict_, key, value):
         # ignore them rather than working out how to store them
         return
 
-    if dict_.get(key):
-        if isinstance(dict_[key], list):
-            dict_[key].append(value)
+    if existing_value := dict_.get(key):
+        if isinstance(existing_value, list):
+            existing_value.append(value)
         else:
-            dict_[key] = [dict_[key], value]
+            dict_[key] = [existing_value, value]
     else:
-        dict_.update({key: value})
+        dict_[key] = value
