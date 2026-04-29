@@ -505,7 +505,7 @@ class Cell:
 
     @property
     def recipient_error(self):
-        return self.error not in {None, self.missing_field_error}
+        return self.error not in (None, self.missing_field_error)
 
 
 @lru_cache(maxsize=32, typed=False)
