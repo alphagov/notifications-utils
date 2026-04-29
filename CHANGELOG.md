@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 114.1.0
+
+* `RecipientCSV`: add some micro-optimizations for functions called from inner loops, use `__slots__` for `Cell`. The latter of these is technically a breaking change, but it's extremely unlikely consumers are mutating arbitrary attributes on `Cell` objects.
+
 ## 114.0.0
 
 * **Breaking change**: Make `SerialisedModelCollection` a proper `Iterable`. To achieve this, model instance construction from "item" dicts has been moved to a new dedicated method `_get_model_instance_from_item`. Subclasses that previously customised model instance construction by overriding `__getitem__` will need to be updated to move this to `_get_model_instance_from_item` (and as a result may be able to remove their custom `__getitem__` implementation.
