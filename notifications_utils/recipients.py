@@ -526,7 +526,7 @@ def get_phone_number_object(phone_number):
 
 
 def allowed_to_send_to(recipient, allowlist):
-    return format_recipient(recipient) in {format_recipient(x) for x in allowlist}
+    return format_recipient(recipient) in (format_recipient(x) for x in allowlist)
 
 
 def insert_or_append_to_dict(dict_, key, value):
