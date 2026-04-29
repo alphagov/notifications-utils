@@ -485,6 +485,7 @@ class Row(InsensitiveDict):
 
 
 class Cell:
+    __slots__ = ("data", "ignore", "error")
     missing_field_error = "Missing"
 
     def __init__(self, key=None, value=None, error_fn=None, placeholders=None):
