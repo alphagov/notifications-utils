@@ -57,14 +57,20 @@ class SerialisedModelCollection(ABC):
     def model(self):
         pass
 
+    def _get_model_instance_from_item(self, item):
+        return self.model(item)
+
     def __init__(self, items):
         self.items = items
+
+    def __iter__(self):
+        return (self._get_model_instance_from_item(item) for item in self.items)
 
     def __bool__(self):
         return bool(self.items)
 
     def __getitem__(self, index):
-        return self.model(self.items[index])
+        return self._get_model_instance_from_item(self.items[index])
 
     def __len__(self):
         return len(self.items)

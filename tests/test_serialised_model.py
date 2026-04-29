@@ -220,6 +220,14 @@ def test_serialised_model_collection_returns_models_from_list():
         "baz",
     ]
 
+    # check this actually works as an Iterable, not just a sequence
+    item_iter = iter(instance)
+    assert next(item_iter).x == "foo"
+    assert next(item_iter).x == "bar"
+    assert next(item_iter).x == "baz"
+    with pytest.raises(StopIteration):
+        next(item_iter)
+
     assert [type(item) for item in instance + [1, 2, 3]] == [
         Custom,
         Custom,
