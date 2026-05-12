@@ -29,7 +29,6 @@ def test_return_none_when_token_is_expired_and_encrypted():
 
 
 def test_should_throw_exception_when_encryped_token_is_tampered_with():
-
     key = Fernet.generate_key().decode()
     try:
         check_token("1", "secret-key", "dangerous-salt", 30, key)

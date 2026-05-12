@@ -1,5 +1,6 @@
 import datetime
 import os
+from io import BytesIO
 from time import process_time
 from unittest import mock
 
@@ -8,6 +9,8 @@ from bs4 import BeautifulSoup
 from freezegun import freeze_time
 from markupsafe import Markup
 from ordered_set import OrderedSet
+from pypdf import PdfReader
+from weasyprint import HTML
 
 from notifications_utils.formatters import unlink_govuk_escaped
 from notifications_utils.template import (
@@ -2233,22 +2236,117 @@ def test_letter_qr_codes_with_too_much_data(content, values, should_error):
         assert error is None
 
 
+multilanguage_letter_content = """
+Dear ((Address line 1))
+
+Urdu
+اگر آپ چاہتے ہیں کہ ہم
+ آپ کے ساتھ کسی مختلف شکل یا زبان میں بات چیت کریں، تو براہ کرم ہمیں ای میل یا فون کے ذریعے بتائیں:
+DampMouldRepairs@fdsnjkfdsan.gov.uk
+234567890
+
+
+The welfare of our tenants is important to us. To ensure that our properties meet a required standard,
+SOME Borough Council must ensure that their housing stock is suitably maintained.
+
+We see that you may have had some Damp and Mould related repairs at your property around 12 months ago.
+
+We are writing to you in connection with this work to enquire as to whether you may need any further assistance.
+
+If you find that you have any Damp or Mould related repairs that you are unable to contain with
+ ventilation to your property,
+please do not hesitate to contact our Repairs Helpdesk to book an inspection, either by telephone on
+234567890 (Option 1)
+or by email, DampMouldRepairs@fdsnjkfdsan.gov.uk
+
+Yours Sincerely
+
+RANDOM PERSON
+Housing Repairs Manager
+
+English
+If you would like us to communicate with you in a different format or another language, please let us know by email:
+DampMouldRepairs@fdsnjkfdsan.gov.uk or call us on 234567890
+
+Ukrainian
+Якщо ви хочете, щоб ми спілкувалися з вами в іншому форматі або іншою мовою, будь ласка, повідомте нас
+електронною поштою:
+DampMouldRepairs@fdsnjkfdsan.gov.uk  або зателефонуйте нам за номером 234567890.
+
+Polish
+Jeśli chcieliby Państwo, abyśmy kontaktowali się z Państwem w innym formacie lub w innym języku, prosimy o informację
+e mailową: DampMouldRepairs@fdsnjkfdsan.gov.uk lub prosimy zadzwonić pod numer 234567890.
+
+Romanian
+Dacă doriți să comunicăm cu dumneavoastră într-un alt format sau într-o altă limbă, vă rugăm să ne anunțați prin e-mail:
+DampMouldRepairs@fdsnjkfdsan.gov.uk sau să ne sunați la 234567890.
+
+Latvian
+Ja vēlaties, lai mēs ar jums sazināmies citā formātā vai citā valodā, lūdzu, informējiet mūs pa e pastu:
+DampMouldRepairs@fdsnjkfdsan.gov.uk vai zvaniet mums pa tālruni 234567890.
+
+Chinese (Simplified)
+如果您希望我们以不同的格式或其他语言与您沟通，请通过电子邮件告知我们：
+DampMouldRepairs@fdsnjkfdsan.gov.uk 或致电 234567890
+
+Arabic
+إذا كنتم ترغبون في أن نتواصل معكم بصيغة أو لغة مختلفة، يُرجى إعلامنا بذلك عبر البريد الإلكتروني أو الهاتف:
+DampMouldRepairs@fdsnjkfdsan.gov.uk 234567890
+
+Urdu
+اگر آپ چاہتے ہیں کہ ہم
+ آپ کے ساتھ کسی مختلف شکل یا زبان میں بات چیت کریں، تو براہ کرم ہمیں ای میل یا فون کے ذریعے بتائیں:
+DampMouldRepairs@fdsnjkfdsan.gov.uk
+234567890
+
+Hindi
+यदि आप चाहते हैं कि हम आपसे किसी अन्य प्रारूप या भाषा में संवाद करें, तो कृपया हमें ईमेल या फोन द्वारा सूचित करें:
+DampMouldRepairs@fdsnjkfdsan.gov.uk  234567890
+
+Punjabi (Gurmukhi script)
+ਜੇਕਰ ਤੁਸੀਂ ਚਾਹੁੰਦੇ ਹੋ ਕਿ ਅਸੀਂ ਤੁਹਾਡੇ ਨਾਲ ਕਿਸੇ ਵੱਖਰੇ ਫਾਰਮੈਟ ਜਾਂ ਭਾਸ਼ਾ ਵਿੱਚ ਗੱਲਬਾਤ ਕਰੀਏ, ਤਾਂ ਕਿਰਪਾ ਕਰਕੇ ਸਾਨੂੰ ਈਮੇਲ ਜਾਂ ਫ਼ੋਨ ਰਾਹੀਂ ਦੱਸੋ:
+DampMouldRepairs@fdsnjkfdsan.gov.uk  234567890
+"""
+
+
 @pytest.mark.parametrize(
-    "extra_template_kwargs, should_have_notify_tag",
+    "content, extra_template_kwargs, should_have_notify_tag",
     (
-        ({}, True),
-        ({"includes_first_page": True}, True),
-        ({"includes_first_page": False}, False),
+        ("english content", {}, True),
+        ("english content", {"includes_first_page": True}, True),
+        ("english content", {"includes_first_page": False}, False),
+        (multilanguage_letter_content, {}, True),
+        (multilanguage_letter_content, {"includes_first_page": True}, True),
+        (multilanguage_letter_content, {"includes_first_page": False}, False),
     ),
 )
 def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hides_barcodes(
-    extra_template_kwargs, should_have_notify_tag
+    content, extra_template_kwargs, should_have_notify_tag
 ):
     template = LetterPrintTemplate(
-        {"template_type": "letter", "subject": "subject", "content": "content"}, {}, **extra_template_kwargs
+        {"template_type": "letter", "subject": "subject", "content": content}, {}, **extra_template_kwargs
     )
+
+    # Generate PDF and check if NOTIFY is present in the extracted text
+    html = HTML(string=str(template))
+    pdf_bytes = html.write_pdf()
+
+    # print pdf to file for debugging
+    if should_have_notify_tag:
+        import random
+
+        with open(f"output_{random.randint(0, 1000)}_{'TAG' if should_have_notify_tag else 'NO_TAG'}.pdf", "wb") as f:
+            f.write(pdf_bytes)
+
+    # Extract text from PDF using pypdf
+    pdf_reader = PdfReader(BytesIO(pdf_bytes))
+    pdf_text = ""
+    for page in pdf_reader.pages:
+        pdf_text += page.extract_text()
+
     assert ("content: 'NOTIFY';" in str(template)) == should_have_notify_tag
     assert "#mdi,\n  #barcode,\n  #qrcode {\n    display: none;\n  }" in str(template).strip()
+    assert ("NOTIFY" in pdf_text) == should_have_notify_tag
 
 
 @pytest.mark.parametrize("includes_first_page", [True, False])
