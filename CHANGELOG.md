@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.1.0
+
+* `RedisClient`: detect "read-only" errors & drop idle connections. These errors are probably a sign of a failover event, and our connection pool probably has stale connections to the "wrong" redis instance.
+
 ## 115.0.2
 
 * Make date printed on templated letters aware of British Summer Time
