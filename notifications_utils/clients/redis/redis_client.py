@@ -56,8 +56,10 @@ class RedisClient:
 
     def init_app(self, app):
         self.active = app.config.get("REDIS_ENABLED")
+        socket_timeout = app.config.get("REDIS_SOCKET_TIMEOUT")
+        socket_connect_timeout = app.config.get("REDIS_SOCKET_CONNECT_TIMEOUT")
         if self.active:
-            self.redis_store.init_app(app)
+            self.redis_store.init_app(app, socket_timeout=socket_timeout, socket_connect_timeout=socket_connect_timeout)
 
             self.register_scripts()
 
