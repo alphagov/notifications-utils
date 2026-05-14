@@ -720,6 +720,8 @@ class LetterPreviewTemplate(BaseLetterTemplate):
 
 class LetterPrintTemplate(LetterPreviewTemplate):
     jinja_template = template_env.get_template("letter_pdf/print.jinja2")
+    print("****======***** UTILS")
+    print(jinja_template)
 
     def __init__(
         self,
