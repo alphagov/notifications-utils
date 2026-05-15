@@ -66,12 +66,16 @@ def test_set(
 
     assert foo(*args, **kwargs) == "bar"
 
-    mock_redis_get.assert_called_once_with(expected_cache_key)
+    mock_redis_get.assert_called_once_with(
+        expected_cache_key,
+        skippable=True,
+    )
 
     mock_redis_set.assert_called_once_with(
         expected_cache_key,
         '"bar"',
         ex=2_419_200,
+        skippable=True,
     )
 
 
@@ -111,6 +115,7 @@ def test_set_with_custom_ttl(
         "foo",
         '"bar"',
         ex=expected_redis_client_ttl,
+        skippable=True,
     )
 
 
@@ -196,7 +201,7 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 
     assert ret2 == 80.0
 
-    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=160)]
+    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=160, skippable=True)]
 
 
 @pytest.mark.parametrize(
@@ -227,7 +232,10 @@ def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
 
     assert foo(*args) == "bar"
 
-    mock_redis_get.assert_called_once_with(expected_cache_key)
+    mock_redis_get.assert_called_once_with(
+        expected_cache_key,
+        skippable=True,
+    )
 
 
 @pytest.mark.parametrize(
