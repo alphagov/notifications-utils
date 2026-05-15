@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 115.2.0
+
+* `RedisClient`: allow configuration of `socket_timeout` and `socket_connect_timeout` parameters via flask config vars `REDIS_SOCKET_TIMEOUT` and `REDIS_SOCKET_CONNECT_TIMEOUT` respectively.
+* `RedisClient`: use `HardEventletTimeout` as default `always_raise` exception.
+
 ## 115.1.0
 
 * `RedisClient`: detect "read-only" errors & drop idle connections. These errors are probably a sign of a failover event, and our connection pool probably has stale connections to the "wrong" redis instance.
