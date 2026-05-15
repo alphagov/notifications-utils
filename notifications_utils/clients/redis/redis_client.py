@@ -10,13 +10,14 @@ from typing import (  # noqa: UP035
     final,
 )
 
-from flask import current_app
+from flask import current_app, g, has_app_context
 from flask_redis import FlaskRedis
 from redis.exceptions import ReadOnlyError, ResponseError
+from redis.exceptions import TimeoutError as redis_TimeoutError
 from redis.lock import Lock
 from redis.typing import Number
 
-from notifications_utils.eventlet import HardEventletTimeout
+from notifications_utils.eventlet import HardEventletTimeout, SoftEventletTimeout
 
 
 def prepare_value(val):
@@ -53,6 +54,12 @@ class RedisClient:
     active = False
     scripts = {}
     always_raise: tuple[type[BaseException], ...] = (HardEventletTimeout,)
+    # default flakey_exceptions are those that will have already wasted valuable time, where we'd
+    # rather not waste any more time waiting for redis requests in this app context
+    flakey_exceptions: tuple[type[BaseException], ...] = (
+        SoftEventletTimeout,
+        redis_TimeoutError,
+    )
 
     def init_app(self, app):
         self.active = app.config.get("REDIS_ENABLED")
@@ -221,15 +228,35 @@ class RedisClient:
             return False
 
     def set(
-        self, key, value, ex=None, px=None, nx=False, xx=False, raise_exception=False, always_raise=INSTANCE_DEFAULT
+        self,
+        key,
+        value,
+        ex=None,
+        px=None,
+        nx=False,
+        xx=False,
+        raise_exception=False,
+        always_raise=INSTANCE_DEFAULT,
+        skippable=False,
     ):
+        redis_operation = "set"
         key = prepare_value(key)
         value = prepare_value(value)
+
+        if skippable and self.__is_flakey():
+            current_app.logger.warning(
+                "Not performing redis %s on %s because redis is possibly flakey",
+                redis_operation,
+                key,
+                extra={"redis_operation": redis_operation, "redis_key": key},
+            )
+            return
+
         if self.active:
             try:
                 self.redis_store.set(key, value, ex, px, nx, xx)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, always_raise, "set", key)
+                self.__handle_exception(e, raise_exception, always_raise, redis_operation, key)
 
     def incr(self, key, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         key = prepare_value(key)
@@ -246,13 +273,24 @@ class RedisClient:
             except Exception as e:
                 self.__handle_exception(e, raise_exception, always_raise, "decrby", key)
 
-    def get(self, key, raise_exception=False, always_raise=INSTANCE_DEFAULT):
+    def get(self, key, raise_exception=False, always_raise=INSTANCE_DEFAULT, skippable=True):
+        redis_operation = "get"
         key = prepare_value(key)
+
+        if skippable and self.__is_flakey():
+            current_app.logger.warning(
+                "Not performing redis %s on %s because redis is possibly flakey",
+                redis_operation,
+                key,
+                extra={"redis_operation": redis_operation, "redis_key": key},
+            )
+            return
+
         if self.active:
             try:
                 return self.redis_store.get(key)
             except Exception as e:
-                self.__handle_exception(e, raise_exception, always_raise, "get", key)
+                self.__handle_exception(e, raise_exception, always_raise, redis_operation, key)
 
         return None
 
@@ -269,6 +307,9 @@ class RedisClient:
             return Lock(self.redis_store, key_name, **kwargs)
         else:
             return StubLock(redis=None, name="")
+
+    def __is_flakey(self):
+        return has_app_context() and g.get("redis_flakey")
 
     def __handle_exception(
         self,
@@ -292,6 +333,10 @@ class RedisClient:
             # "right" instance.
             current_app.logger.warning("Reacting to %r by disconnecting redis connection pool's idle connections", e)
             self.redis_store.connection_pool.disconnect()
+
+        if isinstance(e, self.flakey_exceptions) and has_app_context():
+            current_app.logger.warning("Marking redis as flakey for remainder of app context")
+            g.redis_flakey = True
 
         if always_raise is INSTANCE_DEFAULT:
             always_raise = self.always_raise

@@ -104,7 +104,7 @@ class RequestCache:
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
-                cached = self.redis_client.get(redis_key)
+                cached = self.redis_client.get(redis_key, skippable=True)
                 if cached:
                     return json.loads(cached.decode("utf-8"))
 
@@ -121,6 +121,8 @@ class RequestCache:
                         redis_key,
                         json.dumps(value),
                         ex=int(final_ttl),
+                        # client_method was (hopefully) side-effect free so this should not be an invalidation
+                        skippable=True,
                     )
 
                 return value
