@@ -157,14 +157,14 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         if level == 1:
             return (
                 '<h2 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; '
-                'font-size: 27px; line-height: 35px; font-weight: bold; color: #0B0C0C;">'
+                'font-size: 27px; line-height: 35px; font-weight: bold; color: #0B0C0C;" dir="auto">'
                 f"{text}"
                 "</h2>"
             )
         if level == 2:
             return (
                 '<h3 style="Margin: 0 0 15px 0; padding: 10px 0 0 0; '
-                'font-size: 19px; line-height: 25px; font-weight: bold; color: #0B0C0C;">'
+                'font-size: 19px; line-height: 25px; font-weight: bold; color: #0B0C0C;" dir="auto">'
                 f"{text}"
                 "</h3>"
             )
@@ -213,7 +213,7 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
 
     def paragraph(self, text):
         if text.strip():
-            return f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">{text}</p>'
+            return f'<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;" dir="auto">{text}</p>'
         return ""
 
     def block_quote(self, text):
