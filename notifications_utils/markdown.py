@@ -179,27 +179,15 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def list(self, body, ordered=True):
         return (
             (
-                '<table role="presentation" style="padding: 0 0 20px 0;">'
-                "<tr>"
-                '<td style="font-family: Helvetica, Arial, sans-serif;">'
-                '<ol style="Margin: 0 0 0 20px; padding: 0; list-style-type: decimal;">'
+                '<ol style="Margin: 0 0 0 20px; padding: 0 0 20px 0; list-style-type: decimal; font-family: Helvetica, Arial, sans-serif;" dir="auto">'
                 f"{body}"
                 "</ol>"
-                "</td>"
-                "</tr>"
-                "</table>"
             )
             if ordered
             else (
-                '<table role="presentation" style="padding: 0 0 20px 0;">'
-                "<tr>"
-                '<td style="font-family: Helvetica, Arial, sans-serif;">'
-                '<ul style="Margin: 0 0 0 20px; padding: 0; list-style-type: disc;">'
+                '<ul style="Margin: 0 0 0 20px;padding: 0 0 20px 0; list-style-type: disc; font-family: Helvetica, Arial, sans-serif;" dir="auto">'
                 f"{body}"
                 "</ul>"
-                "</td>"
-                "</tr>"
-                "</table>"
             )
         )
 
