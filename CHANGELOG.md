@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.2.0
+
+* Add file of known email domains and a function for checking the ending of an email address
+
 ## 115.1.0
 
 * `RedisClient`: detect "read-only" errors & drop idle connections. These errors are probably a sign of a failover event, and our connection pool probably has stale connections to the "wrong" redis instance.
