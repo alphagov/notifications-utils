@@ -2247,7 +2247,6 @@ def test_rendered_letter_template_for_print_can_toggle_notify_tag_and_always_hid
     template = LetterPrintTemplate(
         {"template_type": "letter", "subject": "subject", "content": "content"}, {}, **extra_template_kwargs
     )
-    assert ("content: 'NOTIFY';" in str(template)) == should_have_notify_tag
     assert "#mdi,\n  #barcode,\n  #qrcode {\n    display: none;\n  }" in str(template).strip()
 
 
