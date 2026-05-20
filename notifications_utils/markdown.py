@@ -179,15 +179,18 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
     def list(self, body, ordered=True):
         return (
             (
-                '<ol style="Margin: 0 0 0 20px; padding: 0 0 20px 0; list-style-type: decimal; font-family: Helvetica, Arial, sans-serif;" dir="auto">'
+                '<div style="Margin: 0 0 20px 0;" dir="auto">'
+                '<ol style="Margin: 0 0 0 20px; padding: 0; list-style-type: decimal; font-family: Helvetica, Arial, sans-serif; margin-inline-start: 20px; margin-inline-end: 0;">'
                 f"{body}"
-                "</ol>"
+                "</div>"
             )
             if ordered
             else (
-                '<ul style="Margin: 0 0 0 20px;padding: 0 0 20px 0; list-style-type: disc; font-family: Helvetica, Arial, sans-serif;" dir="auto">'
+                '<div style="Margin: 0 0 20px 0;" dir="auto">'
+                '<ul style="Margin: 0 0 0 20px; padding: 0; list-style-type: disc; font-family: Helvetica, Arial, sans-serif; margin-inline-start: 20px; margin-inline-end: 0;" dir="auto">'
                 f"{body}"
                 "</ul>"
+                "</div>"
             )
         )
 
@@ -205,11 +208,14 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
         return ""
 
     def block_quote(self, text):
+        # Match the style attribute, skip the dir="auto" attribute, and rewrite the tag
+        text = re.sub(r'<p (style="[^"]*") dir="auto">', r'<p \1>', text)
         return (
             '<div style="Margin: 0 0 20px 0;">'
             "<blockquote "
-            'style="Margin: 0; border-left: 10px solid #B1B4B6;'
-            'padding: 15px 0 0.1px 15px; font-size: 19px; line-height: 25px;"'
+            'dir="auto"'
+            'style="Margin: 0; border-left: 10px solid #B1B4B6; border-inline-start: 10px solid #B1B4B6; border-inline-end: none;'
+            'padding: 15px 0 0.1px 15px; padding-inline-start: 15px; padding-inline-end: 0.1px; font-size: 19px; line-height: 25px;"'
             ">"
             f"{text}"
             "</blockquote>"
