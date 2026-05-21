@@ -9,7 +9,6 @@ from flask import Flask, current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 from opentelemetry import metrics
 
-from notifications_utils.clients.statsd.statsd_client import StatsdClient
 from notifications_utils.semconv import TASK_DURATION_HISTOGRAM_BUCKETS
 
 duration_histogram = metrics.get_meter(__name__).create_histogram(
@@ -84,11 +83,6 @@ class NotifyTask(Task):
                 },
             )
 
-            self.app.flask_app.statsd_client.timing(
-                f"celery.{self.queue_name}.{self.name}.success",
-                elapsed_time,
-            )
-
             self._record_duration(elapsed_time, "success")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
@@ -113,11 +107,6 @@ class NotifyTask(Task):
                 },
             )
 
-            self.app.flask_app.statsd_client.timing(
-                f"celery.{self.queue_name}.{self.name}.retry",
-                elapsed_time,
-            )
-
             self._record_duration(elapsed_time, "retry")
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -140,8 +129,6 @@ class NotifyTask(Task):
                     "process_": getpid(),
                 },
             )
-
-            self.app.flask_app.statsd_client.incr(f"celery.{self.queue_name}.{self.name}.failure")
 
             self._record_duration(elapsed_time, "failure")
 
@@ -179,10 +166,6 @@ class NotifyCelery(Celery):
 
     def init_app(self, app):
         self.flask_app = app
-
-        # Make sure we have a StatsD client (even if it's just a stub) to avoid errors later on.
-        if not hasattr(app, "statsd_client"):
-            app.statsd_client = StatsdClient()
 
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])
