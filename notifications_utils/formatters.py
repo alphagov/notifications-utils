@@ -31,7 +31,7 @@ govuk_not_a_link = re.compile(r"(^|\s)(#|\*|\^)?(GOV)\.(UK)(?!\/|\?|#)", re.IGNO
 
 smartypants.tags_to_skip = smartypants.tags_to_skip + ["a"]
 
-whitespace_before_punctuation = re.compile(r"[ \t]+([,\.])")
+whitespace_before_punctuation = re.compile(r"(?<![ \t])[ \t]+([,\.])")
 
 hyphens_surrounded_by_spaces = re.compile(r"\s+[-–—]{1,3}\s+")  # check three different unicode hyphens
 
