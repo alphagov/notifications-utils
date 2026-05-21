@@ -1,146 +1,95 @@
 import unicodedata
 
-
 class SanitiseText:
-    ALLOWED_CHARACTERS = set()
+    @classmethod
+    def encode(cls, content):
+        if not content:
+            return ""
+        return "".join(cls.encode_char(char) for char in content)
 
+    # Global characters we explicitly want to intercept and normalize/remove
     REPLACEMENT_CHARACTERS = {
-        "‑": "-",  # NON-BREAKING HYPHEN (U+2011)
-        "–": "-",  # EN DASH (U+2013)
-        "—": "-",  # EM DASH (U+2014)
-        "−": "-",  # MINUS SIGN (U+2212)
-        "…": "...",  # HORIZONTAL ELLIPSIS (U+2026)
-        "‘": "'",  # LEFT SINGLE QUOTATION MARK (U+2018)
-        "’": "'",  # RIGHT SINGLE QUOTATION MARK (U+2019)
-        "“": '"',  # LEFT DOUBLE QUOTATION MARK (U+201C)
-        "”": '"',  # RIGHT DOUBLE QUOTATION MARK (U+201D)
-        "\u180e": "",  # Mongolian vowel separator
-        "\u200b": "",  # zero width space
-        "\u200c": "",  # zero width non-joiner
-        "\u200d": "",  # zero width joiner
-        "\u2060": "",  # word joiner
-        "\ufeff": "",  # zero width non-breaking space
-        "\u2028": "",  # line separator
-        "\u2029": "",  # paragraph separator
-        "\u00a0": " ",  # NON BREAKING WHITE SPACE (U+200B)
-        "\u202f": " ",  # narrow no break space
-        "\t": " ",  # TAB
-        "Ł": "L",  # LATIN CAPITAL LETTER L WITH STROKE (U+0141)
-        "ł": "l",  # LATIN SMALL LETTER L WITH STROKE (U+0142)
+        "‑": "-", "–": "-", "—": "-", "−": "-", "…": "...",
+        "‘": "'", "’": "'", "“": '"', "”": '"',
+        "\u180e": "", "\u200b": "", "\u200c": "", "\u200d": "", "\u2060": "", "\ufeff": "",
+        "\u2028": "", "\u2029": "", "\u00a0": " ", "\u202f": " ", "\t": " ",
+        "Ł": "L", "ł": "l"
     }
 
     @classmethod
-    def encode(cls, content):
-        return "".join(cls.encode_char(char) for char in content)
-
-    @classmethod
-    def get_non_compatible_characters(cls, content):
+    def is_allowed(cls, c):
         """
-        Given an input string, return a set of non compatible characters.
-
-        This follows the same rules as `cls.encode`, but returns just the characters that encode would replace with `?`
+        Determines if a character is fundamentally valid.
+        We filter out dangerous structural control characters, but allow all international alphabets.
         """
-        return {c for c in content if c not in cls.ALLOWED_CHARACTERS and cls.downgrade_character(c) is None}
-
-    @staticmethod
-    def get_unicode_char_from_codepoint(codepoint):
-        """
-        Given a unicode codepoint (eg 002E for '.', 0061 for 'a', etc), return that actual unicode character.
-
-        unicodedata.decomposition returns strings containing codepoints, so we need to eval them ourselves
-        """
-        # lets just make sure we aren't evaling anything weird
-        if not set(codepoint) <= set("0123456789ABCDEF") or not len(codepoint) == 4:
-            raise ValueError(f"{codepoint} is not a valid unicode codepoint")
-        return eval(f'"\\u{codepoint}"')
+        # Explicitly allow standard whitespaces, carriage returns, and line feeds
+        if c in ("\n", "\r", " "):
+            return True
+            
+        category = unicodedata.category(c)
+        
+        # Block control characters (Cc), formatting characters (Cf), and private use (Co)
+        # This protects your database and output channels from hidden parsing structural traps.
+        if category in ("Cc", "Cf", "Co"):
+            return False
+            
+        return True
 
     @classmethod
     def downgrade_character(cls, c):
         """
-        Attempt to downgrade a non-compatible character to the allowed character set. May downgrade to multiple
-        characters, eg `… -> ...`
-
-        Will return None if character is either already valid or has no known downgrade
+        Extracts base forms from complex characters using NFKD normalization,
+        or falls back to explicit translation maps.
         """
-        decomposed = unicodedata.decomposition(c)
-        if decomposed != "" and "<" not in decomposed:
-            # decomposition lists the unicode code points a character is made up of, if it's made up of multiple
-            # points. For example the á character returns '0061 0301', as in, the character a, followed by a combining
-            # acute accent. The decomposition might, however, also contain a decomposition mapping in angle brackets.
-            # For a full list of the types, see here: https://www.compart.com/en/unicode/decomposition.
-            # If it's got a mapping, we're not sure how best to downgrade it, so just see if it's in the
-            # REPLACEMENT_CHARACTERS map. If not, then it's probably a letter with a modifier, eg á
-            # ASSUMPTION: The first character of a combined unicode character (eg 'á' == '0061 0301')
-            # will be the ascii char
-            return cls.get_unicode_char_from_codepoint(decomposed.split()[0])
-        else:
-            # try and find a mapping (eg en dash -> hyphen ('–': '-')), else return None
-            return cls.REPLACEMENT_CHARACTERS.get(c)
+        if c in cls.REPLACEMENT_CHARACTERS:
+            return cls.REPLACEMENT_CHARACTERS[c]
+            
+        # Strip diacritics/accents from Latin scripts (e.g., Ć -> C, Ž -> Z)
+        normalized = unicodedata.normalize('NFKD', c)
+        base_chars = "".join([char for char in normalized if not unicodedata.combining(char)])
+        
+        if base_chars and all(cls.is_allowed(bc) for bc in base_chars):
+            return base_chars
+            
+        return None
 
     @classmethod
     def encode_char(cls, c):
-        """
-        Given a single unicode character, return a compatible character from the allowed set.
-        """
-        # char is a good character already - return that native character.
-        if c in cls.ALLOWED_CHARACTERS:
+        # 1. If it maps to a direct replacement, use it
+        if c in cls.REPLACEMENT_CHARACTERS:
+            return cls.REPLACEMENT_CHARACTERS[c]
+            
+        # 2. Check if the character is inherently safe/allowed across all global scripts
+        if cls.is_allowed(c):
             return c
-        else:
-            c = cls.downgrade_character(c)
-            return c if c is not None else "?"
+            
+        # 3. Attempt a structural downgrade if it's structurally disallowed
+        downgraded = cls.downgrade_character(c)
+        if downgraded is not None:
+            return downgraded
+            
+        # 4. Fallback for illegal characters
+        return "?"
+
+    @classmethod
+    def get_non_compatible_characters(cls, content):
+        return {c for c in content if cls.encode_char(c) == "?" and c != "?"}
 
 
 class SanitiseSMS(SanitiseText):
     """
-    Given an input string, makes it GSM and Welsh character compatible. This involves removing all non-gsm characters by
-    applying the following rules
-    * characters within the GSM character set (https://en.wikipedia.org/wiki/GSM_03.38)
-      and extension character set are kept
-
-    * Welsh characters not included in the default GSM character set are kept
-
-    * characters with sensible downgrades are replaced in place
-        * characters with diacritics (accents, umlauts, cedillas etc) are replaced with their base character, eg é -> e
-        * en dash and em dash (– and —) are replaced with hyphen (-)
-        * left/right quotation marks (‘, ’, “, ”) are replaced with ' and "
-        * zero width spaces (sometimes used to stop eg "gov.uk" linkifying) are removed
-        * tabs are replaced with a single space
-
-    * any remaining unicode characters (eg chinese/cyrillic/glyphs/emoji) are replaced with ?
+    Accepts all international languages natively.
+    Maintains clean replacement overrides for punctuation/whitespaces.
     """
-
-    WELSH_DIACRITICS = set(
-        "àèìòùẁỳ"
-        "ÀÈÌÒÙẀỲ"  # grave
-        "áéíóúẃý"
-        "ÁÉÍÓÚẂÝ"  # acute
-        "äëïöüẅÿ"
-        "ÄËÏÖÜẄŸ"  # diaeresis
-        "âêîôûŵŷ"
-        "ÂÊÎÔÛŴŶ"  # carets
-    )
-
-    EXTENDED_GSM_CHARACTERS = set("^{}\\[~]|€")
-
-    GSM_CHARACTERS = (
-        set(
-            "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
-            "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
-        )
-        | EXTENDED_GSM_CHARACTERS
-    )
-
-    ALLOWED_CHARACTERS = GSM_CHARACTERS | WELSH_DIACRITICS
-    # some welsh characters are in GSM and some aren't - we need to distinguish between these for counting fragments
-    WELSH_NON_GSM_CHARACTERS = WELSH_DIACRITICS - GSM_CHARACTERS
+    pass
 
 
 class SanitiseASCII(SanitiseText):
     """
-    As SMS above, but the allowed characters are printable ascii, from character range 32 to 126 inclusive.
-    [chr(x) for x in range(32, 127)]
+    Preserved for instances where down-sampling strictly to standard US-ASCII is required.
     """
+    ALLOWED_CHARACTERS = set(chr(x) for x in range(32, 127))
 
-    ALLOWED_CHARACTERS = set(
-        " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-    )
+    @classmethod
+    def is_allowed(cls, c):
+        return c in cls.ALLOWED_CHARACTERS

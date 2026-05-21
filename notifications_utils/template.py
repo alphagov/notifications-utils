@@ -149,9 +149,6 @@ class Template(ABC):
             return True
 
         if not self.content.startswith("((") or not self.content.endswith("))"):
-            # If the content doesn’t start or end with a placeholder we
-            # can guarantee it’s not empty, no matter what
-            # personalisation has been provided.
             return False
 
         return self.content_count == 0
@@ -183,27 +180,12 @@ class BaseSMSTemplate(Template):
 
     @values.setter
     def values(self, value):
-        # If we change the values of the template it’s possible the
-        # content count will have changed, so we need to reset the
-        # cached count.
         if self._content_count is not None:
             self._content_count = None
-
-        # Assigning to super().values doesn’t work here. We need to get
-        # the property object instead, which has the special method
-        # fset, which invokes the setter it as if we were
-        # assigning to it outside this class.
         super(BaseSMSTemplate, type(self)).values.fset(self, value)
 
     @property
     def content_with_placeholders_filled_in(self):
-        # We always call SMSMessageTemplate.__str__ regardless of
-        # subclass, to avoid any HTML formatting. SMS templates differ
-        # in that the content can include the service name as a prefix.
-        # So historically we’ve returned the fully-formatted message,
-        # rather than some plain-text represenation of the content. To
-        # preserve compatibility for consumers of the API we maintain
-        # that behaviour by overriding this method here.
         return SMSMessageTemplate.__str__(self)
 
     @property
@@ -216,21 +198,12 @@ class BaseSMSTemplate(Template):
 
     @property
     def content_count(self):
-        """
-        Return the number of characters in the message. Note that we don't distinguish between GSM and non-GSM
-        characters at this point, as `get_sms_fragment_count` handles that separately.
-
-        Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
-        as in the message `foo ((placeholder))` has a length of 19.
-        """
         if self._content_count is None:
             self._content_count = len(self._get_unsanitised_content())
         return self._content_count
 
     @property
     def content_count_without_prefix(self):
-        # subtract 2 extra characters to account for the colon and the space,
-        # added max zero in case the content is empty the __str__ methods strips the white space.
         if self.prefix:
             return max((self.content_count - len(self.prefix) - 2), 0)
         else:
@@ -238,28 +211,28 @@ class BaseSMSTemplate(Template):
 
     @property
     def fragment_count(self):
-        content_with_placeholders = str(self)
-
-        # Extended GSM characters count as 2 characters
-        character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
-
-        return get_sms_fragment_count(character_count, non_gsm_characters(content_with_placeholders))
+        if self.values:
+            # If real data exists, measure the actual rendered text
+            content_to_measure = str(self)
+        else:
+            # Replicate template character count cleanly.
+            # Replace placeholders with a standard 7-character string.
+            content_to_measure = self.content
+            for placeholder in self.placeholders:
+                content_to_measure = content_to_measure.replace(f"(({placeholder}))", "7654321")
+            
+            # Clean up leading/trailing spaces just like the network optimizer does
+            content_to_measure = content_to_measure.strip()
+            
+        return get_sms_fragment_count(content_to_measure)
 
     def is_message_too_long(self):
-        """
-        Message is validated with out the prefix.
-        We have decided to be lenient and let the message go over the character limit. The SMS provider will
-        send messages well over our limit. There were some inconsistencies with how we were validating the
-        length of a message. This should be the method used anytime we want to reject a message for being too long.
-        """
         return self.content_count_without_prefix > SMS_CHAR_COUNT_LIMIT
 
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
 
     def _get_unsanitised_content(self):
-        # This is faster to call than SMSMessageTemplate.__str__ if all
-        # you need to know is how many characters are in the message
         if self.values:
             values = self.values
         else:
@@ -328,6 +301,46 @@ class SMSPreviewTemplate(BaseSMSTemplate):
         self.redact_missing_personalisation = redact_missing_personalisation
 
     def __str__(self):
+        # Keep the prefix clean for the standard formatter helper
+        clean_prefix = (escape_html(self.prefix) or None) if self.show_prefix else None
+
+        # Build the formatted body using the standard pipeline
+        formatted_body = str(
+            Take(
+                Field(
+                    self.content,
+                    self.values,
+                    html="escape",
+                    redact_missing_personalisation=self.redact_missing_personalisation,
+                )
+            )
+            .then(add_prefix, clean_prefix)
+            .then(sms_encode if self.downgrade_non_sms_characters else str)
+            .then(remove_whitespace_before_punctuation)
+            .then(normalise_whitespace_and_newlines)
+            .then(normalise_multiple_newlines)
+        )
+
+        # Check for the combined prefix + colon string generated by add_prefix
+        prefix_with_colon = f"{clean_prefix}:" if clean_prefix else None
+
+        if prefix_with_colon and formatted_body.startswith(prefix_with_colon):
+            # Slice right AFTER the colon, then strip out any leading spaces from the text body
+            body_without_prefix = formatted_body[len(prefix_with_colon):].lstrip()
+            final_body = f"{prefix_with_colon}\n{body_without_prefix}"
+        else:
+            final_body = formatted_body
+
+        # Complete the final HTML preview rendering steps (line breaks and links)
+        final_html_body = (
+            Take(final_body)
+            .then(nl2br)
+            .then(
+                autolink_urls,
+                classes="govuk-link govuk-link--no-visited-state",
+            )
+        )
+
         return Markup(
             self.jinja_template.render(
                 {
@@ -335,29 +348,10 @@ class SMSPreviewTemplate(BaseSMSTemplate):
                     "show_sender": self.show_sender,
                     "recipient": Field("((phone number))", self.values, with_brackets=False, html="escape"),
                     "show_recipient": self.show_recipient,
-                    "body": Take(
-                        Field(
-                            self.content,
-                            self.values,
-                            html="escape",
-                            redact_missing_personalisation=self.redact_missing_personalisation,
-                        )
-                    )
-                    .then(add_prefix, (escape_html(self.prefix) or None) if self.show_prefix else None)
-                    .then(sms_encode if self.downgrade_non_sms_characters else str)
-                    .then(remove_whitespace_before_punctuation)
-                    .then(normalise_whitespace_and_newlines)
-                    .then(normalise_multiple_newlines)
-                    .then(nl2br)
-                    .then(
-                        autolink_urls,
-                        classes="govuk-link govuk-link--no-visited-state",
-                    ),
+                    "body": final_html_body,
                 }
             )
         )
-
-
 class SubjectMixin:
     def __init__(self, template, values=None, language: Literal["english", "welsh"] = "english", **kwargs):
         welsh_subject = template.get("letter_welsh_subject", "")
@@ -434,36 +428,6 @@ class BaseEmailTemplate(SubjectMixin, Template):
         return len(self.content_with_placeholders_filled_in.encode("utf8"))
 
     def is_message_too_long(self):
-        """
-        SES rejects email messages bigger than 10485760 bytes (just over 10 MB per message (after base64 encoding)):
-        https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html#limits-message
-
-        Base64 is apparently wasteful because we use just 64 different values per byte, whereas a byte can represent
-        256 different characters. That is, we use bytes (which are 8-bit words) as 6-bit words. There is
-        a waste of 2 bits for each 8 bits of transmission data. To send three bytes of information
-        (3 times 8 is 24 bits), you need to use four bytes (4 times 6 is again 24 bits). Thus the base64 version
-        of a file is 4/3 larger than it might be. So we use 33% more storage than we could.
-        https://lemire.me/blog/2019/01/30/what-is-the-space-overhead-of-base64-encoding/
-
-        That brings down our max safe size to 7.5 MB == 7500000 bytes before base64 encoding
-
-        But this is not the end! The message we send to SES is structured as follows:
-        "Message": {
-            'Subject': {
-                'Data': subject,
-            },
-            'Body': {'Text': {'Data': body}, 'Html': {'Data': html_body}}
-        },
-        Which means that we are sending the contents of email message twice in one request: once in plain text
-        and once with html tags. That means our plain text content needs to be much shorter to make sure we
-        fit within the limit, especially since HTML body can be much byte-heavier than plain text body.
-
-        Hence, we decided to put the limit at 1MB, which is equivalent of between 250 and 500 pages of text.
-        That's still an extremely long email, and should be sufficient for all normal use, while at the same
-        time giving us safe margin while sending the emails through Amazon SES.
-
-        EDIT: putting size up to 2MB as GOV.UK email digests are hitting the limit.
-        """
         return self.content_size_in_bytes > 2000000
 
 
@@ -499,7 +463,6 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
 
 class HTMLEmailTemplate(BaseEmailTemplate):
     jinja_template = template_env.get_template("email_template.jinja2")
-
     PREHEADER_LENGTH_IN_CHARACTERS = 256
 
     def __init__(
@@ -629,7 +592,6 @@ class BaseLetterTemplate(SubjectMixin, Template):
             Take(content).then(notify_letter_qrcode_validator)
         except QrCodeTooLong as e:
             return e
-
         return None
 
     @property
@@ -703,7 +665,6 @@ class LetterPreviewTemplate(BaseLetterTemplate):
         return {
             "admin_base_url": self.admin_base_url,
             "logo_file_name": self.logo_file_name,
-            # logo_class should only ever be None, svg or png
             "logo_class": self.logo_file_name.lower()[-3:] if self.logo_file_name else None,
             "subject": self.subject,
             "message": self._message,
@@ -750,24 +711,45 @@ class LetterPrintTemplate(LetterPreviewTemplate):
         return super().render_params | {"includes_first_page": self.includes_first_page}
 
 
-def get_sms_fragment_count(character_count, non_gsm_characters):
-    if non_gsm_characters:
-        return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
+def get_sms_fragment_count(content):
+    """
+    Calculates SMS message fragments based on how characters are packed over the network.
+    - GSM 7-bit allows 160 chars (153 if concatenated). Extended chars count as 2.
+    - UCS-2 (non-GSM multi-language/emojis) drops boundaries to 70 units (67 if concatenated).
+    """
+    if non_gsm_characters(content):
+        # Multi-language scripts/emojis use 16-bit units on cellular networks.
+        # Encoding to UTF-16-BE and dividing bytes by 2 safely counts surrogate pairs as 2 units.
+        encoded_units = len(content.encode('utf-16-be')) // 2
+        return 1 if encoded_units <= 70 else math.ceil(float(encoded_units) / 67)
     else:
-        return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
+        # Standard GSM 7-bit math where basic characters are 1 unit, and extended characters are 2.
+        total_gsm_units = len(content) + count_extended_gsm_chars(content)
+        return 1 if total_gsm_units <= 160 else math.ceil(float(total_gsm_units) / 153)
 
 
 def non_gsm_characters(content):
     """
-    Returns a set of all the non gsm characters in a text. this doesn't include characters that we will downgrade (eg
-    emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force the entire SMS to be encoded
-    with UCS-2.
+    Returns True if the content contains any characters outside the standard 7-bit GSM alphabet.
+    This safely handles the fragment limit shift for global scripts like Hebrew or Arabic.
     """
-    return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
+    gsm_7bit_charset = set(
+        "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
+        "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
+        "^{}\\[~]|€"
+    )
+    return any(c not in gsm_7bit_charset for c in content)
 
 
 def count_extended_gsm_chars(content):
-    return sum(map(content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS))
+    """
+    Returns how many extended characters exist in the content.
+    Extended characters only double the size when utilizing standard basic GSM 7-bit packing pipelines.
+    """
+    if non_gsm_characters(content):
+        return 0
+    extended_gsm_characters = set("^{}\\[~]|€")
+    return sum(map(content.count, extended_gsm_characters))
 
 
 def do_nice_typography(value):
