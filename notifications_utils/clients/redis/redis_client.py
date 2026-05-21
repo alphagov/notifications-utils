@@ -16,7 +16,7 @@ from redis.exceptions import ReadOnlyError, ResponseError
 from redis.lock import Lock
 from redis.typing import Number
 
-from notifications_utils.eventlet import EventletTimeout
+from notifications_utils.eventlet import HardEventletTimeout
 
 
 def prepare_value(val):
@@ -52,12 +52,14 @@ class RedisClient:
     redis_store = FlaskRedis()
     active = False
     scripts = {}
-    always_raise: tuple[type[BaseException], ...] = (EventletTimeout,)
+    always_raise: tuple[type[BaseException], ...] = (HardEventletTimeout,)
 
     def init_app(self, app):
         self.active = app.config.get("REDIS_ENABLED")
+        socket_timeout = app.config.get("REDIS_SOCKET_TIMEOUT")
+        socket_connect_timeout = app.config.get("REDIS_SOCKET_CONNECT_TIMEOUT")
         if self.active:
-            self.redis_store.init_app(app)
+            self.redis_store.init_app(app, socket_timeout=socket_timeout, socket_connect_timeout=socket_connect_timeout)
 
             self.register_scripts()
 
