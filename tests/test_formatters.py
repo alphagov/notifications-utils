@@ -315,6 +315,10 @@ def test_smart_quotes(dumb, smart):
             "em – dash",
         ),
         (
+            " \t\n   — dash",
+            " – dash",
+        ),
+        (
             "already\u0020–\u0020correct",  # \u0020 is a normal space character
             "already\u0020–\u0020correct",
         ),
@@ -326,6 +330,10 @@ def test_smart_quotes(dumb, smart):
 )
 def test_en_dashes(nasty, nice):
     assert replace_hyphens_with_en_dashes(nasty) == nice
+
+
+def test_en_dashes_scalability():
+    replace_hyphens_with_en_dashes("a" + (" " * 1_000_000) + "a")
 
 
 def test_unicode_dash_lookup():
