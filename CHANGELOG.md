@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 115.4.0
+
+* `RedisClient`: allow configuration of `socket_timeout` and `socket_connect_timeout` parameters via flask config vars `REDIS_SOCKET_TIMEOUT` and `REDIS_SOCKET_CONNECT_TIMEOUT` respectively.
+* `RedisClient`: use `HardEventletTimeout` as default `always_raise` exception.
+
 ## 115.3.1
 
 * Fix easily-and-accidentally-exploited ReDoS vulnerabilities in `remove_whitespace_before_punctuation` and `replace_hyphens_with_en_dashes`.
