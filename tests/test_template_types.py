@@ -2127,7 +2127,7 @@ def test_image_not_present_if_no_logo(template_class):
             SMSPreviewTemplate,
             (
                 "\n\n"
-                '<div class="sms-message-wrapper">\n'
+                '<div class="sms-message-wrapper" dir="auto">\n'
                 "  The quick brown fox.<br><br>Jumps over the lazy dog.<br>Single linebreak above.\n"
                 "</div>"
             ),
