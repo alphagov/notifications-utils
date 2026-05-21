@@ -503,11 +503,11 @@ def test_stripping_of_unsupported_characters_in_email_templates(template_content
     "template_class, prefix, body, expected_call",
     [
         (SMSMessageTemplate, "a", "b", (Markup("b"), "a")),
-        (SMSPreviewTemplate, "a", "b", (Markup("b"), "a")),
+        (SMSPreviewTemplate, "a", "b", (Markup("b"), "a", True)),
         (SMSMessageTemplate, None, "b", (Markup("b"), None)),
-        (SMSPreviewTemplate, None, "b", (Markup("b"), None)),
+        (SMSPreviewTemplate, None, "b", (Markup("b"), None, True)),
         (SMSMessageTemplate, "<em>ht&ml</em>", "b", (Markup("b"), "<em>ht&ml</em>")),
-        (SMSPreviewTemplate, "<em>ht&ml</em>", "b", (Markup("b"), "&lt;em&gt;ht&amp;ml&lt;/em&gt;")),
+        (SMSPreviewTemplate, "<em>ht&ml</em>", "b", (Markup("b"), "&lt;em&gt;ht&amp;ml&lt;/em&gt;", True)),
     ],
 )
 def test_sms_message_adds_prefix(add_prefix, template_class, prefix, body, expected_call):
@@ -520,18 +520,14 @@ def test_sms_message_adds_prefix(add_prefix, template_class, prefix, body, expec
 
 @mock.patch("notifications_utils.template.add_prefix", return_value="")
 @pytest.mark.parametrize(
-    "template_class",
+    "template_class, show_prefix, prefix, body, sender, expected_call",
     [
-        SMSMessageTemplate,
-        SMSPreviewTemplate,
-    ],
-)
-@pytest.mark.parametrize(
-    "show_prefix, prefix, body, sender, expected_call",
-    [
-        (False, "a", "b", "c", (Markup("b"), None)),
-        (True, "a", "b", None, (Markup("b"), "a")),
-        (True, "a", "b", False, (Markup("b"), "a")),
+        (SMSMessageTemplate, False, "a", "b", "c", (Markup("b"), None)),
+        (SMSPreviewTemplate, False, "a", "b", "c", (Markup("b"), None, True)),
+        (SMSMessageTemplate, True, "a", "b", None, (Markup("b"), "a")),
+        (SMSPreviewTemplate, True, "a", "b", None, (Markup("b"), "a", True)),
+        (SMSMessageTemplate, True, "a", "b", False, (Markup("b"), "a")),
+        (SMSPreviewTemplate, True, "a", "b", False, (Markup("b"), "a", True)),
     ],
 )
 def test_sms_message_adds_prefix_only_if_asked_to(
@@ -583,7 +579,11 @@ def test_sms_message_preview_hides_sender_by_default():
     "template_class, extra_args, expected_call",
     (
         (SMSMessageTemplate, {"prefix": "Service name"}, "Service name: Message"),
-        (SMSPreviewTemplate, {"prefix": "Service name"}, "Service name: Message"),
+        (
+            SMSPreviewTemplate,
+            {"prefix": "Service name"},
+            "<span class='sms-message-prefix'>Service name:</span> Message",
+        ),
         (SMSBodyPreviewTemplate, {}, "Message"),
     ),
 )
@@ -607,7 +607,7 @@ def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode
             downgrade_non_sms_characters=False,
         )
     )
-    assert "👉: 😎" in str(template)
+    assert "<span class='sms-message-prefix'>👉:</span> 😎" in str(template)
     assert mock_sms_encode.called is False
 
 

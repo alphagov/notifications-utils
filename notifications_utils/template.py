@@ -343,7 +343,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
                             redact_missing_personalisation=self.redact_missing_personalisation,
                         )
                     )
-                    .then(add_prefix, (escape_html(self.prefix) or None) if self.show_prefix else None)
+                    .then(add_prefix, escape_html(self.prefix) if self.show_prefix else None, True)
                     .then(sms_encode if self.downgrade_non_sms_characters else str)
                     .then(remove_whitespace_before_punctuation)
                     .then(normalise_whitespace_and_newlines)

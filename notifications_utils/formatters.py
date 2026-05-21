@@ -63,8 +63,10 @@ def nl2br(value):
     return re.sub(r"\n|\r", "<br>", value.strip())
 
 
-def add_prefix(body, prefix=None):
+def add_prefix(body, prefix=None, with_wrapping_html_tag=False):
     if prefix:
+        if with_wrapping_html_tag:
+            return f"<span class='sms-message-prefix'>{prefix.strip()}:</span> {body}"
         return f"{prefix.strip()}: {body}"
     return body
 
