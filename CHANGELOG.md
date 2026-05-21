@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.3.1
+
+* Fix easily-and-accidentally-exploited ReDoS vulnerabilities in `remove_whitespace_before_punctuation` and `replace_hyphens_with_en_dashes`.
+
 ## 115.3.0
 
 Add `file_types.mime_type_from_extension`

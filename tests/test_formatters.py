@@ -231,6 +231,7 @@ def test_escaping_html_entities(
             "\n   \t    , word",
             "\n, word",
         ),
+        ("        \t    , 123", ", 123"),
     ],
 )
 def test_removing_whitespace_before_commas(dirty, clean):
@@ -246,10 +247,17 @@ def test_removing_whitespace_before_commas(dirty, clean):
             "\n   \t    . word",
             "\n. word",
         ),
+        ("        \t    . 123", ". 123"),
     ],
 )
 def test_removing_whitespace_before_full_stops(dirty, clean):
     assert remove_whitespace_before_punctuation(dirty) == clean
+
+
+def test_remove_whitespace_before_punctuation_scalability():
+    # this test would never complete if remove_whitespace_before_punctuation
+    # were still vulnerable to such a ReDoS
+    remove_whitespace_before_punctuation("a" + (" " * 1_000_000) + "a")
 
 
 @pytest.mark.parametrize(
@@ -307,6 +315,10 @@ def test_smart_quotes(dumb, smart):
             "em – dash",
         ),
         (
+            " \t\n   — dash",
+            " – dash",
+        ),
+        (
             "already\u0020–\u0020correct",  # \u0020 is a normal space character
             "already\u0020–\u0020correct",
         ),
@@ -318,6 +330,10 @@ def test_smart_quotes(dumb, smart):
 )
 def test_en_dashes(nasty, nice):
     assert replace_hyphens_with_en_dashes(nasty) == nice
+
+
+def test_en_dashes_scalability():
+    replace_hyphens_with_en_dashes("a" + (" " * 1_000_000) + "a")
 
 
 def test_unicode_dash_lookup():
