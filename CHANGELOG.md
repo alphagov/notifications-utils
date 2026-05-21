@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.3.0
+
+Add `file_types.mime_type_from_extension`
+
 ## 115.2.0
 
 * Add file of known email domains and a function for checking the ending of an email address
