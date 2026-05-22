@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.4.1
+
+Add `dir="auto"` attribute to sms_preview_template message wrapper
+
 ## 115.4.0
 
 * `RedisClient`: allow configuration of `socket_timeout` and `socket_connect_timeout` parameters via flask config vars `REDIS_SOCKET_TIMEOUT` and `REDIS_SOCKET_CONNECT_TIMEOUT` respectively.
