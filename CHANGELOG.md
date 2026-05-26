@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 115.5.0
+
+* `RedisClient`: add `redis_flakey` mechanism to avoid repeated timeouts
+
 ## 115.4.1
 
 Add `dir="auto"` attribute to sms_preview_template message wrapper
