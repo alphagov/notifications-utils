@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 120.1.0
+
+* `RedisClient`: add `redis_flakey` mechanism to avoid repeated timeouts
+
 ## 120.0.0
 
 * Removes `BaseLetterTemplate.too_many_pages` (subclasses which define `page_count` should implement this themselves)
