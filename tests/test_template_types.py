@@ -1073,11 +1073,19 @@ def test_character_count_for_sms_templates(
         ("🚀" * 160, 1),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
     ],
 )
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
 def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
+    template_class,
     msg,
     expected_sms_fragment_count,
 ):
-    template = SMSMessageTemplate({"content": msg, "template_type": "sms"})
+    template = template_class({"content": msg, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
 
 
@@ -1096,11 +1104,19 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
         ("â" * 133 + "}", 3),
     ],
 )
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
 def test_sms_fragment_count_accounts_for_extended_gsm_characters(
+    template_class,
     msg,
     expected_sms_fragment_count,
 ):
-    template = SMSMessageTemplate({"content": msg, "template_type": "sms"})
+    template = template_class({"content": msg, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
 
 
@@ -1116,14 +1132,22 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
         ("ŸẄÜÖÏËÄ", OrderedSet("ŸẄÏË")),  # Content order is preserved
     ],
 )
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
 def test_non_gsm_characters_in_sms(
+    template_class,
     msg,
     expected_non_gsm_characters,
 ):
-    template = SMSMessageTemplate({"content": msg, "template_type": "sms"})
+    template = template_class({"content": msg, "template_type": "sms"})
     assert template.non_gsm_characters == expected_non_gsm_characters
 
-    template = SMSMessageTemplate({"content": "GSM-7 only", "template_type": "sms"}, prefix=msg)
+    template = template_class({"content": "GSM-7 only", "template_type": "sms"}, prefix=msg)
     assert template.non_gsm_characters == expected_non_gsm_characters
 
 
