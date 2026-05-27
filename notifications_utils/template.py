@@ -245,6 +245,10 @@ class BaseSMSTemplate(Template):
 
         return get_sms_fragment_count(character_count, non_gsm_characters(content_with_placeholders))
 
+    @property
+    def non_gsm_characters(self):
+        return non_gsm_characters(str(self))
+
     def is_message_too_long(self):
         """
         Message is validated with out the prefix.

@@ -1105,6 +1105,28 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
 
 
 @pytest.mark.parametrize(
+    "msg, expected_non_gsm_characters",
+    [
+        ("à", set()),  # Welsh character in GSM
+        ("ÿ", {"ÿ"}),  # Welsh character not in GSM, so send as unicode
+        ("ÿŴ", {"ÿ", "Ŵ"}),  # Each character only returned once
+        ("àÿ", {"ÿ"}),  # Only non-GSM characters returned
+        ("🚀", set()),  # emoji downgraded to ?, which is in GSM
+        ("…", set()),  # HORIZONTAL ELLIPSIS (U+2026) downgraded to ..., which is 3 GSM characters
+    ],
+)
+def test_non_gsm_characters_in_sms(
+    msg,
+    expected_non_gsm_characters,
+):
+    template = SMSMessageTemplate({"content": msg, "template_type": "sms"})
+    assert template.non_gsm_characters == expected_non_gsm_characters
+
+    template = SMSMessageTemplate({"content": "GSM-7 only", "template_type": "sms"}, prefix=msg)
+    assert template.non_gsm_characters == expected_non_gsm_characters
+
+
+@pytest.mark.parametrize(
     "template_class",
     [
         SMSMessageTemplate,
