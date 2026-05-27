@@ -254,6 +254,10 @@ class BaseSMSTemplate(Template):
         """
         return self.content_count_without_prefix > SMS_CHAR_COUNT_LIMIT
 
+    @property
+    def count_of_characters_above_limit(self):
+        return max(0, self.content_count_without_prefix - SMS_CHAR_COUNT_LIMIT)
+
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
 

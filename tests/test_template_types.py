@@ -1732,13 +1732,21 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
         SMSPreviewTemplate,
     ],
 )
-def test_message_too_long_ignoring_prefix(template_class):
-    body = ("b" * 917) + "((foo))"
+@pytest.mark.parametrize(
+    "repeat_character_count, expected_count_above_limit",
+    (
+        (917, 1),
+        (1_000, 84),
+    ),
+)
+def test_message_too_long_ignoring_prefix(template_class, repeat_character_count, expected_count_above_limit):
+    body = ("b" * repeat_character_count) + "((foo))"
     template = template_class(
         {"content": body, "template_type": template_class.template_type}, prefix="a" * 100, values={"foo": "cc"}
     )
-    # content length is prefix + 919 characters (more than limit of 918)
+    # content length is repeated characters plus personalisation (more than limit of 918)
     assert template.is_message_too_long() is True
+    assert template.count_of_characters_above_limit == expected_count_above_limit
 
 
 @pytest.mark.parametrize(
@@ -1748,15 +1756,23 @@ def test_message_too_long_ignoring_prefix(template_class):
         SMSPreviewTemplate,
     ],
 )
-def test_message_is_not_too_long_ignoring_prefix(template_class):
-    body = ("b" * 917) + "((foo))"
+@pytest.mark.parametrize(
+    "repeat_character_count",
+    (
+        1,
+        917,
+    ),
+)
+def test_message_is_not_too_long_ignoring_prefix(template_class, repeat_character_count):
+    body = ("b" * repeat_character_count) + "((foo))"
     template = template_class(
         {"content": body, "template_type": template_class.template_type},
         prefix="a" * 100,
         values={"foo": "c"},
     )
-    # content length is prefix + 918 characters (not more than limit of 918)
+    # content length (ignoring prefix) is up to 918 characters (not more than limit of 918)
     assert template.is_message_too_long() is False
+    assert template.count_of_characters_above_limit == 0
 
 
 @pytest.mark.parametrize(
@@ -1771,6 +1787,8 @@ def test_message_too_long_limit_bigger_or_nonexistent_for_non_sms_templates(temp
     body = "a" * 1000
     template = template_class({"content": body, "subject": "foo", "template_type": template_type}, **kwargs)
     assert template.is_message_too_long() is False
+    with pytest.raises(AttributeError):
+        assert template.count_of_characters_above_limit
 
 
 @pytest.mark.parametrize(
