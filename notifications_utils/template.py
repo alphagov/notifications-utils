@@ -176,6 +176,7 @@ class BaseSMSTemplate(Template):
         self.show_prefix = show_prefix
         self.sender = sender
         self._content_count = None
+        self._unsanitised_content = None
         super().__init__(template, values)
 
     @property
@@ -185,10 +186,10 @@ class BaseSMSTemplate(Template):
     @values.setter
     def values(self, value):
         # If we change the values of the template it’s possible the
-        # content count will have changed, so we need to reset the
-        # cached count.
-        if self._content_count is not None:
-            self._content_count = None
+        # content will have changed, so we need to reset the cached
+        # count and content
+        self._content_count = None
+        self._unsanitised_content = None
 
         # Assigning to super().values doesn’t work here. We need to get
         # the property object instead, which has the special method
@@ -225,7 +226,7 @@ class BaseSMSTemplate(Template):
         as in the message `foo ((placeholder))` has a length of 19.
         """
         if self._content_count is None:
-            self._content_count = len(self._get_unsanitised_content())
+            self._content_count = len(self.unsanitised_content)
         return self._content_count
 
     @property
@@ -239,24 +240,21 @@ class BaseSMSTemplate(Template):
 
     @property
     def fragment_count(self):
-        content_with_placeholders = self._get_unsanitised_content()
-
         # Extended GSM characters count as 2 characters
-        character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
+        character_count = self.content_count + count_extended_gsm_chars(self.unsanitised_content)
 
-        return get_sms_fragment_count(character_count, non_gsm_characters(content_with_placeholders))
+        return get_sms_fragment_count(character_count, non_gsm_characters(self.unsanitised_content))
 
     @property
     def count_of_characters_above_previous_fragment_boundary(self):
-        content_with_placeholders = self._get_unsanitised_content()
-        character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
+        character_count = self.content_count + count_extended_gsm_chars(self.unsanitised_content)
         boundary = get_sms_fragment_boundary(self.fragment_count, self.non_gsm_characters)
 
         return character_count - boundary
 
     @property
     def non_gsm_characters(self):
-        return non_gsm_characters(self._get_unsanitised_content())
+        return non_gsm_characters(self.unsanitised_content)
 
     def is_message_too_long(self):
         """
@@ -274,27 +272,30 @@ class BaseSMSTemplate(Template):
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
 
-    def _get_unsanitised_content(self):
-        # This is faster to call than SMSMessageTemplate.__str__ if all
-        # you need to know is how many characters are in the message
-        if self.values:
-            values = self.values
-        else:
-            values = dict.fromkeys(self.placeholders, MAGIC_SEQUENCE)
-        return (
-            Take(PlainTextField(self.content, values, html="passthrough"))
-            .then(add_prefix, self.prefix)
-            .then(remove_whitespace_before_punctuation)
-            .then(normalise_whitespace_and_newlines)
-            .then(normalise_multiple_newlines)
-            .then(str.strip)
-            .then(str.replace, MAGIC_SEQUENCE, "")
-        )
+    @property
+    def unsanitised_content(self):
+        if self._unsanitised_content is None:
+            # This is faster to call than SMSMessageTemplate.__str__ if all
+            # you need to know is how many characters are in the message
+            if self.values:
+                values = self.values
+            else:
+                values = dict.fromkeys(self.placeholders, MAGIC_SEQUENCE)
+            self._unsanitised_content = (
+                Take(PlainTextField(self.content, values, html="passthrough"))
+                .then(add_prefix, self.prefix)
+                .then(remove_whitespace_before_punctuation)
+                .then(normalise_whitespace_and_newlines)
+                .then(normalise_multiple_newlines)
+                .then(str.strip)
+                .then(str.replace, MAGIC_SEQUENCE, "")
+            )
+        return self._unsanitised_content
 
 
 class SMSMessageTemplate(BaseSMSTemplate):
     def __str__(self):
-        return sms_encode(self._get_unsanitised_content())
+        return sms_encode(self.unsanitised_content)
 
 
 class SMSBodyPreviewTemplate(BaseSMSTemplate):
