@@ -241,20 +241,34 @@ class BaseSMSTemplate(Template):
     @property
     def fragment_count(self):
         # Extended GSM characters count as 2 characters
-        character_count = self.content_count + count_extended_gsm_chars(self.unsanitised_content)
+        character_count = self.content_count + self.count_extended_gsm_chars
 
-        return get_sms_fragment_count(character_count, non_gsm_characters(self.unsanitised_content))
+        if self.non_gsm_characters:
+            return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
+
+        return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
 
     @property
     def count_of_characters_above_previous_fragment_boundary(self):
-        character_count = self.content_count + count_extended_gsm_chars(self.unsanitised_content)
-        boundary = get_sms_fragment_boundary(self.fragment_count, self.non_gsm_characters)
+        character_count = self.content_count + self.count_extended_gsm_chars
+
+        if self.fragment_count == 1:
+            boundary = 0
+        elif self.fragment_count == 2:
+            boundary = 70 if self.non_gsm_characters else 160
+        else:
+            boundary = (67 if self.non_gsm_characters else 153) * (self.fragment_count - 1)
 
         return character_count - boundary
 
     @property
     def non_gsm_characters(self):
-        return non_gsm_characters(self.unsanitised_content)
+        """
+        Returns a set of all the non gsm characters in a text. this doesn't include characters that we will
+        downgrade (eg emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force
+        the entire SMS to be encoded with UCS-2.
+        """
+        return OrderedSet(self.unsanitised_content) & SanitiseSMS.WELSH_NON_GSM_CHARACTERS
 
     def is_message_too_long(self):
         """
@@ -268,6 +282,10 @@ class BaseSMSTemplate(Template):
     @property
     def count_of_characters_above_limit(self):
         return max(0, self.content_count_without_prefix - SMS_CHAR_COUNT_LIMIT)
+
+    @property
+    def count_extended_gsm_chars(self):
+        return sum(map(self.unsanitised_content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS))
 
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
@@ -764,39 +782,6 @@ class LetterPrintTemplate(LetterPreviewTemplate):
     @property
     def render_params(self):
         return super().render_params | {"includes_first_page": self.includes_first_page}
-
-
-def get_sms_fragment_count(character_count, non_gsm_characters):
-    if non_gsm_characters:
-        return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
-    else:
-        return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
-
-
-def get_sms_fragment_boundary(fragment_count, non_gsm_characters):
-    """
-    Returns the number of characters at which a message crosses into a given fragment count
-    """
-    if fragment_count == 1:
-        return 0
-
-    if fragment_count == 2:
-        return 70 if non_gsm_characters else 160
-
-    return (67 if non_gsm_characters else 153) * (fragment_count - 1)
-
-
-def non_gsm_characters(content):
-    """
-    Returns a set of all the non gsm characters in a text. this doesn't include characters that we will downgrade (eg
-    emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force the entire SMS to be encoded
-    with UCS-2.
-    """
-    return OrderedSet(content) & SanitiseSMS.WELSH_NON_GSM_CHARACTERS
-
-
-def count_extended_gsm_chars(content):
-    return sum(map(content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS))
 
 
 def do_nice_typography(value):
