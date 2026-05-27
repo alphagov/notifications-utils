@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 116.0.0
+
+* Add `BaseSMSTemplate.count_of_characters_above_limit`
+* Add `BaseSMSTemplate.non_gsm_characters`
+* Add `BaseSMSTemplate.count_of_characters_above_previous_fragment_boundary`
+* Fix edge case where wrong fragment count would be shown with Welsh placeholder name
+* Removes `notifications_utils.template.get_sms_fragment_count` (not used outside this repo)
+* Removes `notifications_utils.template.non_gsm_characters` (not used outside this repo)
+* Removes `notifications_utils.template.count_extended_gsm_chars` (not used outside this repo)
+
 ## 115.4.1
 
 Add `dir="auto"` attribute to sms_preview_template message wrapper
