@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+from contextlib import suppress
 from datetime import UTC, datetime
 from functools import lru_cache
 from html import unescape
@@ -9,6 +10,7 @@ from typing import Literal
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 from ordered_set import OrderedSet
+from werkzeug.utils import cached_property
 
 from notifications_utils import (
     ENGLISH_TO_WELSH_MONTHS,
@@ -175,8 +177,6 @@ class BaseSMSTemplate(Template):
         self.prefix = prefix
         self.show_prefix = show_prefix
         self.sender = sender
-        self._content_count = None
-        self._unsanitised_content = None
         super().__init__(template, values)
 
     @property
@@ -188,8 +188,10 @@ class BaseSMSTemplate(Template):
         # If we change the values of the template it’s possible the
         # content will have changed, so we need to reset the cached
         # count and content
-        self._content_count = None
-        self._unsanitised_content = None
+        with suppress(KeyError):  # Raised if value has not yet been cached
+            del self.content_count
+        with suppress(KeyError):  # Raised if value has not yet been cached
+            del self.unsanitised_content
 
         # Assigning to super().values doesn’t work here. We need to get
         # the property object instead, which has the special method
@@ -216,7 +218,7 @@ class BaseSMSTemplate(Template):
     def prefix(self, value):
         self._prefix = value
 
-    @property
+    @cached_property
     def content_count(self):
         """
         Return the number of characters in the message. Note that we don't distinguish between GSM and non-GSM
@@ -225,9 +227,7 @@ class BaseSMSTemplate(Template):
         Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
         as in the message `foo ((placeholder))` has a length of 19.
         """
-        if self._content_count is None:
-            self._content_count = len(self.unsanitised_content)
-        return self._content_count
+        return len(self.unsanitised_content)
 
     @property
     def content_count_without_prefix(self):
@@ -272,25 +272,23 @@ class BaseSMSTemplate(Template):
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
 
-    @property
+    @cached_property
     def unsanitised_content(self):
-        if self._unsanitised_content is None:
-            # This is faster to call than SMSMessageTemplate.__str__ if all
-            # you need to know is how many characters are in the message
-            if self.values:
-                values = self.values
-            else:
-                values = dict.fromkeys(self.placeholders, MAGIC_SEQUENCE)
-            self._unsanitised_content = (
-                Take(PlainTextField(self.content, values, html="passthrough"))
-                .then(add_prefix, self.prefix)
-                .then(remove_whitespace_before_punctuation)
-                .then(normalise_whitespace_and_newlines)
-                .then(normalise_multiple_newlines)
-                .then(str.strip)
-                .then(str.replace, MAGIC_SEQUENCE, "")
-            )
-        return self._unsanitised_content
+        # This is faster to call than SMSMessageTemplate.__str__ if all
+        # you need to know is how many characters are in the message
+        if self.values:
+            values = self.values
+        else:
+            values = dict.fromkeys(self.placeholders, MAGIC_SEQUENCE)
+        return (
+            Take(PlainTextField(self.content, values, html="passthrough"))
+            .then(add_prefix, self.prefix)
+            .then(remove_whitespace_before_punctuation)
+            .then(normalise_whitespace_and_newlines)
+            .then(normalise_multiple_newlines)
+            .then(str.strip)
+            .then(str.replace, MAGIC_SEQUENCE, "")
+        )
 
 
 class SMSMessageTemplate(BaseSMSTemplate):
