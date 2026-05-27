@@ -1048,29 +1048,30 @@ def test_character_count_for_sms_templates(
 
 
 @pytest.mark.parametrize(
-    "msg, expected_sms_fragment_count",
+    "msg, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
-        ("à" * 71, 1),  # welsh character in GSM
-        ("à" * 160, 1),
-        ("à" * 161, 2),
-        ("à" * 306, 2),
-        ("à" * 307, 3),
-        ("à" * 612, 4),
-        ("à" * 613, 5),
-        ("à" * 765, 5),
-        ("à" * 766, 6),
-        ("à" * 918, 6),
-        ("à" * 919, 7),
-        ("ÿ" * 70, 1),  # welsh character not in GSM, so send as unicode
-        ("ÿ" * 71, 2),
-        ("ÿ" * 134, 2),
-        ("ÿ" * 135, 3),
-        ("ÿ" * 268, 4),
-        ("ÿ" * 269, 5),
-        ("ÿ" * 402, 6),
-        ("ÿ" * 403, 7),
-        ("à" * 70 + "ÿ", 2),  # just one non-gsm character means it's sent at unicode
-        ("🚀" * 160, 1),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
+        ("à" * 71, 1, 71),  # welsh character in GSM
+        ("à" * 160, 1, 160),
+        ("à" * 161, 2, 1),
+        ("à" * 306, 2, 146),
+        ("à" * 307, 3, 1),
+        ("à" * 612, 4, 153),
+        ("à" * 613, 5, 1),
+        ("à" * 765, 5, 153),
+        ("à" * 766, 6, 1),
+        ("à" * 918, 6, 153),
+        ("à" * 919, 7, 1),
+        ("ÿ" * 70, 1, 70),  # welsh character not in GSM, so send as unicode
+        ("ÿ" * 71, 2, 1),
+        ("ÿ" * 134, 2, 64),
+        ("ÿ" * 135, 3, 1),
+        ("ÿ" * 268, 4, 67),
+        ("ÿ" * 269, 5, 1),
+        ("ÿ" * 402, 6, 67),
+        ("ÿ" * 403, 7, 1),
+        ("à" * 70 + "ÿ", 2, 1),  # just one non-gsm character means it's sent at unicode
+        ("🚀" * 160, 1, 160),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
+        ("🚀" * 161, 2, 1),
     ],
 )
 @pytest.mark.parametrize(
@@ -1084,24 +1085,28 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
     template_class,
     msg,
     expected_sms_fragment_count,
+    expected_count_of_characters_above_previous_fragment_boundary,
 ):
     template = template_class({"content": msg, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
+    assert template.count_of_characters_above_previous_fragment_boundary == (
+        expected_count_of_characters_above_previous_fragment_boundary
+    )
 
 
 @pytest.mark.parametrize(
-    "msg, expected_sms_fragment_count",
+    "msg, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
         # all extended GSM characters
-        ("^" * 81, 2),
+        ("^" * 81, 2, 2),
         # GSM characters plus extended GSM
-        ("a" * 158 + "|", 1),
-        ("a" * 159 + "|", 2),
-        ("a" * 304 + "[", 2),
-        ("a" * 304 + "[]", 3),
+        ("a" * 158 + "|", 1, 160),
+        ("a" * 159 + "|", 2, 1),
+        ("a" * 304 + "[", 2, 146),
+        ("a" * 304 + "[]", 3, 2),
         # Welsh character plus extended GSM
-        ("â" * 132 + "{", 2),
-        ("â" * 133 + "}", 3),
+        ("â" * 132 + "{", 2, 64),
+        ("â" * 133 + "}", 3, 1),
     ],
 )
 @pytest.mark.parametrize(
@@ -1115,9 +1120,13 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
     template_class,
     msg,
     expected_sms_fragment_count,
+    expected_count_of_characters_above_previous_fragment_boundary,
 ):
     template = template_class({"content": msg, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
+    assert template.count_of_characters_above_previous_fragment_boundary == (
+        expected_count_of_characters_above_previous_fragment_boundary
+    )
 
 
 @pytest.mark.parametrize(

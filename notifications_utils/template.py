@@ -247,6 +247,14 @@ class BaseSMSTemplate(Template):
         return get_sms_fragment_count(character_count, non_gsm_characters(content_with_placeholders))
 
     @property
+    def count_of_characters_above_previous_fragment_boundary(self):
+        content_with_placeholders = str(self)
+        character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
+        boundary = get_sms_fragment_boundary(self.fragment_count, self.non_gsm_characters)
+
+        return character_count - boundary
+
+    @property
     def non_gsm_characters(self):
         return non_gsm_characters(str(self))
 
@@ -764,6 +772,19 @@ def get_sms_fragment_count(character_count, non_gsm_characters):
         return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
     else:
         return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
+
+
+def get_sms_fragment_boundary(fragment_count, non_gsm_characters):
+    """
+    Returns the number of characters at which a message crosses into a given fragment count
+    """
+    if fragment_count == 1:
+        return 0
+
+    if fragment_count == 2:
+        return 70 if non_gsm_characters else 160
+
+    return (67 if non_gsm_characters else 153) * (fragment_count - 1)
 
 
 def non_gsm_characters(content):
