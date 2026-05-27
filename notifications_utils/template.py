@@ -8,6 +8,7 @@ from typing import Literal
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
+from ordered_set import OrderedSet
 
 from notifications_utils import (
     ENGLISH_TO_WELSH_MONTHS,
@@ -771,7 +772,7 @@ def non_gsm_characters(content):
     emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force the entire SMS to be encoded
     with UCS-2.
     """
-    return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
+    return OrderedSet(content) & SanitiseSMS.WELSH_NON_GSM_CHARACTERS
 
 
 def count_extended_gsm_chars(content):

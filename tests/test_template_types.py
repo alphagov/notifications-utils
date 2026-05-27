@@ -1113,6 +1113,7 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
         ("àÿ", {"ÿ"}),  # Only non-GSM characters returned
         ("🚀", set()),  # emoji downgraded to ?, which is in GSM
         ("…", set()),  # HORIZONTAL ELLIPSIS (U+2026) downgraded to ..., which is 3 GSM characters
+        ("ŸẄÜÖÏËÄ", OrderedSet("ŸẄÏË")),  # Content order is preserved
     ],
 )
 def test_non_gsm_characters_in_sms(
