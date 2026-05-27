@@ -239,7 +239,7 @@ class BaseSMSTemplate(Template):
 
     @property
     def fragment_count(self):
-        content_with_placeholders = str(self)
+        content_with_placeholders = self._get_unsanitised_content()
 
         # Extended GSM characters count as 2 characters
         character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
@@ -248,7 +248,7 @@ class BaseSMSTemplate(Template):
 
     @property
     def count_of_characters_above_previous_fragment_boundary(self):
-        content_with_placeholders = str(self)
+        content_with_placeholders = self._get_unsanitised_content()
         character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
         boundary = get_sms_fragment_boundary(self.fragment_count, self.non_gsm_characters)
 
@@ -256,7 +256,7 @@ class BaseSMSTemplate(Template):
 
     @property
     def non_gsm_characters(self):
-        return non_gsm_characters(str(self))
+        return non_gsm_characters(self._get_unsanitised_content())
 
     def is_message_too_long(self):
         """

@@ -1107,6 +1107,9 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
         # Welsh character plus extended GSM
         ("â" * 132 + "{", 2, 64),
         ("â" * 133 + "}", 3, 1),
+        # Non-GSM or extended characters in placeholder, not content
+        ("a" * 160 + "(( placeholder with â ))", 1, 160),
+        ("a" * 160 + "(( placeholder with | ))", 1, 160),
     ],
 )
 @pytest.mark.parametrize(
@@ -1158,6 +1161,20 @@ def test_non_gsm_characters_in_sms(
 
     template = template_class({"content": "GSM-7 only", "template_type": "sms"}, prefix=msg)
     assert template.non_gsm_characters == expected_non_gsm_characters
+
+
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
+def test_non_gsm_characters_in_placeholder(
+    template_class,
+):
+    template = template_class({"content": "((ÿ🚀))", "template_type": "sms"})
+    assert template.non_gsm_characters == set()
 
 
 @pytest.mark.parametrize(
