@@ -1048,7 +1048,7 @@ def test_character_count_for_sms_templates(
 
 
 @pytest.mark.parametrize(
-    "msg, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
+    "template_content, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
         ("à" * 71, 1, 71),  # welsh character in GSM
         ("à" * 160, 1, 160),
@@ -1083,11 +1083,11 @@ def test_character_count_for_sms_templates(
 )
 def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
     template_class,
-    msg,
+    template_content,
     expected_sms_fragment_count,
     expected_count_of_characters_above_previous_fragment_boundary,
 ):
-    template = template_class({"content": msg, "template_type": "sms"})
+    template = template_class({"content": template_content, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
     assert template.count_of_characters_above_previous_fragment_boundary == (
         expected_count_of_characters_above_previous_fragment_boundary
@@ -1095,7 +1095,7 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
 
 
 @pytest.mark.parametrize(
-    "msg, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
+    "template_content, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
         # all extended GSM characters
         ("^" * 81, 2, 2),
@@ -1121,11 +1121,11 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
 )
 def test_sms_fragment_count_accounts_for_extended_gsm_characters(
     template_class,
-    msg,
+    template_content,
     expected_sms_fragment_count,
     expected_count_of_characters_above_previous_fragment_boundary,
 ):
-    template = template_class({"content": msg, "template_type": "sms"})
+    template = template_class({"content": template_content, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
     assert template.count_of_characters_above_previous_fragment_boundary == (
         expected_count_of_characters_above_previous_fragment_boundary
@@ -1133,7 +1133,7 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
 
 
 @pytest.mark.parametrize(
-    "msg, expected_non_gsm_characters",
+    "template_content, expected_non_gsm_characters",
     [
         ("à", set()),  # Welsh character in GSM
         ("ÿ", {"ÿ"}),  # Welsh character not in GSM, so send as unicode
@@ -1153,13 +1153,13 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
 )
 def test_non_gsm_characters_in_sms(
     template_class,
-    msg,
+    template_content,
     expected_non_gsm_characters,
 ):
-    template = template_class({"content": msg, "template_type": "sms"})
+    template = template_class({"content": template_content, "template_type": "sms"})
     assert template.non_gsm_characters == expected_non_gsm_characters
 
-    template = template_class({"content": "GSM-7 only", "template_type": "sms"}, prefix=msg)
+    template = template_class({"content": "GSM-7 only", "template_type": "sms"}, prefix=template_content)
     assert template.non_gsm_characters == expected_non_gsm_characters
 
 
@@ -1813,11 +1813,13 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
     ),
 )
 def test_message_too_long_ignoring_prefix(template_class, repeat_character_count, expected_count_above_limit):
-    body = ("b" * repeat_character_count) + "((foo))"
+    template_content = ("b" * repeat_character_count) + "((foo))"
     template = template_class(
-        {"content": body, "template_type": template_class.template_type}, prefix="a" * 100, values={"foo": "cc"}
+        {"content": template_content, "template_type": template_class.template_type},
+        prefix="a" * 100,
+        values={"foo": "cc"},
     )
-    # content length is repeated characters plus personalisation (more than limit of 918)
+    # content length is length of template_content plus personalisation (more than limit of 918)
     assert template.is_message_too_long() is True
     assert template.count_of_characters_above_limit == expected_count_above_limit
 
