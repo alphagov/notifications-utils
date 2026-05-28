@@ -4,7 +4,6 @@ from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
 from itertools import islice
-from time import sleep
 from typing import cast
 
 from ordered_set import OrderedSet
@@ -15,6 +14,7 @@ from notifications_utils.formatters import (
     strip_and_remove_obscure_whitespace,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.interruptible_io import InterruptibleIterableList, interruptible_iter
 from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
 from notifications_utils.recipient_validation.phone_number import PhoneNumber
@@ -39,6 +39,9 @@ address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
 class RecipientCSV:
     max_rows = 100_000
     get_rows_loop_interruptible_every = 128
+    # we're less certain a significant amount of work is going to be done on each iteration
+    # through the resultant row list
+    rows_list_iteration_interruptible_every = 512
 
     def __init__(
         self,
@@ -156,7 +159,8 @@ class RecipientCSV:
     @property
     def rows(self):
         if self.rows_as_list is None:
-            self.rows_as_list = list(self.get_rows())
+            self.rows_as_list = InterruptibleIterableList(self.get_rows())
+            self.rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
         return self.rows_as_list
 
     @property
@@ -187,15 +191,16 @@ class RecipientCSV:
 
         next(rows_as_lists_of_columns, None)  # skip the header row
 
-        for index, row in enumerate(rows_as_lists_of_columns):
+        for index, row in enumerate(
+            interruptible_iter(
+                rows_as_lists_of_columns,
+                self.get_rows_loop_interruptible_every,
+                label=f"{self.__class__.__name__}.get_rows",
+            )
+        ):
             if index >= self.max_rows:
                 yield None
                 continue
-
-            if not (index + 1) % self.get_rows_loop_interruptible_every:
-                # all green thread libraries will monkeypatch this to yield to the event loop
-                # and the real implementation should at least drop the GIL
-                sleep(0)
 
             output_dict = {}
 
