@@ -1048,60 +1048,133 @@ def test_character_count_for_sms_templates(
 
 
 @pytest.mark.parametrize(
-    "msg, expected_sms_fragment_count",
+    "template_content, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
-        ("à" * 71, 1),  # welsh character in GSM
-        ("à" * 160, 1),
-        ("à" * 161, 2),
-        ("à" * 306, 2),
-        ("à" * 307, 3),
-        ("à" * 612, 4),
-        ("à" * 613, 5),
-        ("à" * 765, 5),
-        ("à" * 766, 6),
-        ("à" * 918, 6),
-        ("à" * 919, 7),
-        ("ÿ" * 70, 1),  # welsh character not in GSM, so send as unicode
-        ("ÿ" * 71, 2),
-        ("ÿ" * 134, 2),
-        ("ÿ" * 135, 3),
-        ("ÿ" * 268, 4),
-        ("ÿ" * 269, 5),
-        ("ÿ" * 402, 6),
-        ("ÿ" * 403, 7),
-        ("à" * 70 + "ÿ", 2),  # just one non-gsm character means it's sent at unicode
-        ("🚀" * 160, 1),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
+        ("à" * 71, 1, 71),  # welsh character in GSM
+        ("à" * 160, 1, 160),
+        ("à" * 161, 2, 1),
+        ("à" * 306, 2, 146),
+        ("à" * 307, 3, 1),
+        ("à" * 612, 4, 153),
+        ("à" * 613, 5, 1),
+        ("à" * 765, 5, 153),
+        ("à" * 766, 6, 1),
+        ("à" * 918, 6, 153),
+        ("à" * 919, 7, 1),
+        ("ÿ" * 70, 1, 70),  # welsh character not in GSM, so send as unicode
+        ("ÿ" * 71, 2, 1),
+        ("ÿ" * 134, 2, 64),
+        ("ÿ" * 135, 3, 1),
+        ("ÿ" * 268, 4, 67),
+        ("ÿ" * 269, 5, 1),
+        ("ÿ" * 402, 6, 67),
+        ("ÿ" * 403, 7, 1),
+        ("à" * 70 + "ÿ", 2, 1),  # just one non-gsm character means it's sent at unicode
+        ("🚀" * 160, 1, 160),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
+        ("🚀" * 161, 2, 1),
     ],
 )
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
 def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
-    msg,
+    template_class,
+    template_content,
     expected_sms_fragment_count,
+    expected_count_of_characters_above_previous_fragment_boundary,
 ):
-    template = SMSMessageTemplate({"content": msg, "template_type": "sms"})
+    template = template_class({"content": template_content, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
+    assert template.count_of_characters_above_previous_fragment_boundary == (
+        expected_count_of_characters_above_previous_fragment_boundary
+    )
 
 
 @pytest.mark.parametrize(
-    "msg, expected_sms_fragment_count",
+    "template_content, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
         # all extended GSM characters
-        ("^" * 81, 2),
+        ("^" * 81, 2, 2),
         # GSM characters plus extended GSM
-        ("a" * 158 + "|", 1),
-        ("a" * 159 + "|", 2),
-        ("a" * 304 + "[", 2),
-        ("a" * 304 + "[]", 3),
+        ("a" * 158 + "|", 1, 160),
+        ("a" * 159 + "|", 2, 1),
+        ("a" * 304 + "[", 2, 146),
+        ("a" * 304 + "[]", 3, 2),
         # Welsh character plus extended GSM
-        ("â" * 132 + "{", 2),
-        ("â" * 133 + "}", 3),
+        ("â" * 132 + "{", 2, 64),
+        ("â" * 133 + "}", 3, 1),
+        # Non-GSM or extended characters in placeholder, not content
+        ("a" * 160 + "(( placeholder with â ))", 1, 160),
+        ("a" * 160 + "(( placeholder with | ))", 1, 160),
     ],
 )
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
 def test_sms_fragment_count_accounts_for_extended_gsm_characters(
-    msg,
+    template_class,
+    template_content,
     expected_sms_fragment_count,
+    expected_count_of_characters_above_previous_fragment_boundary,
 ):
-    template = SMSMessageTemplate({"content": msg, "template_type": "sms"})
+    template = template_class({"content": template_content, "template_type": "sms"})
     assert template.fragment_count == expected_sms_fragment_count
+    assert template.count_of_characters_above_previous_fragment_boundary == (
+        expected_count_of_characters_above_previous_fragment_boundary
+    )
+
+
+@pytest.mark.parametrize(
+    "template_content, expected_non_gsm_characters",
+    [
+        ("à", set()),  # Welsh character in GSM
+        ("ÿ", {"ÿ"}),  # Welsh character not in GSM, so send as unicode
+        ("ÿŴ", {"ÿ", "Ŵ"}),  # Each character only returned once
+        ("àÿ", {"ÿ"}),  # Only non-GSM characters returned
+        ("🚀", set()),  # emoji downgraded to ?, which is in GSM
+        ("…", set()),  # HORIZONTAL ELLIPSIS (U+2026) downgraded to ..., which is 3 GSM characters
+        ("ŸẄÜÖÏËÄ", OrderedSet("ŸẄÏË")),  # Content order is preserved
+    ],
+)
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
+def test_non_gsm_characters_in_sms(
+    template_class,
+    template_content,
+    expected_non_gsm_characters,
+):
+    template = template_class({"content": template_content, "template_type": "sms"})
+    assert template.non_gsm_characters == expected_non_gsm_characters
+
+    template = template_class({"content": "GSM-7 only", "template_type": "sms"}, prefix=template_content)
+    assert template.non_gsm_characters == expected_non_gsm_characters
+
+
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ),
+)
+def test_non_gsm_characters_in_placeholder(
+    template_class,
+):
+    template = template_class({"content": "((ÿ🚀))", "template_type": "sms"})
+    assert template.non_gsm_characters == set()
 
 
 @pytest.mark.parametrize(
@@ -1732,13 +1805,23 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
         SMSPreviewTemplate,
     ],
 )
-def test_message_too_long_ignoring_prefix(template_class):
-    body = ("b" * 917) + "((foo))"
+@pytest.mark.parametrize(
+    "repeat_character_count, expected_count_above_limit",
+    (
+        (917, 1),
+        (1_000, 84),
+    ),
+)
+def test_message_too_long_ignoring_prefix(template_class, repeat_character_count, expected_count_above_limit):
+    template_content = ("b" * repeat_character_count) + "((foo))"
     template = template_class(
-        {"content": body, "template_type": template_class.template_type}, prefix="a" * 100, values={"foo": "cc"}
+        {"content": template_content, "template_type": template_class.template_type},
+        prefix="a" * 100,
+        values={"foo": "cc"},
     )
-    # content length is prefix + 919 characters (more than limit of 918)
+    # content length is length of template_content plus personalisation (more than limit of 918)
     assert template.is_message_too_long() is True
+    assert template.count_of_characters_above_limit == expected_count_above_limit
 
 
 @pytest.mark.parametrize(
@@ -1748,15 +1831,23 @@ def test_message_too_long_ignoring_prefix(template_class):
         SMSPreviewTemplate,
     ],
 )
-def test_message_is_not_too_long_ignoring_prefix(template_class):
-    body = ("b" * 917) + "((foo))"
+@pytest.mark.parametrize(
+    "repeat_character_count",
+    (
+        1,
+        917,
+    ),
+)
+def test_message_is_not_too_long_ignoring_prefix(template_class, repeat_character_count):
+    body = ("b" * repeat_character_count) + "((foo))"
     template = template_class(
         {"content": body, "template_type": template_class.template_type},
         prefix="a" * 100,
         values={"foo": "c"},
     )
-    # content length is prefix + 918 characters (not more than limit of 918)
+    # content length (ignoring prefix) is up to 918 characters (not more than limit of 918)
     assert template.is_message_too_long() is False
+    assert template.count_of_characters_above_limit == 0
 
 
 @pytest.mark.parametrize(
@@ -1771,6 +1862,8 @@ def test_message_too_long_limit_bigger_or_nonexistent_for_non_sms_templates(temp
     body = "a" * 1000
     template = template_class({"content": body, "subject": "foo", "template_type": template_type}, **kwargs)
     assert template.is_message_too_long() is False
+    with pytest.raises(AttributeError):
+        assert template.count_of_characters_above_limit
 
 
 @pytest.mark.parametrize(

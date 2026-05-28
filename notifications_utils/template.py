@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+from contextlib import suppress
 from datetime import UTC, datetime
 from functools import lru_cache
 from html import unescape
@@ -8,6 +9,8 @@ from typing import Literal
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
+from ordered_set import OrderedSet
+from werkzeug.utils import cached_property
 
 from notifications_utils import (
     ENGLISH_TO_WELSH_MONTHS,
@@ -174,7 +177,6 @@ class BaseSMSTemplate(Template):
         self.prefix = prefix
         self.show_prefix = show_prefix
         self.sender = sender
-        self._content_count = None
         super().__init__(template, values)
 
     @property
@@ -184,10 +186,12 @@ class BaseSMSTemplate(Template):
     @values.setter
     def values(self, value):
         # If we change the values of the template it’s possible the
-        # content count will have changed, so we need to reset the
-        # cached count.
-        if self._content_count is not None:
-            self._content_count = None
+        # content will have changed, so we need to reset the cached
+        # count and content
+        with suppress(KeyError):  # Raised if value has not yet been cached
+            del self.content_count
+        with suppress(KeyError):  # Raised if value has not yet been cached
+            del self.unsanitised_content
 
         # Assigning to super().values doesn’t work here. We need to get
         # the property object instead, which has the special method
@@ -214,7 +218,7 @@ class BaseSMSTemplate(Template):
     def prefix(self, value):
         self._prefix = value
 
-    @property
+    @cached_property
     def content_count(self):
         """
         Return the number of characters in the message. Note that we don't distinguish between GSM and non-GSM
@@ -223,9 +227,7 @@ class BaseSMSTemplate(Template):
         Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
         as in the message `foo ((placeholder))` has a length of 19.
         """
-        if self._content_count is None:
-            self._content_count = len(self._get_unsanitised_content())
-        return self._content_count
+        return len(self.unsanitised_content)
 
     @property
     def content_count_without_prefix(self):
@@ -238,12 +240,35 @@ class BaseSMSTemplate(Template):
 
     @property
     def fragment_count(self):
-        content_with_placeholders = str(self)
-
         # Extended GSM characters count as 2 characters
-        character_count = self.content_count + count_extended_gsm_chars(content_with_placeholders)
+        character_count = self.content_count + self.count_extended_gsm_chars
 
-        return get_sms_fragment_count(character_count, non_gsm_characters(content_with_placeholders))
+        if self.non_gsm_characters:
+            return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
+
+        return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
+
+    @property
+    def count_of_characters_above_previous_fragment_boundary(self):
+        character_count = self.content_count + self.count_extended_gsm_chars
+
+        if self.fragment_count == 1:
+            boundary = 0
+        elif self.fragment_count == 2:
+            boundary = 70 if self.non_gsm_characters else 160
+        else:
+            boundary = (67 if self.non_gsm_characters else 153) * (self.fragment_count - 1)
+
+        return character_count - boundary
+
+    @property
+    def non_gsm_characters(self):
+        """
+        Returns a set of all the non gsm characters in a text. this doesn't include characters that we will
+        downgrade (eg emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force
+        the entire SMS to be encoded with UCS-2.
+        """
+        return OrderedSet(self.unsanitised_content) & SanitiseSMS.WELSH_NON_GSM_CHARACTERS
 
     def is_message_too_long(self):
         """
@@ -254,10 +279,19 @@ class BaseSMSTemplate(Template):
         """
         return self.content_count_without_prefix > SMS_CHAR_COUNT_LIMIT
 
+    @property
+    def count_of_characters_above_limit(self):
+        return max(0, self.content_count_without_prefix - SMS_CHAR_COUNT_LIMIT)
+
+    @property
+    def count_extended_gsm_chars(self):
+        return sum(map(self.unsanitised_content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS))
+
     def is_message_empty(self):
         return self.content_count_without_prefix == 0
 
-    def _get_unsanitised_content(self):
+    @cached_property
+    def unsanitised_content(self):
         # This is faster to call than SMSMessageTemplate.__str__ if all
         # you need to know is how many characters are in the message
         if self.values:
@@ -277,7 +311,7 @@ class BaseSMSTemplate(Template):
 
 class SMSMessageTemplate(BaseSMSTemplate):
     def __str__(self):
-        return sms_encode(self._get_unsanitised_content())
+        return sms_encode(self.unsanitised_content)
 
 
 class SMSBodyPreviewTemplate(BaseSMSTemplate):
@@ -748,26 +782,6 @@ class LetterPrintTemplate(LetterPreviewTemplate):
     @property
     def render_params(self):
         return super().render_params | {"includes_first_page": self.includes_first_page}
-
-
-def get_sms_fragment_count(character_count, non_gsm_characters):
-    if non_gsm_characters:
-        return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
-    else:
-        return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
-
-
-def non_gsm_characters(content):
-    """
-    Returns a set of all the non gsm characters in a text. this doesn't include characters that we will downgrade (eg
-    emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force the entire SMS to be encoded
-    with UCS-2.
-    """
-    return set(content) & set(SanitiseSMS.WELSH_NON_GSM_CHARACTERS)
-
-
-def count_extended_gsm_chars(content):
-    return sum(map(content.count, SanitiseSMS.EXTENDED_GSM_CHARACTERS))
 
 
 def do_nice_typography(value):
