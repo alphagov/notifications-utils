@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 116.1.0
+
+* Add `interruptible_io` moodule.
+* `RecipientCSV`: use `InterruptibleIterableList` for cached rows property
+
 ## 116.0.0
 
 * Add `BaseSMSTemplate.count_of_characters_above_limit`
