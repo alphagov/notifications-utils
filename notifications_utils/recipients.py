@@ -14,7 +14,11 @@ from notifications_utils.formatters import (
     strip_and_remove_obscure_whitespace,
 )
 from notifications_utils.insensitive_dict import InsensitiveDict
-from notifications_utils.interruptible_io import InterruptibleIterableList, interruptible_iter
+from notifications_utils.interruptible_io import (
+    InterruptibleIterableList,
+    InterruptibleTextIOWrapper,
+    interruptible_iter,
+)
 from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
 from notifications_utils.recipient_validation.phone_number import PhoneNumber
@@ -39,6 +43,7 @@ address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
 class RecipientCSV:
     max_rows = 100_000
     get_rows_loop_interruptible_every = 128
+    csv_reader_stringio_interruptible_every_bytes = 512 * 1024  # 512KiB
     # we're less certain a significant amount of work is going to be done on each iteration
     # through the resultant row list
     rows_list_iteration_interruptible_every = 512
@@ -166,7 +171,9 @@ class RecipientCSV:
     @property
     def _rows(self):
         return csv.reader(
-            StringIO(self.file_data.strip()),
+            InterruptibleTextIOWrapper(
+                StringIO(self.file_data.strip()), self.csv_reader_stringio_interruptible_every_bytes
+            ),
             quoting=csv.QUOTE_MINIMAL,
             skipinitialspace=True,
         )
