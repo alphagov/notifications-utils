@@ -1,6 +1,6 @@
 from collections.abc import Callable, Iterable, Iterator
 from functools import wraps
-from io import RawIOBase
+from io import IOBase, RawIOBase, TextIOBase
 from itertools import repeat
 from time import sleep
 from zipfile import ZipFile
@@ -16,7 +16,7 @@ def _allow_interruption(label: str) -> None:
     sleep(0)
 
 
-class InterruptibleRawIOWrapper(RawIOBase):
+class InterruptibleIOWrapper(IOBase):
     """
     A fileobj wrapper that will make itself "interruptible" by calling _allow_interruption
     every time a reading or writing operation is performed, and will *attempt*
@@ -93,6 +93,12 @@ class InterruptibleRawIOWrapper(RawIOBase):
             size = min(self._read_limit, size)
         return self._wrapped.read(size)
 
+    def write(self, *args, **kwargs):
+        _allow_interruption(self.__class__.__name__)
+        return self._wrapped.write(*args, **kwargs)
+
+
+class InterruptibleRawIOWrapper(InterruptibleIOWrapper, RawIOBase):
     def readall(self, *args, **kwargs):
         _allow_interruption(self.__class__.__name__)
         return self._wrapped.readall(*args, **kwargs)
@@ -101,9 +107,19 @@ class InterruptibleRawIOWrapper(RawIOBase):
         _allow_interruption(self.__class__.__name__)
         return self._wrapped.readinto(*args, **kwargs)
 
-    def write(self, *args, **kwargs):
-        _allow_interruption(self.__class__.__name__)
-        return self._wrapped.write(*args, **kwargs)
+
+class InterruptibleTextIOWrapper(InterruptibleIOWrapper, TextIOBase):
+    @property
+    def encoding(self):
+        return super().encoding
+
+    @property
+    def errors(self):
+        return super().errors
+
+    @property
+    def newlines(self):
+        return super().newlines
 
 
 class InterruptibleIOZipFile(ZipFile):
