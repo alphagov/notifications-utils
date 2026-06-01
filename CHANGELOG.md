@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 117.0.0
+
+* Remove StatsD client
+
 ## 116.1.0
 
 * Add `interruptible_io` moodule.
