@@ -202,6 +202,9 @@ def unescaped_formatted_list(
     if max_items_shown < math.inf and not word_for_items_not_shown:
         raise TypeError('`word_for_items_not_shown` must be provided, for example "more" or "others"')
 
+    if not items:
+        return ""
+
     if prefix:
         prefix += " "
     if prefix_plural:
@@ -215,10 +218,10 @@ def unescaped_formatted_list(
 
     if len(items) == 1:
         return f"{prefix}{formatted_items[0]}"
-    elif items:
-        first_items = separator.join(formatted_items[:-1])
-        last_item = formatted_items[-1]
-        return f"{prefix_plural}{first_items} {conjunction} {last_item}"
+
+    first_items = separator.join(formatted_items[:-1])
+    last_item = formatted_items[-1]
+    return f"{prefix_plural}{first_items} {conjunction} {last_item}"
 
 
 def formatted_list(items, **kwargs):

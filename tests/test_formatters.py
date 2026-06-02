@@ -158,6 +158,7 @@ def test_sms_encode(mocker):
 @pytest.mark.parametrize(
     "items, kwargs, expected_output",
     [
+        ([], {}, ""),
         ([1], {}, "‘1’"),
         ([1, 2], {}, "‘1’ and ‘2’"),
         ([1, 2, 3], {}, "‘1’, ‘2’ and ‘3’"),
