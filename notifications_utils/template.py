@@ -82,7 +82,6 @@ class Template(ABC):
         self.id = template.get("id", None)
         self.name = template.get("name", None)
         self.content = template["content"]
-        self.welsh_content = template.get("letter_welsh_content", None)
         self._template = template
         self.values = values
         self.redact_missing_personalisation = redact_missing_personalisation
@@ -125,12 +124,7 @@ class Template(ABC):
 
     @property
     def placeholders(self):
-        welsh = set()
-        if self.welsh_content:
-            welsh = get_placeholders(self.welsh_content)
-        english = get_placeholders(self.content)
-        all = welsh | english
-        return all
+        return get_placeholders(self.content)
 
     @property
     def missing_data(self):
@@ -599,6 +593,7 @@ class BaseLetterTemplate(Template):
     ):
         self.contact_block = (contact_block or "").strip()
         self._welsh_subject = template.get("letter_welsh_subject", "")
+        self.welsh_content = template.get("letter_welsh_content", None)
 
         if language == "english":
             self._subject = template["subject"]
@@ -633,13 +628,9 @@ class BaseLetterTemplate(Template):
 
     @property
     def placeholders(self):
-        welsh = set()
-        if self._welsh_subject:
-            welsh = get_placeholders(self._welsh_subject)
-        english = get_placeholders(self._subject)
-        all = welsh | english
-
-        return all | get_placeholders(self.contact_block) | super().placeholders
+        subject_placeholders = get_placeholders(self._welsh_subject) | get_placeholders(self._subject)
+        content_placeholders = get_placeholders(self.welsh_content) | super().placeholders
+        return get_placeholders(self.contact_block) | subject_placeholders | content_placeholders
 
     @property
     def too_many_pages(self):
