@@ -393,16 +393,15 @@ class SMSPreviewTemplate(BaseSMSTemplate):
 
 
 class SubjectMixin:
-    def __init__(self, template, values=None, language: Literal["english", "welsh"] = "english", **kwargs):
-        welsh_subject = template.get("letter_welsh_subject", "")
+    pass
 
-        if language == "english":
-            self._subject = template["subject"]
-        else:
-            self._subject = welsh_subject
 
-        self._welsh_subject = welsh_subject
+class BaseEmailTemplate(SubjectMixin, Template):
+    template_type = "email"
 
+    def __init__(self, template, values=None, unsubscribe_link=None, **kwargs):
+        self.unsubscribe_link = unsubscribe_link
+        self._subject = template["subject"]
         super().__init__(template, values, **kwargs)
 
     @property
@@ -422,21 +421,7 @@ class SubjectMixin:
 
     @property
     def placeholders(self):
-        welsh = set()
-        if self._welsh_subject:
-            welsh = get_placeholders(self._welsh_subject)
-        english = get_placeholders(self._subject)
-        all = welsh | english
-
-        return all | super().placeholders
-
-
-class BaseEmailTemplate(SubjectMixin, Template):
-    template_type = "email"
-
-    def __init__(self, template, values=None, unsubscribe_link=None, **kwargs):
-        self.unsubscribe_link = unsubscribe_link
-        super().__init__(template, values, **kwargs)
+        return get_placeholders(self._subject) | super().placeholders
 
     @property
     def content_with_unsubscribe_link(self):
@@ -613,21 +598,30 @@ class BaseLetterTemplate(SubjectMixin, Template):
         logo_file_name=None,
         redact_missing_personalisation=False,
         date: datetime | None = None,
-        language="english",
+        language: Literal["english", "welsh"] = "english",
         includes_first_page: bool = True,
     ):
         self.contact_block = (contact_block or "").strip()
-        super().__init__(
-            template, values, redact_missing_personalisation=redact_missing_personalisation, language=language
-        )
+        welsh_subject = template.get("letter_welsh_subject", "")
+
+        if language == "english":
+            self._subject = template["subject"]
+        else:
+            self._subject = welsh_subject
+
+        self._welsh_subject = welsh_subject
+
+        super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date
         self.language = language
+
         if language == "english":
             self.content = template["content"]
         else:
             self.content = template.get("letter_welsh_content", "")
+
         self.includes_first_page = includes_first_page
 
     @property
@@ -647,7 +641,13 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def placeholders(self):
-        return get_placeholders(self.contact_block) | super().placeholders
+        welsh = set()
+        if self._welsh_subject:
+            welsh = get_placeholders(self._welsh_subject)
+        english = get_placeholders(self._subject)
+        all = welsh | english
+
+        return all | get_placeholders(self.contact_block) | super().placeholders
 
     @property
     def too_many_pages(self):
