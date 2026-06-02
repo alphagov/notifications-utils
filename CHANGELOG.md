@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 117.1.0
+
+* Add `max_items_shown` and `word_for_items_not_shown` arguments to `formatted_list`
+* All arguments to `formatted_list` except for `items` are now keyword-only
+
 ## 117.0.2
 
 * Restrict Gunicorn to versions <= 26.0.0, since version 26.0.0 dropped Eventlet support
