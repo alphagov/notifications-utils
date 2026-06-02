@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 117.0.1
+
+* Small speed improvements to `validate_and_format_email_address`
+
 ## 117.0.0
 
 * Remove StatsD client
