@@ -1,6 +1,5 @@
-from collections.abc import Set
-
 import unicodedata
+from collections.abc import Set
 
 
 class SanitiseText:

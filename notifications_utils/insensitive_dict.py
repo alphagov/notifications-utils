@@ -4,7 +4,6 @@ from typing import Self, TypeVar
 
 from ordered_set import OrderedSet
 
-
 K = TypeVar("K")
 V = TypeVar("V")
 

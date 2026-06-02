@@ -1,11 +1,12 @@
 import math
 from abc import ABC, abstractmethod
+from collections.abc import Mapping, Set
 from contextlib import suppress
 from datetime import UTC, datetime
 from functools import lru_cache
 from html import unescape
 from os import path
-from typing import Literal
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
@@ -65,11 +66,13 @@ template_env = Environment(
 
 
 class Template(ABC):
+    template_type: str
+
     def __init__(
         self,
-        template,
+        template: dict,
         values=None,
-        redact_missing_personalisation=False,
+        redact_missing_personalisation: bool = False,
     ):
         if not isinstance(template, dict):
             raise TypeError("Template must be a dict")
@@ -95,7 +98,7 @@ class Template(ABC):
         pass
 
     @property
-    def content_with_placeholders_filled_in(self):
+    def content_with_placeholders_filled_in(self) -> str:
         return str(
             Field(
                 self.content,
@@ -124,13 +127,10 @@ class Template(ABC):
             )
 
     @property
-    def placeholders(self):
-        welsh = set()
-        if self.welsh_content:
-            welsh = get_placeholders(self.welsh_content)
+    def placeholders(self) -> Set[str]:
+        welsh = get_placeholders(self.welsh_content) if self.welsh_content else set()
         english = get_placeholders(self.content)
-        all = welsh | english
-        return all
+        return welsh | english
 
     @property
     def missing_data(self):
@@ -392,8 +392,34 @@ class SMSPreviewTemplate(BaseSMSTemplate):
         )
 
 
-class SubjectMixin:
-    def __init__(self, template, values=None, language: Literal["english", "welsh"] = "english", **kwargs):
+if TYPE_CHECKING:
+
+    class _SubjectMixinBase(Protocol):
+        redact_missing_personalisation: bool
+        values: Mapping[str, Any]
+
+        def __init__(self, template: dict[str, str], values: Mapping[str, Any] | None = None, **kwargs):
+            return  # mypy will complain about abstract/trivial implementations
+
+        @property
+        def placeholders(self) -> Set[str]:
+            return set()  # mypy will complain about abstract/trivial implementations
+else:
+
+    class _SubjectMixinBase: ...
+
+
+class SubjectMixin(_SubjectMixinBase):
+    _subject: str
+    _welsh_subject: str
+
+    def __init__(
+        self,
+        template: dict[str, str],
+        values: Mapping[str, Any] | None = None,
+        language: Literal["english", "welsh"] = "english",
+        **kwargs,
+    ):
         welsh_subject = template.get("letter_welsh_subject", "")
 
         if language == "english":
@@ -406,7 +432,7 @@ class SubjectMixin:
         super().__init__(template, values, **kwargs)
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return Markup(
             Take(
                 Field(
@@ -421,14 +447,10 @@ class SubjectMixin:
         )
 
     @property
-    def placeholders(self):
-        welsh = set()
-        if self._welsh_subject:
-            welsh = get_placeholders(self._welsh_subject)
+    def placeholders(self) -> Set[str]:
+        welsh = get_placeholders(self._welsh_subject) if self._welsh_subject else set()
         english = get_placeholders(self._subject)
-        all = welsh | english
-
-        return all | super().placeholders
+        return welsh | english | super().placeholders
 
 
 class BaseEmailTemplate(SubjectMixin, Template):
@@ -795,5 +817,5 @@ def do_nice_typography(value):
 
 
 @lru_cache(maxsize=1024)
-def get_placeholders(content):
+def get_placeholders(content: str) -> Set[str]:
     return Field(content).placeholders

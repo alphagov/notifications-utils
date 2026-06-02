@@ -1,6 +1,6 @@
 import re
 from collections.abc import Callable, Mapping, Sequence, Set
-from typing import Any, Self
+from typing import Any, Literal, Self
 
 from markupsafe import Markup
 
@@ -85,7 +85,7 @@ class Field:
         content: str,
         values: Mapping[str, Any] | None = None,
         with_brackets: bool = True,
-        html="escape",
+        html: Literal["escape", "passthrough"] = "escape",
         markdown_lists: bool = False,
         redact_missing_personalisation: bool = False,
     ):
