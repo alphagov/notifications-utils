@@ -592,13 +592,9 @@ class BaseLetterTemplate(Template):
         includes_first_page: bool = True,
     ):
         self.contact_block = (contact_block or "").strip()
+        self._subject = template["subject"]
         self._welsh_subject = template.get("letter_welsh_subject", "")
         self.welsh_content = template.get("letter_welsh_content", None)
-
-        if language == "english":
-            self._subject = template["subject"]
-        else:
-            self._subject = self._welsh_subject
 
         super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
@@ -606,8 +602,9 @@ class BaseLetterTemplate(Template):
         self.date = date
         self.language = language
 
-        if language != "english":
-            self.content = template.get("letter_welsh_content", "")
+        if language == "welsh":
+            self.content = self.welsh_content
+            self._subject = self._welsh_subject
 
         self.includes_first_page = includes_first_page
 
