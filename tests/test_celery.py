@@ -60,8 +60,7 @@ def request_id_task(celery_task):
     celery_task.pop_request()
 
 
-def test_success_should_log_and_record_timing(celery_app, async_task, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.timing
+def test_success_should_log_and_record_timing(async_task, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.INFO):
@@ -70,7 +69,6 @@ def test_success_should_log_and_record_timing(celery_app, async_task, caplog, mo
 
         async_task.on_success(retval=None, task_id=1234, args=[], kwargs={})
 
-    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.success", 5.0)
     record_mock.assert_called_once_with(
         5.0,
         {
@@ -83,8 +81,7 @@ def test_success_should_log_and_record_timing(celery_app, async_task, caplog, mo
     assert f"Celery task {async_task.name} (queue: test-queue) took 5.0000" in caplog.messages
 
 
-def test_success_no_early_log(celery_app, async_task_early_debug, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.timing
+def test_success_no_early_log(async_task_early_debug, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.INFO):
@@ -93,7 +90,6 @@ def test_success_no_early_log(celery_app, async_task_early_debug, caplog, mocker
 
         async_task_early_debug.on_success(retval=None, task_id=1234, args=[], kwargs={})
 
-    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task_early_debug.name}.success", 5.0)
     record_mock.assert_called_once_with(
         5.0,
         {
@@ -106,8 +102,7 @@ def test_success_no_early_log(celery_app, async_task_early_debug, caplog, mocker
     assert f"Celery task {async_task_early_debug.name} (queue: test-queue) took 5.0000" in caplog.messages
 
 
-def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.timing
+def test_success_queue_when_applied_synchronously(celery_task, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.INFO):
@@ -116,7 +111,6 @@ def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplo
 
         celery_task.on_success(retval=None, task_id=1234, args=[], kwargs={})
 
-    statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.success", 5.0)
     record_mock.assert_called_once_with(
         5.0,
         {
@@ -129,8 +123,7 @@ def test_success_queue_when_applied_synchronously(celery_app, celery_task, caplo
     assert f"Celery task {celery_task.name} (queue: none) took 5.0000" in caplog.messages
 
 
-def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.timing
+def test_retry_should_log_and_record_metrics(async_task, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.WARNING):
@@ -139,7 +132,6 @@ def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog, mocker
 
         async_task.on_retry(exc=Exception, task_id="1234", args=[], kwargs={}, einfo=None)
 
-    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.retry", 5.0)
     record_mock.assert_called_once_with(
         5.0,
         {
@@ -152,8 +144,7 @@ def test_retry_should_log_and_call_statsd(celery_app, async_task, caplog, mocker
     assert f"Celery task {async_task.name} (queue: test-queue) failed for retry after 5.0000" in caplog.messages
 
 
-def test_retry_queue_when_applied_synchronously(celery_app, celery_task, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.timing
+def test_retry_queue_when_applied_synchronously(celery_task, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.WARNING):
@@ -162,7 +153,6 @@ def test_retry_queue_when_applied_synchronously(celery_app, celery_task, caplog,
 
         celery_task.on_retry(exc=Exception, task_id="1234", args=[], kwargs={}, einfo=None)
 
-    statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.retry", 5.0)
     record_mock.assert_called_once_with(
         5.0,
         {
@@ -175,8 +165,7 @@ def test_retry_queue_when_applied_synchronously(celery_app, celery_task, caplog,
     assert f"Celery task {celery_task.name} (queue: none) failed for retry after 5.0000" in caplog.messages
 
 
-def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.incr
+def test_failure_should_log_and_record_metrics(async_task, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.INFO):
@@ -185,7 +174,6 @@ def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog, mock
 
         async_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
 
-    statsd_mock.assert_called_once_with(f"celery.test-queue.{async_task.name}.failure")
     record_mock.assert_called_once_with(
         5.0,
         {
@@ -199,8 +187,7 @@ def test_failure_should_log_and_call_statsd(celery_app, async_task, caplog, mock
     assert f"Celery task {async_task.name} (queue: test-queue) failed after 5.0000" in caplog.messages
 
 
-def test_failure_queue_when_applied_synchronously(celery_app, celery_task, caplog, mocker):
-    statsd_mock = celery_app.statsd_client.incr
+def test_failure_queue_when_applied_synchronously(celery_task, caplog, mocker):
     record_mock = mocker.patch.object(duration_histogram, "record")
 
     with freeze_time() as frozen, caplog.at_level(logging.ERROR):
@@ -208,7 +195,6 @@ def test_failure_queue_when_applied_synchronously(celery_app, celery_task, caplo
         frozen.tick(5)
         celery_task.on_failure(exc=Exception, task_id=1234, args=[], kwargs={}, einfo=None)
 
-    statsd_mock.assert_called_once_with(f"celery.none.{celery_task.name}.failure")
     record_mock.assert_called_once_with(
         5.0,
         {
