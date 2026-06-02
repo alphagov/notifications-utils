@@ -63,4 +63,4 @@ def format_email_address(email_address):
 
 
 def validate_and_format_email_address(email_address):
-    return format_email_address(validate_email_address(email_address))
+    return validate_email_address(email_address).lower()
