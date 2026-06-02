@@ -1,7 +1,7 @@
 import re
 import string
 import urllib
-from html import _replace_charref, escape
+from html import _replace_charref, escape  # type: ignore[attr-defined]
 
 import smartypants
 from markupsafe import Markup

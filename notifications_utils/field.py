@@ -78,6 +78,8 @@ class Field:
     markdown_lists: bool
     redact_missing_personalisation: bool
 
+    _values: Mapping[str, Any]
+
     def __init__(
         self,
         content: str,
