@@ -187,7 +187,14 @@ def url_encode_full_stops(value):
 
 
 def unescaped_formatted_list(
-    items, conjunction="and", before_each="‘", after_each="’", separator=", ", prefix="", prefix_plural=""
+    items,
+    *,
+    conjunction="and",
+    before_each="‘",
+    after_each="’",
+    separator=", ",
+    prefix="",
+    prefix_plural="",
 ):
     if prefix:
         prefix += " "
@@ -204,14 +211,8 @@ def unescaped_formatted_list(
         return f"{prefix_plural}{first_items} {conjunction} {last_item}"
 
 
-def formatted_list(
-    items, conjunction="and", before_each="‘", after_each="’", separator=", ", prefix="", prefix_plural=""
-):
-    return Markup(
-        unescaped_formatted_list(
-            [escape_html(x) for x in items], conjunction, before_each, after_each, separator, prefix, prefix_plural
-        )
-    )
+def formatted_list(items, **kwargs):
+    return Markup(unescaped_formatted_list([escape_html(x) for x in items], **kwargs))
 
 
 def remove_whitespace_before_punctuation(value):
