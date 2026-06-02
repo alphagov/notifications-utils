@@ -3,10 +3,10 @@ from collections.abc import Iterable, Iterator, MutableSet, Sequence, Set
 from functools import lru_cache
 from itertools import chain, islice
 from types import NotImplementedType
-from typing import Self, TypeVar, overload
+from typing import Self, overload
 
 
-class InsensitiveDict(dict):
+class InsensitiveDict[K, V](dict[K, V]):
     """
     `InsensitiveDict` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.
@@ -63,10 +63,7 @@ class InsensitiveDict(dict):
         return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
 
 
-T = TypeVar("T")
-
-
-class AbstractInsensitiveSet(MutableSet[T], Sequence[T], metaclass=ABCMeta):
+class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
     __slots__ = ("_inner",)
     _inner: dict[T, T]
 

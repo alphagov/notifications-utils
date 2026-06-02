@@ -1,11 +1,12 @@
 import math
 from abc import ABC, abstractmethod
+from collections.abc import Mapping, Set
 from contextlib import suppress
 from datetime import UTC, datetime
 from functools import lru_cache
 from html import unescape
 from os import path
-from typing import Literal
+from typing import Any, Literal
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
@@ -70,11 +71,19 @@ class Template(ABC):
     def template_type(self):
         pass
 
+    id: Any
+    name: Any
+    content: Any
+    redact_missing_personalisation: bool
+
+    _template: dict[str, Any]
+    _values: Mapping[str, Any]
+
     def __init__(
         self,
-        template,
-        values=None,
-        redact_missing_personalisation=False,
+        template: dict[str, Any],
+        values: Mapping[str, Any] | None = None,
+        redact_missing_personalisation: bool = False,
     ):
         if not isinstance(template, dict):
             raise TypeError("Template must be a dict")
@@ -99,7 +108,7 @@ class Template(ABC):
         pass
 
     @property
-    def content_with_placeholders_filled_in(self):
+    def content_with_placeholders_filled_in(self) -> str:
         return str(
             Field(
                 self.content,
@@ -111,24 +120,24 @@ class Template(ABC):
         ).strip()
 
     @property
-    def values(self):
+    def values(self) -> Mapping[str, Any]:
         if hasattr(self, "_values"):
             return self._values
         return {}
 
     @values.setter
-    def values(self, value):
-        if not value:
+    def values(self, new_values: Mapping[str, Any] | None):
+        if not new_values:
             self._values = {}
         else:
             placeholders = InsensitiveDict.from_keys(self.placeholders)
-            self._values = InsensitiveDict(value).as_dict_with_keys(
+            self._values = InsensitiveDict(new_values).as_dict_with_keys(
                 self.placeholders
-                | {key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
+                | {key for key in new_values.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
             )
 
     @property
-    def placeholders(self):
+    def placeholders(self) -> Set[str]:
         return get_placeholders(self.content)
 
     @property
@@ -399,7 +408,7 @@ class BaseEmailTemplate(Template):
         super().__init__(template, values, **kwargs)
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return Markup(
             Take(
                 Field(
@@ -414,17 +423,17 @@ class BaseEmailTemplate(Template):
         )
 
     @property
-    def placeholders(self):
+    def placeholders(self) -> Set[str]:
         return get_placeholders(self._subject) | super().placeholders
 
     @property
-    def content_with_unsubscribe_link(self):
+    def content_with_unsubscribe_link(self) -> str:
         if self.unsubscribe_link:
             return f"{self.content}\n\n---\n\n[Unsubscribe from these emails]({self.unsubscribe_link})"
         return self.content
 
     @property
-    def html_body(self):
+    def html_body(self) -> str:
         return (
             Take(
                 Field(
@@ -443,10 +452,10 @@ class BaseEmailTemplate(Template):
         )
 
     @property
-    def content_size_in_bytes(self):
+    def content_size_in_bytes(self) -> int:
         return len(self.content_with_placeholders_filled_in.encode("utf8"))
 
-    def is_message_too_long(self):
+    def is_message_too_long(self) -> bool:
         """
         SES rejects email messages bigger than 10485760 bytes (just over 10 MB per message (after base64 encoding)):
         https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html#limits-message
@@ -495,7 +504,7 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
         )
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return Markup(
             Take(
                 Field(
@@ -513,7 +522,7 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
 class HTMLEmailTemplate(BaseEmailTemplate):
     jinja_template = template_env.get_template("email_template.jinja2")
 
-    PREHEADER_LENGTH_IN_CHARACTERS = 256
+    PREHEADER_LENGTH_IN_CHARACTERS: int = 256
 
     def __init__(
         self,
@@ -779,5 +788,5 @@ def do_nice_typography(value):
 
 
 @lru_cache(maxsize=1024)
-def get_placeholders(content):
+def get_placeholders(content: str) -> Set[str]:
     return Field(content).placeholders
