@@ -902,11 +902,16 @@ def test_letter_template_detects_all_placeholders_in_both_english_and_welsh_subj
             "subject": "Getting ((allowance_type))",
             "letter_welsh_subject": "Cael ((allowance_type_cy))",
             "template_type": "letter",
-        }
+        },
+        contact_block="((phone_number))",
     )
 
-    assert template.placeholders == OrderedSet(
-        ["allowance_type_cy", "allowance_type", "document_type_cy", "document_type"]
+    assert tuple(template.placeholders) == (
+        "phone_number",
+        "allowance_type_cy",
+        "document_type_cy",
+        "allowance_type",
+        "document_type",
     )
 
 

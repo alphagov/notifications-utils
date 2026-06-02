@@ -625,9 +625,13 @@ class BaseLetterTemplate(Template):
 
     @property
     def placeholders(self):
-        subject_placeholders = get_placeholders(self._welsh_subject) | get_placeholders(self._subject)
-        content_placeholders = get_placeholders(self.welsh_content) | super().placeholders
-        return get_placeholders(self.contact_block) | subject_placeholders | content_placeholders
+        return (
+            get_placeholders(self.contact_block)
+            | get_placeholders(self._welsh_subject)
+            | get_placeholders(self.welsh_content)
+            | get_placeholders(self._subject)
+            | super().placeholders
+        )
 
     @property
     def too_many_pages(self):
