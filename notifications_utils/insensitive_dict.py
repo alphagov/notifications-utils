@@ -1,9 +1,15 @@
+from collections.abc import Iterable, Set
 from functools import lru_cache
+from typing import Self, TypeVar
 
 from ordered_set import OrderedSet
 
 
-class InsensitiveDict(dict):
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+class InsensitiveDict(dict[K, V]):
     """
     `InsensitiveDict` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.
@@ -60,7 +66,10 @@ class InsensitiveDict(dict):
         return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
 
 
-class InsensitiveSet(OrderedSet):
+T = TypeVar("T")
+
+
+class InsensitiveSet(OrderedSet[T]):
     """
     `InsensitiveSet` behaves like a normal set, except:
     - it is ordered
@@ -75,22 +84,22 @@ class InsensitiveSet(OrderedSet):
         >>> 'FIRST-name'
     """
 
-    def __init__(self, iterable=None, /):
+    def __init__(self, iterable: Iterable[T] | None = None, /):
         return super().__init__(InsensitiveDict.from_keys(iterable or ()).values())
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return key in InsensitiveDict.from_keys(self)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return not self ^ other
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         return self.issubset(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self <= other and not self == other
 
-    def __sub__(self, other):
+    def __sub__(self, other: Set) -> Self:
         return self.difference(other)
 
     def index(self, key):

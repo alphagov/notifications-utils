@@ -37,11 +37,13 @@ address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
 
 
 class RecipientCSV:
-    max_rows = 100_000
-    get_rows_loop_interruptible_every = 128
+    max_rows: int = 100_000
+    get_rows_loop_interruptible_every: int = 128
     # we're less certain a significant amount of work is going to be done on each iteration
     # through the resultant row list
-    rows_list_iteration_interruptible_every = 512
+    rows_list_iteration_interruptible_every: int = 512
+
+    _template: Template
 
     def __init__(
         self,
@@ -92,11 +94,11 @@ class RecipientCSV:
             self._guestlist = []
 
     @property
-    def template(self):
+    def template(self) -> Template:
         return self._template
 
     @template.setter
-    def template(self, value):
+    def template(self, value: Template):
         if not isinstance(value, Template):
             raise TypeError("template must be an instance of notifications_utils.template.Template")
         self._template = value
