@@ -392,11 +392,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
         )
 
 
-class SubjectMixin:
-    pass
-
-
-class BaseEmailTemplate(SubjectMixin, Template):
+class BaseEmailTemplate(Template):
     template_type = "email"
 
     def __init__(self, template, values=None, unsubscribe_link=None, **kwargs):
@@ -582,7 +578,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         )
 
 
-class BaseLetterTemplate(SubjectMixin, Template):
+class BaseLetterTemplate(Template):
     template_type = "letter"
     max_page_count = LETTER_MAX_PAGE_COUNT
     max_sheet_count = LETTER_MAX_PAGE_COUNT // 2

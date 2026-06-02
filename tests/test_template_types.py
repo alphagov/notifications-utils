@@ -21,7 +21,6 @@ from notifications_utils.template import (
     SMSBodyPreviewTemplate,
     SMSMessageTemplate,
     SMSPreviewTemplate,
-    SubjectMixin,
     Template,
 )
 
@@ -940,13 +939,13 @@ def test_subject_line_gets_applied_to_correct_template_types():
         PlainTextEmailTemplate,
         LetterPreviewTemplate,
     ]:
-        assert issubclass(cls, SubjectMixin)
+        assert hasattr(cls, "subject")
     for cls in [
         SMSBodyPreviewTemplate,
         SMSMessageTemplate,
         SMSPreviewTemplate,
     ]:
-        assert not issubclass(cls, SubjectMixin)
+        assert not hasattr(cls, "subject")
 
 
 @pytest.mark.parametrize(
