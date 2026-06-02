@@ -454,20 +454,27 @@ class SubjectMixin(_SubjectMixinBase):
 
 
 class BaseEmailTemplate(SubjectMixin, Template):
-    template_type = "email"
+    template_type: str = "email"
+    unsubscribe_link: str | None
 
-    def __init__(self, template, values=None, unsubscribe_link=None, **kwargs):
+    def __init__(
+        self,
+        template: dict[str, str],
+        values: Mapping[str, Any] | None = None,
+        unsubscribe_link: str | None = None,
+        **kwargs,
+    ):
         self.unsubscribe_link = unsubscribe_link
         super().__init__(template, values, **kwargs)
 
     @property
-    def content_with_unsubscribe_link(self):
+    def content_with_unsubscribe_link(self) -> str:
         if self.unsubscribe_link:
             return f"{self.content}\n\n---\n\n[Unsubscribe from these emails]({self.unsubscribe_link})"
         return self.content
 
     @property
-    def html_body(self):
+    def html_body(self) -> str:
         return (
             Take(
                 Field(
@@ -486,10 +493,10 @@ class BaseEmailTemplate(SubjectMixin, Template):
         )
 
     @property
-    def content_size_in_bytes(self):
+    def content_size_in_bytes(self) -> int:
         return len(self.content_with_placeholders_filled_in.encode("utf8"))
 
-    def is_message_too_long(self):
+    def is_message_too_long(self) -> bool:
         """
         SES rejects email messages bigger than 10485760 bytes (just over 10 MB per message (after base64 encoding)):
         https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quotas.html#limits-message
@@ -538,7 +545,7 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
         )
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return Markup(
             Take(
                 Field(
@@ -556,7 +563,7 @@ class PlainTextEmailTemplate(BaseEmailTemplate):
 class HTMLEmailTemplate(BaseEmailTemplate):
     jinja_template = template_env.get_template("email_template.jinja2")
 
-    PREHEADER_LENGTH_IN_CHARACTERS = 256
+    PREHEADER_LENGTH_IN_CHARACTERS: int = 256
 
     def __init__(
         self,
