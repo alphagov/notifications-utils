@@ -67,11 +67,12 @@ template_env = Environment(
 
 class Template(ABC):
     template_type: str
+    _values: Mapping[str, Any]
 
     def __init__(
         self,
-        template: dict,
-        values=None,
+        template: dict[str, str],
+        values: Mapping[str, Any] | None = None,
         redact_missing_personalisation: bool = False,
     ):
         if not isinstance(template, dict):
@@ -110,20 +111,20 @@ class Template(ABC):
         ).strip()
 
     @property
-    def values(self):
+    def values(self) -> Mapping[str, Any]:
         if hasattr(self, "_values"):
             return self._values
         return {}
 
     @values.setter
-    def values(self, value):
-        if not value:
+    def values(self, new_values: Mapping[str, Any] | None):
+        if not new_values:
             self._values = {}
         else:
             placeholders = InsensitiveDict.from_keys(self.placeholders)
-            self._values = InsensitiveDict(value).as_dict_with_keys(
+            self._values = InsensitiveDict(new_values).as_dict_with_keys(
                 self.placeholders
-                | {key for key in value.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
+                | {key for key in new_values.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
             )
 
     @property
