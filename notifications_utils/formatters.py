@@ -1,3 +1,4 @@
+import math
 import re
 import string
 import urllib
@@ -195,17 +196,26 @@ def unescaped_formatted_list(
     separator=", ",
     prefix="",
     prefix_plural="",
+    max_items_shown=math.inf,
+    word_for_items_not_shown=None,
 ):
+    if max_items_shown < math.inf and not word_for_items_not_shown:
+        raise TypeError('`word_for_items_not_shown` must be provided, for example "more" or "others"')
+
     if prefix:
         prefix += " "
     if prefix_plural:
         prefix_plural += " "
 
-    if len(items) == 1:
-        return f"{prefix}{before_each}{items[0]}{after_each}"
-    elif items:
+    if len(items) > max_items_shown:
+        cutoff = max(max_items_shown - 1, 1)
+        formatted_items = [f"{before_each}{item}{after_each}" for item in items[:cutoff]] + [word_for_items_not_shown]
+    else:
         formatted_items = [f"{before_each}{item}{after_each}" for item in items]
 
+    if len(items) == 1:
+        return f"{prefix}{formatted_items[0]}"
+    elif items:
         first_items = separator.join(formatted_items[:-1])
         last_item = formatted_items[-1]
         return f"{prefix_plural}{first_items} {conjunction} {last_item}"
