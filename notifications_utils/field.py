@@ -163,7 +163,16 @@ class Field:
     def placeholders(self):
         if not getattr(self, "content", ""):
             return InsensitiveSet()
-        return InsensitiveSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
+
+        # deduplicate the placeholders in reverse order so un-normalised value of the first occurrence takes
+        # precedence, but reverse again to present in "forward" order
+        return InsensitiveSet(
+            reversed(
+                InsensitiveSet(
+                    Placeholder(body).name for body in reversed(re.findall(self.placeholder_pattern, self.content))
+                )
+            )
+        )
 
     @property
     def replaced(self):
