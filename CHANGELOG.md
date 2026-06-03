@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 117.0.2
+
+* Restrict Gunicorn to versions <= 26.0.0, since version 26.0.0 dropped Eventlet support
+
 ## 117.0.1
 
 * Small speed improvements to `validate_and_format_email_address`
