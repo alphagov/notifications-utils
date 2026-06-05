@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 118.0.0
+
+* Removes `notifications_utils.template.SubjectMixin` (not used outside the repo)
+
 ## 117.1.0
 
 * Add `max_items_shown` and `word_for_items_not_shown` arguments to `formatted_list`

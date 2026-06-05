@@ -82,7 +82,6 @@ class Template(ABC):
         self.id = template.get("id", None)
         self.name = template.get("name", None)
         self.content = template["content"]
-        self.welsh_content = template.get("letter_welsh_content", None)
         self._template = template
         self.values = values
         self.redact_missing_personalisation = redact_missing_personalisation
@@ -125,12 +124,7 @@ class Template(ABC):
 
     @property
     def placeholders(self):
-        welsh = set()
-        if self.welsh_content:
-            welsh = get_placeholders(self.welsh_content)
-        english = get_placeholders(self.content)
-        all = welsh | english
-        return all
+        return get_placeholders(self.content)
 
     @property
     def missing_data(self):
@@ -392,17 +386,12 @@ class SMSPreviewTemplate(BaseSMSTemplate):
         )
 
 
-class SubjectMixin:
-    def __init__(self, template, values=None, language: Literal["english", "welsh"] = "english", **kwargs):
-        welsh_subject = template.get("letter_welsh_subject", "")
+class BaseEmailTemplate(Template):
+    template_type = "email"
 
-        if language == "english":
-            self._subject = template["subject"]
-        else:
-            self._subject = welsh_subject
-
-        self._welsh_subject = welsh_subject
-
+    def __init__(self, template, values=None, unsubscribe_link=None, **kwargs):
+        self.unsubscribe_link = unsubscribe_link
+        self._subject = template["subject"]
         super().__init__(template, values, **kwargs)
 
     @property
@@ -422,21 +411,7 @@ class SubjectMixin:
 
     @property
     def placeholders(self):
-        welsh = set()
-        if self._welsh_subject:
-            welsh = get_placeholders(self._welsh_subject)
-        english = get_placeholders(self._subject)
-        all = welsh | english
-
-        return all | super().placeholders
-
-
-class BaseEmailTemplate(SubjectMixin, Template):
-    template_type = "email"
-
-    def __init__(self, template, values=None, unsubscribe_link=None, **kwargs):
-        self.unsubscribe_link = unsubscribe_link
-        super().__init__(template, values, **kwargs)
+        return get_placeholders(self._subject) | super().placeholders
 
     @property
     def content_with_unsubscribe_link(self):
@@ -597,7 +572,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
         )
 
 
-class BaseLetterTemplate(SubjectMixin, Template):
+class BaseLetterTemplate(Template):
     template_type = "letter"
     max_page_count = LETTER_MAX_PAGE_COUNT
     max_sheet_count = LETTER_MAX_PAGE_COUNT // 2
@@ -613,21 +588,24 @@ class BaseLetterTemplate(SubjectMixin, Template):
         logo_file_name=None,
         redact_missing_personalisation=False,
         date: datetime | None = None,
-        language="english",
+        language: Literal["english", "welsh"] = "english",
         includes_first_page: bool = True,
     ):
         self.contact_block = (contact_block or "").strip()
-        super().__init__(
-            template, values, redact_missing_personalisation=redact_missing_personalisation, language=language
-        )
+        self._subject = template["subject"]
+        self._welsh_subject = template.get("letter_welsh_subject", "")
+        self.welsh_content = template.get("letter_welsh_content", None)
+
+        super().__init__(template, values, redact_missing_personalisation=redact_missing_personalisation)
         self.admin_base_url = admin_base_url
         self.logo_file_name = logo_file_name
         self.date = date
         self.language = language
-        if language == "english":
-            self.content = template["content"]
-        else:
-            self.content = template.get("letter_welsh_content", "")
+
+        if language == "welsh":
+            self.content = self.welsh_content
+            self._subject = self._welsh_subject
+
         self.includes_first_page = includes_first_page
 
     @property
@@ -647,7 +625,13 @@ class BaseLetterTemplate(SubjectMixin, Template):
 
     @property
     def placeholders(self):
-        return get_placeholders(self.contact_block) | super().placeholders
+        return (
+            get_placeholders(self.contact_block)
+            | get_placeholders(self._welsh_subject)
+            | get_placeholders(self.welsh_content)
+            | get_placeholders(self._subject)
+            | super().placeholders
+        )
 
     @property
     def too_many_pages(self):

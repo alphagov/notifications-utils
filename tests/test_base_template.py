@@ -1,6 +1,12 @@
 import pytest
 
-from notifications_utils.template import SubjectMixin, Template
+from notifications_utils.template import (
+    HTMLEmailTemplate,
+    LetterPreviewTemplate,
+    LetterPrintTemplate,
+    PlainTextEmailTemplate,
+    Template,
+)
 
 
 class ConcreteImplementation:
@@ -12,10 +18,6 @@ class ConcreteImplementation:
 
 
 class ConcreteTemplate(ConcreteImplementation, Template):
-    pass
-
-
-class ConcreteTemplateWithSubject(SubjectMixin, ConcreteTemplate):
     pass
 
 
@@ -31,8 +33,22 @@ def test_passes_through_template_attributes():
     assert ConcreteTemplate({"content": ""}).template_type is None
 
 
-def test_passes_through_subject():
-    assert ConcreteTemplateWithSubject({"content": "", "subject": "Your tax is due"}).subject == "Your tax is due"
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        HTMLEmailTemplate,
+        PlainTextEmailTemplate,
+        LetterPreviewTemplate,
+        LetterPrintTemplate,
+    ),
+)
+def test_passes_through_subject(template_class):
+    assert (
+        template_class(
+            {"content": "", "subject": "Your tax is due", "template_type": template_class.template_type}
+        ).subject
+        == "Your tax is due"
+    )
 
 
 def test_errors_for_missing_template_content():
@@ -80,9 +96,21 @@ def test_matches_keys_to_placeholder_names():
         ("((warning? one question mark))", "", ["warning? one question mark"]),
     ],
 )
-def test_extracting_placeholders(template_content, template_subject, expected):
+@pytest.mark.parametrize(
+    "template_class",
+    (
+        HTMLEmailTemplate,
+        PlainTextEmailTemplate,
+        LetterPreviewTemplate,
+        LetterPrintTemplate,
+    ),
+)
+def test_extracting_placeholders(template_class, template_content, template_subject, expected):
     assert (
-        ConcreteTemplateWithSubject({"content": template_content, "subject": template_subject}).placeholders == expected
+        template_class(
+            {"content": template_content, "subject": template_subject, "template_type": template_class.template_type}
+        ).placeholders
+        == expected
     )
 
 
