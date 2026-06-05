@@ -158,6 +158,7 @@ def test_sms_encode(mocker):
 @pytest.mark.parametrize(
     "items, kwargs, expected_output",
     [
+        ([], {}, ""),
         ([1], {}, "‘1’"),
         ([1, 2], {}, "‘1’ and ‘2’"),
         ([1, 2, 3], {}, "‘1’, ‘2’ and ‘3’"),
@@ -167,6 +168,12 @@ def test_sms_encode(mocker):
         ([1, 2, 3], {"conjunction": "foo"}, "‘1’, ‘2’ foo ‘3’"),
         (["&"], {"before_each": "<i>", "after_each": "</i>"}, "<i>&amp;</i>"),
         ([1, 2, 3], {"before_each": "<i>", "after_each": "</i>"}, "<i>1</i>, <i>2</i> and <i>3</i>"),
+        pytest.param([], {"max_items_shown": 3}, "", marks=pytest.mark.xfail(raises=TypeError)),
+        ([1], {"max_items_shown": 1, "word_for_items_not_shown": "more"}, "‘1’"),
+        ([1, 2], {"max_items_shown": 1, "word_for_items_not_shown": "more"}, "‘1’ and more"),
+        ([1, 2, 3], {"max_items_shown": 2, "word_for_items_not_shown": "stuff"}, "‘1’ and stuff"),
+        ([1, 2, 3, 4], {"max_items_shown": 3, "word_for_items_not_shown": "others"}, "‘1’, ‘2’ and others"),
+        ([1, 2, 3], {"max_items_shown": 3, "word_for_items_not_shown": "foo"}, "‘1’, ‘2’ and ‘3’"),
     ],
 )
 def test_formatted_list(items, kwargs, expected_output):
