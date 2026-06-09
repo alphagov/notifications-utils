@@ -5,8 +5,6 @@ from itertools import chain, islice
 from types import NotImplementedType
 from typing import Self, TypeVar, overload
 
-from ordered_set import OrderedSet
-
 
 class InsensitiveDict(dict):
     """
@@ -37,7 +35,7 @@ class InsensitiveDict(dict):
         return cls({key: key for key in keys}, overwrite_duplicates=False)
 
     def keys(self):
-        return OrderedSet(super().keys())
+        return InsensitiveSet(self)
 
     def __getitem__(self, key):
         return super().__getitem__(self.make_key(key))
