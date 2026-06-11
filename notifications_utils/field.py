@@ -161,7 +161,7 @@ class Field:
 
     @property
     def placeholders(self):
-        if not getattr(self, "content", ""):
+        if not self.content or "(" not in self.content:
             return InsensitiveSet()
         return InsensitiveSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
 
