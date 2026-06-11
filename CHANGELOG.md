@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 118.0.1
+
+* Improve performance of `Field.placeholders`
+
 ## 118.0.0
 
 * Removes `notifications_utils.template.SubjectMixin` (not used outside the repo)
