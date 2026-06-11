@@ -204,8 +204,281 @@ def test_insensitive_set_difference():
     assert foobar - barbaz == {"foo"}
 
 
-def test_insensitive_set_symetric_difference():
+def test_insensitive_set_symmetric_difference():
     foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
     barbaz = {"Bar", "B A Z"}
     assert foobar.symmetric_difference(barbaz) == {"foo", "B A Z"}
     assert foobar ^ barbaz == {"foo", "B A Z"}
+
+
+def test_insensitive_set_pop():
+    foobar = InsensitiveSet(("foo", "bar", "FOO", " BAR ", "baz"))
+    assert foobar.pop() == "baz"
+    assert tuple(foobar) == ("FOO", " BAR ")
+    assert foobar.pop() == " BAR "
+    assert tuple(foobar) == ("FOO",)
+    assert foobar.pop() == "FOO"
+    assert not foobar
+
+    with pytest.raises(KeyError):
+        foobar.pop()
+
+
+def test_insensitive_set_or_iterable():
+    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) | (f"{i} " for i in range(18, 4, -1))) == (
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+        "5 ",
+        "6 ",
+        "7 ",
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+    )
+
+
+def test_insensitive_set_ror_iterable():
+    assert tuple((f"{i} " for i in range(18, 4, -1)) | InsensitiveSet(f" {i}" for i in range(8))) == (
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+        " 7",
+        " 6",
+        " 5",
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+    )
+
+
+def test_insensitive_set_and_iterable():
+    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) & (f"{i} " for i in range(18, 4, -1))) == (
+        "5 ",
+        "6 ",
+        "7 ",
+    )
+
+
+def test_insensitive_set_rand_iterable():
+    assert tuple((f"{i} " for i in range(18, 4, -1)) & InsensitiveSet(f" {i}" for i in range(8))) == (
+        " 7",
+        " 6",
+        " 5",
+    )
+
+
+def test_insensitive_set_xor_iterable():
+    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) ^ (f"{i} " for i in range(18, 4, -1))) == (
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+    )
+
+
+def test_insensitive_set_rxor_iterable():
+    assert tuple((f"{i} " for i in range(18, 4, -1)) ^ InsensitiveSet(f" {i}" for i in range(8))) == (
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+    )
+
+
+def test_insensitive_set_sub_iterable():
+    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) - (f"{i} " for i in range(18, 4, -1))) == (
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+    )
+
+
+def test_insensitive_set_rsub_iterable():
+    assert tuple((f"{i} " for i in range(18, 4, -1)) - InsensitiveSet(f" {i}" for i in range(8))) == (
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+    )
+
+
+def test_insensitive_set_iand_iterable():
+    s = InsensitiveSet(f" {i}" for i in range(8))
+    s &= (f"{i} " for i in range(18, 4, -1))
+
+    assert tuple(s) == (
+        "5 ",
+        "6 ",
+        "7 ",
+    )
+
+
+def test_insensitive_set_ior_iterable():
+    s = InsensitiveSet(f" {i}" for i in range(8))
+    s |= (f"{i} " for i in range(18, 4, -1))
+
+    assert tuple(s) == (
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+        "5 ",
+        "6 ",
+        "7 ",
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+    )
+
+
+def test_insensitive_set_ixor_iterable():
+    s = InsensitiveSet(f" {i}" for i in range(8))
+    s ^= (f"{i} " for i in range(18, 4, -1))
+
+    assert tuple(s) == (
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+        "18 ",
+        "17 ",
+        "16 ",
+        "15 ",
+        "14 ",
+        "13 ",
+        "12 ",
+        "11 ",
+        "10 ",
+        "9 ",
+        "8 ",
+    )
+
+
+def test_insensitive_set_isub_iterable():
+    s = InsensitiveSet(f" {i}" for i in range(8))
+    s -= (f"{i} " for i in range(18, 4, -1))
+
+    assert tuple(s) == (
+        " 0",
+        " 1",
+        " 2",
+        " 3",
+        " 4",
+    )
+
+
+def test_insensitive_set_invalid_inequality():
+    with pytest.raises(TypeError):
+        InsensitiveSet() <= 1  # noqa: B015
+
+    with pytest.raises(TypeError):
+        InsensitiveSet() >= 1  # noqa: B015
+
+
+def test_insensitive_set_eq_set():
+    assert {f" {i}" for i in range(8)} == InsensitiveSet(f"{i} " for i in range(7, -1, -1))
+    assert InsensitiveSet(f"{i} " for i in range(7, -1, -1)) == {f" {i}" for i in range(8)}
+
+    assert {f" {i}" for i in range(8)} != InsensitiveSet(f"{i} " for i in range(8, -1, -1))
+    assert InsensitiveSet(f"{i} " for i in range(8, -1, -1)) != {f" {i}" for i in range(8)}
+
+
+def test_insensitive_set_eq_insensitive_set_not_order_sensitive():
+    assert InsensitiveSet(f" {i}" for i in range(8)) == InsensitiveSet(f"{i} " for i in range(7, -1, -1))
+    assert InsensitiveSet(f" {i}" for i in range(8)) == InsensitiveSet(f"{i} " for i in range(8))
+    assert InsensitiveSet(f" {i}" for i in range(8)) != InsensitiveSet(f"{i} " for i in range(7))
+
+
+def test_insensitive_set_eq_iterable_order_sensitive():
+    assert InsensitiveSet(f" {i}" for i in range(8)) != (f"{i} " for i in range(7, -1, -1))
+    assert InsensitiveSet(f" {i}" for i in range(8)) == (f"{i} " for i in range(8))
+
+
+def test_insensitive_set_getitem_positive_int():
+    insensitive_set = InsensitiveSet(f" {i}" for i in range(8))
+    for i in range(8):
+        assert insensitive_set[i] == f" {i}"
+
+
+def test_insensitive_set_getitem_negative_int():
+    insensitive_set = InsensitiveSet(f" {i}" for i in range(8))
+    for i, j in zip(range(8), range(-8, 0), strict=True):
+        assert insensitive_set[j] == f" {i}"
+
+
+@pytest.mark.parametrize("start", tuple(range(-5, 4)) + (None,))
+@pytest.mark.parametrize("stop", tuple(range(-5, 4)) + (None,))
+@pytest.mark.parametrize("step", (-1, 1, None))
+def test_insensitive_set_getitem_slices(start, stop, step):
+    tup = tuple(f" {i}" for i in range(4))
+    iset = InsensitiveSet(tup)
+
+    iset_ret = iset[start:stop:step]
+    tup_ret = tup[start:stop:step]
+
+    assert isinstance(iset_ret, InsensitiveSet)
+    assert tuple(iset_ret) == tuple(tup_ret)

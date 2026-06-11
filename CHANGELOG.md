@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 119.0.0
+
+* Reimplement `InsensitiveSet` using standard python dicts and a more complete implementation of `MutableSet` & `Sequence`. Subtle (but hopefully unimportant) behaviour changes should be expected.
+* `InsensitiveDict.keys()` now returns an `InsensitiveSet`.
+
 ## 118.0.0
 
 * Removes `notifications_utils.template.SubjectMixin` (not used outside the repo)
