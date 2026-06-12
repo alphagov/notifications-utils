@@ -1312,8 +1312,7 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
             "sms",
             {},
             [
-                mock.call("content"),  # This is to get the placeholders
-                mock.call("content", {}, html="passthrough"),
+                mock.call("content"),
             ],
         ),
         (
@@ -1392,11 +1391,9 @@ def test_is_message_empty_email_and_letter_templates_tries_not_to_count_chars(
         ),
     ],
 )
-@mock.patch("notifications_utils.template.Field.__init__", return_value=None)
-@mock.patch("notifications_utils.template.Field.__str__", return_value="1\n2\n3\n4\n5\n6\n7\n8")
+@mock.patch("notifications_utils.template.Field")
 def test_templates_handle_html_and_redacting(
-    mock_field_str,
-    mock_field_init,
+    mock_field,
     template_class,
     template_type,
     extra_args,
@@ -1405,7 +1402,7 @@ def test_templates_handle_html_and_redacting(
     assert str(
         template_class({"content": "content", "subject": "subject", "template_type": template_type}, **extra_args)
     )
-    assert mock_field_init.call_args_list == expected_field_calls
+    assert mock_field.call_args_list == expected_field_calls
 
 
 @pytest.mark.parametrize(
