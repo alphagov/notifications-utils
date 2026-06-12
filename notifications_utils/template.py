@@ -234,18 +234,16 @@ class BaseSMSTemplate(Template):
 
     @property
     def fragment_count(self):
-        # Extended GSM characters count as 2 characters
-        character_count = self.content_count + self.count_extended_gsm_chars
-
         if self.non_gsm_characters:
-            return 1 if character_count <= 70 else math.ceil(float(character_count) / 67)
+            return 1 if self.content_count <= 70 else math.ceil(float(self.content_count) / 67)
+
+        # Extended GSM characters count as 2 characters in GSM-7
+        character_count = self.content_count + self.count_extended_gsm_chars
 
         return 1 if character_count <= 160 else math.ceil(float(character_count) / 153)
 
     @property
     def count_of_characters_above_previous_fragment_boundary(self):
-        character_count = self.content_count + self.count_extended_gsm_chars
-
         if self.fragment_count == 1:
             boundary = 0
         elif self.fragment_count == 2:
@@ -253,7 +251,10 @@ class BaseSMSTemplate(Template):
         else:
             boundary = (67 if self.non_gsm_characters else 153) * (self.fragment_count - 1)
 
-        return character_count - boundary
+        if self.non_gsm_characters:
+            return self.content_count - boundary
+
+        return self.content_count + self.count_extended_gsm_chars - boundary
 
     @property
     def non_gsm_characters(self):
