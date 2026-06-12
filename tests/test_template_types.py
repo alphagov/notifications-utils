@@ -1102,6 +1102,7 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
     "template_content, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
         # all extended GSM characters
+        ("^" * 80, 1, 160),
         ("^" * 81, 2, 2),
         # GSM characters plus extended GSM
         ("a" * 158 + "|", 1, 160),
@@ -1109,8 +1110,10 @@ def test_sms_fragment_count_accounts_for_unicode_and_welsh_characters(
         ("a" * 304 + "[", 2, 146),
         ("a" * 304 + "[]", 3, 2),
         # Welsh character plus extended GSM
-        ("â" * 132 + "{", 2, 64),
-        ("â" * 133 + "}", 3, 1),
+        ("â" * 69 + "{", 1, 70),
+        ("â" * 70 + "{", 2, 1),
+        ("â" * 133 + "}", 2, 64),
+        ("â" * 134 + "}", 3, 1),
         # Non-GSM or extended characters in placeholder, not content
         ("a" * 160 + "(( placeholder with â ))", 1, 160),
         ("a" * 160 + "(( placeholder with | ))", 1, 160),
