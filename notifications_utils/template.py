@@ -244,9 +244,7 @@ class BaseSMSTemplate(Template):
 
     @property
     def count_of_characters_above_previous_fragment_boundary(self):
-        if self.fragment_count == 1:
-            boundary = 0
-        elif self.fragment_count == 2:
+        if self.fragment_count == 2:
             boundary = 70 if self.non_gsm_characters else 160
         else:
             boundary = (67 if self.non_gsm_characters else 153) * (self.fragment_count - 1)
