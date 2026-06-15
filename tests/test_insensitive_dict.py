@@ -1,7 +1,6 @@
 from functools import partial
 
 import pytest
-from ordered_set import OrderedSet
 
 from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 from notifications_utils.recipients import Cell, Row
@@ -95,20 +94,21 @@ def test_maintains_insertion_order():
 
 
 def test_insensitive_set():
-    assert InsensitiveSet(
-        [
-            "foo",
-            "F o o ",
-            "F_O_O",
-            "B_A_R",
-            "B a r",
-            "bar",
-        ]
-    ) == OrderedSet(
-        [
-            "foo",
-            "B_A_R",
-        ]
+    assert tuple(
+        InsensitiveSet(
+            [
+                "foo",
+                "F o o ",
+                "F_O_O",
+                "B_A_R",
+                "B a r",
+                "bar",
+            ]
+        )
+    ) == (
+        # Items match their first-seen format
+        "foo",
+        "B_A_R",
     )
 
 
