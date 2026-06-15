@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 118.0.2
+
+* Fix small bug in counting length of text messages with non-GSM and extended GSM characters
+
 ## 118.0.1
 
 * Improve performance of `Field.placeholders`
