@@ -133,7 +133,7 @@ class Field:
             return self.format_placeholder(placeholder)
 
         if placeholder.is_conditional():
-            return placeholder.get_conditional_body(replacement, self.value)
+            return placeholder.get_conditional_body(replacement, self.values)
 
         return replacement
 
