@@ -15,8 +15,8 @@ def generate_token(payload, secret, salt, encryption_secret=None):
 def check_token(token, secret, salt, max_age_seconds, encryption_secret=None):
     if encryption_secret:
         f = Fernet(encryption_secret.encode())
+        binary_token = token.encode()
         try:
-            binary_token = token.encode()
             payload = f.decrypt(binary_token, max_age_seconds).decode()
             return payload
         except TypeError:
