@@ -39,8 +39,8 @@ DENY_LIST = [
     phonenumbers.PhoneNumberType.PREMIUM_RATE,
 ]
 
-international_phone_info = namedtuple(
-    "PhoneNumber",
+InternationalPhoneInfo = namedtuple(
+    "InternationalPhoneInfo",
     [
         "international",
         "crown_dependency",
@@ -232,7 +232,7 @@ class PhoneNumber:
         else:
             rate_multiplier = 1
 
-        return international_phone_info(
+        return InternationalPhoneInfo(
             international=is_international,
             crown_dependency=self.is_a_crown_dependency_number(),
             country_prefix=self.prefix,

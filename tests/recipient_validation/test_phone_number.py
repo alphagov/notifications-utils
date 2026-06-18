@@ -1,7 +1,7 @@
 import pytest
 
 from notifications_utils.recipient_validation.errors import InvalidPhoneError
-from notifications_utils.recipient_validation.phone_number import PhoneNumber, international_phone_info
+from notifications_utils.recipient_validation.phone_number import InternationalPhoneInfo, PhoneNumber
 from notifications_utils.recipients import (
     allowed_to_send_to,
     format_recipient,
@@ -140,7 +140,7 @@ invalid_mobile_phone_numbers = (
 tv_numbers_phone_info_fixtures = [
     (
         "07700900010",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=False,
             crown_dependency=False,
             country_prefix="44",
@@ -149,7 +149,7 @@ tv_numbers_phone_info_fixtures = [
     ),
     (
         "447700900020",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=False,
             crown_dependency=False,
             country_prefix="44",
@@ -158,7 +158,7 @@ tv_numbers_phone_info_fixtures = [
     ),
     (
         "+447700900030",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=False,
             crown_dependency=False,
             country_prefix="44",
@@ -170,7 +170,7 @@ tv_numbers_phone_info_fixtures = [
 international_phone_info_fixtures = [
     (
         "07723456789",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=False,
             crown_dependency=False,
             country_prefix="44",  # UK
@@ -179,7 +179,7 @@ international_phone_info_fixtures = [
     ),
     (
         "07797800123",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=True,
             country_prefix="44",  # UK Crown dependency, so prefix same as UK
@@ -188,7 +188,7 @@ international_phone_info_fixtures = [
     ),
     (
         "20-12-1234-1234",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
@@ -197,7 +197,7 @@ international_phone_info_fixtures = [
     ),
     (
         "00201212341234",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=False,
             country_prefix="20",  # Egypt
@@ -206,7 +206,7 @@ international_phone_info_fixtures = [
     ),
     (
         "16644913789",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=False,
             country_prefix="1664",  # Montserrat
@@ -215,7 +215,7 @@ international_phone_info_fixtures = [
     ),
     (
         "77234567890",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=False,
             country_prefix="7",  # Russia
@@ -224,7 +224,7 @@ international_phone_info_fixtures = [
     ),
     (
         "1-202-555-0104",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=False,
             country_prefix="1",  # USA
@@ -233,7 +233,7 @@ international_phone_info_fixtures = [
     ),
     (
         "+23052512345",
-        international_phone_info(
+        InternationalPhoneInfo(
             international=True,
             crown_dependency=False,
             country_prefix="230",  # Mauritius
