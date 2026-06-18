@@ -1,5 +1,6 @@
 # This file is intentionally minimal to make it importable from gunicorn_config.py
 import logging
+from typing import Protocol
 
 from pythonjsonlogger.json import JsonFormatter as BaseJSONFormatter
 
@@ -7,7 +8,12 @@ LOG_FORMAT = '%(asctime)s %(app_name)s %(name)s %(levelname)s %(request_id)s "%(
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
-class _MicrosecondAddingFormatterMixin:
+class LoggingFormatter(Protocol):
+    def formatTime(self, record, *args, **kwargs):
+        pass
+
+
+class _MicrosecondAddingFormatterMixin(LoggingFormatter):
     """
     Appends a `.` and then a 6-digit number of microseconds to whatever
     the superclass' `.formatTime(...)` returns.
