@@ -71,7 +71,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
         qr_data = qr_code_as_svg(data)
         return f"<div class='qrcode'>{replace_svg_dashes(qr_data)}</div>"
 
-    def block_code(self, code, language=None):
+    def block_code(self, code, lang=None):
         return code
 
     def block_quote(self, text):
@@ -111,7 +111,7 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
 
         return f"<strong data-original-protocol='{protocol}'>{link}</strong>"
 
-    def image(self, src, title, alt_text):
+    def image(self, src, title, text):
         return ""
 
     def linebreak(self):
@@ -123,14 +123,14 @@ class NotifyLetterMarkdownPreviewRenderer(mistune.Renderer):
     def list_item(self, text):
         return f"<li>{text.strip()}</li>\n"
 
-    def link(self, link, title, content):
+    def link(self, link, title, text):
         if link.startswith("span class='placeholder") and link.endswith("</span"):
             link = f"<{link}>"
 
         if title:
-            return f'[{content}]({link} "{title}")'
+            return f'[{text}]({link} "{title}")'
 
-        return f"[{content}]({link})"
+        return f"[{text}]({link})"
 
     def footnote_ref(self, key, index):
         return ""
@@ -228,13 +228,13 @@ class NotifyEmailMarkdownRenderer(NotifyLetterMarkdownPreviewRenderer):
             "</div>"
         )
 
-    def link(self, link, title, content):
+    def link(self, link, title, text):
         if link.startswith("span class='placeholder") and link.endswith("</span"):
             link = f"<{link}>"
 
         if title:
-            return create_sanitised_html_for_url(link, style=LINK_STYLE, title=title, link_text=content)
-        return create_sanitised_html_for_url(link, style=LINK_STYLE, link_text=content)
+            return create_sanitised_html_for_url(link, style=LINK_STYLE, title=title, link_text=text)
+        return create_sanitised_html_for_url(link, style=LINK_STYLE, link_text=text)
 
     def autolink(self, link, is_email=False):
         if is_email:
@@ -313,10 +313,10 @@ class NotifyPlainTextEmailMarkdownRenderer(NotifyEmailMarkdownRenderer):
     def block_quote(self, text):
         return text
 
-    def link(self, link, title, content):
+    def link(self, link, title, text):
         return "".join(
             (
-                content,
+                text,
                 f" ({title})" if title else "",
                 ": ",
                 link,
@@ -334,10 +334,10 @@ class NotifyEmailPreheaderMarkdownRenderer(NotifyPlainTextEmailMarkdownRenderer)
     def hrule(self):
         return ""
 
-    def link(self, link, title, content):
+    def link(self, link, title, text):
         return "".join(
             (
-                content,
+                text,
                 f" ({title})" if title else "",
             )
         )
