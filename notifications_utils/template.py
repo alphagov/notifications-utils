@@ -65,6 +65,11 @@ template_env = Environment(
 
 
 class Template(ABC):
+    @property
+    @abstractmethod
+    def template_type(self):
+        pass
+
     def __init__(
         self,
         template,
