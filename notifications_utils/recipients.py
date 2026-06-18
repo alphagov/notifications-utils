@@ -399,21 +399,14 @@ class Row(InsensitiveDict):
         allow_international_letters,
         validate_row=True,
     ):
-        # If we don't need to validate, then:
-        # by not setting template we avoid the template level validation (used to check message length)
-        # by not setting error_fn, we avoid the Cell.__init__ validation (used to check phone nums are valid,
-        # placeholders are present, etc)
-        if not validate_row:
-            template = None
-            error_fn = None
-
         self.index = index
         self.recipient_column_headers = recipient_column_headers
         self.placeholders = placeholders
         self.allow_international_letters = allow_international_letters
 
         self._template = template
-        if template:
+
+        if validate_row:
             template.values = row_dict
             self.template_type = template.template_type
             # we do not validate email size for CSVs to avoid performance issues
@@ -424,7 +417,12 @@ class Row(InsensitiveDict):
             self.message_empty = template.is_message_empty()
             self.qr_code_too_long: QrCodeTooLong | None = self._has_qr_code_with_too_much_data()
 
-        super().__init__({key: Cell(key, value, error_fn, self.placeholders) for key, value in row_dict.items()})
+        super().__init__(
+            {
+                key: Cell(key, value, error_fn if validate_row else None, self.placeholders)
+                for key, value in row_dict.items()
+            }
+        )
 
     def __getitem__(self, key):
         return super().__getitem__(key) if key in self else Cell()
