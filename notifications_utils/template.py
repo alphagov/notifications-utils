@@ -308,7 +308,7 @@ class BaseSMSTemplate(Template):
 
 
 class SMSMessageTemplate(BaseSMSTemplate):
-    def __str__(self):
+    def __str__(self: BaseSMSTemplate):
         return sms_encode(self.unsanitised_content)
 
 
