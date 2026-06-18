@@ -638,10 +638,6 @@ class BaseLetterTemplate(Template):
         )
 
     @property
-    def too_many_pages(self):
-        return self.page_count > self.max_page_count
-
-    @property
     def postal_address(self):
         return PostalAddress.from_personalisation(InsensitiveDict(self.values))
 
