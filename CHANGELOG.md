@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 120.0.0
+
+* Removes `BaseLetterTemplate.too_many_pages` (subclasses which define `page_count` should implement this themselves)
+
 ## 119.0.0
 
 * Reimplement `InsensitiveSet` using standard python dicts and a more complete implementation of `MutableSet` & `Sequence`. Subtle (but hopefully unimportant) behaviour changes should be expected.
