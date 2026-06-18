@@ -21,7 +21,6 @@ duration_histogram = metrics.get_meter(__name__).create_histogram(
 
 class NotifyTask(Task):
     abstract = True
-    start = None
 
     def __init__(self, *args, **kwargs):
         # custom task-decorator arguments magically get applied as class attributes (!),
