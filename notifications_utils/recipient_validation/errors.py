@@ -7,7 +7,7 @@ import phonenumbers
 class InvalidRecipientError(Exception):
     message = "Not a valid recipient address"
 
-    def __init__(self, message: str = None):
+    def __init__(self, message: str | None = None):
         super().__init__(message or self.message)
 
 
