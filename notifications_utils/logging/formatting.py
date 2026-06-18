@@ -34,7 +34,7 @@ class Formatter(_MicrosecondAddingFormatterMixin, logging.Formatter):
 
 
 class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
-    def process_log_record(self, log_record):
+    def process_log_record(self, log_data):
         rename_map = {
             "asctime": "time",
             "request_id": "requestId",
@@ -42,6 +42,6 @@ class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
             "service_id": "service_id",
         }
         for key, newkey in rename_map.items():
-            log_record[newkey] = log_record.pop(key, None)
-        log_record["logType"] = "application"
-        return log_record
+            log_data[newkey] = log_data.pop(key, None)
+        log_data["logType"] = "application"
+        return log_data
