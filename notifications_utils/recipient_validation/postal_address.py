@@ -69,7 +69,7 @@ class PostalAddress:
     def __repr__(self):
         return f"{self.__class__.__name__}({repr(self.raw_address)})"
 
-    def _parse_and_extract_bfpo(self, lines):
+    def _parse_and_extract_bfpo(self, lines: list) -> tuple[int | None, list]:
         bfpo_matcher = re.compile(r"^\s*bfpo\s*(?:c\/o)?(?:\s*(\d+))?\s*$")
         matches = [bfpo_matcher.match(line.lower()) for line in lines]
 
