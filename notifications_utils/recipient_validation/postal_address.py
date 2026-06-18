@@ -71,17 +71,16 @@ class PostalAddress:
 
     def _parse_and_extract_bfpo(self, lines):
         bfpo_matcher = re.compile(r"^\s*bfpo\s*(?:c\/o)?(?:\s*(\d+))?\s*$")
-        bfpo_number_line = next(
-            filter(lambda line: bfpo_matcher.match(line.lower()) and bfpo_matcher.match(line.lower()).group(1), lines),
-            None,
-        )
-        if not bfpo_number_line:
+
+        for line in lines:
+            found_bfpo = bfpo_matcher.match(line.lower())
+            if found_bfpo and found_bfpo.group(1):
+                bfpo_number = found_bfpo.group(1)
+                break
+        else:
             return None, lines
 
-        bfpo_number = bfpo_matcher.match(bfpo_number_line.lower()).group(1)
-        lines = [line for line in lines if not bfpo_matcher.match(line.lower())]
-
-        return int(bfpo_number), lines
+        return int(bfpo_number), [line for line in lines if not bfpo_matcher.match(line.lower())]
 
     @staticmethod
     def trailing_uk_countries(lines):
