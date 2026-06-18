@@ -1,7 +1,7 @@
 from urllib.parse import urlencode
 
-import botocore
 from boto3 import client, resource
+from botocore.exceptions import ClientError as BotoClientError
 from flask import current_app
 
 from notifications_utils.eventlet import EventletTimeout
@@ -33,7 +33,7 @@ def s3upload(
 
     try:
         key.put(**put_args)
-    except botocore.exceptions.ClientError as e:
+    except BotoClientError as e:
         current_app.logger.error(
             "Unable to upload file to S3 bucket %s",
             bucket_name,
@@ -42,7 +42,7 @@ def s3upload(
         raise e
 
 
-class S3ObjectNotFound(botocore.exceptions.ClientError):
+class S3ObjectNotFound(BotoClientError):
     pass
 
 
@@ -52,7 +52,7 @@ def s3download(bucket_name, filename):
         s3 = resource("s3")
         key = s3.Object(bucket_name, filename)
         return key.get()["Body"]
-    except botocore.exceptions.ClientError as error:
+    except BotoClientError as error:
         raise S3ObjectNotFound(error.response, error.operation_name) from error
 
 
@@ -68,7 +68,7 @@ def s3_multipart_upload_create(bucket_name, file_location, content_type="binary/
     try:
         response = s3.create_multipart_upload(**args)
         return response
-    except botocore.exceptions.ClientError as e:
+    except BotoClientError as e:
         current_app.logger.error(
             "Unable to create multipart upload in S3 bucket %s for file %s",
             bucket_name,
@@ -91,7 +91,7 @@ def s3_multipart_upload_part(part_number, bucket_name, filename, upload_id, data
             Body=data_bytes,
         )
         return response
-    except botocore.exceptions.ClientError as e:
+    except BotoClientError as e:
         current_app.logger.exception(
             "Unable to upload part %s in S3 bucket %s for file %s",
             part_number,
@@ -112,7 +112,7 @@ def s3_multipart_upload_complete(bucket_name, filename, upload_id, parts):
             UploadId=upload_id,
             MultipartUpload={"Parts": parts},
         )
-    except botocore.exceptions.ClientError as e:
+    except BotoClientError as e:
         current_app.logger.exception(
             "Unable to complete multipart upload %s in S3 bucket %s for file %s",
             upload_id,
@@ -129,7 +129,7 @@ def s3_multipart_upload_abort(bucket_name, filename, upload_id):
 
     try:
         s3.abort_multipart_upload(Bucket=bucket_name, Key=filename, UploadId=upload_id)
-    except botocore.exceptions.ClientError as e:
+    except BotoClientError as e:
         current_app.logger.exception(
             "Unable to abort multipart upload %s in S3 bucket %s for file %s",
             upload_id,
