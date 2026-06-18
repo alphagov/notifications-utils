@@ -34,6 +34,11 @@ lint: ## Run static analysis
 	ruff check .
 	ruff format --check .
 
+.PHONY: type-check
+type-check: ## Run type checking
+# Once this is no longer emitting errors it should be moved to the `lint` task
+	ty check notifications_utils/
+
 .PHONY: watch-tests
 watch-tests: ## Automatically rerun tests
 	ptw --runner "pytest --testmon -n auto"

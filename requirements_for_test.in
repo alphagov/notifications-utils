@@ -4,3 +4,4 @@ build~=1.4
 celery~=5.6.0
 redis~=7.2
 filelock~=3.24
+ty
