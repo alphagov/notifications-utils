@@ -1,4 +1,4 @@
-import urllib
+from urllib.parse import urlencode
 
 from boto3 import client, resource
 from botocore.exceptions import ClientError as BotoClientError
@@ -25,7 +25,7 @@ def s3upload(
     put_args = {"Body": filedata, "ServerSideEncryption": "AES256", "ContentType": content_type}
 
     if tags:
-        tags = urllib.parse.urlencode(tags)
+        tags = urlencode(tags)
         put_args["Tagging"] = tags
 
     if metadata:

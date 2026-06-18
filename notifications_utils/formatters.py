@@ -1,8 +1,8 @@
 import math
 import re
 import string
-import urllib
 from html import _replace_charref, escape
+from urllib.parse import quote
 
 import smartypants
 from markupsafe import Markup
@@ -136,7 +136,7 @@ def create_sanitised_html_for_url(link, *, classes="", style="", title="", link_
     class_attribute = f'class="{classes}" ' if classes else ""
     style_attribute = f'style="{style}" ' if style else ""
 
-    safe_link = urllib.parse.quote(link, safe=":/?#=&;%")
+    safe_link = quote(link, safe=":/?#=&;%")
 
     if title:
         return f'<a {class_attribute}{style_attribute}href="{safe_link}" title="{title}">{link_text}</a>'
