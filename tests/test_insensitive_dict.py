@@ -4,6 +4,7 @@ import pytest
 
 from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 from notifications_utils.recipients import Cell, Row
+from notifications_utils.template import SMSPreviewTemplate
 
 
 def test_columns_as_dict_with_keys():
@@ -20,6 +21,7 @@ def test_columns_as_dict():
 
 
 def test_missing_data():
+    template = SMSPreviewTemplate({"content": "foo", "template_type": "sms"})
     partial_row = partial(
         Row,
         row_dict={},
@@ -27,7 +29,7 @@ def test_missing_data():
         error_fn=None,
         recipient_column_headers=[],
         placeholders=[],
-        template=None,
+        template=template,
         allow_international_letters=False,
     )
     with pytest.raises(KeyError):
