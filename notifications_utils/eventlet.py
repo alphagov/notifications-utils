@@ -3,6 +3,8 @@ import time
 from collections.abc import Callable
 from contextlib import nullcontext
 
+from notifications_utils.logging.formatting import _ns_per_s
+
 
 # eventlet's own Timeout class inherits from BaseException instead of
 # Exception, which makes more likely that an attempted catch-all
@@ -17,9 +19,6 @@ class HardEventletTimeout(EventletTimeout):
 
 class SoftEventletTimeout(EventletTimeout):
     pass
-
-
-_ns_per_s = 1.0e-9
 
 
 # eventlet detection cribbed from

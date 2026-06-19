@@ -24,11 +24,10 @@ from .formatting import (
     BaseJSONFormatter,  # noqa
     Formatter,
     JSONFormatter,
+    _ns_per_s,
 )
 
 logger = logging.getLogger(__name__)
-
-_ns_per_s = 1.0e-9
 
 
 def _common_request_extra_log_context():
