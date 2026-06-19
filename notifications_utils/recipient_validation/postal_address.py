@@ -69,19 +69,15 @@ class PostalAddress:
     def __repr__(self):
         return f"{self.__class__.__name__}({repr(self.raw_address)})"
 
-    def _parse_and_extract_bfpo(self, lines):
+    def _parse_and_extract_bfpo(self, lines: list) -> tuple[int | None, list]:
         bfpo_matcher = re.compile(r"^\s*bfpo\s*(?:c\/o)?(?:\s*(\d+))?\s*$")
-        bfpo_number_line = next(
-            filter(lambda line: bfpo_matcher.match(line.lower()) and bfpo_matcher.match(line.lower()).group(1), lines),
-            None,
-        )
-        if not bfpo_number_line:
-            return None, lines
+        matches = [bfpo_matcher.match(line.lower()) for line in lines]
 
-        bfpo_number = bfpo_matcher.match(bfpo_number_line.lower()).group(1)
-        lines = [line for line in lines if not bfpo_matcher.match(line.lower())]
+        for match in matches:
+            if match and match.group(1):
+                return int(match.group(1)), [line for line, match in zip(lines, matches, strict=True) if not match]
 
-        return int(bfpo_number), lines
+        return None, lines
 
     @staticmethod
     def trailing_uk_countries(lines):
