@@ -135,7 +135,7 @@ class ZendeskClient:
         due_at: datetime.datetime | None = None,
         status: NotifySupportTicketStatus | None = None,
     ):
-        data = {"ticket": {}}
+        data: dict[str, dict] = {"ticket": {}}
 
         if comment:
             data["ticket"]["comment"] = {
