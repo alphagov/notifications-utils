@@ -12,6 +12,7 @@ from typing import (  # noqa: UP035
 
 from flask import current_app, g, has_app_context
 from flask_redis import FlaskRedis
+from redis.commands.core import Script
 from redis.exceptions import ReadOnlyError, ResponseError
 from redis.exceptions import TimeoutError as redis_TimeoutError
 from redis.lock import Lock
@@ -52,7 +53,7 @@ class INSTANCE_DEFAULT:
 class RedisClient:
     redis_store = FlaskRedis()
     active = False
-    scripts = {}
+    scripts: dict[str, Script] = {}
     always_raise: tuple[type[BaseException], ...] = (HardEventletTimeout,)
     # default flakey_exceptions are those that will have already wasted valuable time, where we'd
     # rather not waste any more time waiting for redis requests in this app context
