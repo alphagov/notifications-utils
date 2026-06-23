@@ -225,7 +225,7 @@ class AbstractInsensitiveSet(MutableSet[T], Sequence[T], metaclass=ABCMeta):
             return NotImplemented
 
         if type(self) is type(other):  # type comparison deliberately strict
-            return type(self)._from_inner_pairs((k, v) for k, v in other._inner if k in self._inner)
+            return type(self)._from_inner_pairs((k, v) for k, v in other._inner.items() if k in self._inner)
 
         # ensure the un-normalised values come from the RHS
         return type(self)(item for item in other if item in self)
