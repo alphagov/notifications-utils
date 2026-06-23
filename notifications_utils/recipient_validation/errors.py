@@ -1,4 +1,5 @@
 from enum import StrEnum, auto
+from typing import Self
 
 import phonenumbers
 
@@ -57,7 +58,7 @@ class InvalidPhoneError(InvalidRecipientError):
         super().__init__(message=self.ERROR_MESSAGES[code])
 
     @classmethod
-    def from_phonenumbers_validation_result(cls, reason: phonenumbers.ValidationResult) -> str:
+    def from_phonenumbers_validation_result(cls, reason: phonenumbers.ValidationResult) -> Self:
         match reason:
             case phonenumbers.ValidationResult.TOO_LONG:
                 code = cls.Codes.TOO_LONG
