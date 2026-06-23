@@ -58,7 +58,7 @@ class InvalidPhoneError(InvalidRecipientError):
         super().__init__(message=self.ERROR_MESSAGES[code])
 
     @classmethod
-    def from_phonenumbers_validation_result(cls, reason: phonenumbers.ValidationResult) -> Self:
+    def from_phonenumbers_validation_result(cls, reason: int) -> Self:
         match reason:
             case phonenumbers.ValidationResult.TOO_LONG:
                 code = cls.Codes.TOO_LONG
