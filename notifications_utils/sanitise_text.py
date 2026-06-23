@@ -2,7 +2,7 @@ import unicodedata
 
 
 class SanitiseText:
-    ALLOWED_CHARACTERS = set()
+    ALLOWED_CHARACTERS: set[str] = set()
 
     REPLACEMENT_CHARACTERS = {
         "‑": "-",  # NON-BREAKING HYPHEN (U+2011)
