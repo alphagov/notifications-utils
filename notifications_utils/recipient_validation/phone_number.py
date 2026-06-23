@@ -170,6 +170,8 @@ class PhoneNumber:
         if re.match("7700[900000-900999]", phone_number_as_string):
             return True
 
+        return False
+
     @staticmethod
     def _thoroughly_normalise_number(phone_number: str) -> str:
         """
