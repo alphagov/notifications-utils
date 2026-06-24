@@ -122,15 +122,14 @@ class Template(ABC):
 
     @property
     def values(self) -> Mapping[str, Any]:
-        if hasattr(self, "_values"):
-            return self._values
-        return {}
+        return getattr(self, "_values", {})
 
     @values.setter
     def values(self, new_values: Mapping[str, Any] | None):
-        if not new_values:
-            self._values = {}
-        else:
+        with suppress(AttributeError):
+            del self._values
+
+        if new_values:
             self._values = InsensitiveDict(new_values).as_dict_with_keys(self.placeholders | new_values.keys())
 
     @property
