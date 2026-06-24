@@ -118,7 +118,7 @@ class InterruptibleIOZipFile(ZipFile):
 
 def interruptible_iter[T](
     it: Iterable[T], interruptible_every: int, *, label: str = "interruptible_iter"
-) -> Iterable[T]:
+) -> Iterator[T]:
     """
     Given an iterable `it`, will yield its contents, calling _allow_interruption before yielding each
     `interruptible_every`'th iteration.
