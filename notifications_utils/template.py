@@ -131,11 +131,7 @@ class Template(ABC):
         if not new_values:
             self._values = {}
         else:
-            placeholders = InsensitiveDict.from_keys(self.placeholders)
-            self._values = InsensitiveDict(new_values).as_dict_with_keys(
-                self.placeholders
-                | {key for key in new_values.keys() if InsensitiveDict.make_key(key) not in placeholders.keys()}
-            )
+            self._values = InsensitiveDict(new_values).as_dict_with_keys(self.placeholders | new_values.keys())
 
     @property
     def placeholders(self) -> Set[str]:
