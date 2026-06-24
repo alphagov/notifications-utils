@@ -5,7 +5,6 @@ import os
 import sys
 import traceback
 
-import gunicorn
 from gunicorn.glogging import CONFIG_DEFAULTS as LOGGING_CONFIG_DEFAULTS
 
 
@@ -73,4 +72,3 @@ def set_gunicorn_defaults(globals_dict: dict):
         worker_abort=worker_abort,
         worker_int=worker_int,
     )
-    gunicorn.SERVER_SOFTWARE = "None"
