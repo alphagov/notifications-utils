@@ -134,7 +134,7 @@ def interruptible_iter[T](
         i += 1
 
 
-class InterruptibleIterableMixin:
+class InterruptibleIterableMixin[T]:
     """
     A mixin for an Iterable that will yield the GIL or greenthread every
     INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY iterations when its iterator
@@ -144,11 +144,11 @@ class InterruptibleIterableMixin:
     INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY: int = 32
     INTERRUPTIBLE_ITERABLE_LABEL_OVERRIDE: str | None = None
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self: Iterable[T]) -> Iterator:
         return interruptible_iter(
             super().__iter__(),
-            self.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY,
-            label=self.INTERRUPTIBLE_ITERABLE_LABEL_OVERRIDE or self.__class__.__name__,
+            self.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY,  # type: ignore[attr-defined]
+            label=self.INTERRUPTIBLE_ITERABLE_LABEL_OVERRIDE or self.__class__.__name__,  # type: ignore[attr-defined]
         )
 
 
