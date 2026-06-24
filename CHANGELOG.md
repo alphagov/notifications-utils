@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 120.2.0
+
+* Adds the ability to specify per-project config for uv by creating an optional `uv-overrides.toml` file
+
 ## 120.1.0
 
 * `RedisClient`: add `redis_flakey` mechanism to avoid repeated timeouts
