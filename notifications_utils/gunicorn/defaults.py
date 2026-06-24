@@ -74,3 +74,4 @@ def set_gunicorn_defaults(globals_dict: dict):
         worker_int=worker_int,
     )
     gunicorn.SERVER_SOFTWARE = "None"  # type: ignore
+    gunicorn.SERVER = "None"  # type: ignore
