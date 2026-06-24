@@ -74,7 +74,7 @@ class Field:
     placeholder_tag_redacted: str = "<span class='placeholder-redacted'>hidden</span>"
 
     content: str
-    sanitizer: Callable[[str], str]
+    sanitizer: Callable[[str], str] | Callable[[str | None], str | None]
     markdown_lists: bool
     redact_missing_personalisation: bool
 
@@ -168,8 +168,12 @@ class Field:
         return unescaped_formatted_list(replacement, before_each="", after_each="")
 
     @property
+    def sanitized(self) -> str:
+        return self.sanitizer(self.content) or ""
+
+    @property
     def _raw_formatted(self) -> str:
-        return re.sub(self.placeholder_pattern, self.format_match, self.sanitizer(self.content))
+        return re.sub(self.placeholder_pattern, self.format_match, self.sanitized)
 
     @property
     def formatted(self) -> str:
@@ -183,7 +187,7 @@ class Field:
 
     @property
     def replaced(self) -> str:
-        return re.sub(self.placeholder_pattern, self.replace_match, self.sanitizer(self.content))
+        return re.sub(self.placeholder_pattern, self.replace_match, self.sanitized)
 
 
 class PlainTextField(Field):
