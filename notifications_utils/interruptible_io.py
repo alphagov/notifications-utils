@@ -112,7 +112,7 @@ class InterruptibleIOZipFile(ZipFile):
     fileobj
     """
 
-    def open(self, *args, **kwargs) -> RawIOBase:
+    def open(self, *args, **kwargs):  # type: ignore
         return InterruptibleRawIOWrapper(super().open(*args, **kwargs), read_limit=8_192)
 
 
