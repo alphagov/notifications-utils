@@ -1,9 +1,11 @@
-import math
 import re
 import string
+from collections.abc import Sequence
 
 # Type hint error ignored (until mypy brings in https://github.com/python/typeshed/pull/15925)
 from html import _replace_charref, escape  # type: ignore[attr-defined]
+from sys import maxsize
+from typing import Any
 from urllib.parse import quote
 
 import smartypants
@@ -58,15 +60,15 @@ url = re.compile(
 more_than_two_newlines_in_a_row = re.compile(r"\n{3,}")
 
 
-def unlink_govuk_escaped(message):
+def unlink_govuk_escaped(message: str) -> str:
     return re.sub(govuk_not_a_link, r"\1\2\3" + ".\u200b" + r"\4", message)  # Unicode zero-width space
 
 
-def nl2br(value):
+def nl2br(value: str) -> str:
     return re.sub(r"\n|\r", "<br>", value.strip())
 
 
-def add_prefix(body, prefix=None):
+def add_prefix(body: str, prefix: str | None = None) -> str:
     if prefix:
         return f"{prefix.strip()}: {body}"
     return body
@@ -117,7 +119,9 @@ def autolink_urls(value, *, classes=""):
     )
 
 
-def create_sanitised_html_for_url(link, *, classes="", style="", title="", link_text=""):
+def create_sanitised_html_for_url(
+    link: str, *, classes: str = "", style: str = "", title: str = "", link_text: str = ""
+) -> str:
     """
     takes a link and returns an <a> tag to that link. We escape the link that goes into the `href` attribute to
     prevent XSS attacks (eg through double-quotes). Notably we don't escape _all_ escape-able values,
@@ -146,11 +150,11 @@ def create_sanitised_html_for_url(link, *, classes="", style="", title="", link_
     return f'<a {class_attribute}{style_attribute}href="{safe_link}">{link_text}</a>'
 
 
-def prepend_subject(body, subject):
+def prepend_subject(body: str, subject: str) -> str:
     return f"# {subject}\n\n{body}"
 
 
-def sms_encode(content):
+def sms_encode(content: str) -> str:
     return SanitiseSMS.encode(content)
 
 
@@ -160,7 +164,7 @@ Re-implements html._charref but makes trailing semicolons non-optional
 _charref = re.compile(r"&(#[0-9]+;|#[xX][0-9a-fA-F]+;|[^\t\n\f <&#;]{1,32};)")
 
 
-def unescape_strict(s):
+def unescape_strict(s: str) -> str:
     """
     Re-implements html.unescape to use our own definition of `_charref`
     """
@@ -169,7 +173,7 @@ def unescape_strict(s):
     return _charref.sub(_replace_charref, s)
 
 
-def escape_html(value):
+def escape_html(value: str | None) -> str | None:
     if not value:
         return value
     value = str(value)
@@ -185,23 +189,23 @@ def escape_html(value):
     return value
 
 
-def url_encode_full_stops(value):
+def url_encode_full_stops(value: str) -> str:
     return value.replace(".", "%2E")
 
 
 def unescaped_formatted_list(
-    items,
+    items: Sequence[Any],
     *,
-    conjunction="and",
-    before_each="‘",
-    after_each="’",
-    separator=", ",
-    prefix="",
-    prefix_plural="",
-    max_items_shown=math.inf,
-    word_for_items_not_shown=None,
-):
-    if max_items_shown < math.inf and not word_for_items_not_shown:
+    conjunction: str = "and",
+    before_each: str = "‘",
+    after_each: str = "’",
+    separator: str = ", ",
+    prefix: str = "",
+    prefix_plural: str = "",
+    max_items_shown: int = maxsize,
+    word_for_items_not_shown: str = "",
+) -> str:
+    if max_items_shown < maxsize and not word_for_items_not_shown:
         raise TypeError('`word_for_items_not_shown` must be provided, for example "more" or "others"')
 
     if not items:
@@ -226,19 +230,19 @@ def unescaped_formatted_list(
     return f"{prefix_plural}{first_items} {conjunction} {last_item}"
 
 
-def formatted_list(items, **kwargs):
+def formatted_list(items: Sequence[Any], **kwargs) -> Markup:
     return Markup(unescaped_formatted_list([escape_html(x) for x in items], **kwargs))
 
 
-def remove_whitespace_before_punctuation(value):
+def remove_whitespace_before_punctuation(value: str) -> str:
     return re.sub(whitespace_before_punctuation, lambda match: match.group(1), value)
 
 
-def make_quotes_smart(value):
+def make_quotes_smart(value: str) -> str:
     return smartypants.smartypants(value, smartypants.Attr.q | smartypants.Attr.u)
 
 
-def replace_hyphens_with_en_dashes(value):
+def replace_hyphens_with_en_dashes(value: str) -> str:
     return re.sub(
         hyphens_surrounded_by_spaces,
         (" \u2013 "),  # space  # en dash  # space
@@ -249,30 +253,30 @@ def replace_hyphens_with_en_dashes(value):
 SVG_DASH_REPLACEMENT = "🛳️🐦🥴"
 
 
-def replace_svg_dashes(value):
+def replace_svg_dashes(value: str) -> str:
     return value.replace("-", SVG_DASH_REPLACEMENT)
 
 
-def replace_hyphens_with_non_breaking_hyphens(value):
+def replace_hyphens_with_non_breaking_hyphens(value: str) -> str:
     return value.replace(
         "-",
         "\u2011",  # non-breaking hyphen
     )
 
 
-def restore_svg_dashes(value):
+def restore_svg_dashes(value: str) -> str:
     return value.replace(SVG_DASH_REPLACEMENT, "-")
 
 
-def normalise_whitespace_and_newlines(value):
+def normalise_whitespace_and_newlines(value: str) -> str:
     return "\n".join(get_lines_with_normalised_whitespace(value))
 
 
-def get_lines_with_normalised_whitespace(value):
+def get_lines_with_normalised_whitespace(value: str) -> list:
     return [normalise_whitespace(line) for line in value.splitlines()]
 
 
-def normalise_whitespace(value):
+def normalise_whitespace(value: str) -> str:
     # leading and trailing whitespace removed
     # inner whitespace with width becomes a single space
     # inner whitespace with zero width is removed
@@ -286,20 +290,20 @@ def normalise_whitespace(value):
     return " ".join(value.split())
 
 
-def normalise_multiple_newlines(value):
+def normalise_multiple_newlines(value: str) -> str:
     return more_than_two_newlines_in_a_row.sub("\n\n", value)
 
 
-def strip_leading_whitespace(value):
+def strip_leading_whitespace(value: str) -> str:
     return value.lstrip()
 
 
-def add_trailing_newline(value):
+def add_trailing_newline(value: str) -> str:
     return f"{value}\n"
 
 
-def remove_smart_quotes_from_email_addresses(value):
-    def remove_smart_quotes(match):
+def remove_smart_quotes_from_email_addresses(value: str) -> str:
+    def remove_smart_quotes(match: re.Match) -> str:
         value = match.group(0)
         for character in "‘’":
             value = value.replace(character, "'")
@@ -311,7 +315,7 @@ def remove_smart_quotes_from_email_addresses(value):
     )
 
 
-def strip_all_whitespace(value, extra_trailing_characters=""):
+def strip_all_whitespace(value: str, extra_trailing_characters: str = "") -> str:
     # Removes:
     # - all whitespace characters from beginning and end of the string
     # - and also any `extra_trailing_characters` from just the end of the string
@@ -320,7 +324,7 @@ def strip_all_whitespace(value, extra_trailing_characters=""):
     return value
 
 
-def strip_and_remove_obscure_whitespace(value):
+def strip_and_remove_obscure_whitespace(value: str) -> str:
     if value == "":
         # Return early to avoid making multiple, slow calls to
         # str.replace on an empty string
@@ -332,7 +336,7 @@ def strip_and_remove_obscure_whitespace(value):
     return value.strip(string.whitespace)
 
 
-def remove_whitespace(value):
+def remove_whitespace(value: str) -> str:
     # Removes ALL whitespace, not just the obscure characters we normaly remove
     for character in ALL_WHITESPACE:
         value = value.replace(character, "")
@@ -340,11 +344,11 @@ def remove_whitespace(value):
     return value
 
 
-def strip_unsupported_characters(value):
+def strip_unsupported_characters(value: str) -> str:
     return value.replace("\u2028", "").replace("\u3164", "")
 
 
-def format_file_size(number_of_bytes):
+def format_file_size(number_of_bytes: int) -> str:
     if number_of_bytes < 1024 / 20:
         # File less than 0.05KB (one twentieth of a KB) don't round to 0.1KB at 1 d.p.
         # We will force them up to 0.1KB ourselves as we don't want to show users 0.0KB or bytes
