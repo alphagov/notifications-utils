@@ -1,10 +1,9 @@
 import math
 import re
 import string
-from html import (
-    _replace_charref,  # type: ignore (until mypy brings in https://github.com/python/typeshed/pull/15925)
-    escape,
-)
+
+# Type hint error ignored (until mypy brings in https://github.com/python/typeshed/pull/15925)
+from html import _replace_charref, escape  # type: ignore[attr-defined]
 from urllib.parse import quote
 
 import smartypants
