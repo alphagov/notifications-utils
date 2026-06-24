@@ -39,3 +39,16 @@ class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
             log_record[newkey] = log_record.pop(key, None)
         log_record["logType"] = "application"
         return log_record
+
+
+class PerSecondConversion:
+    def __init__(self, *, factor):
+        self.factor = factor
+
+    def __rmul__(self, other):
+        if other is None:
+            return None
+        return other * self.factor
+
+
+_ns_per_s = PerSecondConversion(factor=1.0e-9)
