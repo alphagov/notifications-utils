@@ -1,7 +1,10 @@
 import math
 import re
 import string
-from html import _replace_charref, escape
+from html import (
+    _replace_charref,  # type: ignore (until mypy brings in https://github.com/python/typeshed/pull/15925)
+    escape,
+)
 from urllib.parse import quote
 
 import smartypants
