@@ -10,6 +10,7 @@ import requirements
 
 requirements_file = pathlib.Path("requirements.in")
 frozen_requirements_file = pathlib.Path("requirements.txt")
+uv_overrides = pathlib.Path("uv-overrides.toml")
 repo_name = "alphagov/notifications-utils"
 config_files = {
     filename: importlib_resources.files("notifications_utils.version_tools").joinpath(filename).read_bytes()
@@ -117,6 +118,9 @@ def copy_config():
                 )
             )
             f.write(file_bytes)
+            if filename == "uv.toml" and uv_overrides.exists():
+                f.write(b"\n\n# This section was automatically copied from uv-overrides.toml\n\n")
+                f.write(uv_overrides.read_bytes())
 
 
 def get_semver_parts(version):
