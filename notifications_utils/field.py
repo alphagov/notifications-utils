@@ -170,8 +170,12 @@ class Field:
         return unescaped_formatted_list(replacement, before_each="", after_each="")
 
     @property
+    def sanitized(self) -> str:
+        return self.sanitizer(self.content) or ""
+
+    @property
     def _raw_formatted(self) -> str:
-        return re.sub(self.placeholder_pattern, self.format_match, self.sanitizer(self.content) or "")
+        return re.sub(self.placeholder_pattern, self.format_match, self.sanitized)
 
     @property
     def formatted(self) -> str:
@@ -185,7 +189,7 @@ class Field:
 
     @property
     def replaced(self) -> str:
-        return re.sub(self.placeholder_pattern, self.replace_match, self.sanitizer(self.content) or "")
+        return re.sub(self.placeholder_pattern, self.replace_match, self.sanitized)
 
 
 class PlainTextField(Field):
