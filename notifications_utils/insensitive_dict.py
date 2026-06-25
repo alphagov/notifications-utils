@@ -63,9 +63,17 @@ class InsensitiveDict[V](dict[str, V]):
     def as_dict_with_keys(self, keys: Iterable[str]) -> dict[str, V | None]:
         return {key: self.get(key) for key in keys}
 
+    @overload
+    @staticmethod
+    def make_key(original_key: None) -> None: ...
+
+    @overload
+    @staticmethod
+    def make_key(original_key: str) -> str: ...
+
     @staticmethod
     @lru_cache(maxsize=1_024, typed=False)  # Corresponds to 1,000 column limit when reading Excel files
-    def make_key(original_key: str) -> str:
+    def make_key(original_key: str | None) -> str | None:
         if original_key is None:
             return None
         return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
