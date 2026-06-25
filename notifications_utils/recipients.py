@@ -1,10 +1,11 @@
 import csv
 import sys
+from collections.abc import MutableMapping, Sequence
 from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
 from itertools import islice
-from typing import cast
+from typing import Any, cast
 
 from ordered_set import OrderedSet
 from werkzeug.utils import cached_property
@@ -355,9 +356,9 @@ class RecipientCSV:
 
         return False
 
-    def _get_error_for_field(self, key, value):  # noqa: C901
+    def _get_error_for_field(self, key, value) -> str | None:  # noqa: C901
         if self.is_address_column(key):
-            return
+            return None
 
         if InsensitiveDict.make_key(key) in self.recipient_column_headers_as_column_keys:
             if value in [None, ""] or isinstance(value, list):
@@ -379,10 +380,12 @@ class RecipientCSV:
                 return str(error)
 
         if InsensitiveDict.make_key(key) not in self.placeholders_as_column_keys:
-            return
+            return None
 
         if value in [None, ""]:
             return Cell.missing_field_error
+
+        return None
 
 
 class Row(InsensitiveDict):
@@ -445,7 +448,7 @@ class Row(InsensitiveDict):
         return self.get(self.recipient_column_headers[0]).recipient_error
 
     @property
-    def has_bad_postal_address(self):
+    def has_bad_postal_address(self) -> bool:
         return self.template_type == "letter" and not self.as_postal_address.valid
 
     def _has_qr_code_with_too_much_data(self) -> QrCodeTooLong | None:
@@ -491,7 +494,11 @@ class Row(InsensitiveDict):
 
 class Cell:
     __slots__ = ("data", "ignore", "error")
-    missing_field_error = "Missing"
+    missing_field_error: str = "Missing"
+
+    data: Any
+    ignore: bool
+    error: Any
 
     def __init__(self, key=None, value=None, error_fn=None, placeholders=None):
         self.data = value
@@ -512,7 +519,7 @@ class Cell:
 
 
 @lru_cache(maxsize=32, typed=False)
-def format_recipient(recipient):
+def format_recipient(recipient) -> str:
     if not isinstance(recipient, str):
         return ""
     with suppress(InvalidPhoneError):
@@ -524,15 +531,15 @@ def format_recipient(recipient):
 
 
 @lru_cache(maxsize=RecipientCSV.max_rows, typed=False)
-def get_phone_number_object(phone_number):
+def get_phone_number_object(phone_number: str) -> PhoneNumber:
     return PhoneNumber(phone_number)
 
 
-def allowed_to_send_to(recipient, allowlist):
+def allowed_to_send_to(recipient: str | Sequence[str], allowlist: Sequence[str]) -> bool:
     return format_recipient(recipient) in (format_recipient(x) for x in allowlist)
 
 
-def insert_or_append_to_dict(dict_, key, value):
+def insert_or_append_to_dict[K, Vi](dict_: MutableMapping[K, Vi | list[Vi]], key: K, value: Vi):
     if not (key or value):
         # We don’t care about completely empty values so it’s faster to
         # ignore them rather than working out how to store them
