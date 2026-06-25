@@ -13,7 +13,7 @@ from notifications_utils.formatters import (
     strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
 )
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 from notifications_utils.interruptible_io import InterruptibleIterableList, interruptible_iter
 from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
@@ -33,7 +33,7 @@ first_column_headings = {
     "letter": [line.replace("_", " ") for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]],
 }
 
-address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
+address_columns = InsensitiveSet(first_column_headings["letter"])
 
 
 class RecipientCSV:
@@ -295,7 +295,7 @@ class RecipientCSV:
 
     @property
     def column_headers_as_column_keys(self):
-        return InsensitiveDict.from_keys(self.column_headers).keys()
+        return InsensitiveSet(self.column_headers)
 
     @property
     def missing_column_headers(self):
@@ -333,8 +333,8 @@ class RecipientCSV:
     def has_recipient_columns(self) -> bool:
         if self.template_type == "letter":
             sets_to_check = [
-                InsensitiveDict.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
-                InsensitiveDict.from_keys(address_lines_1_to_7_keys).keys(),
+                InsensitiveSet(address_lines_1_to_6_and_postcode_keys),
+                InsensitiveSet(address_lines_1_to_7_keys),
             ]
         else:
             sets_to_check = [
