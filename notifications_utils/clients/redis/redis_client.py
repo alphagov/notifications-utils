@@ -296,7 +296,7 @@ class RedisClient:
         return None
 
     def delete(self, *keys, raise_exception=False, always_raise=INSTANCE_DEFAULT):
-        keys = [prepare_value(k) for k in keys]
+        keys = tuple(prepare_value(k) for k in keys)
         if self.active:
             try:
                 self.redis_store.delete(*keys)
