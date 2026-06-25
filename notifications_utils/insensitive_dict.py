@@ -148,6 +148,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
             if stop < 0:
                 stop += length
 
+            it: Iterator[tuple[T, T]]
             if step < 0:
                 it = reversed(self._inner.items())
                 start = max(length - (start + 1), 0)
