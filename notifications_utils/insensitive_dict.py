@@ -1,12 +1,12 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Iterable, Iterator, MutableSet, Sequence, Set
+from collections.abc import Iterable, Iterator, Mapping, MutableSet, Sequence, Set
 from functools import lru_cache
 from itertools import chain, islice
 from types import NotImplementedType
 from typing import Self, overload
 
 
-class InsensitiveDict[K, V](dict[K, V]):
+class InsensitiveDict[V](dict[str, V]):
     """
     `InsensitiveDict` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.
@@ -16,7 +16,7 @@ class InsensitiveDict[K, V](dict[K, V]):
     >>> True
     """
 
-    KEY_TRANSLATION_TABLE = {ord(c): None for c in " _-"}
+    KEY_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
 
     def __init__(self, row_dict, overwrite_duplicates=True):
         for key, value in row_dict.items():
@@ -34,25 +34,34 @@ class InsensitiveDict[K, V](dict[K, V]):
         """
         return cls({key: key for key in keys}, overwrite_duplicates=False)
 
-    def keys(self):
+    def keys(self) -> Set[str]:  # type: ignore[override]
         return InsensitiveSet(self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> V:
         return super().__getitem__(self.make_key(key))
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: V):
         super().__setitem__(self.make_key(key), value)
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return super().__contains__(self.make_key(key))
 
-    def get(self, key, default=None):
+    @overload
+    def get(self, key: str, default: None = ...) -> V | None: ...
+
+    @overload
+    def get(self, key: str, default: V = ...) -> V: ...
+
+    @overload
+    def get[X](self, key: str, default: X = ...) -> V | X: ...
+
+    def get[X](self, key: str, default: V | X | None = None) -> V | X | None:
         return self[key] if key in self else default
 
-    def copy(self):
+    def copy(self) -> Self:
         return self.__class__(super().copy())
 
-    def as_dict_with_keys(self, keys):
+    def as_dict_with_keys(self, keys: Iterable[str]) -> dict[str, V | None]:
         return {key: self.get(key) for key in keys}
 
     @staticmethod
