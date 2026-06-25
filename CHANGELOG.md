@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 121.0.0
+
+* Removes `InsensitiveDict.from_keys`
+* Removes the `override_duplicates` argument to `InsensitiveDict`
+
 ## 120.2.0
 
 * Adds the ability to specify per-project config for uv by creating an optional `uv-overrides.toml` file
