@@ -43,6 +43,60 @@ def prepare_value(val):
         raise ValueError(f"cannot cast {type(val)} to a string")
 
 
+class StubLock:
+    def __init__(
+        self,
+        redis,
+        name: str,
+        timeout: Number | None = None,
+        sleep: Number = 0.1,
+        blocking: bool = True,
+        blocking_timeout: Number | None = None,
+        thread_local: bool = True,
+        raise_on_release_error: bool = True,
+    ):
+        self._locked = False
+        return None
+
+    def __enter__(self) -> "StubLock":
+        self._locked = True
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Type[BaseException] | None,  # noqa: UP006
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self._locked = False
+
+    def acquire(
+        self,
+        sleep: Number | None = None,
+        blocking: bool | None = None,
+        blocking_timeout: Number | None = None,
+        token: str | None = None,
+    ) -> bool:
+        self._locked = True
+        return True
+
+    def extend(self, additional_time: int | float, replace_ttl: bool = False) -> bool:
+        return True
+
+    def locked(self) -> bool:
+        return self._locked
+
+    def owned(self) -> bool:
+        return self._locked
+
+    def release(self) -> None:
+        self._locked = False
+
+    def reacquire(self) -> bool:
+        self._locked = True
+        return True
+
+
 # a sentinel argument, defined as a class so we can make typing happy
 @final
 class INSTANCE_DEFAULT:
@@ -342,57 +396,3 @@ class RedisClient:
             always_raise = self.always_raise
         if raise_exception or isinstance(e, always_raise or ()):
             raise e
-
-
-class StubLock:
-    def __init__(
-        self,
-        redis,
-        name: str,
-        timeout: Number | None = None,
-        sleep: Number = 0.1,
-        blocking: bool = True,
-        blocking_timeout: Number | None = None,
-        thread_local: bool = True,
-        raise_on_release_error: bool = True,
-    ):
-        self._locked = False
-        return None
-
-    def __enter__(self) -> "StubLock":
-        self._locked = True
-        return self
-
-    def __exit__(
-        self,
-        exc_type: Type[BaseException] | None,  # noqa: UP006
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-    ) -> None:
-        self._locked = False
-
-    def acquire(
-        self,
-        sleep: Number | None = None,
-        blocking: bool | None = None,
-        blocking_timeout: Number | None = None,
-        token: str | None = None,
-    ) -> bool:
-        self._locked = True
-        return True
-
-    def extend(self, additional_time: int | float, replace_ttl: bool = False) -> bool:
-        return True
-
-    def locked(self) -> bool:
-        return self._locked
-
-    def owned(self) -> bool:
-        return self._locked
-
-    def release(self) -> None:
-        self._locked = False
-
-    def reacquire(self) -> bool:
-        self._locked = True
-        return True
