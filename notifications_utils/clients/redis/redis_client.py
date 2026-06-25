@@ -312,7 +312,7 @@ class RedisClient:
             try:
                 pipe = self.redis_store.pipeline()
                 when = time()
-                pipe.zadd(cache_key, {when: when})
+                pipe.zadd(cache_key, {str(when): when})
                 pipe.zremrangebyscore(cache_key, "-inf", when - interval)
                 pipe.zcard(cache_key)
                 pipe.expire(cache_key, interval)
