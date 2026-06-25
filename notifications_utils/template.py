@@ -697,16 +697,18 @@ class BaseLetterTemplate(Template):
         return None
 
     @property
-    def _address_block(self):
+    def _address_block(self) -> Sequence[str]:
         if self.postal_address.has_enough_lines and not self.postal_address.has_too_many_lines:
             return self.postal_address.normalised_lines
 
-        if "address line 7" not in self.values and "postcode" in self.values:
-            self.values["address line 7"] = self.values["postcode"]
+        values = dict(self.values)
+
+        if "address line 7" not in values and "postcode" in values:
+            values["address line 7"] = values["postcode"]
 
         return Field(
             self.address_block,
-            self.values,
+            values,
             html="escape",
             with_brackets=False,
         ).splitlines()
