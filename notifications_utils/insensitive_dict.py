@@ -1,12 +1,11 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Iterable, Iterator, MutableSet, Sequence, Set
+from collections.abc import Iterable, Iterator, Mapping, MutableSet, Sequence, Set
 from functools import lru_cache
 from itertools import chain, islice
-from types import NotImplementedType
 from typing import Self, overload
 
 
-class InsensitiveDict[K, V](dict[K, V]):
+class InsensitiveDict[V](dict[str, V]):
     """
     `InsensitiveDict` behaves like an ordered dictionary, except it normalises
     case, whitespace, hypens and underscores in keys.
@@ -16,7 +15,7 @@ class InsensitiveDict[K, V](dict[K, V]):
     >>> True
     """
 
-    KEY_TRANSLATION_TABLE = {ord(c): None for c in " _-"}
+    KEY_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
 
     def __init__(self, row_dict, overwrite_duplicates=True):
         for key, value in row_dict.items():
@@ -34,25 +33,34 @@ class InsensitiveDict[K, V](dict[K, V]):
         """
         return cls({key: key for key in keys}, overwrite_duplicates=False)
 
-    def keys(self):
+    def keys(self) -> Set[str]:  # type: ignore[override]
         return InsensitiveSet(self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> V:
         return super().__getitem__(self.make_key(key))
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: V):
         super().__setitem__(self.make_key(key), value)
 
-    def __contains__(self, key):
+    def __contains__(self, key) -> bool:
         return super().__contains__(self.make_key(key))
 
-    def get(self, key, default=None):
+    @overload
+    def get(self, key: str, default: None = ...) -> V | None: ...
+
+    @overload
+    def get(self, key: str, default: V = ...) -> V: ...
+
+    @overload
+    def get[X](self, key: str, default: X = ...) -> V | X: ...
+
+    def get[X](self, key: str, default: V | X | None = None) -> V | X | None:
         return self[key] if key in self else default
 
-    def copy(self):
+    def copy(self) -> Self:
         return self.__class__(super().copy())
 
-    def as_dict_with_keys(self, keys):
+    def as_dict_with_keys(self, keys: Iterable[str]) -> dict[str, V | None]:
         return {key: self.get(key) for key in keys}
 
     @staticmethod
@@ -139,6 +147,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
             if stop < 0:
                 stop += length
 
+            it: Iterator[tuple[T, T]]
             if step < 0:
                 it = reversed(self._inner.items())
                 start = max(length - (start + 1), 0)
@@ -193,7 +202,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     # Accelerate Set[T]
 
-    def __le__(self, other: Set) -> bool | NotImplementedType:
+    def __le__(self, other: Set) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
 
@@ -201,7 +210,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self._inner.keys() <= other_set._inner.keys()
 
-    def __ge__(self, other: Set) -> bool | NotImplementedType:
+    def __ge__(self, other: Set) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
 
@@ -209,7 +218,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self._inner.keys() >= other_set._inner.keys()
 
-    def __and__(self, other: Iterable) -> Self | NotImplementedType:
+    def __and__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -217,7 +226,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k in other_set._inner)
 
-    def __rand__(self, other: Iterable) -> Self | NotImplementedType:
+    def __rand__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -227,7 +236,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         # ensure the un-normalised values come from the RHS
         return type(self)(item for item in other if item in self)
 
-    def __or__(self, other: Iterable) -> Self | NotImplementedType:
+    def __or__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -241,7 +250,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return new_set
 
-    def __ror__(self, other: Iterable) -> Self | NotImplementedType:
+    def __ror__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -254,7 +263,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return new_set
 
-    def isdisjoint(self, other: Iterable) -> bool | NotImplementedType:
+    def isdisjoint(self, other: Iterable) -> bool:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -263,7 +272,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return not any(item in self for item in other)
 
-    def __sub__(self, other: Iterable) -> Self | NotImplementedType:
+    def __sub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -271,7 +280,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k not in other_set._inner)
 
-    def __rsub__(self, other: Iterable) -> Self | NotImplementedType:
+    def __rsub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -280,7 +289,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)(item for item in other if item not in self)
 
-    def __xor__(self, other: Iterable) -> Self | NotImplementedType:
+    def __xor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -293,7 +302,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
             )
         )
 
-    def __rxor__(self, other: Iterable) -> Self | NotImplementedType:
+    def __rxor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -320,7 +329,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
     def clear(self):
         self._inner.clear()
 
-    def __iand__(self, other: Iterable) -> Self | NotImplementedType:
+    def __iand__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -332,7 +341,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self
 
-    def __ixor__(self, other: Iterable) -> Self | NotImplementedType:
+    def __ixor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -345,7 +354,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self
 
-    def __isub__(self, other: Iterable) -> Self | NotImplementedType:
+    def __isub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -355,7 +364,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return super().__isub__(other)  # type: ignore[arg-type]
 
-    def __ior__(self, other: Iterable) -> Self | NotImplementedType:
+    def __ior__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
