@@ -1,62 +1,39 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Iterable, Iterator, Mapping, MutableSet, Sequence, Set
+from collections.abc import (
+    ItemsView,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSet,
+    Sequence,
+    Set,
+    ValuesView,
+)
 from functools import lru_cache
 from itertools import chain, islice
-from typing import Self, overload
+from typing import Any, Self, overload
+
+_NORMALISE_STR_NONE_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
 
 
-class InsensitiveDict[V](dict[str, V]):
-    """
-    `InsensitiveDict` behaves like an ordered dictionary, except it normalises
-    case, whitespace, hypens and underscores in keys.
+@overload
+def _normalise_str_none(original_key: str) -> str: ...
 
-    In other words,
-    InsensitiveDict({'FIRST_NAME': 'example'}) == InsensitiveDict({'first name': 'example'})
-    >>> True
-    """
 
-    KEY_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
+@overload
+def _normalise_str_none(original_key: None) -> None: ...
 
-    def __init__(self, row_dict):
-        for key, value in row_dict.items():
-            self[key] = value
 
-    def keys(self) -> Set[str]:  # type: ignore[override]
-        return InsensitiveSet(self)
+@lru_cache(maxsize=1_024, typed=False)  # Corresponds to 1,000 column limit when reading Excel files
+def _normalise_str_none(original_key: Any) -> str | None:
+    if not isinstance(original_key, str | None):
+        raise TypeError
 
-    def __getitem__(self, key: str) -> V:
-        return super().__getitem__(self.make_key(key))
+    if original_key is None:
+        return None
 
-    def __setitem__(self, key: str, value: V):
-        super().__setitem__(self.make_key(key), value)
-
-    def __contains__(self, key) -> bool:
-        return super().__contains__(self.make_key(key))
-
-    @overload
-    def get(self, key: str, default: None = ...) -> V | None: ...
-
-    @overload
-    def get(self, key: str, default: V = ...) -> V: ...
-
-    @overload
-    def get[X](self, key: str, default: X = ...) -> V | X: ...
-
-    def get[X](self, key: str, default: V | X | None = None) -> V | X | None:
-        return self[key] if key in self else default
-
-    def copy(self) -> Self:
-        return self.__class__(super().copy())
-
-    def as_dict_with_keys(self, keys: Iterable[str]) -> dict[str, V | None]:
-        return {key: self.get(key) for key in keys}
-
-    @staticmethod
-    @lru_cache(maxsize=1_024, typed=False)  # Corresponds to 1,000 column limit when reading Excel files
-    def make_key(original_key: str) -> str:
-        if original_key is None:
-            return None
-        return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
+    return original_key.translate(_NORMALISE_STR_NONE_TRANSLATION_TABLE).lower()
 
 
 class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
@@ -396,7 +373,121 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         return f"{self.__class__.__name__}({list(self._inner.values())!r})"
 
 
-class InsensitiveSet(AbstractInsensitiveSet[str]):
+class InsensitiveSet[T: str | None](AbstractInsensitiveSet[T]):
     @staticmethod
-    def make_key(original_key: str) -> str:
-        return InsensitiveDict.make_key(original_key)
+    def make_key(original_key: Any) -> T:
+        return _normalise_str_none(original_key)
+
+
+class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
+    __slots__ = ("_inner",)
+    _inner: dict[K, V]
+
+    @staticmethod
+    @abstractmethod
+    def make_key(original_key: Any) -> K:
+        # a real implementation needs to raise TypeError if type is unworkable
+        return original_key  # type: ignore
+
+    def __init__(self, initial: Mapping[K, V] | Iterable[tuple[K, V]] = (), /):
+        self._inner = {}
+        self.update(initial)
+
+    # Mapping[K, V]
+
+    def __getitem__(self, key: K) -> V:
+        return self._inner.__getitem__(self.make_key(key))
+
+    def __iter__(self) -> Iterator[K]:
+        return self._inner.__iter__()
+
+    def __len__(self) -> int:
+        return self._inner.__len__()
+
+    # MutableMapping[K, V]
+
+    def __setitem__(self, key: K, value: V):
+        self._inner.__setitem__(self.make_key(key), value)
+
+    def __delitem__(self, key: K):
+        self._inner.__delitem__(self.make_key(key))
+
+    # Accelerate Mapping[K, V]
+
+    def __contains__(self, key: Any) -> bool:
+        try:
+            final_key = self.make_key(key)
+        except TypeError:
+            return False
+
+        return self._inner.__contains__(final_key)
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Mapping):
+            return NotImplemented
+
+        other_dict = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+
+        return self._inner.__eq__(other_dict._inner)
+
+    def items(self) -> ItemsView[K, V]:
+        return self._inner.items()
+
+    def values(self) -> ValuesView[V]:
+        return self._inner.values()
+
+    @abstractmethod
+    def keys(self) -> AbstractInsensitiveSet[K]:  # type: ignore[override]
+        ...
+
+    @overload
+    def get(self, key: K, default: None = ..., /) -> V | None: ...
+
+    @overload
+    def get(self, key: K, default: V = ..., /) -> V: ...
+
+    @overload
+    def get[X](self, key: K, default: X = ..., /) -> V | X: ...
+
+    def get[X](self, key: K, default: V | X | None = None, /) -> V | X | None:
+        try:
+            final_key = self.make_key(key)
+        except TypeError:
+            return default
+
+        return self._inner.get(final_key, default)
+
+    # Accelerate MutableMapping[K, V]
+
+    def clear(self):
+        self._inner.clear()
+
+    def update(self, other: Mapping[K, V] | Iterable[tuple[K, V]], /, **kwargs: V) -> None:  # type: ignore[override]
+        if type(self) is type(other):  # type comparison deliberately strict
+            self._inner.update(other._inner)
+        else:
+            it = other.items() if isinstance(other, Mapping) else other
+            for k, v in it:
+                self[k] = v
+
+        for k, v in kwargs.items():
+            self[k] = v  # type: ignore[index]
+
+    # bonus methods
+
+    def as_dict_with_keys(self, keys: Iterable[K]) -> dict[K, V | None]:
+        return {key: self.get(key) for key in keys}
+
+    def copy(self) -> Self:
+        other = type(self)()
+        other._inner = self._inner.copy()
+        return other
+
+
+class InsensitiveDict[K: str | None, V](AbstractInsensitiveDict[K, V]):
+    @staticmethod
+    def make_key(original_key: Any) -> K:
+        return _normalise_str_none(original_key)
+
+    def keys(self) -> InsensitiveSet[K]:  # type: ignore[override]
+        return InsensitiveSet(self)
