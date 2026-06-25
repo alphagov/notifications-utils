@@ -48,3 +48,8 @@ version = {attr = "notifications_utils.version.__version__"}
 
 [tool.setuptools.packages.find]
 exclude = ["tests*"]
+
+[tool.mypy]
+files = "notifications_utils/"
+follow_untyped_imports = true
+check_untyped_defs = true

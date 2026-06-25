@@ -4,3 +4,11 @@ build~=1.4
 celery~=5.6.0
 redis~=7.2
 filelock~=3.24
+
+mypy
+boto3-stubs
+celery-types
+types-PyYAML
+types-greenlet
+types-python-dateutil
+types-gunicorn
