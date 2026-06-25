@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterable, Iterator, Mapping, MutableSet, Sequence, Set
 from functools import lru_cache
 from itertools import chain, islice
-from types import NotImplementedType
 from typing import Self, overload
 
 
@@ -203,7 +202,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     # Accelerate Set[T]
 
-    def __le__(self, other: Set) -> bool | NotImplementedType:
+    def __le__(self, other: Set) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
 
@@ -211,7 +210,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self._inner.keys() <= other_set._inner.keys()
 
-    def __ge__(self, other: Set) -> bool | NotImplementedType:
+    def __ge__(self, other: Set) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
 
@@ -219,7 +218,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self._inner.keys() >= other_set._inner.keys()
 
-    def __and__(self, other: Iterable) -> Self | NotImplementedType:
+    def __and__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -227,7 +226,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k in other_set._inner)
 
-    def __rand__(self, other: Iterable) -> Self | NotImplementedType:
+    def __rand__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -237,7 +236,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         # ensure the un-normalised values come from the RHS
         return type(self)(item for item in other if item in self)
 
-    def __or__(self, other: Iterable) -> Self | NotImplementedType:
+    def __or__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -251,7 +250,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return new_set
 
-    def __ror__(self, other: Iterable) -> Self | NotImplementedType:
+    def __ror__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -264,7 +263,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return new_set
 
-    def isdisjoint(self, other: Iterable) -> bool | NotImplementedType:
+    def isdisjoint(self, other: Iterable) -> bool:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -273,7 +272,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return not any(item in self for item in other)
 
-    def __sub__(self, other: Iterable) -> Self | NotImplementedType:
+    def __sub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -281,7 +280,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k not in other_set._inner)
 
-    def __rsub__(self, other: Iterable) -> Self | NotImplementedType:
+    def __rsub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -290,7 +289,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)(item for item in other if item not in self)
 
-    def __xor__(self, other: Iterable) -> Self | NotImplementedType:
+    def __xor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -303,7 +302,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
             )
         )
 
-    def __rxor__(self, other: Iterable) -> Self | NotImplementedType:
+    def __rxor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -330,7 +329,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
     def clear(self):
         self._inner.clear()
 
-    def __iand__(self, other: Iterable) -> Self | NotImplementedType:
+    def __iand__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -342,7 +341,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self
 
-    def __ixor__(self, other: Iterable) -> Self | NotImplementedType:
+    def __ixor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -355,7 +354,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self
 
-    def __isub__(self, other: Iterable) -> Self | NotImplementedType:
+    def __isub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -365,7 +364,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return super().__isub__(other)  # type: ignore[arg-type]
 
-    def __ior__(self, other: Iterable) -> Self | NotImplementedType:
+    def __ior__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
