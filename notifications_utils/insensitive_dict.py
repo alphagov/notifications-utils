@@ -22,17 +22,6 @@ class InsensitiveDict[V](dict[str, V]):
             if overwrite_duplicates or key not in self:
                 self[key] = value
 
-    @classmethod
-    def from_keys(cls, keys):
-        """
-        This behaves like `dict.from_keys`, except:
-        - it normalises the keys to ignore case, whitespace, hypens and
-          underscores
-        - it stores the original, unnormalised key as the value of the
-          item so it can be retrieved later
-        """
-        return cls({key: key for key in keys}, overwrite_duplicates=False)
-
     def keys(self) -> Set[str]:  # type: ignore[override]
         return InsensitiveSet(self)
 
