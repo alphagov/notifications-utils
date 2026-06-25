@@ -1,4 +1,3 @@
-import numbers
 import uuid
 from time import time
 from types import TracebackType
@@ -34,7 +33,7 @@ def prepare_value(val):
     # things redis-py natively supports
     if isinstance(
         val,
-        bytes | str | numbers.Number,
+        bytes | str | float | int,
     ):
         return val
     # things we know we can safely cast to string
