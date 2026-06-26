@@ -205,4 +205,4 @@ class NotifyCelery(Celery):
         # resources in scanning for a none existent backend store.
         if self.conf.result_backend is None:
             return DisabledBackend(app=self)
-        return super()._get_backend()
+        return super()._get_backend()  # type: ignore[misc]
