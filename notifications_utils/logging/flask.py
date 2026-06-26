@@ -170,7 +170,7 @@ def init_app(app, extra_filters: Sequence[logging.Filter] = ()):
         context = {
             "status": response.status_code,
             "request_time": (
-                (_perf_counter_ns - request.before_request_perf_counter_ns) * _ns_per_s   # type: ignore[attr-defined]
+                (_perf_counter_ns - request.before_request_perf_counter_ns) * _ns_per_s  # type: ignore[attr-defined]
                 if getattr(request, "before_request_perf_counter_ns", None) is not None
                 else None
             ),
