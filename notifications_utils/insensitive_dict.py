@@ -17,13 +17,14 @@ class InsensitiveDict[V](dict[str, V]):
 
     KEY_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
 
-    def __init__(self, row_dict, overwrite_duplicates=True):
-        for key, value in row_dict.items():
+    def __init__(self, row_dict: Mapping[str, V] | Iterable[tuple[str, V]], overwrite_duplicates: bool = True):
+        it = row_dict.items() if isinstance(row_dict, Mapping) else row_dict
+        for key, value in it:
             if overwrite_duplicates or key not in self:
                 self[key] = value
 
     @classmethod
-    def from_keys(cls, keys):
+    def from_keys(cls, keys: Iterable[str]) -> "InsensitiveDict[str]":
         """
         This behaves like `dict.from_keys`, except:
         - it normalises the keys to ignore case, whitespace, hypens and
@@ -31,7 +32,7 @@ class InsensitiveDict[V](dict[str, V]):
         - it stores the original, unnormalised key as the value of the
           item so it can be retrieved later
         """
-        return cls({key: key for key in keys}, overwrite_duplicates=False)
+        return cls(((key, key) for key in keys), overwrite_duplicates=False)  # type: ignore[misc, return-value]
 
     def keys(self) -> Set[str]:  # type: ignore[override]
         return InsensitiveSet(self)
