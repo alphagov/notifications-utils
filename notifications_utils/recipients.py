@@ -1,6 +1,6 @@
 import csv
 import sys
-from collections.abc import Callable, Container, MutableMapping, Sequence, Iterable
+from collections.abc import Callable, Container, MutableMapping, Sequence, Iterable, Iterator
 from contextlib import suppress
 from functools import lru_cache
 from io import StringIO
@@ -167,7 +167,7 @@ class RecipientCSV:
         return self.rows_as_list
 
     @property
-    def _rows(self) -> Iterable[Sequence[str]]:
+    def _rows(self) -> Iterator[Sequence[str]]:
         return csv.reader(
             StringIO(self.file_data.strip()),
             quoting=csv.QUOTE_MINIMAL,
@@ -175,13 +175,13 @@ class RecipientCSV:
         )
 
     @property
-    def _first_empty_column_indices(self):
+    def _first_empty_column_indices(self) -> Iterator[int]:
         for row_index, row in enumerate(self._rows):
             if row_index == 0:
                 continue  # skip the header row
             yield max((column_index for column_index, column in enumerate(row) if column), default=-1) + 1
 
-    def get_rows(self):
+    def get_rows(self) -> "Iterator[Row | None]":
         index_of_first_empty_column = max(self._first_empty_column_indices, default=0)
         headers_of_populated_columns = self._raw_column_headers[:index_of_first_empty_column]
         headers_of_empty_columns = self._raw_column_headers[index_of_first_empty_column:]
@@ -236,52 +236,52 @@ class RecipientCSV:
             )
 
     @property
-    def more_rows_than_can_send(self):
+    def more_rows_than_can_send(self) -> bool:
         return len(self) > self.remaining_messages
 
     @property
-    def too_many_rows(self):
+    def too_many_rows(self) -> bool:
         return len(self) > self.max_rows
 
     @property
-    def initial_rows(self):
+    def initial_rows(self) -> "Iterator[Row | None]":
         return islice(self.rows, self.max_initial_rows_shown)
 
     @property
-    def displayed_rows(self):
+    def displayed_rows(self) -> "Iterator[Row | None]":
         if any(self.rows_with_errors) and not self.missing_column_headers:
             return self.initial_rows_with_errors
         return self.initial_rows
 
-    def _filter_rows(self, attr):
+    def _filter_rows(self, attr) -> "Iterator[Row]":
         return (row for row in self.rows if row and getattr(row, attr))
 
     @property
-    def rows_with_errors(self):
+    def rows_with_errors(self) -> "Iterator[Row]":
         return self._filter_rows("has_error")
 
     @property
-    def rows_with_bad_recipients(self):
+    def rows_with_bad_recipients(self) -> "Iterator[Row]":
         return self._filter_rows("has_bad_recipient")
 
     @property
-    def rows_with_missing_data(self):
+    def rows_with_missing_data(self) -> "Iterator[Row]":
         return self._filter_rows("has_missing_data")
 
     @property
-    def rows_with_message_too_long(self):
+    def rows_with_message_too_long(self) -> "Iterator[Row]":
         return self._filter_rows("message_too_long")
 
     @property
-    def rows_with_empty_message(self):
+    def rows_with_empty_message(self) -> "Iterator[Row]":
         return self._filter_rows("message_empty")
 
     @property
-    def rows_with_bad_qr_codes(self):
+    def rows_with_bad_qr_codes(self) -> "Iterator[Row]":
         return self._filter_rows("qr_code_too_long")
 
     @property
-    def initial_rows_with_errors(self):
+    def initial_rows_with_errors(self) -> "Iterator[Row]":
         return islice(self.rows_with_errors, self.max_errors_shown)
 
     @cached_property
