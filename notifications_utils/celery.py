@@ -159,7 +159,7 @@ class NotifyTask(Task):
 
 
 class NotifyCelery(Celery):
-    flask_app: Flask | None = None
+    flask_app: Flask
 
     def __init__(self, *args, **kwargs):
         kwargs["task_cls"] = NotifyTask
