@@ -4,6 +4,7 @@ from base64 import b64decode
 from importlib import resources as importlib_resources
 from importlib.metadata import version
 from itertools import zip_longest
+from typing import Any
 
 import requests
 import requirements
@@ -58,7 +59,7 @@ def get_remote_version():
     # The functionality of locals() has been optimised starting in Python 3.12 and further
     # in Python 3.13 due to PEP 667 https://github.com/python/cpython/issues/118888
     # locals is no longer has insight into a functions state. We now have to explicitly define a local scope dict.
-    local_scope = {}
+    local_scope: dict[str, Any] = {}
     version_data = get_file_contents_from_github("main", "notifications_utils/version.py")
     exec(version_data, {}, local_scope)
     return local_scope["__version__"]
