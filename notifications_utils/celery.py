@@ -21,7 +21,8 @@ duration_histogram = metrics.get_meter(__name__).create_histogram(
 
 class NotifyTask(Task):
     abstract = True
-    start = None
+    start: float
+    app: "NotifyCelery"
 
     def __init__(self, *args, **kwargs):
         # custom task-decorator arguments magically get applied as class attributes (!),
@@ -158,7 +159,7 @@ class NotifyTask(Task):
 
 
 class NotifyCelery(Celery):
-    flask_app: Flask | None = None
+    flask_app: Flask
 
     def __init__(self, *args, **kwargs):
         kwargs["task_cls"] = NotifyTask
@@ -170,7 +171,7 @@ class NotifyCelery(Celery):
         # Configure Celery app with options from the main app config.
         self.conf.update(app.config["CELERY"])
 
-    def send_task(self, name, args=None, kwargs=None, **other_kwargs):
+    def send_task(self, name, args=None, kwargs=None, *positional_args, **other_kwargs):
         other_kwargs["headers"] = other_kwargs.get("headers") or {}
 
         if has_request_context() and hasattr(request, "request_id"):
@@ -198,11 +199,11 @@ class NotifyCelery(Celery):
         if drop_message_group_id:
             other_kwargs.pop("MessageGroupId", None)
 
-        return super().send_task(name, args, kwargs, **other_kwargs)
+        return super().send_task(name, args, kwargs, *positional_args, **other_kwargs)
 
     def _get_backend(self):
         # We want it to instantly return a DisabledBackend object if result_backend is None without expending
         # resources in scanning for a none existent backend store.
         if self.conf.result_backend is None:
             return DisabledBackend(app=self)
-        return super()._get_backend()
+        return super()._get_backend()  # type: ignore[misc]
