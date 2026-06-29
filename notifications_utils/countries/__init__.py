@@ -18,7 +18,7 @@ from .data import (
 class CountryMapping(InsensitiveDict):
     @staticmethod
     @lru_cache(maxsize=2048, typed=False)
-    def make_key(original_key):
+    def make_key(original_key: str) -> str:
         original_key = original_key.replace("&", "and")
         original_key = original_key.replace("+", "and")
 
@@ -29,8 +29,8 @@ class CountryMapping(InsensitiveDict):
 
         return SanitiseASCII.encode(normalised)
 
-    def __contains__(self, key):
-        if any(c.isdigit() for c in key):
+    def __contains__(self, key: object) -> bool:
+        if isinstance(key, str) and any(c.isdigit() for c in key):
             # A string with a digit can’t be a country and is probably a
             # postcode, so let’s do a little optimisation, skip the
             # expensive string manipulation to normalise the key and say
@@ -38,7 +38,7 @@ class CountryMapping(InsensitiveDict):
             return False
         return super().__contains__(key)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> str:
         for key_ in (key, f"the {key}", f"yr {key}", f"y {key}"):
             if key_ in self:
                 return super().__getitem__(key_)
@@ -52,14 +52,16 @@ countries = CountryMapping(
 
 
 class Country:
-    def __init__(self, given_name):
+    canonical_name: str
+
+    def __init__(self, given_name: str):
         self.canonical_name = countries[given_name]
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return self.canonical_name == other.canonical_name
 
     @property
-    def postage_zone(self):
+    def postage_zone(self) -> str:
         if self.canonical_name == UK:
             return Postage.UK
         if self.canonical_name in ROYAL_MAIL_EUROPEAN:

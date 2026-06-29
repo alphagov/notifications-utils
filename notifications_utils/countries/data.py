@@ -1,15 +1,16 @@
 import json
 import os
+from typing import Any
 
 
-def _load_data(filename):
+def _load_data(filename: str) -> Any:
     with open(os.path.join(os.path.dirname(__file__), "_data", filename)) as contents:
         if filename.endswith(".json"):
             return json.load(contents)
         return [line.strip() for line in contents.readlines()]
 
 
-def find_canonical(item, graph, key):
+def find_canonical(item: dict, graph: dict, key: str):
     if item["meta"]["canonical"]:
         return key, item["names"]["en-GB"]
     return find_canonical(
