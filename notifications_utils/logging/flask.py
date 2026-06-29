@@ -136,11 +136,11 @@ def init_app(app, extra_filters: Sequence[logging.Filter] = ()):
     def before_request():
         # annotating this onto request instead of flask.g as it probably shouldn't
         # be inheritable from a request-less application context
-        request.before_request_perf_counter_ns = perf_counter_ns()
-        request.before_request_thread_time_ns = thread_time_ns()
+        request.before_request_perf_counter_ns = perf_counter_ns()  # type: ignore[attr-defined]
+        request.before_request_thread_time_ns = thread_time_ns()  # type: ignore[attr-defined]
 
         if app.config["NOTIFY_EVENTLET_STATS"]:
-            request.before_request_greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()
+            request.before_request_greenlet_context_switch_count = utils_eventlet.greenlet_context_switch_count()  # type: ignore[attr-defined]
             utils_eventlet.reset_greenlet_stats()
 
         # emit an early log message to record that the request was received by the app
@@ -170,12 +170,12 @@ def init_app(app, extra_filters: Sequence[logging.Filter] = ()):
         context = {
             "status": response.status_code,
             "request_time": (
-                (_perf_counter_ns - request.before_request_perf_counter_ns) * _ns_per_s
+                (_perf_counter_ns - request.before_request_perf_counter_ns) * _ns_per_s  # type: ignore[attr-defined]
                 if getattr(request, "before_request_perf_counter_ns", None) is not None
                 else None
             ),
             "request_cpu_time": (
-                (_thread_time_ns - request.before_request_thread_time_ns) * _ns_per_s
+                (_thread_time_ns - request.before_request_thread_time_ns) * _ns_per_s  # type: ignore[attr-defined]
                 if getattr(request, "before_request_thread_time_ns", None) is not None
                 else None
             ),
