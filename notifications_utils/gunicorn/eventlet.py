@@ -14,6 +14,8 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
     number of concurrent GreenThreads handling connections we've ever had.
     """
 
+    context_pool: deque
+
     def __init__(self, *args, **kwargs):
         self.context_pool = deque()  # a stack of unused thread contexts
         super().__init__(*args, **kwargs)
