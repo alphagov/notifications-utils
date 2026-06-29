@@ -247,8 +247,8 @@ if using_eventlet:
         return info
 
 else:
-    EventletTimeoutMiddleware = None
-    account_greenlet_times = None
+    EventletTimeoutMiddleware = None  # type: ignore
+    account_greenlet_times = None  # type: ignore[assignment]
 
     greenlet_thread_time_ns = lambda: None  # noqa
     greenlet_perf_counter_ns = lambda: None  # noqa
