@@ -13,7 +13,7 @@ from notifications_utils.formatters import (
     strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
 )
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 from notifications_utils.interruptible_io import InterruptibleIterableList, interruptible_iter
 from notifications_utils.recipient_validation import email_address
 from notifications_utils.recipient_validation.errors import InvalidEmailError, InvalidPhoneError, InvalidRecipientError
@@ -33,7 +33,7 @@ first_column_headings = {
     "letter": [line.replace("_", " ") for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]],
 }
 
-address_columns = InsensitiveDict.from_keys(first_column_headings["letter"])
+address_columns = InsensitiveSet(first_column_headings["letter"])
 
 
 class RecipientCSV:
@@ -116,10 +116,8 @@ class RecipientCSV:
             self._placeholders = list(value) + self.recipient_column_headers
         except TypeError:
             self._placeholders = self.recipient_column_headers
-        self.placeholders_as_column_keys = [InsensitiveDict.make_key(placeholder) for placeholder in self._placeholders]
-        self.recipient_column_headers_as_column_keys = [
-            InsensitiveDict.make_key(placeholder) for placeholder in self.recipient_column_headers
-        ]
+        self.placeholders_as_column_keys = InsensitiveSet(self._placeholders)
+        self.recipient_column_headers_as_column_keys = InsensitiveSet(self.recipient_column_headers)
 
     @property
     def has_errors(self) -> bool:
@@ -209,7 +207,7 @@ class RecipientCSV:
             for column_name, column_value in zip(column_headers, row[:length_of_widest_row], strict=False):
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
-                if InsensitiveDict.make_key(column_name) in self.recipient_column_headers_as_column_keys:
+                if column_name in self.recipient_column_headers_as_column_keys:
                     output_dict[column_name] = column_value or None
                 else:
                     insert_or_append_to_dict(output_dict, column_name, column_value or None)
@@ -295,7 +293,7 @@ class RecipientCSV:
 
     @property
     def column_headers_as_column_keys(self):
-        return InsensitiveDict.from_keys(self.column_headers).keys()
+        return InsensitiveSet(self.column_headers)
 
     @property
     def missing_column_headers(self):
@@ -313,7 +311,7 @@ class RecipientCSV:
         raw_recipient_column_headers = [
             InsensitiveDict.make_key(column_header)
             for column_header in self._raw_column_headers
-            if InsensitiveDict.make_key(column_header) in self.recipient_column_headers_as_column_keys
+            if column_header in self.recipient_column_headers_as_column_keys
         ]
 
         return OrderedSet(
@@ -333,8 +331,8 @@ class RecipientCSV:
     def has_recipient_columns(self) -> bool:
         if self.template_type == "letter":
             sets_to_check = [
-                InsensitiveDict.from_keys(address_lines_1_to_6_and_postcode_keys).keys(),
-                InsensitiveDict.from_keys(address_lines_1_to_7_keys).keys(),
+                InsensitiveSet(address_lines_1_to_6_and_postcode_keys),
+                InsensitiveSet(address_lines_1_to_7_keys),
             ]
         else:
             sets_to_check = [
@@ -359,7 +357,7 @@ class RecipientCSV:
         if self.is_address_column(key):
             return
 
-        if InsensitiveDict.make_key(key) in self.recipient_column_headers_as_column_keys:
+        if key in self.recipient_column_headers_as_column_keys:
             if value in [None, ""] or isinstance(value, list):
                 if self.duplicate_recipient_column_headers:
                     return None
@@ -378,7 +376,7 @@ class RecipientCSV:
             except InvalidRecipientError as error:
                 return str(error)
 
-        if InsensitiveDict.make_key(key) not in self.placeholders_as_column_keys:
+        if key not in self.placeholders_as_column_keys:
             return
 
         if value in [None, ""]:

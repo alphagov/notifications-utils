@@ -135,16 +135,8 @@ def test_insensitive_set_contains():
         assert key not in foobar
 
 
-@pytest.mark.parametrize(
-    "extra_args, expected_dict",
-    (
-        ({}, {"foo": 3}),
-        ({"overwrite_duplicates": True}, {"foo": 3}),
-        ({"overwrite_duplicates": False}, {"foo": 1}),
-    ),
-)
-def test_overwrite_duplicates(extra_args, expected_dict):
-    assert InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}, **extra_args) == expected_dict
+def test_key_stored_as_normalised_format():
+    assert tuple(InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}).items()) == (("foo", 3),)
 
 
 def test_insensitive_set_index():

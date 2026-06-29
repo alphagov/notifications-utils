@@ -17,21 +17,9 @@ class InsensitiveDict[V](dict[str, V]):
 
     KEY_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
 
-    def __init__(self, row_dict, overwrite_duplicates=True):
+    def __init__(self, row_dict):
         for key, value in row_dict.items():
-            if overwrite_duplicates or key not in self:
-                self[key] = value
-
-    @classmethod
-    def from_keys(cls, keys):
-        """
-        This behaves like `dict.from_keys`, except:
-        - it normalises the keys to ignore case, whitespace, hypens and
-          underscores
-        - it stores the original, unnormalised key as the value of the
-          item so it can be retrieved later
-        """
-        return cls({key: key for key in keys}, overwrite_duplicates=False)
+            self[key] = value
 
     def keys(self) -> Set[str]:  # type: ignore[override]
         return InsensitiveSet(self)
