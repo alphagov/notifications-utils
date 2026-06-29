@@ -29,15 +29,11 @@ test: lint ## Run tests
 	pytest -n auto
 	python -m build
 
-.PHONY: check-types
-check-types: ## Run static type checking
-# This should be moved into the lint task once it’s passing
-	mypy
-
 .PHONY: lint
 lint: ## Run static analysis
 	ruff check .
 	ruff format --check .
+	mypy
 
 .PHONY: watch-tests
 watch-tests: ## Automatically rerun tests
