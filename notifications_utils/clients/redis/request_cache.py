@@ -163,7 +163,7 @@ class RequestCache:
                 value = self.get_cache_value(result)
 
                 if self.get_cache_decision(result):
-                    final_ttl = self.get_ttl_in_seconds_override(result)
+                    final_ttl = self.get_ttlg_in_seconds_override(result)
                     if final_ttl is None:
                         final_ttl = ttl_in_seconds
 
