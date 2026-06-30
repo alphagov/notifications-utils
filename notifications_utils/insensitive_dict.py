@@ -65,8 +65,9 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def make_key(original_key: T) -> T:
-        return original_key
+    def make_key(original_key: Any) -> T:
+        # a real implementation needs to raise TypeError if type is unworkable
+        return original_key  # type: ignore
 
     def __init__(self, it: Iterable[T] | None = None, /):
         self._inner = {}
