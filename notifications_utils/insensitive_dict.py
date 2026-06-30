@@ -169,10 +169,15 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Iterable):
-            return False
+            return NotImplemented
 
         if not isinstance(other, Set):
+            # note order-sensitive
             return tuple(self._inner.keys()) == tuple(self.make_key(item) for item in other)
+
+        # and add a shortcut for others of identical type
+        if type(self) is type(other):  # type comparison deliberately strict
+            return self._inner.keys() == other._inner.keys()
 
         return super().__eq__(other)
 
