@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from datetime import timedelta
 from functools import singledispatch, wraps
 from inspect import signature
-from uuid import UUID
-import msgpack
 from typing import TypeAlias
+from uuid import UUID
 
+import msgpack
 
 _JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
 
@@ -118,7 +118,7 @@ class RequestCache:
             }
         )
 
-    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL, schema_version=_DEFAULT_SCHEMA_VERSION_SENTINEL):
+    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL, schema_version=_DEFAULT_SCHEMA_VERSION_SENTINEL):  # noqa: C901
         def _set(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
@@ -177,12 +177,14 @@ class RequestCache:
                     else:
                         self.redis_client.set_if_timestamp_newer(
                             redis_key,
-                            msgpack.dumps({
-                                "timestamp": pessimistic_timestamp,
-                                "is_tombstone": False,
-                                "value": msgpack.dumps(value),
-                                "schema_version": schema_version,
-                            }),
+                            msgpack.dumps(
+                                {
+                                    "timestamp": pessimistic_timestamp,
+                                    "is_tombstone": False,
+                                    "value": msgpack.dumps(value),
+                                    "schema_version": schema_version,
+                                }
+                            ),
                             ex=int(final_ttl),
                         )
 
