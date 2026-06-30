@@ -6,7 +6,7 @@ from contextlib import suppress
 from functools import lru_cache
 from html import unescape
 from os import path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from jinja2 import Template as jinja2_Template
@@ -41,7 +41,7 @@ from notifications_utils.formatters import (
     strip_unsupported_characters,
     unlink_govuk_escaped,
 )
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
 from notifications_utils.markdown import (
     notify_email_markdown,
     notify_email_preheader_markdown,
@@ -78,12 +78,12 @@ class Template(ABC):
     redact_missing_personalisation: bool
 
     _template: Mapping[str, Any]
-    _values: Mapping[str, Any]
+    _values: Mapping[str | None, Any]
 
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         redact_missing_personalisation: bool = False,
     ):
         if not isinstance(template, Mapping):
@@ -121,19 +121,21 @@ class Template(ABC):
         ).strip()
 
     @property
-    def values(self) -> Mapping[str, Any]:
+    def values(self) -> Mapping[str | None, Any]:
         return getattr(self, "_values", {})
 
     @values.setter
-    def values(self, new_values: Mapping[str, Any] | None):
+    def values(self, new_values: Mapping[str | None, Any] | None) -> None:
         with suppress(AttributeError):
             del self._values
 
         if new_values:
-            self._values = InsensitiveDict(new_values).as_dict_with_keys(self.placeholders | new_values.keys())
+            self._values = InsensitiveDict(new_values).as_dict_with_keys(
+                cast(InsensitiveSet[str | None], self.placeholders) | iter(new_values.keys())
+            )
 
     @property
-    def placeholders(self) -> Set[str]:
+    def placeholders(self) -> InsensitiveSet[str]:
         return get_placeholders(self.content)
 
     @property
@@ -141,7 +143,7 @@ class Template(ABC):
         return [placeholder for placeholder in self.placeholders if self.values.get(placeholder) is None]
 
     @property
-    def additional_data(self) -> Set[str]:
+    def additional_data(self) -> Set[str | None]:
         return self.values.keys() - self.placeholders
 
     def get_raw(self, key, default=None):
@@ -176,7 +178,7 @@ class BaseSMSTemplate(Template):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         prefix: str | None = None,
         show_prefix: bool = True,
         sender: Any = None,
@@ -187,11 +189,11 @@ class BaseSMSTemplate(Template):
         super().__init__(template, values)
 
     @property
-    def values(self) -> Mapping[str, Any]:
+    def values(self) -> Mapping[str | None, Any]:
         return super().values
 
     @values.setter
-    def values(self, new_values: Mapping[str, Any] | None):
+    def values(self, new_values: Mapping[str | None, Any] | None):
         # If we change the values of the template it’s possible the
         # content will have changed, so we need to reset the cached
         # count and content
@@ -324,7 +326,7 @@ class SMSBodyPreviewTemplate(BaseSMSTemplate):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
     ):
         super().__init__(template, values, show_prefix=False)
 
@@ -357,7 +359,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         prefix: str | None = None,
         show_prefix: bool = True,
         sender: Any = None,
@@ -412,7 +414,7 @@ class BaseEmailTemplate(Template):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         unsubscribe_link: str | None = None,
         **kwargs,
     ):
@@ -436,7 +438,7 @@ class BaseEmailTemplate(Template):
         )
 
     @property
-    def placeholders(self) -> Set[str]:
+    def placeholders(self) -> InsensitiveSet[str]:
         return get_placeholders(self._subject) | super().placeholders
 
     @property
@@ -549,7 +551,7 @@ class HTMLEmailTemplate(BaseEmailTemplate):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         govuk_banner: bool = True,
         complete_html: bool = True,
         brand_logo: str | None = None,
@@ -627,7 +629,7 @@ class BaseLetterTemplate(Template):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         contact_block: str | None = None,
         admin_base_url: str = "http://localhost:6012",
         logo_file_name: str | None = None,
@@ -669,7 +671,7 @@ class BaseLetterTemplate(Template):
         )
 
     @property
-    def placeholders(self) -> Set[str]:
+    def placeholders(self) -> InsensitiveSet[str]:
         return (
             get_placeholders(self.contact_block)
             | get_placeholders(self._welsh_subject)
@@ -787,7 +789,7 @@ class LetterPrintTemplate(LetterPreviewTemplate):
     def __init__(
         self,
         template: Mapping[str, Any],
-        values: Mapping[str, Any] | None = None,
+        values: Mapping[str | None, Any] | None = None,
         contact_block: str | None = None,
         admin_base_url: str = "http://localhost:6012",
         logo_file_name: str | None = None,
@@ -827,5 +829,5 @@ def do_nice_typography(value: str) -> str:
 
 
 @lru_cache(maxsize=1024)
-def get_placeholders(content: str) -> Set[str]:
+def get_placeholders(content: str) -> InsensitiveSet[str]:
     return Field(content).placeholders
