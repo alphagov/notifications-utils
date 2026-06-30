@@ -314,7 +314,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
     def remove(self, item: T):
         del self._inner[self.make_key(item)]
 
-    def pop(self):
+    def pop(self) -> T:
         try:
             return self._inner.pop(next(reversed(self._inner)))
         except StopIteration as e:
