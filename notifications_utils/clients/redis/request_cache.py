@@ -172,6 +172,7 @@ class RequestCache:
                             redis_key,
                             json.dumps(value),
                             ex=int(final_ttl),
+                            skippable=True,
                         )
                     else:
                         self.redis_client.set_if_timestamp_newer(
