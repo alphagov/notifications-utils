@@ -82,6 +82,58 @@ def test_set_item(key_in, lookup_key):
     assert columns[lookup_key] == "bar"
 
 
+@pytest.mark.parametrize(
+    "key_in",
+    [
+        "foo",
+        "F_O O",
+    ],
+)
+@pytest.mark.parametrize(
+    "delete_key",
+    [
+        "foo",
+        "f_o_o",
+        "F O O",
+    ],
+)
+def test_del_item(key_in, delete_key):
+    columns = InsensitiveDict({key_in: "bar"})
+    del columns[delete_key]
+
+    assert delete_key not in columns
+    assert key_in not in columns
+    assert len(columns) == 0
+    assert not columns
+    assert tuple(columns.items()) == ()
+
+
+@pytest.mark.parametrize(
+    "key_in",
+    [
+        "foo",
+        "F_O O",
+    ],
+)
+@pytest.mark.parametrize(
+    "pop_key",
+    [
+        "foo",
+        "f_o_o",
+        "F O O",
+    ],
+)
+def test_pop_item(key_in, pop_key):
+    columns = InsensitiveDict({key_in: "bar", "baz": 123})
+    assert columns.pop(pop_key) == "bar"
+
+    assert pop_key not in columns
+    assert key_in not in columns
+    assert len(columns) == 1
+    assert columns
+    assert tuple(columns.items()) == (("baz", 123),)
+
+
 def test_maintains_insertion_order():
     d = InsensitiveDict(
         {
@@ -93,6 +145,23 @@ def test_maintains_insertion_order():
     assert d.keys() == ["b", "a", "c"]
     d["BB"] = None
     assert d.keys() == ["b", "a", "c", "bb"]
+
+
+def test_update():
+    d = InsensitiveDict(
+        {
+            "A": "A1",
+            "B": "B1",
+            "C": "C1",
+        }
+    )
+    d.update((("b ", "B2"), ("c ", "C2"), ("d_", "D1"), (" c", "C3")))
+    assert tuple(d.items()) == (
+        ("a", "A1"),
+        ("b", "B2"),
+        ("c", "C3"),
+        ("d", "D1"),
+    )
 
 
 def test_insensitive_set():
