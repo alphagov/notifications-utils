@@ -6,12 +6,11 @@ from dataclasses import dataclass
 from datetime import timedelta
 from functools import singledispatch, wraps
 from inspect import signature
-from typing import TypeAlias
 from uuid import UUID
 
 import msgpack
 
-_JSON: TypeAlias = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
+type _JSON = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
 
 
 logger = logging.getLogger("request_cache")
@@ -163,7 +162,7 @@ class RequestCache:
                 value = self.get_cache_value(result)
 
                 if self.get_cache_decision(result):
-                    final_ttl = self.get_ttlg_in_seconds_override(result)
+                    final_ttl = self.get_ttl_in_seconds_override(result)
                     if final_ttl is None:
                         final_ttl = ttl_in_seconds
 

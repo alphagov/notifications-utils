@@ -60,7 +60,7 @@ def test_set(
         return_value=None,
     )
 
-    @cache.set("{a}-{b}-{c}-{x}-{y}-{z}")
+    @cache.set("{a}-{b}-{c}-{x}-{y}-{z}", schema_version=0)
     def foo(a, b, c, x=None, y=None, z=None):
         return "bar"
 
