@@ -105,7 +105,7 @@ def test_set_with_custom_ttl(
         return_value=None,
     )
 
-    @cache.set("foo", ttl_in_seconds=cache_set_call)
+    @cache.set("foo", ttl_in_seconds=cache_set_call, schema_version=0)
     def foo():
         return "bar"
 
@@ -257,7 +257,7 @@ def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
         "delete",
     )
 
-    @cache.delete("{a}-{b}-{c}")
+    @cache.delete("{a}-{b}-{c}", force_delete=True)
     def foo(a, b, c):
         return "bar"
 
@@ -271,7 +271,7 @@ def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, moc
     mocker.patch.object(mocked_redis_client, "delete", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
-    @cache.delete("bar")
+    @cache.delete("bar", force_delete=True)
     def foo():
         return fake_api_call()
 
@@ -301,7 +301,7 @@ def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client,
     mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
-    @cache.delete_by_pattern("bar-???")
+    @cache.delete_by_pattern("bar-???", force_delete=True)
     def foo():
         return fake_api_call()
 
