@@ -36,7 +36,9 @@ def _normalise_str_none(original_key: Any) -> str | None:
     return original_key.translate(_NORMALISE_STR_NONE_TRANSLATION_TABLE).lower()
 
 
-class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
+class AbstractImmutableInsensitiveSet[T](Set[T], Sequence[T], metaclass=ABCMeta):
+    _mutable_type: type[Self] | None = None
+
     __slots__ = ("_inner",)
     _inner: dict[T, T]
 
@@ -74,18 +76,6 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     def __len__(self) -> int:
         return len(self._inner)
-
-    # MutableSet[T]
-
-    def add(self, item: T):
-        key = self.make_key(item)
-        if key not in self._inner:
-            self._inner[key] = item
-
-    def discard(self, item: T):
-        self._inner.pop(
-            self.make_key(item), None
-        )  # faster than possibly raising then ignoring exception if not present
 
     # Sequence[T]
 
@@ -153,7 +143,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
             return tuple(self._inner.keys()) == tuple(self.make_key(item) for item in other)
 
         # and add a shortcut for others of identical type
-        if type(self) is type(other):  # type comparison deliberately strict
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
             return self._inner.keys() == other._inner.keys()
 
         return super().__eq__(other)
@@ -177,7 +167,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Set):
             return NotImplemented
 
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return self._inner.keys() <= other_set._inner.keys()
 
@@ -185,7 +178,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Set):
             return NotImplemented
 
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return self._inner.keys() >= other_set._inner.keys()
 
@@ -193,7 +189,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k in other_set._inner)
 
@@ -201,7 +200,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        if type(self) is type(other):  # type comparison deliberately strict
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
             return type(self)._from_inner_pairs((k, v) for k, v in other._inner.items() if k in self._inner)
 
         # ensure the un-normalised values come from the RHS
@@ -213,11 +212,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         new_set = type(self)._from_inner_pairs(self._inner.items())
 
-        if type(self) is type(other):  # type comparison deliberately strict
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
             new_set._add_inner_pairs(other._inner.items())
         else:
-            for value in other:
-                new_set.add(value)
+            new_set._add_inner_pairs((self.make_key(item), item) for item in other)
 
         return new_set
 
@@ -225,7 +223,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        if type(self) is type(other):  # type comparison deliberately strict
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
             new_set = type(self)._from_inner_pairs(other._inner.items())
         else:
             new_set = type(self)(other)
@@ -238,7 +236,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        if type(self) is type(other):  # type comparison deliberately strict
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
             return self._inner.keys().isdisjoint(other._inner.keys())
 
         return not any(item in self for item in other)
@@ -247,7 +245,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k not in other_set._inner)
 
@@ -255,7 +256,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        if type(self) is type(other):  # type comparison deliberately strict
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
             return type(self)._from_inner_pairs((k, v) for k, v in other._inner.items() if k not in self._inner)
 
         return type(self)(item for item in other if item not in self)
@@ -264,7 +265,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return type(self)._from_inner_pairs(
             chain(
@@ -277,7 +281,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         if not isinstance(other, Iterable):
             return NotImplemented
 
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return type(self)._from_inner_pairs(
             chain(
@@ -285,64 +292,6 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
                 ((k, v) for k, v in self._inner.items() if k not in other_set._inner),
             )
         )
-
-    # Accelerate MutableSet[T]
-
-    def remove(self, item: T):
-        del self._inner[self.make_key(item)]
-
-    def pop(self) -> T:
-        try:
-            return self._inner.pop(next(reversed(self._inner)))
-        except StopIteration as e:
-            raise KeyError from e
-
-    def clear(self):
-        self._inner.clear()
-
-    def __iand__(self, other: Iterable[T]) -> Self:
-        if not isinstance(other, Iterable):
-            return NotImplemented
-
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
-
-        for k in tuple(self._inner):  # must take copy of keys so we can modify underlying dict during iteration
-            if k not in other_set._inner:
-                del self._inner[k]
-
-        return self
-
-    def __ixor__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
-        if not isinstance(other, Iterable):
-            return NotImplemented
-
-        other_set = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
-
-        intersection = self & other_set
-        self -= intersection
-        other_set -= intersection
-        self |= other_set
-
-        return self
-
-    def __isub__(self, other: Iterable[T]) -> Self:
-        if not isinstance(other, Iterable):
-            return NotImplemented
-
-        if type(self) is type(other):  # type comparison deliberately strict
-            for k in other._inner:
-                self._inner.pop(k, None)
-
-        return super().__isub__(other)  # type: ignore[arg-type]
-
-    def __ior__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
-        if not isinstance(other, Iterable):
-            return NotImplemented
-
-        if type(self) is type(other):  # type comparison deliberately strict
-            self._add_inner_pairs(other._inner.items())
-
-        return super().__ior__(other)  # type: ignore[arg-type]
 
     # only included because old InsensitiveSet implemented them (note builtins.set accepts *others)
 
@@ -373,10 +322,102 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         return f"{self.__class__.__name__}({list(self._inner.values())!r})"
 
 
-class InsensitiveSet[T: str | None](AbstractInsensitiveSet[T]):
+class AbstractMutableInsensitiveSet[T](AbstractImmutableInsensitiveSet[T], MutableSet[T], metaclass=ABCMeta):
+    _immutable_type: type[AbstractImmutableInsensitiveSet[T]] | None = None
+
+    # MutableSet[T]
+
+    def add(self, item: T):
+        key = self.make_key(item)
+        if key not in self._inner:
+            self._inner[key] = item
+
+    def discard(self, item: T):
+        self._inner.pop(
+            self.make_key(item), None
+        )  # faster than possibly raising then ignoring exception if not present
+
+    # Accelerate MutableSet[T]
+
+    def remove(self, item: T):
+        del self._inner[self.make_key(item)]
+
+    def pop(self) -> T:
+        try:
+            return self._inner.pop(next(reversed(self._inner)))
+        except StopIteration as e:
+            raise KeyError from e
+
+    def clear(self):
+        self._inner.clear()
+
+    def __iand__(self, other: Iterable[T]) -> Self:
+        if not isinstance(other, Iterable):
+            return NotImplemented
+
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._immutable_type else type(self)(other)
+        )
+
+        for k in tuple(self._inner):  # must take copy of keys so we can modify underlying dict during iteration
+            if k not in other_set._inner:
+                del self._inner[k]
+
+        return self
+
+    def __ixor__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
+        if not isinstance(other, Iterable):
+            return NotImplemented
+
+        other_set = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._immutable_type else type(self)(other)
+        )
+
+        intersection = self & other_set
+        self -= intersection
+        other_set -= intersection
+        self |= other_set
+
+        return self
+
+    def __isub__(self, other: Iterable[T]) -> Self:
+        if not isinstance(other, Iterable):
+            return NotImplemented
+
+        if type(other) is type(self) or type(other) is self._immutable_type:  # type comparison deliberately strict
+            for k in other._inner:
+                self._inner.pop(k, None)
+
+        return super().__isub__(other)  # type: ignore[arg-type]
+
+    def __ior__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
+        if not isinstance(other, Iterable):
+            return NotImplemented
+
+        if type(other) is type(self) or type(other) is self._immutable_type:  # type comparison deliberately strict
+            self._add_inner_pairs(other._inner.items())
+
+        return super().__ior__(other)  # type: ignore[arg-type]
+
+
+AbstractInsensitiveSet = AbstractMutableInsensitiveSet
+
+
+class ImmutableInsensitiveSet[T: str | None](AbstractImmutableInsensitiveSet[T]):
+    _mutable_type: "type[InsensitiveSet[T]]"
+
     @staticmethod
     def make_key(original_key: Any) -> T:
         return _normalise_str_none(original_key)
+
+
+class InsensitiveSet[T: str | None](ImmutableInsensitiveSet[T], AbstractMutableInsensitiveSet[T]):
+    _immutable_type: type[ImmutableInsensitiveSet[T]] = ImmutableInsensitiveSet
+
+
+ImmutableInsensitiveSet._mutable_type = InsensitiveSet._mutable_type = InsensitiveSet  # type: ignore[misc]
 
 
 class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
@@ -437,7 +478,7 @@ class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
         return self._inner.values()
 
     @abstractmethod
-    def keys(self) -> AbstractInsensitiveSet[K]:  # type: ignore[override]
+    def keys(self) -> AbstractImmutableInsensitiveSet[K]:  # type: ignore[override]
         ...
 
     @overload
@@ -489,5 +530,5 @@ class InsensitiveDict[K: str | None, V](AbstractInsensitiveDict[K, V]):
     def make_key(original_key: Any) -> K:
         return _normalise_str_none(original_key)
 
-    def keys(self) -> InsensitiveSet[K]:  # type: ignore[override]
-        return InsensitiveSet(self)
+    def keys(self) -> ImmutableInsensitiveSet[K]:  # type: ignore[override]
+        return ImmutableInsensitiveSet(self)

@@ -2,7 +2,7 @@ from functools import partial
 
 import pytest
 
-from notifications_utils.insensitive_dict import InsensitiveDict, InsensitiveSet
+from notifications_utils.insensitive_dict import ImmutableInsensitiveSet, InsensitiveDict, InsensitiveSet
 from notifications_utils.recipients import Cell, Row
 from notifications_utils.template import SMSPreviewTemplate
 
@@ -164,9 +164,14 @@ def test_update():
     )
 
 
-def test_insensitive_set():
+def test_key_stored_as_normalised_format():
+    assert tuple(InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}).items()) == (("foo", 3),)
+
+
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set(cls):
     assert tuple(
-        InsensitiveSet(
+        cls(
             [
                 "foo",
                 "F o o ",
@@ -183,8 +188,9 @@ def test_insensitive_set():
     )
 
 
-def test_insensitive_set_contains():
-    foobar = InsensitiveSet(("foo", "bar"))
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_contains(cls):
+    foobar = cls(("foo", "bar"))
 
     for key in (
         "foo",
@@ -204,12 +210,9 @@ def test_insensitive_set_contains():
         assert key not in foobar
 
 
-def test_key_stored_as_normalised_format():
-    assert tuple(InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}).items()) == (("foo", 3),)
-
-
-def test_insensitive_set_index():
-    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_index(cls):
+    foobarbaz = cls(("foo", "bar", "FOO", "BAR", "B A Z"))
 
     assert foobarbaz.index("foo") == foobarbaz.index("FOO") == foobarbaz.index("f_o_o") == 0
     assert foobarbaz.index("bar") == foobarbaz.index("BAR") == foobarbaz.index("B A R") == 1
@@ -219,57 +222,115 @@ def test_insensitive_set_index():
         foobarbaz.index("foobar")
 
 
-def test_insensitive_set_is_disjoint():
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_is_disjoint(cls, other_cls):
     foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
 
-    assert foobarbaz.isdisjoint({"foobar"})
-    assert not foobarbaz.isdisjoint({"baz"})
+    assert foobarbaz.isdisjoint(other_cls(("foobar",)))
+    assert not foobarbaz.isdisjoint(other_cls(("baz",)))
 
 
-def test_insensitive_set_is_subset():
-    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
-    superset = {"foo", "bar", "BAZ", "foobar"}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_is_subset(cls, other_cls):
+    foobarbaz = cls(("foo", "bar", "FOO", "BAR", "B A Z"))
+    superset = other_cls(
+        (
+            "foo",
+            "bar",
+            "BAZ",
+            "foobar",
+        )
+    )
     assert foobarbaz.issubset(superset)
 
     assert foobarbaz < superset
     assert foobarbaz <= superset
-    assert not foobarbaz < {"foo", "bar", "BAZ"}
+    assert not foobarbaz < other_cls(
+        (
+            "foo",
+            "bar",
+            "BAZ",
+        )
+    )
 
 
-def test_insensitive_set_is_superset():
-    foobarbaz = InsensitiveSet(("foo", "bar", "FOO", "BAR", "B A Z"))
-    subset = {"Foo", "Bar"}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_is_superset(cls, other_cls):
+    foobarbaz = cls(("foo", "bar", "FOO", "BAR", "B A Z"))
+    subset = other_cls(
+        (
+            "Foo",
+            "Bar",
+        )
+    )
     assert foobarbaz.issuperset(subset)
 
     assert foobarbaz > subset
     assert foobarbaz >= subset
-    assert not foobarbaz > {"foo", "bar", "BAZ"}
+    assert not foobarbaz > other_cls(
+        (
+            "foo",
+            "bar",
+            "BAZ",
+        )
+    )
 
 
-def test_insensitive_set_union():
-    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
-    barbaz = {"Bar", "B A Z"}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_union(cls, other_cls):
+    foobar = cls(("foo", "bar", "FOO", "BAR"))
+    barbaz = other_cls(
+        (
+            "Bar",
+            "B A Z",
+        )
+    )
     assert foobar.union(barbaz) == {"foo", "bar", "B A Z"}
     assert foobar | barbaz == {"foo", "bar", "B A Z"}
 
 
-def test_insensitive_set_intersection():
-    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
-    barbaz = {"Bar", "B A Z"}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_intersection(cls, other_cls):
+    foobar = cls(("foo", "bar", "FOO", "BAR"))
+    barbaz = other_cls(
+        (
+            "Bar",
+            "B A Z",
+        )
+    )
     assert foobar.intersection(barbaz) == {"BAR"}
     assert foobar & barbaz == {"BAR"}
 
 
-def test_insensitive_set_difference():
-    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
-    barbaz = {"Bar", "B A Z"}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_difference(cls, other_cls):
+    foobar = cls(("foo", "bar", "FOO", "BAR"))
+    barbaz = other_cls(
+        (
+            "Bar",
+            "B A Z",
+        )
+    )
     assert foobar.difference(barbaz) == {"foo"}
     assert foobar - barbaz == {"foo"}
 
 
-def test_insensitive_set_symmetric_difference():
-    foobar = InsensitiveSet(("foo", "bar", "FOO", "BAR"))
-    barbaz = {"Bar", "B A Z"}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_symmetric_difference(cls, other_cls):
+    foobar = cls(("foo", "bar", "FOO", "BAR"))
+    barbaz = other_cls(
+        (
+            "Bar",
+            "B A Z",
+        )
+    )
     assert foobar.symmetric_difference(barbaz) == {"foo", "B A Z"}
     assert foobar ^ barbaz == {"foo", "B A Z"}
 
@@ -287,8 +348,15 @@ def test_insensitive_set_pop():
         foobar.pop()
 
 
-def test_insensitive_set_or_iterable():
-    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) | (f"{i} " for i in range(18, 4, -1))) == (
+def test_immutable_insensitive_set_cant_pop():
+    foobar = ImmutableInsensitiveSet(("foo", "bar", "FOO", " BAR ", "baz"))
+    with pytest.raises((AttributeError, TypeError)):
+        foobar.pop()
+
+
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_or_iterable(cls):
+    assert tuple(cls(f" {i}" for i in range(8)) | (f"{i} " for i in range(18, 4, -1))) == (
         " 0",
         " 1",
         " 2",
@@ -311,8 +379,9 @@ def test_insensitive_set_or_iterable():
     )
 
 
-def test_insensitive_set_ror_iterable():
-    assert tuple((f"{i} " for i in range(18, 4, -1)) | InsensitiveSet(f" {i}" for i in range(8))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_ror_iterable(cls):
+    assert tuple((f"{i} " for i in range(18, 4, -1)) | cls(f" {i}" for i in range(8))) == (
         "18 ",
         "17 ",
         "16 ",
@@ -335,24 +404,27 @@ def test_insensitive_set_ror_iterable():
     )
 
 
-def test_insensitive_set_and_iterable():
-    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) & (f"{i} " for i in range(18, 4, -1))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_and_iterable(cls):
+    assert tuple(cls(f" {i}" for i in range(8)) & (f"{i} " for i in range(18, 4, -1))) == (
         " 5",
         " 6",
         " 7",
     )
 
 
-def test_insensitive_set_rand_iterable():
-    assert tuple((f"{i} " for i in range(18, 4, -1)) & InsensitiveSet(f" {i}" for i in range(8))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_rand_iterable(cls):
+    assert tuple((f"{i} " for i in range(18, 4, -1)) & cls(f" {i}" for i in range(8))) == (
         "7 ",
         "6 ",
         "5 ",
     )
 
 
-def test_insensitive_set_xor_iterable():
-    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) ^ (f"{i} " for i in range(18, 4, -1))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_xor_iterable(cls):
+    assert tuple(cls(f" {i}" for i in range(8)) ^ (f"{i} " for i in range(18, 4, -1))) == (
         " 0",
         " 1",
         " 2",
@@ -372,8 +444,9 @@ def test_insensitive_set_xor_iterable():
     )
 
 
-def test_insensitive_set_rxor_iterable():
-    assert tuple((f"{i} " for i in range(18, 4, -1)) ^ InsensitiveSet(f" {i}" for i in range(8))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_rxor_iterable(cls):
+    assert tuple((f"{i} " for i in range(18, 4, -1)) ^ cls(f" {i}" for i in range(8))) == (
         "18 ",
         "17 ",
         "16 ",
@@ -393,8 +466,9 @@ def test_insensitive_set_rxor_iterable():
     )
 
 
-def test_insensitive_set_sub_iterable():
-    assert tuple(InsensitiveSet(f" {i}" for i in range(8)) - (f"{i} " for i in range(18, 4, -1))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_sub_iterable(cls):
+    assert tuple(cls(f" {i}" for i in range(8)) - (f"{i} " for i in range(18, 4, -1))) == (
         " 0",
         " 1",
         " 2",
@@ -403,8 +477,9 @@ def test_insensitive_set_sub_iterable():
     )
 
 
-def test_insensitive_set_rsub_iterable():
-    assert tuple((f"{i} " for i in range(18, 4, -1)) - InsensitiveSet(f" {i}" for i in range(8))) == (
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_rsub_iterable(cls):
+    assert tuple((f"{i} " for i in range(18, 4, -1)) - cls(f" {i}" for i in range(8))) == (
         "18 ",
         "17 ",
         "16 ",
@@ -419,8 +494,9 @@ def test_insensitive_set_rsub_iterable():
     )
 
 
-def test_insensitive_set_iand_iterable():
-    s = InsensitiveSet(f" {i}" for i in range(8))
+@pytest.mark.parametrize("cls, expect_reassign", ((InsensitiveSet, False), (ImmutableInsensitiveSet, True)))
+def test_insensitive_set_iand_iterable(cls, expect_reassign):
+    q = s = cls(f" {i}" for i in range(8))
     s &= (f"{i} " for i in range(18, 4, -1))
 
     assert tuple(s) == (
@@ -429,9 +505,12 @@ def test_insensitive_set_iand_iterable():
         " 7",
     )
 
+    assert (q is not s) == expect_reassign
 
-def test_insensitive_set_ior_iterable():
-    s = InsensitiveSet(f" {i}" for i in range(8))
+
+@pytest.mark.parametrize("cls, expect_reassign", ((InsensitiveSet, False), (ImmutableInsensitiveSet, True)))
+def test_insensitive_set_ior_iterable(cls, expect_reassign):
+    q = s = cls(f" {i}" for i in range(8))
     s |= (f"{i} " for i in range(18, 4, -1))
 
     assert tuple(s) == (
@@ -456,9 +535,12 @@ def test_insensitive_set_ior_iterable():
         "8 ",
     )
 
+    assert (q is not s) == expect_reassign
 
-def test_insensitive_set_ixor_iterable():
-    s = InsensitiveSet(f" {i}" for i in range(8))
+
+@pytest.mark.parametrize("cls, expect_reassign", ((InsensitiveSet, False), (ImmutableInsensitiveSet, True)))
+def test_insensitive_set_ixor_iterable(cls, expect_reassign):
+    q = s = cls(f" {i}" for i in range(8))
     s ^= (f"{i} " for i in range(18, 4, -1))
 
     assert tuple(s) == (
@@ -480,9 +562,12 @@ def test_insensitive_set_ixor_iterable():
         "8 ",
     )
 
+    assert (q is not s) == expect_reassign
 
-def test_insensitive_set_isub_iterable():
-    s = InsensitiveSet(f" {i}" for i in range(8))
+
+@pytest.mark.parametrize("cls, expect_reassign", ((InsensitiveSet, False), (ImmutableInsensitiveSet, True)))
+def test_insensitive_set_isub_iterable(cls, expect_reassign):
+    q = s = cls(f" {i}" for i in range(8))
     s -= (f"{i} " for i in range(18, 4, -1))
 
     assert tuple(s) == (
@@ -493,6 +578,8 @@ def test_insensitive_set_isub_iterable():
         " 4",
     )
 
+    assert (q is not s) == expect_reassign
+
 
 def test_insensitive_set_invalid_inequality():
     with pytest.raises(TypeError):
@@ -502,46 +589,54 @@ def test_insensitive_set_invalid_inequality():
         InsensitiveSet() >= 1  # noqa: B015
 
 
-def test_insensitive_set_eq_set():
-    assert {f" {i}" for i in range(8)} == InsensitiveSet(f"{i} " for i in range(7, -1, -1))
-    assert InsensitiveSet(f"{i} " for i in range(7, -1, -1)) == {f" {i}" for i in range(8)}
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet, set))
+def test_insensitive_set_eq_set(cls, other_cls):
+    assert other_cls(f" {i}" for i in range(8)) == cls(f"{i} " for i in range(7, -1, -1))
+    assert cls(f"{i} " for i in range(7, -1, -1)) == other_cls(f" {i}" for i in range(8))
 
-    assert {f" {i}" for i in range(8)} != InsensitiveSet(f"{i} " for i in range(8, -1, -1))
-    assert InsensitiveSet(f"{i} " for i in range(8, -1, -1)) != {f" {i}" for i in range(8)}
-
-
-def test_insensitive_set_eq_insensitive_set_not_order_sensitive():
-    assert InsensitiveSet(f" {i}" for i in range(8)) == InsensitiveSet(f"{i} " for i in range(7, -1, -1))
-    assert InsensitiveSet(f" {i}" for i in range(8)) == InsensitiveSet(f"{i} " for i in range(8))
-    assert InsensitiveSet(f" {i}" for i in range(8)) != InsensitiveSet(f"{i} " for i in range(7))
+    assert other_cls(f" {i}" for i in range(8)) != cls(f"{i} " for i in range(8, -1, -1))
+    assert cls(f"{i} " for i in range(8, -1, -1)) != other_cls(f" {i}" for i in range(8))
 
 
-def test_insensitive_set_eq_iterable_order_sensitive():
-    assert InsensitiveSet(f" {i}" for i in range(8)) != (f"{i} " for i in range(7, -1, -1))
-    assert InsensitiveSet(f" {i}" for i in range(8)) == (f"{i} " for i in range(8))
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+@pytest.mark.parametrize("other_cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_eq_insensitive_set_not_order_sensitive(cls, other_cls):
+    assert cls(f" {i}" for i in range(8)) == other_cls(f"{i} " for i in range(7, -1, -1))
+    assert cls(f" {i}" for i in range(8)) == other_cls(f"{i} " for i in range(8))
+    assert cls(f" {i}" for i in range(8)) != other_cls(f"{i} " for i in range(7))
 
 
-def test_insensitive_set_getitem_positive_int():
-    insensitive_set = InsensitiveSet(f" {i}" for i in range(8))
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_eq_iterable_order_sensitive(cls):
+    assert cls(f" {i}" for i in range(8)) != (f"{i} " for i in range(7, -1, -1))
+    assert cls(f" {i}" for i in range(8)) == (f"{i} " for i in range(8))
+
+
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_getitem_positive_int(cls):
+    insensitive_set = cls(f" {i}" for i in range(8))
     for i in range(8):
         assert insensitive_set[i] == f" {i}"
 
 
-def test_insensitive_set_getitem_negative_int():
-    insensitive_set = InsensitiveSet(f" {i}" for i in range(8))
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
+def test_insensitive_set_getitem_negative_int(cls):
+    insensitive_set = cls(f" {i}" for i in range(8))
     for i, j in zip(range(8), range(-8, 0), strict=True):
         assert insensitive_set[j] == f" {i}"
 
 
+@pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
 @pytest.mark.parametrize("start", tuple(range(-5, 4)) + (None,))
 @pytest.mark.parametrize("stop", tuple(range(-5, 4)) + (None,))
 @pytest.mark.parametrize("step", (-1, 1, None))
-def test_insensitive_set_getitem_slices(start, stop, step):
+def test_insensitive_set_getitem_slices(cls, start, stop, step):
     tup = tuple(f" {i}" for i in range(4))
-    iset = InsensitiveSet(tup)
+    iset = cls(tup)
 
     iset_ret = iset[start:stop:step]
     tup_ret = tup[start:stop:step]
 
-    assert isinstance(iset_ret, InsensitiveSet)
+    assert isinstance(iset_ret, cls)
     assert tuple(iset_ret) == tuple(tup_ret)
