@@ -7,7 +7,7 @@ LOG_FORMAT = '%(asctime)s %(app_name)s %(name)s %(levelname)s %(request_id)s "%(
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
-class _MicrosecondAddingFormatterMixin:
+class _MicrosecondAddingFormatter(logging.Formatter):
     """
     Appends a `.` and then a 6-digit number of microseconds to whatever
     the superclass' `.formatTime(...)` returns.
@@ -23,11 +23,11 @@ class _MicrosecondAddingFormatterMixin:
         return f"{formatted}.{int((record.created - int(record.created)) * 1e6):06}"
 
 
-class Formatter(_MicrosecondAddingFormatterMixin, logging.Formatter):
+class Formatter(_MicrosecondAddingFormatter):
     pass
 
 
-class JSONFormatter(_MicrosecondAddingFormatterMixin, BaseJSONFormatter):
+class JSONFormatter(BaseJSONFormatter, _MicrosecondAddingFormatter):
     def process_log_record(self, log_record):
         rename_map = {
             "asctime": "time",
