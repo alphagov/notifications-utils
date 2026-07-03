@@ -1,6 +1,6 @@
 import pytest
 
-from notifications_utils.countries import Country, CountryMapping, CountryNotFoundError
+from notifications_utils.countries import Country, CountryMapping, CountryNotFoundError, countries
 from notifications_utils.countries.data import (
     _EUROPEAN_ISLANDS_LIST,
     _UK_ISLANDS_LIST,
@@ -206,3 +206,7 @@ def test_new_numeric_synonyms_cant_sneak_in():
     with pytest.raises(ValueError) as e:
         CountryMapping({"123": "ABC"})
     assert str(e.value) == "Name of country 123 contains a number"
+
+
+def test_country_mapping_cache_is_big_enough():
+    assert CountryMapping.make_key.cache_parameters()["maxsize"] > len(countries)
