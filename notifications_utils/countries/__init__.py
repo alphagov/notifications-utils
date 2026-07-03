@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from functools import lru_cache
 from typing import Any
 
-from notifications_utils.insensitive_dict import InsensitiveDict
+from notifications_utils.insensitive_dict import AbstractInsensitiveDict, AbstractInsensitiveSet
 from notifications_utils.sanitise_text import SanitiseASCII
 
 from .data import (
@@ -17,25 +17,35 @@ from .data import (
 )
 
 
-class CountryMapping[K: str, V: str](InsensitiveDict):
+@lru_cache(maxsize=2048, typed=False)
+def _normalise_country_name(original_key: Any) -> str:
+    if not isinstance(original_key, str):
+        raise TypeError
+
+    if any(c.isdigit() for c in original_key):
+        raise ValueError(f"Name of country {original_key} contains a number")
+
+    original_key = original_key.replace("&", "and")
+    original_key = original_key.replace("+", "and")
+
+    normalised = "".join(character.lower() for character in original_key if character not in " _-'’,.()")
+
+    if "?" in SanitiseASCII.encode(normalised):
+        return normalised
+
+    return SanitiseASCII.encode(normalised)
+
+
+class CountrySet(AbstractInsensitiveSet[str]):
     @staticmethod
-    @lru_cache(maxsize=2048, typed=False)
     def make_key(original_key: Any) -> str:
-        if not isinstance(original_key, str):
-            raise TypeError
+        return _normalise_country_name(original_key)
 
-        if any(c.isdigit() for c in original_key):
-            raise ValueError(f"Name of country {original_key} contains a number")
 
-        original_key = original_key.replace("&", "and")
-        original_key = original_key.replace("+", "and")
-
-        normalised = "".join(character.lower() for character in original_key if character not in " _-'’,.()")
-
-        if "?" in SanitiseASCII.encode(normalised):
-            return normalised
-
-        return SanitiseASCII.encode(normalised)
+class CountryMapping(AbstractInsensitiveDict[str, str]):
+    @staticmethod
+    def make_key(original_key: Any) -> str:
+        return _normalise_country_name(original_key)
 
     def __contains__(self, key: Any) -> bool:
         if isinstance(key, str) and any(c.isdigit() for c in key):
@@ -46,12 +56,15 @@ class CountryMapping[K: str, V: str](InsensitiveDict):
             return False
         return super().__contains__(key)
 
-    def __getitem__(self, key: K) -> V:
+    def __getitem__(self, key: str) -> str:
         for key_ in (key, f"the {key}", f"yr {key}", f"y {key}"):
             if key_ in self:
                 return super().__getitem__(key_)
 
         raise CountryNotFoundError(f"Not a known country or territory ({key})")
+
+    def keys(self) -> CountrySet:  # type: ignore[override]
+        return CountrySet(self)
 
 
 countries: Mapping = CountryMapping(
