@@ -23,6 +23,10 @@ class CountryMapping[K: str, V: str](InsensitiveDict):
     def make_key(original_key: Any) -> str:
         if not isinstance(original_key, str):
             raise TypeError
+
+        if any(c.isdigit() for c in original_key):
+            raise ValueError(f"Name of country {original_key} contains a number")
+
         original_key = original_key.replace("&", "and")
         original_key = original_key.replace("+", "and")
 
