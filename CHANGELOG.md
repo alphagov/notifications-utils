@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 122.0.0
+
+* Reimplement `InsensitiveDict` as an implementation of a generic `MutableMapping` rather than inheriting directly from `dict`. This allows us to avoid some typing complications, but means some `dict`-only methods and operators are not implemented. However, all the generic `MutableMapping` methods should behave "correctly" (i.e. normalise keys), including `update` and `setdefault`, which the previous implementation ignored.
+
 ## 121.0.0
 
 * Removes `InsensitiveDict.from_keys`
