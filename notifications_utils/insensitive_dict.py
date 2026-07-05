@@ -417,10 +417,12 @@ class InsensitiveSet[T: str | None](ImmutableInsensitiveSet[T], AbstractMutableI
     _immutable_type: type[ImmutableInsensitiveSet[T]] = ImmutableInsensitiveSet
 
 
-ImmutableInsensitiveSet._mutable_type = InsensitiveSet._mutable_type = InsensitiveSet  # type: ignore[misc]
+ImmutableInsensitiveSet._mutable_type = InsensitiveSet  # type: ignore[misc]
 
 
-class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
+class AbstractImmutableInsensitiveDict[K, V](Mapping[K, V], metaclass=ABCMeta):
+    _mutable_type: type[Self] | None = None
+
     __slots__ = ("_inner",)
     _inner: dict[K, V]
 
@@ -432,7 +434,19 @@ class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
 
     def __init__(self, initial: Mapping[K, V] | Iterable[tuple[K, V]] = (), /):
         self._inner = {}
-        self.update(initial)
+        self._update(initial)
+
+    # needed on immutable type for internal use during construction
+    def _update(self, other: Mapping[K, V] | Iterable[tuple[K, V]], /, **kwargs: V) -> None:
+        if type(other) is type(self) or type(other) is self._mutable_type:  # type comparison deliberately strict
+            self._inner.update(other._inner)
+        else:
+            it = other.items() if isinstance(other, Mapping) else other
+            for k, v in it:
+                self._inner[self.make_key(k)] = v
+
+        for k, v in kwargs.items():
+            self._inner[self.make_key(k)] = v  # type: ignore[index]
 
     # Mapping[K, V]
 
@@ -444,14 +458,6 @@ class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
 
     def __len__(self) -> int:
         return self._inner.__len__()
-
-    # MutableMapping[K, V]
-
-    def __setitem__(self, key: K, value: V):
-        self._inner.__setitem__(self.make_key(key), value)
-
-    def __delitem__(self, key: K):
-        self._inner.__delitem__(self.make_key(key))
 
     # Accelerate Mapping[K, V]
 
@@ -467,7 +473,10 @@ class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
         if not isinstance(other, Mapping):
             return NotImplemented
 
-        other_dict = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
+        other_dict = (
+            # type comparison deliberately strict
+            other if type(other) is type(self) or type(other) is self._mutable_type else type(self)(other)
+        )
 
         return self._inner.__eq__(other_dict._inner)
 
@@ -498,22 +507,6 @@ class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
 
         return self._inner.get(final_key, default)
 
-    # Accelerate MutableMapping[K, V]
-
-    def clear(self):
-        self._inner.clear()
-
-    def update(self, other: Mapping[K, V] | Iterable[tuple[K, V]], /, **kwargs: V) -> None:  # type: ignore[override]
-        if type(self) is type(other):  # type comparison deliberately strict
-            self._inner.update(other._inner)
-        else:
-            it = other.items() if isinstance(other, Mapping) else other
-            for k, v in it:
-                self[k] = v
-
-        for k, v in kwargs.items():
-            self[k] = v  # type: ignore[index]
-
     # bonus methods
 
     def as_dict_with_keys(self, keys: Iterable[K]) -> dict[K, V | None]:
@@ -525,10 +518,44 @@ class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
         return other
 
 
-class InsensitiveDict[K: str | None, V](AbstractInsensitiveDict[K, V]):
+class AbstractMutableInsensitiveDict[K, V](
+    AbstractImmutableInsensitiveDict[K, V], MutableMapping[K, V], metaclass=ABCMeta
+):
+    _immutable_type: type[AbstractImmutableInsensitiveDict[K, V]] | None = None
+
+    # MutableMapping[K, V]
+
+    def __setitem__(self, key: K, value: V):
+        self._inner.__setitem__(self.make_key(key), value)
+
+    def __delitem__(self, key: K):
+        self._inner.__delitem__(self.make_key(key))
+
+    # Accelerate MutableMapping[K, V]
+
+    def clear(self):
+        self._inner.clear()
+
+    def update(self, other: Mapping[K, V] | Iterable[tuple[K, V]], /, **kwargs: V) -> None:  # type: ignore[override]
+        return self._update(other, **kwargs)
+
+
+AbstractInsensitiveDict = AbstractMutableInsensitiveDict
+
+
+class ImmutableInsensitiveDict[K: str | None, V](AbstractImmutableInsensitiveDict[K, V]):
+    _mutable_type: "type[InsensitiveDict[K, V]]"
+
     @staticmethod
     def make_key(original_key: Any) -> K:
         return _normalise_str_none(original_key)
 
     def keys(self) -> ImmutableInsensitiveSet[K]:  # type: ignore[override]
         return ImmutableInsensitiveSet(self)
+
+
+class InsensitiveDict[K: str | None, V](ImmutableInsensitiveDict[K, V], AbstractMutableInsensitiveDict[K, V]):
+    _immutable_type: type[ImmutableInsensitiveDict[K, V]] = ImmutableInsensitiveDict[K, V]
+
+
+ImmutableInsensitiveDict._mutable_type = InsensitiveDict  # type: ignore[misc]

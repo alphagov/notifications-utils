@@ -2,19 +2,27 @@ from functools import partial
 
 import pytest
 
-from notifications_utils.insensitive_dict import ImmutableInsensitiveSet, InsensitiveDict, InsensitiveSet
+from notifications_utils.insensitive_dict import (
+    ImmutableInsensitiveDict,
+    ImmutableInsensitiveSet,
+    InsensitiveDict,
+    InsensitiveSet,
+)
 from notifications_utils.recipients import Cell, Row
 from notifications_utils.template import SMSPreviewTemplate
 
 
-def test_columns_as_dict_with_keys():
-    assert InsensitiveDict({"Date of Birth": "01/01/2001", "TOWN": "London"}).as_dict_with_keys(
-        {"date_of_birth", "town"}
-    ) == {"date_of_birth": "01/01/2001", "town": "London"}
+@pytest.mark.parametrize("cls", (InsensitiveDict, ImmutableInsensitiveDict))
+def test_columns_as_dict_with_keys(cls):
+    assert cls({"Date of Birth": "01/01/2001", "TOWN": "London"}).as_dict_with_keys({"date_of_birth", "town"}) == {
+        "date_of_birth": "01/01/2001",
+        "town": "London",
+    }
 
 
-def test_columns_as_dict():
-    assert dict(InsensitiveDict({"date of birth": "01/01/2001", "TOWN": "London"})) == {
+@pytest.mark.parametrize("cls", (InsensitiveDict, ImmutableInsensitiveDict))
+def test_columns_as_dict(cls):
+    assert dict(cls({"date of birth": "01/01/2001", "TOWN": "London"})) == {
         "dateofbirth": "01/01/2001",
         "town": "London",
     }
@@ -57,8 +65,9 @@ def test_missing_data():
         ("bar", False),
     ],
 )
-def test_lookup(key, should_be_present, in_dictionary):
-    assert (key in InsensitiveDict(in_dictionary)) == should_be_present
+@pytest.mark.parametrize("cls", (InsensitiveDict, ImmutableInsensitiveDict))
+def test_lookup(cls, key, should_be_present, in_dictionary):
+    assert (key in cls(in_dictionary)) == should_be_present
 
 
 @pytest.mark.parametrize(
@@ -80,6 +89,14 @@ def test_set_item(key_in, lookup_key):
     columns = InsensitiveDict({})
     columns[key_in] = "bar"
     assert columns[lookup_key] == "bar"
+    columns[key_in] = "baz"
+    assert columns[lookup_key] == "baz"
+
+
+def test_immutable_cant_set_item():
+    columns = ImmutableInsensitiveDict({})
+    with pytest.raises((AttributeError, TypeError)):
+        columns["foo"] = "bar"
 
 
 @pytest.mark.parametrize(
@@ -108,6 +125,16 @@ def test_del_item(key_in, delete_key):
     assert tuple(columns.items()) == ()
 
 
+def test_immutable_cant_del_item():
+    columns = ImmutableInsensitiveDict({"foo": "bar", "baz": 123})
+
+    with pytest.raises((AttributeError, TypeError)):
+        del columns["foo"]
+
+    with pytest.raises((AttributeError, TypeError)):
+        del columns["nonexistent"]
+
+
 @pytest.mark.parametrize(
     "key_in",
     [
@@ -134,6 +161,16 @@ def test_pop_item(key_in, pop_key):
     assert tuple(columns.items()) == (("baz", 123),)
 
 
+def test_immutable_cant_pop_item():
+    columns = ImmutableInsensitiveDict({"foo": "bar", "baz": 123})
+
+    with pytest.raises((AttributeError, TypeError)):
+        columns.pop("foo")
+
+    with pytest.raises((AttributeError, TypeError)):
+        columns.pop("nonexistent")
+
+
 def test_maintains_insertion_order():
     d = InsensitiveDict(
         {
@@ -145,6 +182,17 @@ def test_maintains_insertion_order():
     assert tuple(d.keys()) == ("b", "a", "c")
     d["BB"] = None
     assert tuple(d.keys()) == ("b", "a", "c", "bb")
+
+
+def test_immutable_maintains_insertion_order():
+    d = ImmutableInsensitiveDict(
+        {
+            "B": None,
+            "A": None,
+            "C": None,
+        }
+    )
+    assert tuple(d.keys()) == ("b", "a", "c")
 
 
 def test_update():
@@ -164,8 +212,21 @@ def test_update():
     )
 
 
-def test_key_stored_as_normalised_format():
-    assert tuple(InsensitiveDict({"foo": 1, "FOO": 2, "f_o_o": 3}).items()) == (("foo", 3),)
+def test_immutable_cant_update():
+    d = ImmutableInsensitiveDict(
+        {
+            "A": "A1",
+            "B": "B1",
+            "C": "C1",
+        }
+    )
+    with pytest.raises((AttributeError, TypeError)):
+        d.update((("b ", "B2"), ("c ", "C2"), ("d_", "D1"), (" c", "C3")))
+
+
+@pytest.mark.parametrize("cls", (InsensitiveDict, ImmutableInsensitiveDict))
+def test_key_stored_as_normalised_format(cls):
+    assert tuple(cls({"foo": 1, "FOO": 2, "f_o_o": 3}).items()) == (("foo", 3),)
 
 
 @pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
