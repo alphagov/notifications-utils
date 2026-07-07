@@ -3,7 +3,7 @@ from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, time, timedelta
 
 from notifications_utils.bank_holidays import BankHolidays
-from notifications_utils.countries.data import Postage
+from notifications_utils.countries.data import Postage, PostageType
 from notifications_utils.timezones import (
     local_timezone,
     utc_string_to_aware_gmt_datetime,
@@ -90,7 +90,7 @@ def get_previous_dvla_working_day(date: datetime) -> datetime:
     return get_dvla_working_day_offset_by(date, days=-1)
 
 
-def get_royal_mail_working_day_offset_by(date: datetime, *, days: int, postage: str) -> datetime:
+def get_royal_mail_working_day_offset_by(date: datetime, *, days: int, postage: PostageType) -> datetime:
     """
     Royal mail deliver letters on Monday to Friday, with deliveries also taking place on Saturday
     for First class mail
@@ -103,22 +103,22 @@ def get_royal_mail_working_day_offset_by(date: datetime, *, days: int, postage: 
     return get_offset_working_day(date, is_work_day=is_work_day, days=days)
 
 
-def get_next_royal_mail_working_day(date: datetime, postage: str) -> datetime:
+def get_next_royal_mail_working_day(date: datetime, postage: PostageType) -> datetime:
     return get_royal_mail_working_day_offset_by(date, days=1, postage=postage)
 
 
-def get_previous_royal_mail_working_day(date: datetime, postage: str) -> datetime:
+def get_previous_royal_mail_working_day(date: datetime, postage: PostageType) -> datetime:
     return get_royal_mail_working_day_offset_by(date, days=-1, postage=postage)
 
 
-def get_delivery_day(date: datetime, *, days_to_deliver: int, postage: str) -> datetime:
+def get_delivery_day(date: datetime, *, days_to_deliver: int, postage: PostageType) -> datetime:
     next_day = get_next_royal_mail_working_day(date, postage)
     if days_to_deliver == 1:
         return next_day
     return get_delivery_day(next_day, days_to_deliver=(days_to_deliver - 1), postage=postage)
 
 
-def get_min_and_max_days_in_transit(postage: str) -> tuple[int, int]:
+def get_min_and_max_days_in_transit(postage: PostageType) -> tuple[int, int]:
     return {
         # first class post is printed earlier in the day, so will
         # actually transit on the printing day, and be delivered the next
@@ -131,7 +131,7 @@ def get_min_and_max_days_in_transit(postage: str) -> tuple[int, int]:
     }[postage]
 
 
-def get_earliest_and_latest_delivery(print_day: datetime, postage: str) -> Iterator[datetime]:
+def get_earliest_and_latest_delivery(print_day: datetime, postage: PostageType) -> Iterator[datetime]:
     for days_to_transit in get_min_and_max_days_in_transit(postage):
         yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit, postage=postage)
 
@@ -139,7 +139,7 @@ def get_earliest_and_latest_delivery(print_day: datetime, postage: str) -> Itera
 LetterTimings = namedtuple("LetterTimings", "printed_by, is_printed, earliest_delivery, latest_delivery")
 
 
-def get_letter_timings(upload_time: datetime, postage: str) -> LetterTimings:
+def get_letter_timings(upload_time: datetime, postage: PostageType) -> LetterTimings:
     # shift anything after 5:30pm to the next day
     processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
     print_day = get_next_dvla_working_day(processing_day)

@@ -14,6 +14,7 @@ from .data import (
     UK_ISLANDS,
     WELSH_NAMES,
     Postage,
+    PostageZoneType,
 )
 
 
@@ -82,7 +83,7 @@ class Country:
         return self.canonical_name == other.canonical_name
 
     @property
-    def postage_zone(self) -> str:
+    def postage_zone(self) -> PostageZoneType:
         if self.canonical_name == UK:
             return Postage.UK
         if self.canonical_name in ROYAL_MAIL_EUROPEAN:

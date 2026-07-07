@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any
+from typing import Any, Literal
 
 
 def _load_data(filename: str) -> Any:
@@ -66,9 +66,25 @@ ROYAL_MAIL_EUROPEAN = _load_data("europe.txt")
 
 
 class Postage:
-    UK = "united-kingdom"
-    FIRST = "first"
-    SECOND = "second"
-    ECONOMY = "economy"
-    EUROPE = "europe"
-    REST_OF_WORLD = "rest-of-world"
+    UK: Literal["united-kingdom"] = "united-kingdom"
+    FIRST: Literal["first"] = "first"
+    SECOND: Literal["second"] = "second"
+    ECONOMY: Literal["economy"] = "economy"
+    EUROPE: Literal["europe"] = "europe"
+    REST_OF_WORLD: Literal["rest-of-world"] = "rest-of-world"
+
+
+PostageType = Literal[
+    "united-kingdom",
+    "first",
+    "second",
+    "economy",
+    "europe",
+    "rest-of-world",
+]
+
+PostageZoneType = Literal[
+    "united-kingdom",
+    "europe",
+    "rest-of-world",
+]

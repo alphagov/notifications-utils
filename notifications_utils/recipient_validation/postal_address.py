@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Self
 
 from notifications_utils.countries import UK, Country, CountryNotFoundError
-from notifications_utils.countries.data import UK_POSTCODE_ZONES, Postage
+from notifications_utils.countries.data import UK_POSTCODE_ZONES, Postage, PostageZoneType
 from notifications_utils.formatters import (
     get_lines_with_normalised_whitespace,
     remove_whitespace,
@@ -227,7 +227,7 @@ class PostalAddress:
         return self.normalised_lines[:-1]
 
     @property
-    def postage(self) -> str:
+    def postage(self) -> PostageZoneType:
         return self.country.postage_zone
 
     @property
