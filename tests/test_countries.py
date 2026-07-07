@@ -1,6 +1,13 @@
 import pytest
 
-from notifications_utils.countries import Country, CountryMapping, CountryNotFoundError
+from notifications_utils.countries import (
+    Country,
+    CountryMapping,
+    CountryNotFoundError,
+    CountrySet,
+    _normalise_country_name,
+    countries,
+)
 from notifications_utils.countries.data import (
     _EUROPEAN_ISLANDS_LIST,
     _UK_ISLANDS_LIST,
@@ -179,3 +186,40 @@ def test_get_postage(search, expected):
 def test_euro_postage_zone():
     for search in ROYAL_MAIL_EUROPEAN:
         assert Country(search).postage_zone == Postage.EUROPE
+
+
+@pytest.mark.parametrize(
+    "synonym",
+    (
+        # These synonyms are found in our data but we don’t support them
+        # because they contain numeric characters
+        "UM-67",
+        "UM-71",
+        "UM-76",
+        "UM-81",
+        "UM-84",
+        "UM-86",
+        "UM-89",
+        "UM-95",
+        "Россия1",
+    ),
+)
+def test_numeric_synonymns_not_supported(synonym):
+    with pytest.raises(CountryNotFoundError):
+        Country(synonym)
+
+
+def test_new_numeric_synonyms_cant_sneak_in():
+    with pytest.raises(ValueError) as e:
+        CountryMapping({"123": "ABC"})
+    assert str(e.value) == "Name of country 123 contains a number"
+
+
+def test_country_mapping_cache_is_big_enough():
+    assert _normalise_country_name.cache_parameters()["maxsize"] > len(countries)
+
+
+def test_country_mapping_keys():
+    keys = countries.keys()
+    assert isinstance(keys, CountrySet)
+    assert keys[:3] == ("andorra", "unitedarabemirates", "afghanistan")

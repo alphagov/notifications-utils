@@ -1,15 +1,16 @@
 import json
 import os
+from typing import Any
 
 
-def _load_data(filename):
+def _load_data(filename: str) -> Any:
     with open(os.path.join(os.path.dirname(__file__), "_data", filename)) as contents:
         if filename.endswith(".json"):
             return json.load(contents)
         return [line.strip() for line in contents.readlines()]
 
 
-def find_canonical(item, graph, key):
+def find_canonical(item: dict, graph: dict, key: str):
     if item["meta"]["canonical"]:
         return key, item["names"]["en-GB"]
     return find_canonical(
@@ -29,6 +30,7 @@ UK = "United Kingdom"
 
 ENDED_COUNTRIES = _load_data("ended-countries.json")
 ADDITIONAL_SYNONYMS = list(_load_data("synonyms.json").items())
+IGNORED_NUMERIC_SYNONYMS = _load_data("ignored-numeric-synonyms.txt")
 WELSH_NAMES = list(_load_data("welsh-names.json").items())
 _UK_ISLANDS_LIST = _load_data("uk-islands.txt")
 _EUROPEAN_ISLANDS_LIST = _load_data("european-islands.txt")
@@ -41,6 +43,9 @@ CURRENT_AND_ENDED_COUNTRIES_AND_TERRITORIES = [
 COUNTRIES_AND_TERRITORIES = []
 
 for synonym, canonical in CURRENT_AND_ENDED_COUNTRIES_AND_TERRITORIES:
+    if synonym in IGNORED_NUMERIC_SYNONYMS:
+        continue
+
     if canonical in _UK_ISLANDS_LIST:
         COUNTRIES_AND_TERRITORIES.append((synonym, UK))
     elif canonical in ENDED_COUNTRIES:
