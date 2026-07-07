@@ -4,8 +4,8 @@ import pytest
 from freezegun import freeze_time
 
 from notifications_utils.letter_timings import (
+    LetterTimings,
     get_dvla_working_day_offset_by,
-    get_letter_timings,
     get_next_dvla_working_day,
     get_next_royal_mail_working_day,
     get_previous_dvla_working_day,
@@ -285,35 +285,35 @@ def test_get_estimated_delivery_date_for_letter(
 
     upload_time = upload_time.split(" ", 1)[1]
 
-    second_class_timings = get_letter_timings(upload_time, postage="second")
+    second_class_timings = LetterTimings(upload_time, postage="second")
 
     assert format_dt(second_class_timings.printed_by) == expected_print_time
     assert second_class_timings.is_printed == is_printed
     assert format_dt(second_class_timings.earliest_delivery) == expected_earliest_second_class
     assert format_dt(second_class_timings.latest_delivery) == expected_latest_second_class
 
-    economy_timings = get_letter_timings(upload_time, postage="economy")
+    economy_timings = LetterTimings(upload_time, postage="economy")
 
     assert format_dt(economy_timings.printed_by) == expected_print_time
     assert economy_timings.is_printed == is_printed
     assert format_dt(economy_timings.earliest_delivery) == expected_earliest_economy
     assert format_dt(economy_timings.latest_delivery) == expected_latest_economy
 
-    first_class_timings = get_letter_timings(upload_time, postage="first")
+    first_class_timings = LetterTimings(upload_time, postage="first")
 
     assert format_dt(first_class_timings.printed_by) == expected_print_time
     assert first_class_timings.is_printed == is_printed
     assert format_dt(first_class_timings.earliest_delivery) == first_class
     assert format_dt(first_class_timings.latest_delivery) == first_class
 
-    europe_timings = get_letter_timings(upload_time, postage="europe")
+    europe_timings = LetterTimings(upload_time, postage="europe")
 
     assert format_dt(europe_timings.printed_by) == expected_print_time
     assert europe_timings.is_printed == is_printed
     assert format_dt(europe_timings.earliest_delivery) == expected_earliest_europe
     assert format_dt(europe_timings.latest_delivery) == expected_latest_europe
 
-    rest_of_world_timings = get_letter_timings(upload_time, postage="rest-of-world")
+    rest_of_world_timings = LetterTimings(upload_time, postage="rest-of-world")
 
     assert format_dt(rest_of_world_timings.printed_by) == expected_print_time
     assert rest_of_world_timings.is_printed == is_printed
@@ -323,7 +323,7 @@ def test_get_estimated_delivery_date_for_letter(
 
 def test_letter_timings_only_accept_real_postage_values():
     with pytest.raises(KeyError):
-        get_letter_timings(datetime.now(UTC).isoformat(), postage="foo")
+        LetterTimings(datetime.now(UTC).isoformat(), postage="foo")
 
 
 @pytest.mark.parametrize("status", ["sending", "pending"])

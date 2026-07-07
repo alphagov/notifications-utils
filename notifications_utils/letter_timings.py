@@ -1,4 +1,3 @@
-from collections import namedtuple
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, time, timedelta
 
@@ -136,26 +135,27 @@ def get_earliest_and_latest_delivery(print_day: datetime, postage: PostageType) 
         yield get_delivery_day(print_day, days_to_deliver=1 + days_to_transit, postage=postage)
 
 
-LetterTimings = namedtuple("LetterTimings", "printed_by, is_printed, earliest_delivery, latest_delivery")
+class LetterTimings:
+    printed_by: datetime
+    is_printed: bool
+    earliest_delivery: datetime
+    latest_delivery: datetime
 
+    def __init__(self, upload_time: datetime, postage: PostageType):
+        # shift anything after 5:30pm to the next day
+        processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
+        print_day = get_next_dvla_working_day(processing_day)
 
-def get_letter_timings(upload_time: datetime, postage: PostageType) -> LetterTimings:
-    # shift anything after 5:30pm to the next day
-    processing_day = utc_string_to_aware_gmt_datetime(upload_time) + timedelta(hours=6, minutes=30)
-    print_day = get_next_dvla_working_day(processing_day)
+        earliest_delivery, latest_delivery = get_earliest_and_latest_delivery(print_day, postage)
 
-    earliest_delivery, latest_delivery = get_earliest_and_latest_delivery(print_day, postage)
+        # print deadline is 3pm BST
+        printed_by = set_gmt_hour(print_day, hour=15)
+        now = datetime.now(local_timezone)
 
-    # print deadline is 3pm BST
-    printed_by = set_gmt_hour(print_day, hour=15)
-    now = datetime.now(local_timezone)
-
-    return LetterTimings(
-        printed_by=printed_by,
-        is_printed=(now > printed_by),
-        earliest_delivery=set_gmt_hour(earliest_delivery, hour=16),
-        latest_delivery=set_gmt_hour(latest_delivery, hour=16),
-    )
+        self.printed_by = printed_by
+        self.is_printed = now > printed_by
+        self.earliest_delivery = set_gmt_hour(earliest_delivery, hour=16)
+        self.latest_delivery = set_gmt_hour(latest_delivery, hour=16)
 
 
 def letter_can_be_cancelled(notification_status: str, notification_created_at: datetime) -> bool:
