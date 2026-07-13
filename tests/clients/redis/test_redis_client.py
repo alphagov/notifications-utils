@@ -74,6 +74,54 @@ def test_delete_by_key_script(app, redis_client_with_live_instance, pattern, key
     for key, value in key_value_pairs:
         redis_client_with_live_instance.redis_store.set(key, value)
     assert redis_client_with_live_instance.delete_by_pattern(pattern) == number_of_matches
+    assert len([i for i, _ in key_value_pairs if redis_client_with_live_instance.get(i) is None]) == number_of_matches
+
+
+@pytest.mark.parametrize(
+    "pattern, key_value_pairs, overwritten_key_value_pairs, number_of_matches",
+    [
+        (
+            "h?llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("h3llo", "valid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            [
+                ("hello", b"overwritten"),
+                ("hallo", b"overwritten"),
+                ("h3llo", b"overwritten"),
+                ("hellllllllo", b"invalid pattern"),
+            ],
+            3,
+        ),
+        (
+            "h[a,e]llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("hullo", "invalid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            [
+                ("hello", b"overwritten"),
+                ("hallo", b"overwritten"),
+                ("hullo", b"invalid pattern"),
+                ("hellllllllo", b"invalid pattern"),
+            ],
+            2,
+        ),
+    ],
+)
+def test_overwrite_by_pattern(
+    app, redis_client_with_live_instance, pattern, key_value_pairs, overwritten_key_value_pairs, number_of_matches
+):
+    for key, value in key_value_pairs:
+        redis_client_with_live_instance.redis_store.set(key, value)
+    assert redis_client_with_live_instance.overwrite_by_pattern(pattern, "overwritten") == number_of_matches
+    for key, value in overwritten_key_value_pairs:
+        assert redis_client_with_live_instance.get(key) == value
 
 
 @freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
