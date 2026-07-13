@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 123.2.0
+
+* flask request logging: add ability to include `basic_auth_username` if present
+
 ## 123.1.0
 
 * `AbstractInsensitiveSet`, `AbstractInsensitiveDict`, `InsensitiveSet` & `InsensitiveDict` are now built on top of separately usable `AbstractImmutableInsensitiveSet`, `AbstractImmutableInsensitiveDict`, `ImmutableInsensitiveSet` & `ImmutableInsensitiveDict` classes.
