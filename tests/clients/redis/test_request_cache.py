@@ -104,6 +104,28 @@ def test_set(
             "value": msgpack.dumps("bar"),
             "schema_version": 1,
         }
+
+
+def test_set_if_timestamp_newer(redis_client_with_live_instance, live_cache):
+
+    @live_cache.set("my-key", schema_version=1)
+    def interrupting_function():
+        return "this was set later than the pesimistic timestamp"
+
+    @live_cache.set("my-key", schema_version=1)
+    def foo():
+        interrupting_function()
+        return "this should not get set"
+
+    assert foo() == "this should not get set"
+
+    assert msgpack.loads(redis_client_with_live_instance.get("my-key")) == AnySupersetOf(
+        {
+            "value": msgpack.dumps("this was set later than the pesimistic timestamp"),
+        }
+    )
+
+
 @pytest.mark.parametrize("schema_version", [0, 1])
 @pytest.mark.parametrize(
     "cache_set_call, expected_redis_client_ttl",
