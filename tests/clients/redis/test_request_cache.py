@@ -19,6 +19,11 @@ def cache(mocked_redis_client):
     return RequestCache(mocked_redis_client)
 
 
+@pytest.fixture
+def live_cache(redis_client_with_live_instance):
+    return RequestCache(redis_client_with_live_instance)
+
+
 @pytest.mark.parametrize(
     "args, kwargs, expected_cache_key",
     (
