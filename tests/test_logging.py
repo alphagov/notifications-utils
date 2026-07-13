@@ -2,6 +2,7 @@ import json
 import logging as builtin_logging
 import re
 import time
+from base64 import b64encode
 from unittest import mock
 
 import pytest
@@ -92,20 +93,37 @@ def test_base_json_formatter_contains_service_id(tmpdir):
         (200, builtin_logging.INFO, False),
         (201, builtin_logging.INFO, False),
         (400, builtin_logging.INFO, False),
+        (401, builtin_logging.INFO, False),
         (503, builtin_logging.WARNING, False),
         (503, builtin_logging.WARNING, True),
     ),
 )
 @pytest.mark.parametrize("stream_response", (False, True))
+@pytest.mark.parametrize(
+    "auth_hdr,enable_basic_auth,expected_basic_user",
+    (
+        (None, True, None),
+        (None, False, None),
+        (f"Basic {b64encode(b'someuser:somepass').decode('ascii')}", False, None),
+        (f"Basic {b64encode(b'someuser:somepass').decode('ascii')}", True, "someuser"),
+        (f"Basic {b64encode(b'invalidnocolon').decode('ascii')}", True, "invalidnocolon"),
+        ("Bearer foo!?bar&&baz%", True, None),
+        ("Bananas", True, None),
+    ),
+)
 def test_app_request_logs_level_by_status_code(
     app_with_mocked_logger,
     status_code,
     expected_after_level,
     with_request_helper,
     stream_response,
+    auth_hdr,
+    enable_basic_auth,
+    expected_basic_user,
 ):
     app = app_with_mocked_logger
     app.config["NOTIFY_ENVIRONMENT"] = "foo"
+    app.config["NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"] = enable_basic_auth
     mock_req_logger = mock.Mock(
         spec=builtin_logging.Logger("flask.app.request"),
         handlers=[],
@@ -128,6 +146,7 @@ def test_app_request_logs_level_by_status_code(
             "x-b3-spanid": "abadcafe",
             "x-b3-traceid": "feedface",
             "x-forwarded-for": "1.2.3.4, 5.6.7.8",
+            **({"authorization": auth_hdr} if auth_hdr is not None else {}),
         },
     )
 
@@ -149,6 +168,7 @@ def test_app_request_logs_level_by_status_code(
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
                 "x_forwarded_for_1": "1.2.3.4",
                 "x_forwarded_for_0": "5.6.7.8",
+                **({"basic_auth_username": expected_basic_user} if enable_basic_auth else {}),
             },
             extra={
                 "url": "http://localhost/",
@@ -164,6 +184,7 @@ def test_app_request_logs_level_by_status_code(
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
                 "x_forwarded_for_1": "1.2.3.4",
                 "x_forwarded_for_0": "5.6.7.8",
+                **({"basic_auth_username": expected_basic_user} if enable_basic_auth else {}),
             },
         )
         in mock_req_logger.log.call_args_list
@@ -192,6 +213,7 @@ def test_app_request_logs_level_by_status_code(
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
                 "x_forwarded_for_1": "1.2.3.4",
                 "x_forwarded_for_0": "5.6.7.8",
+                **({"basic_auth_username": expected_basic_user} if enable_basic_auth else {}),
             },
             extra={
                 "url": "http://localhost/",
@@ -212,6 +234,7 @@ def test_app_request_logs_level_by_status_code(
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
                 "x_forwarded_for_1": "1.2.3.4",
                 "x_forwarded_for_0": "5.6.7.8",
+                **({"basic_auth_username": expected_basic_user} if enable_basic_auth else {}),
             },
         )
         in mock_req_logger.log.call_args_list
@@ -259,6 +282,7 @@ def test_app_request_logs_level_by_status_code(
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
                 "x_forwarded_for_1": "1.2.3.4",
                 "x_forwarded_for_0": "5.6.7.8",
+                **({"basic_auth_username": expected_basic_user} if enable_basic_auth else {}),
             },
             extra={
                 "url": "http://localhost/",
@@ -282,6 +306,7 @@ def test_app_request_logs_level_by_status_code(
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
                 "x_forwarded_for_1": "1.2.3.4",
                 "x_forwarded_for_0": "5.6.7.8",
+                **({"basic_auth_username": expected_basic_user} if enable_basic_auth else {}),
             },
         )
         in mock_req_logger.log.call_args_list
@@ -290,6 +315,7 @@ def test_app_request_logs_level_by_status_code(
 
 def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
     app = app_with_mocked_logger
+    app.config["NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"] = True
     mock_req_logger = mock.Mock(
         spec=builtin_logging.Logger("flask.app.request"),
         handlers=[],
@@ -319,6 +345,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "path": "/",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -332,6 +359,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "path": "/",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -356,6 +384,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "path": "/",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
@@ -375,6 +404,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
                 "path": "/",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float) and 0.05 <= value),
@@ -390,6 +420,7 @@ def test_app_request_logs_responses_on_exception(app_with_mocked_logger):
 def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_response):
     app = app_with_mocked_logger
     app.config["NOTIFY_ENVIRONMENT"] = "bar"
+    app.config["NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"] = True
     mock_req_logger = mock.Mock(
         spec=builtin_logging.Logger("flask.app.request"),
         handlers=[],
@@ -428,6 +459,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -446,6 +478,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -474,6 +507,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "path": "/metrics",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -492,6 +526,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "path": "/metrics",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -521,6 +556,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -539,6 +575,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
                 "path": "/_status",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 500,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -552,6 +589,7 @@ def test_app_request_logs_response_on_status_200(app_with_mocked_logger, stream_
 
 def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
     app = app_with_mocked_logger
+    app.config["NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"] = True
     mock_req_logger = mock.Mock(
         spec=builtin_logging.Logger("flask.app.request"),
         handlers=[],
@@ -576,6 +614,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "path": "/foo",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -589,6 +628,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "path": "/foo",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -613,6 +653,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "path": "/foo",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 404,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -632,6 +673,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
                 "path": "/foo",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 404,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -646,6 +688,7 @@ def test_app_request_logs_responses_on_unknown_route(app_with_mocked_logger):
 @pytest.mark.parametrize("stream_response", (False, True))
 def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_response):
     app = app_with_mocked_logger
+    app.config["NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"] = True
     mock_req_logger = mock.Mock(
         spec=builtin_logging.Logger("flask.app.request"),
         handlers=[],
@@ -674,6 +717,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -687,6 +731,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -710,6 +755,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -728,6 +774,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 200,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -767,6 +814,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "response_streamed": True,
                 "endpoint": "post",
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "request_id": None,
                 "span_id": None,
@@ -788,6 +836,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
                 "response_streamed": True,
                 "endpoint": "post",
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "request_id": None,
                 "span_id": None,
@@ -805,6 +854,7 @@ def test_app_request_logs_responses_on_post(app_with_mocked_logger, stream_respo
 
 def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
     app = app_with_mocked_logger
+    app.config["NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"] = True
 
     app.config["MAX_CONTENT_LENGTH"] = 3 * 1024 * 1024
     mock_req_logger = mock.Mock(
@@ -841,6 +891,7 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -854,6 +905,7 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "process_": RestrictedAny(lambda value: isinstance(value, int)),
             },
@@ -878,6 +930,7 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 413,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
@@ -897,6 +950,7 @@ def test_app_request_logs_responses_over_max_content(app_with_mocked_logger):
                 "path": "/post",
                 "user_agent": AnyStringMatching("Werkzeug.*"),
                 "remote_addr": "127.0.0.1",
+                "basic_auth_username": None,
                 "parent_span_id": None,
                 "status": 413,
                 "request_time": RestrictedAny(lambda value: isinstance(value, float)),
