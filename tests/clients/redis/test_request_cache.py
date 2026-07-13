@@ -1,9 +1,15 @@
-from unittest.mock import MagicMock, call
+import json
+import time
+from datetime import datetime
+from unittest.mock import MagicMock
 
+import msgpack
 import pytest
+from freezegun import freeze_time
 
 from notifications_utils.clients.redis import RequestCache
 from notifications_utils.clients.redis.redis_client import RedisClient
+from notifications_utils.testing.comparisons import AnySupersetOf
 
 
 @pytest.fixture(scope="function")
@@ -24,6 +30,7 @@ def live_cache(redis_client_with_live_instance):
     return RequestCache(redis_client_with_live_instance)
 
 
+@pytest.mark.parametrize("schema_version", [0, 1])
 @pytest.mark.parametrize(
     "args, kwargs, expected_cache_key",
     (
@@ -54,36 +61,50 @@ def test_set(
     kwargs,
     expected_cache_key,
     mocker,
+    schema_version,
 ):
-    mock_redis_set = mocker.patch.object(
-        mocked_redis_client,
-        "set",
-    )
+    if schema_version == 0:
+        mock_redis_set = mocker.patch.object(
+            mocked_redis_client,
+            "set",
+        )
+    else:
+        mock_redis_set = mocker.patch.object(mocked_redis_client, "set_if_timestamp_newer")
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
         "get",
         return_value=None,
     )
 
-    @cache.set("{a}-{b}-{c}-{x}-{y}-{z}")
+    @cache.set("{a}-{b}-{c}-{x}-{y}-{z}", schema_version=schema_version)
     def foo(a, b, c, x=None, y=None, z=None):
         return "bar"
 
-    assert foo(*args, **kwargs) == "bar"
+    with freeze_time("2018-7-7 16:00:00"):
+        set_time = time.time()
+        assert foo(*args, **kwargs) == "bar"
 
     mock_redis_get.assert_called_once_with(
         expected_cache_key,
         skippable=True,
     )
 
-    mock_redis_set.assert_called_once_with(
-        expected_cache_key,
-        '"bar"',
-        ex=2_419_200,
-        skippable=True,
-    )
-
-
+    if schema_version == 0:
+        mock_redis_set.assert_called_once_with(
+            expected_cache_key,
+            '"bar"',
+            ex=2_419_200,
+            skippable=True,
+        )
+    else:
+        assert mock_redis_set.call_args_list[0][1] == {"ex": 2_419_200}
+        assert msgpack.loads(mock_redis_set.call_args_list[0][0][1]) == {
+            "timestamp": set_time,
+            "is_tombstone": False,
+            "value": msgpack.dumps("bar"),
+            "schema_version": 1,
+        }
+@pytest.mark.parametrize("schema_version", [0, 1])
 @pytest.mark.parametrize(
     "cache_set_call, expected_redis_client_ttl",
     (
@@ -99,33 +120,41 @@ def test_set_with_custom_ttl(
     cache_set_call,
     expected_redis_client_ttl,
     mocker,
+    schema_version,
 ):
-    mock_redis_set = mocker.patch.object(
-        mocked_redis_client,
-        "set",
-    )
+    if schema_version == 0:
+        mock_redis_set = mocker.patch.object(
+            mocked_redis_client,
+            "set",
+        )
+    else:
+        mock_redis_set = mocker.patch.object(mocked_redis_client, "set_if_timestamp_newer")
     mocker.patch.object(
         mocked_redis_client,
         "get",
         return_value=None,
     )
 
-    @cache.set("foo", ttl_in_seconds=cache_set_call)
+    @cache.set("foo", ttl_in_seconds=cache_set_call, schema_version=schema_version)
     def foo():
         return "bar"
 
     foo()
 
-    mock_redis_set.assert_called_once_with(
-        "foo",
-        '"bar"',
-        ex=expected_redis_client_ttl,
-        skippable=True,
-    )
+    if schema_version == 0:
+        mock_redis_set.assert_called_once_with(
+            "foo",
+            '"bar"',
+            ex=expected_redis_client_ttl,
+            skippable=True,
+        )
+    else:
+        assert mock_redis_set.call_args_list[0][1] == {"ex": expected_redis_client_ttl}
 
 
-def test_raises_if_key_doesnt_match_arguments(cache):
-    @cache.set("{baz}")
+@pytest.mark.parametrize("schema_version", [0, 1])
+def test_raises_if_key_doesnt_match_arguments(cache, schema_version):
+    @cache.set("{baz}", schema_version=schema_version)
     def foo(bar):
         pass
 
@@ -136,6 +165,7 @@ def test_raises_if_key_doesnt_match_arguments(cache):
         foo()
 
 
+@pytest.mark.parametrize("schema_version", [0, 1])
 @pytest.mark.parametrize(
     "cache_decision, ttl_in_seconds_override, expect_set_call_ttl",
     (
@@ -146,9 +176,9 @@ def test_raises_if_key_doesnt_match_arguments(cache):
     ),
 )
 def test_set_result_wrapper(
-    cache_decision, ttl_in_seconds_override, expect_set_call_ttl, mocked_redis_client, cache, mocker
+    cache_decision, ttl_in_seconds_override, expect_set_call_ttl, mocked_redis_client, cache, mocker, schema_version
 ):
-    @cache.set("{bar}-xyz", ttl_in_seconds=333)
+    @cache.set("{bar}-xyz", ttl_in_seconds=333, schema_version=schema_version)
     def foo(bar):
         return RequestCache.CacheResultWrapper({"blah": f"123-{bar}"}, cache_decision, ttl_in_seconds_override)
 
@@ -162,6 +192,9 @@ def test_set_result_wrapper(
         return_value=None,
     )
 
+    if schema_version == 1:
+        mocker.patch.object(mocked_redis_client, "set_if_timestamp_newer", return_value=True)
+
     ret = foo("quack")
 
     assert ret == {"blah": "123-quack"}
@@ -173,7 +206,9 @@ def test_set_result_wrapper(
     )
 
 
-def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
+@pytest.mark.parametrize("schema_version", [0, 1])
+def test_set_result_custom_get_decision(redis_client_with_live_instance, cache, mocker, schema_version):
+
     @cache.get_cache_decision.register
     def _(result: float):
         return result > 50
@@ -182,33 +217,29 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
     def _(result: float):
         return int(result) * 2
 
-    @cache.set("{bar}-xyz", ttl_in_seconds=333)
+    @cache.set("{bar}-xyz", ttl_in_seconds=333, schema_version=schema_version)
     def foo(bar):
         return bar * 10.0
-
-    mock_redis_set = mocker.patch.object(
-        mocked_redis_client,
-        "set",
-    )
-    mocker.patch.object(
-        mocked_redis_client,
-        "get",
-        return_value=None,
-    )
 
     ret = foo(3)
 
     assert ret == 30.0
 
-    assert mock_redis_set.mock_calls == []
+    assert not redis_client_with_live_instance.get("3-xyz")
 
     ret2 = foo(8)
 
     assert ret2 == 80.0
 
-    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=160, skippable=True)]
+    if schema_version == 0:
+        assert float(redis_client_with_live_instance.get("8-xyz")) == 80.0
+    if schema_version == 1:
+        assert msgpack.loads(redis_client_with_live_instance.get("8-xyz")) == AnySupersetOf(
+            {"is_tombstone": False, "schema_version": 1, "value": msgpack.dumps(80.0)}
+        )
 
 
+@pytest.mark.parametrize("schema_version", [0, 1])
 @pytest.mark.parametrize(
     "args, expected_cache_key",
     (
@@ -222,14 +253,24 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
         ),
     ),
 )
-def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
-    mock_redis_get = mocker.patch.object(
-        mocked_redis_client,
-        "get",
-        return_value=b'"bar"',
-    )
+def test_get(cache, args, expected_cache_key, mocker, redis_client_with_live_instance, schema_version):
 
-    @cache.set("{a}-{b}-{c}")
+    if schema_version == 0:
+        redis_client_with_live_instance.set(expected_cache_key, json.dumps("bar"))
+    else:
+        redis_client_with_live_instance.set(
+            expected_cache_key,
+            msgpack.dumps(
+                {
+                    "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                    "is_tombstone": False,
+                    "value": msgpack.dumps("bar"),
+                    "schema_version": 1,
+                }
+            ),
+        )
+
+    @cache.set("{a}-{b}-{c}", schema_version=schema_version)
     def foo(a, b, c):
         # This function should not be called because the cache has
         # returned a value
@@ -237,46 +278,74 @@ def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
 
     assert foo(*args) == "bar"
 
-    mock_redis_get.assert_called_once_with(
-        expected_cache_key,
-        skippable=True,
-    )
-
 
 @pytest.mark.parametrize(
-    "args, expected_cache_key",
+    "args, expected_cache_key, force_delete",
     (
         (
             (1, 2, 3),
             ("1-2-3"),
+            True,
         ),
         (
             ("A", "B", "6CE466D0-FD6A-11E5-82F5-E0ACCB9D11A6"),
             ("A-B-6ce466d0-fd6a-11e5-82f5-e0accb9d11a6"),
+            True,
+        ),
+        (
+            (1, 2, 3),
+            ("1-2-3"),
+            False,
+        ),
+        (
+            ("A", "B", "6CE466D0-FD6A-11E5-82F5-E0ACCB9D11A6"),
+            ("A-B-6ce466d0-fd6a-11e5-82f5-e0accb9d11a6"),
+            False,
         ),
     ),
 )
-def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
-    mock_redis_delete = mocker.patch.object(
-        mocked_redis_client,
-        "delete",
-    )
+def test_delete(redis_client_with_live_instance, live_cache, args, expected_cache_key, mocker, force_delete):
 
-    @cache.delete("{a}-{b}-{c}")
+    if force_delete:
+        redis_client_with_live_instance.set(expected_cache_key, "bar")
+    else:
+        redis_client_with_live_instance.set(
+            expected_cache_key,
+            msgpack.dumps(
+                {
+                    "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                    "is_tombstone": False,
+                    "value": msgpack.dumps("foo"),
+                    "schema_version": 1,
+                }
+            ),
+        )
+
+    @live_cache.delete("{a}-{b}-{c}", force_delete=force_delete)
     def foo(a, b, c):
         return "bar"
 
-    assert foo(*args) == "bar"
+    if force_delete:
+        assert redis_client_with_live_instance.get(expected_cache_key) == b"bar"
+        assert foo(*args) == "bar"
+        assert not redis_client_with_live_instance.get(expected_cache_key)
+    else:
+        assert msgpack.loads(redis_client_with_live_instance.get(expected_cache_key)) == AnySupersetOf(
+            {"is_tombstone": False, "value": msgpack.dumps("foo"), "schema_version": 1}
+        )
+        assert foo(*args) == "bar"
+        assert msgpack.loads(redis_client_with_live_instance.get(expected_cache_key)) == AnySupersetOf(
+            {"is_tombstone": True}
+        )
 
-    expected_call = call(expected_cache_key, raise_exception=True)
-    mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
-
-def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, mocker):
+@pytest.mark.parametrize("force_delete", [True, False])
+def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, mocker, force_delete):
     mocker.patch.object(mocked_redis_client, "delete", side_effect=RuntimeError("API update failed"))
+    mocker.patch.object(mocked_redis_client, "set", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
-    @cache.delete("bar")
+    @cache.delete("bar", force_delete=force_delete)
     def foo():
         return fake_api_call()
 
@@ -286,27 +355,73 @@ def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, moc
     fake_api_call.assert_not_called()
 
 
-def test_delete_by_pattern(mocked_redis_client, cache, mocker):
-    mock_redis_delete = mocker.patch.object(
-        mocked_redis_client,
-        "delete_by_pattern",
-    )
+@pytest.mark.parametrize(
+    "force_delete, dict_to_set",
+    [
+        (True, {"1-2-3": "foo", "1-2-3-bar": "bar"}),
+        (
+            False,
+            {
+                "1-2-3": msgpack.dumps(
+                    {
+                        "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                        "is_tombstone": False,
+                        "value": msgpack.dumps("foo"),
+                        "schema_version": 1,
+                    }
+                ),
+                "1-2-3-bar": msgpack.dumps(
+                    {
+                        "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                        "is_tombstone": False,
+                        "value": msgpack.dumps("bar"),
+                        "schema_version": 1,
+                    }
+                ),
+            },
+        ),
+    ],
+)
+def test_delete_by_pattern(redis_client_with_live_instance, live_cache, mocker, force_delete, dict_to_set):
 
-    @cache.delete_by_pattern("{a}-{b}-{c}-???")
+    for k, v in dict_to_set.items():
+        if force_delete:
+            redis_client_with_live_instance.set(k, v)
+        else:
+            redis_client_with_live_instance.set_if_timestamp_newer(k, v, ex=0)
+
+    @live_cache.delete_by_pattern("{a}-{b}-{c}-???", force_delete=force_delete)
     def foo(a, b, c):
         return "bar"
 
+    @live_cache.delete_by_pattern("{a}-{b}-{c}", force_delete=force_delete)
+    def bar(a, b, c):
+        return "foo"
+
     assert foo(1, 2, 3) == "bar"
+    if force_delete:
+        assert not redis_client_with_live_instance.get("1-2-3-bar")
+        assert redis_client_with_live_instance.get("1-2-3") == b"foo"
+    else:
+        assert msgpack.loads(redis_client_with_live_instance.get("1-2-3-bar")) == AnySupersetOf({"is_tombstone": True})
+        assert msgpack.loads(redis_client_with_live_instance.get("1-2-3")) == AnySupersetOf(
+            {"is_tombstone": False, "value": msgpack.dumps("foo"), "schema_version": 1}
+        )
 
-    expected_call = call("1-2-3-???", raise_exception=True)
-    mock_redis_delete.assert_has_calls([expected_call, expected_call])
+    assert bar(1, 2, 3) == "foo"
+    if force_delete:
+        assert not redis_client_with_live_instance.get("1-2-3")
+    else:
+        assert msgpack.loads(redis_client_with_live_instance.get("1-2-3")) == AnySupersetOf({"is_tombstone": True})
 
 
-def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker):
+@pytest.mark.parametrize("force_delete", [True, False])
+def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker, force_delete):
     mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
+    mocker.patch.object(mocked_redis_client, "overwrite_by_pattern", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
-    @cache.delete_by_pattern("bar-???")
+    @cache.delete_by_pattern("bar-???", force_delete=force_delete)
     def foo():
         return fake_api_call()
 
