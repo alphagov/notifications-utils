@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 123.1.0
+
+* `AbstractInsensitiveSet`, `AbstractInsensitiveDict`, `InsensitiveSet` & `InsensitiveDict` are now built on top of separately usable `AbstractImmutableInsensitiveSet`, `AbstractImmutableInsensitiveDict`, `ImmutableInsensitiveSet` & `ImmutableInsensitiveDict` classes.
+
 ## 123.0.0
 
 * `letter_timings.get_letter_timings` has been replaced with `letter_timings.LetterTimings`. For code like `get_letter_timings(...).latest_delivery` use `LetterTimings(...).latest_delivery` instead
