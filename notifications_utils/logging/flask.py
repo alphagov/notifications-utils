@@ -50,6 +50,13 @@ def _common_request_extra_log_context():
         "process_": getpid(),
     }
 
+    if current_app.config.get("NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME"):
+        context["basic_auth_username"] = (
+            request.authorization.get("username")
+            if request.authorization and request.authorization.type == "basic"
+            else None
+        )
+
     # Parse X-Forwarded-For header to get the full IP chain
     # This provides more detail than ProxyFix by not trusting any single IP
     # and preserving the full chain for analysis
@@ -129,6 +136,7 @@ def init_app(app, extra_filters: Sequence[logging.Filter] = ()):
     app.config.setdefault("NOTIFY_APP_NAME", "none")
     app.config.setdefault("NOTIFY_LOG_DEBUG_PATH_LIST", {"/_status", "/metrics"})
     app.config.setdefault("NOTIFY_REQUEST_LOG_LEVEL", "CRITICAL")
+    app.config.setdefault("NOTIFY_REQUEST_LOG_INCLUDE_BASIC_AUTH_USERNAME", False)
     app.config.setdefault("NOTIFY_EVENTLET_STATS", False)
     app.config.setdefault("NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS", 1.0)
 
