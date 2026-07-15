@@ -377,6 +377,26 @@ def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, moc
     fake_api_call.assert_not_called()
 
 
+def test_delete_by_pattern_force_delete(redis_client_with_live_instance, live_cache):
+
+    redis_client_with_live_instance.set("1-2-3", "foo")
+    redis_client_with_live_instance.set("1-2-3-bar", "bar")
+
+    @live_cache.delete_by_pattern("{a}-{b}-{c}-???", force_delete=True)
+    def foo(a, b, c):
+        return "bar"
+
+    @live_cache.delete_by_pattern("{a}-{b}-{c}", force_delete=True)
+    def bar(a, b, c):
+        return "foo"
+
+    assert foo(1, 2, 3) == "bar"
+    assert not redis_client_with_live_instance.get("1-2-3-bar")
+    assert redis_client_with_live_instance.get("1-2-3") == b"foo"
+
+    assert bar(1, 2, 3) == "foo"
+
+
 @pytest.mark.parametrize(
     "force_delete, dict_to_set",
     [
@@ -404,37 +424,48 @@ def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, moc
         ),
     ],
 )
-def test_delete_by_pattern(redis_client_with_live_instance, live_cache, mocker, force_delete, dict_to_set):
+def test_delete_by_tombstone(redis_client_with_live_instance, live_cache, mocker, force_delete, dict_to_set):
 
-    for k, v in dict_to_set.items():
-        if force_delete:
-            redis_client_with_live_instance.set(k, v)
-        else:
-            redis_client_with_live_instance.set_if_timestamp_newer(k, v, ex=0)
+    redis_client_with_live_instance.set_if_timestamp_newer(
+        "1-2-3",
+        msgpack.dumps(
+            {
+                "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                "is_tombstone": False,
+                "value": msgpack.dumps("foo"),
+                "schema_version": 1,
+            }
+        ),
+    )
 
-    @live_cache.delete_by_pattern("{a}-{b}-{c}-???", force_delete=force_delete)
+    redis_client_with_live_instance.set_if_timestamp_newer(
+        "1-2-3-bar",
+        msgpack.dumps(
+            {
+                "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                "is_tombstone": False,
+                "value": msgpack.dumps("bar"),
+                "schema_version": 1,
+            }
+        ),
+    )
+
+    @live_cache.delete_by_pattern("{a}-{b}-{c}-???", force_delete=False)
     def foo(a, b, c):
         return "bar"
 
-    @live_cache.delete_by_pattern("{a}-{b}-{c}", force_delete=force_delete)
+    @live_cache.delete_by_pattern("{a}-{b}-{c}", force_delete=False)
     def bar(a, b, c):
         return "foo"
 
     assert foo(1, 2, 3) == "bar"
-    if force_delete:
-        assert not redis_client_with_live_instance.get("1-2-3-bar")
-        assert redis_client_with_live_instance.get("1-2-3") == b"foo"
-    else:
-        assert msgpack.loads(redis_client_with_live_instance.get("1-2-3-bar")) == AnySupersetOf({"is_tombstone": True})
-        assert msgpack.loads(redis_client_with_live_instance.get("1-2-3")) == AnySupersetOf(
-            {"is_tombstone": False, "value": msgpack.dumps("foo"), "schema_version": 1}
-        )
+    assert msgpack.loads(redis_client_with_live_instance.get("1-2-3-bar")) == AnySupersetOf({"is_tombstone": True})
+    assert msgpack.loads(redis_client_with_live_instance.get("1-2-3")) == AnySupersetOf(
+        {"is_tombstone": False, "value": msgpack.dumps("foo"), "schema_version": 1}
+    )
 
     assert bar(1, 2, 3) == "foo"
-    if force_delete:
-        assert not redis_client_with_live_instance.get("1-2-3")
-    else:
-        assert msgpack.loads(redis_client_with_live_instance.get("1-2-3")) == AnySupersetOf({"is_tombstone": True})
+    assert msgpack.loads(redis_client_with_live_instance.get("1-2-3")) == AnySupersetOf({"is_tombstone": True})
 
 
 @pytest.mark.parametrize("force_delete", [True, False])
