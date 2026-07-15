@@ -205,6 +205,7 @@ class RedisClient:
             end
 
             local maybe_ex_args = {}
+            -- lua doesn't accept null values a defult ttl of 0 should be treat as null
             if not ttl == 'false' then
                 maybe_ex_args = {'ex', ttl}
             end
@@ -292,8 +293,9 @@ class RedisClient:
                 )
             except Exception as e:
                 self.__handle_exception(e, raise_exception, always_raise, "tally-bucket-rate-limit", key)
+        return None
 
-    def overwrite_by_pattern(self, pattern, value, raise_exception=False):
+    def overwrite_by_pattern(self, pattern, value, raise_exception=False, always_raise=INSTANCE_DEFAULT):
         """
         similar to `delete_by_pattern`, will overwrite all keys matching `pattern` with
         `value`
@@ -302,7 +304,7 @@ class RedisClient:
             try:
                 return self.scripts["overwrite-keys-by-pattern"](args=[pattern, value])
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "overwrite-by-pattern", pattern)
+                self.__handle_exception(e, raise_exception, always_raise, "overwrite-by-pattern", pattern)
 
         return 0
 
@@ -403,7 +405,7 @@ class RedisClient:
             try:
                 return bool(self.scripts["set-if-timestamp-newer"](args=[key, value, ex], keys=[key]))
             except Exception as e:
-                self.__handle_exception(e, raise_exception, "set-if-timestamp-newer", key)
+                self.__handle_exception(e, raise_exception, always_raise, "set-if-timestamp-newer", key)
 
         return False
 
