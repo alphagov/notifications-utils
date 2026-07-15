@@ -205,7 +205,7 @@ class RedisClient:
             end
 
             local maybe_ex_args = {}
-            if ttl then
+            if not ttl == 'false' then
                 maybe_ex_args = {'ex', ttl}
             end
             redis.call('set', key, new_value, unpack(maybe_ex_args))
@@ -382,7 +382,7 @@ class RedisClient:
         else:
             return False
 
-    def set_if_timestamp_newer(self, key, value, ex=None, raise_exception=False):
+    def set_if_timestamp_newer(self, key, value, ex="false", raise_exception=False, always_raise=INSTANCE_DEFAULT):
         """
         Expects `value` to be a bytestring containing a msgpack-encoded dict
         with a `timestamp` toplevel key containing a float unix timestamp.
