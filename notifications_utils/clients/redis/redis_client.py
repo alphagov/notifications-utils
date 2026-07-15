@@ -401,7 +401,7 @@ class RedisClient:
         """
         if self.active:
             try:
-                return self.scripts["set-if-timestamp-newer"](args=[key, value, ex], keys=[key])
+                return bool(self.scripts["set-if-timestamp-newer"](args=[key, value, ex], keys=[key]))
             except Exception as e:
                 self.__handle_exception(e, raise_exception, "set-if-timestamp-newer", key)
 

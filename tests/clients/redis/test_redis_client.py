@@ -476,7 +476,7 @@ def test_set_if_timestamp_newer(redis_client_with_live_instance):
                     }
                 ),
             )
-            == 1
+            is True
         )
 
     assert redis_client_with_live_instance.get("foo") == msgpack.dumps(
