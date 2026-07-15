@@ -472,14 +472,15 @@ def test_schema_mismatch_does_not_return_cached_value(
     )
 
     if initial_schema_version == 1:
+
         @live_cache.set("foo", schema_version=0)
         def my_func():
             return "return this"
     else:
+
         @live_cache.set("foo", schema_version=1)
         def my_func():
             return "return this"
-
 
     with caplog.at_level("WARNING"):
         assert my_func() == "return this"

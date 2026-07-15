@@ -464,20 +464,27 @@ def test_set_if_timestamp_newer(redis_client_with_live_instance):
 
     with freeze_time("2018-7-7 16:00:00"):
         time_first_set = time.time()
-        redis_client_with_live_instance.set_if_timestamp_newer(
-            "foo",
-            msgpack.dumps(
-                {
-                    "timestamp": time_first_set,
-                    "is_tombstone": False,
-                    "schema_version": 1,
-                    "value": msgpack.dumps("return this"),
-                }
-            ),
+        assert (
+            redis_client_with_live_instance.set_if_timestamp_newer(
+                "foo",
+                msgpack.dumps(
+                    {
+                        "timestamp": time_first_set,
+                        "is_tombstone": False,
+                        "schema_version": 1,
+                        "value": msgpack.dumps("return this"),
+                    }
+                ),
+            )
+            == 1
         )
 
+    assert redis_client_with_live_instance.get("foo") == msgpack.dumps(
+        {"timestamp": time_first_set, "is_tombstone": False, "schema_version": 1, "value": msgpack.dumps("return this")}
+    )
+
     with freeze_time("2018-7-7 15:59:59"):
-        redis_client_with_live_instance.set_if_timestamp_newer(
+        assert not redis_client_with_live_instance.set_if_timestamp_newer(
             "foo",
             msgpack.dumps(
                 {
