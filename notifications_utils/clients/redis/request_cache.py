@@ -1,4 +1,5 @@
-import msgpack
+import json
+import logging
 import time
 from contextlib import suppress
 from dataclasses import dataclass
@@ -8,8 +9,13 @@ from inspect import signature
 from uuid import UUID
 
 from notifications_utils.json import RelaxedContainerJSONEncoder as RCJSONEncoder
+import msgpack
+from msgpack.exceptions import ExtraData
 
 type _JSON = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
+
+
+logger = logging.getLogger("request_cache")
 
 
 class RequestCache:
@@ -17,6 +23,14 @@ class RequestCache:
     # tombstones only need to last as long as the longest time you expect a `@set`-wrapped
     # function invocation to take
     TOMBSTONE_TTL = int(timedelta(minutes=10).total_seconds())
+
+    DEFAULT_SCHEMA_VERSION = 1
+    DEFAULT_FORCE_DELETE = False
+
+    # for use as kwarg defaults to avoid early-binding problems making
+    # the above defaults un-alterable
+    _DEFAULT_SCHEMA_VERSION_SENTINEL = object()
+    _DEFAULT_FORCE_DELETE_SENTINEL = object()
 
     @dataclass
     class CacheResultWrapper:
@@ -105,16 +119,42 @@ class RequestCache:
             }
         )
 
-    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL):
+    def set(self, key_format, *, ttl_in_seconds=DEFAULT_TTL, schema_version=_DEFAULT_SCHEMA_VERSION_SENTINEL):  # noqa: C901
         def _set(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                nonlocal schema_version
+                if schema_version is self._DEFAULT_SCHEMA_VERSION_SENTINEL:
+                    schema_version = self.DEFAULT_SCHEMA_VERSION
+
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
                 cached = self.redis_client.get(redis_key, skippable=True)
                 if cached:
-                    outer = msgpack.loadb(cached)
-                    if not outer.get("is_tombstone"):
-                        return msgpack.loadb(outer["value"])
+                    try:
+                        outer = msgpack.loads(cached)
+                        cached_is_tombstone = outer.get("is_tombstone")
+                        cached_sv = outer.get("schema_version")
+                        cached_value = msgpack.loads(outer["value"]) if outer.get("value") else None
+                    except (AttributeError, ExtraData):
+                        # assume this is an old-style RequestCache payload
+                        cached_value = json.loads(cached)
+                        cached_is_tombstone = False  # old-style RequestCache didn't have tombstones
+                        cached_sv = 0  # old-style RequestCache payloads are notionally schema_version 0
+
+                    if not cached_is_tombstone:
+                        if cached_sv == schema_version:
+                            return cached_value
+                        else:
+                            logger.warning(
+                                "Cached value has schema mismatch: cached %s, expecting %s. Will ignore and overwrite.",
+                                cached_sv,
+                                schema_version,
+                                extra={
+                                    "schema_version_cached": cached_sv,
+                                    "schema_version_expected": schema_version,
+                                    "client_method_name": client_method.__name__,
+                                },
+                            )
 
                 # the most out-of-date data this inner result could possibly contain
                 pessimistic_timestamp = time.time()
@@ -122,25 +162,32 @@ class RequestCache:
                 result = client_method(*args, **kwargs)
 
                 value = self.get_cache_value(result)
-
                 if self.get_cache_decision(result):
                     final_ttl = self.get_ttl_in_seconds_override(result)
                     if final_ttl is None:
                         final_ttl = ttl_in_seconds
 
-                    outer = {
-                        "timestamp": pessimistic_timestamp,
-                        "is_tombstone": False,
-                        "value": msgpack.dumpb(value),
-                    }
-
-                    self.redis_client.set_if_timestamp_newer(
-                        redis_key,
-                        msgpack.dumpb(outer),
-                        ex=int(final_ttl),
-                        # client_method was (hopefully) side-effect free so this should not be an invalidation
-                        skippable=True,
-                    )
+                    if schema_version == 0:
+                        # behave like old-style RequestCache, unconditionally setting an un-wrapped payload
+                        self.redis_client.set(
+                            redis_key,
+                            json.dumps(value),
+                            ex=int(final_ttl),
+                            skippable=True,
+                        )
+                    else:
+                        self.redis_client.set_if_timestamp_newer(
+                            redis_key,
+                            msgpack.dumps(
+                                {
+                                    "timestamp": pessimistic_timestamp,
+                                    "is_tombstone": False,
+                                    "value": msgpack.dumps(value),
+                                    "schema_version": schema_version,
+                                }
+                            ),
+                            ex=int(final_ttl),
+                        )
 
                 return value
 
@@ -159,10 +206,14 @@ class RequestCache:
         # overwrite any existing values anyway
         self.redis_client.set(key, tombstone, ex=ex, raise_exception=raise_exception)
 
-    def delete(self, key_format, force_delete=False):
+    def delete(self, key_format, force_delete=_DEFAULT_FORCE_DELETE_SENTINEL):
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                nonlocal force_delete
+                if force_delete is self._DEFAULT_FORCE_DELETE_SENTINEL:
+                    force_delete = self.DEFAULT_FORCE_DELETE
+
                 redis_key = self._make_key(key_format, client_method, args, kwargs)
                 delete_method = self.redis_client.delete if force_delete else self._set_tombstone
 
@@ -196,10 +247,14 @@ class RequestCache:
         # be the latest-possible
         self.redis_client.overwrite_by_pattern(pattern, tombstone, raise_exception=raise_exception)
 
-    def delete_by_pattern(self, key_format, force_delete=False):
+    def delete_by_pattern(self, key_format, force_delete=_DEFAULT_FORCE_DELETE_SENTINEL):
         def _delete(client_method):
             @wraps(client_method)
             def new_client_method(*args, **kwargs):
+                nonlocal force_delete
+                if force_delete is self._DEFAULT_FORCE_DELETE_SENTINEL:
+                    force_delete = self.DEFAULT_FORCE_DELETE
+
                 delete_method = self.redis_client.delete_by_pattern if force_delete else self._set_tombstone_by_pattern
 
                 # See equivalent comments above for why we attempt the redis delete before and
