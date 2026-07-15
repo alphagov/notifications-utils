@@ -110,7 +110,7 @@ def test_set_if_timestamp_newer(redis_client_with_live_instance, live_cache):
 
     @live_cache.set("my-key", schema_version=1)
     def interrupting_function():
-        return "this was set later than the pesimistic timestamp"
+        return "this was set later than the pessimistic timestamp"
 
     @live_cache.set("my-key", schema_version=1)
     def foo():
@@ -121,7 +121,7 @@ def test_set_if_timestamp_newer(redis_client_with_live_instance, live_cache):
 
     assert msgpack.loads(redis_client_with_live_instance.get("my-key")) == AnySupersetOf(
         {
-            "value": msgpack.dumps("this was set later than the pesimistic timestamp"),
+            "value": msgpack.dumps("this was set later than the pessimistic timestamp"),
         }
     )
 
