@@ -451,3 +451,40 @@ def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client,
         foo()
 
     fake_api_call.assert_not_called()
+
+
+@pytest.mark.parametrize("initial_schema_version", [0, 1])
+def test_schema_mismatch_does_not_return_cached_value(
+    redis_client_with_live_instance, live_cache, caplog, initial_schema_version
+):
+    redis_client_with_live_instance.set(
+        "foo",
+        msgpack.dumps(
+            {
+                "timestamp": str(datetime.utcnow()),  # we cannot mock out times that redis lua scripts use
+                "is_tombstone": False,
+                "value": msgpack.dumps("do not return this"),
+                "schema_version": 1,
+            }
+        )
+        if initial_schema_version == 1
+        else json.dumps("do not return this"),
+    )
+
+    if initial_schema_version == 1:
+        @live_cache.set("foo", schema_version=0)
+        def my_func():
+            return "return this"
+    else:
+        @live_cache.set("foo", schema_version=1)
+        def my_func():
+            return "return this"
+
+
+    with caplog.at_level("WARNING"):
+        assert my_func() == "return this"
+
+    if initial_schema_version == 1:
+        assert "Cached value has schema mismatch: cached 1, expecting 0. Will ignore and overwrite." in caplog.messages
+    if initial_schema_version == 0:
+        assert "Cached value has schema mismatch: cached 0, expecting 1. Will ignore and overwrite." in caplog.messages
