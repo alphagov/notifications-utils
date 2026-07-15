@@ -196,10 +196,12 @@ class RequestCache:
         return _set
 
     def _set_tombstone(self, key, ex=TOMBSTONE_TTL, raise_exception=False):
-        tombstone = msgpack.dumpb({
-            "is_tombstone": True,
-            "timestamp": time.time(),
-        })
+        tombstone = msgpack.dumps(
+            {
+                "is_tombstone": True,
+                "timestamp": time.time(),
+            }
+        )
         # this *could* use set_if_timestamp_newer but doesn't really need to
         # because the only timestamp we'd ever use would be "now", i.e. the
         # latest possible value we could manage, which should be able to
@@ -238,10 +240,12 @@ class RequestCache:
         return _delete
 
     def _set_tombstone_by_pattern(self, pattern, raise_exception=False):
-        tombstone = msgpack.dumpb({
-            "is_tombstone": True,
-            "timestamp": time.time(),
-        })
+        tombstone = msgpack.dumps(
+            {
+                "is_tombstone": True,
+                "timestamp": time.time(),
+            }
+        )
         # as in _set_tombstone, we luckily don't actually need to do a conditional
         # set for tombstones because the timestamp we want to use here will always
         # be the latest-possible
