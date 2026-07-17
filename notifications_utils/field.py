@@ -1,5 +1,5 @@
 import re
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence, Set
 from typing import Any, Literal, Self
 
 from markupsafe import Markup
@@ -74,16 +74,16 @@ class Field:
     placeholder_tag_redacted: str = "<span class='placeholder-redacted'>hidden</span>"
 
     content: str
-    sanitizer: Callable[[str | None], str | None]
+    sanitizer: Callable[[str], str]
     markdown_lists: bool
     redact_missing_personalisation: bool
 
-    _values: InsensitiveDict[str | None, Any]
+    _values: Mapping[str, Any]
 
     def __init__(
         self,
         content: str,
-        values: Mapping[str | None, Any] | None = None,
+        values: Mapping[str, Any] | None = None,
         with_brackets: bool = True,
         html: Literal["escape", "passthrough"] = "escape",
         markdown_lists: bool = False,
@@ -116,14 +116,12 @@ class Field:
         return str(self).splitlines()
 
     @property
-    def values(self) -> InsensitiveDict[str | None, Any]:
+    def values(self) -> Mapping[str, Any]:
         return self._values
 
     @values.setter
-    def values(self, new_values: Mapping[str | None, Any] | None):
-        self._values = (
-            InsensitiveDict({self.sanitizer(k): v for k, v in new_values.items()}) if new_values else InsensitiveDict()
-        )
+    def values(self, new_values: Mapping[str, Any] | None):
+        self._values = InsensitiveDict({self.sanitizer(k): v for k, v in new_values.items()}) if new_values else {}
 
     def format_match(self, match: re.Match) -> str:
         return self.format_placeholder(Placeholder.from_match(match))
@@ -182,7 +180,7 @@ class Field:
         return Markup(self._raw_formatted)
 
     @property
-    def placeholders(self) -> InsensitiveSet[str]:
+    def placeholders(self) -> Set[str]:
         if not self.content or "(" not in self.content:
             return InsensitiveSet()
         return InsensitiveSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))

@@ -1,39 +1,62 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import (
-    ItemsView,
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSet,
-    Sequence,
-    Set,
-    ValuesView,
-)
+from collections.abc import Iterable, Iterator, Mapping, MutableSet, Sequence, Set
 from functools import lru_cache
 from itertools import chain, islice
-from typing import Any, Self, overload
-
-_NORMALISE_STR_NONE_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
+from typing import Self, overload
 
 
-@overload
-def _normalise_str_none(original_key: str) -> str: ...
+class InsensitiveDict[V](dict[str, V]):
+    """
+    `InsensitiveDict` behaves like an ordered dictionary, except it normalises
+    case, whitespace, hypens and underscores in keys.
 
+    In other words,
+    InsensitiveDict({'FIRST_NAME': 'example'}) == InsensitiveDict({'first name': 'example'})
+    >>> True
+    """
 
-@overload
-def _normalise_str_none(original_key: None) -> None: ...
+    KEY_TRANSLATION_TABLE: Mapping[int, None] = {ord(c): None for c in " _-"}
 
+    def __init__(self, row_dict):
+        for key, value in row_dict.items():
+            self[key] = value
 
-@lru_cache(maxsize=1_024, typed=False)  # Corresponds to 1,000 column limit when reading Excel files
-def _normalise_str_none(original_key: Any) -> str | None:
-    if not isinstance(original_key, str | None):
-        raise TypeError
+    def keys(self) -> Set[str]:  # type: ignore[override]
+        return InsensitiveSet(self)
 
-    if original_key is None:
-        return None
+    def __getitem__(self, key: str) -> V:
+        return super().__getitem__(self.make_key(key))
 
-    return original_key.translate(_NORMALISE_STR_NONE_TRANSLATION_TABLE).lower()
+    def __setitem__(self, key: str, value: V):
+        super().__setitem__(self.make_key(key), value)
+
+    def __contains__(self, key) -> bool:
+        return super().__contains__(self.make_key(key))
+
+    @overload
+    def get(self, key: str, default: None = ...) -> V | None: ...
+
+    @overload
+    def get(self, key: str, default: V = ...) -> V: ...
+
+    @overload
+    def get[X](self, key: str, default: X = ...) -> V | X: ...
+
+    def get[X](self, key: str, default: V | X | None = None) -> V | X | None:
+        return self[key] if key in self else default
+
+    def copy(self) -> Self:
+        return self.__class__(super().copy())
+
+    def as_dict_with_keys(self, keys: Iterable[str]) -> dict[str, V | None]:
+        return {key: self.get(key) for key in keys}
+
+    @staticmethod
+    @lru_cache(maxsize=1_024, typed=False)  # Corresponds to 1,000 column limit when reading Excel files
+    def make_key(original_key: str) -> str:
+        if original_key is None:
+            return None
+        return original_key.translate(InsensitiveDict.KEY_TRANSLATION_TABLE).lower()
 
 
 class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
@@ -42,9 +65,8 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def make_key(original_key: Any) -> T:
-        # a real implementation needs to raise TypeError if type is unworkable
-        return original_key  # type: ignore
+    def make_key(original_key: T) -> T:
+        return original_key
 
     def __init__(self, it: Iterable[T] | None = None, /):
         self._inner = {}
@@ -146,15 +168,10 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Iterable):
-            return NotImplemented
+            return False
 
         if not isinstance(other, Set):
-            # note order-sensitive
             return tuple(self._inner.keys()) == tuple(self.make_key(item) for item in other)
-
-        # and add a shortcut for others of identical type
-        if type(self) is type(other):  # type comparison deliberately strict
-            return self._inner.keys() == other._inner.keys()
 
         return super().__eq__(other)
 
@@ -189,7 +206,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self._inner.keys() >= other_set._inner.keys()
 
-    def __and__(self, other: Iterable[T]) -> Self:
+    def __and__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -197,7 +214,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k in other_set._inner)
 
-    def __rand__(self, other: Iterable[T]) -> Self:
+    def __rand__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -207,7 +224,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         # ensure the un-normalised values come from the RHS
         return type(self)(item for item in other if item in self)
 
-    def __or__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
+    def __or__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -221,7 +238,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return new_set
 
-    def __ror__(self, other: Iterable[T]) -> Self:
+    def __ror__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -234,7 +251,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return new_set
 
-    def isdisjoint(self, other: Iterable[T]) -> bool:
+    def isdisjoint(self, other: Iterable) -> bool:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -243,7 +260,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return not any(item in self for item in other)
 
-    def __sub__(self, other: Iterable[T]) -> Self:
+    def __sub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -251,7 +268,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)._from_inner_pairs((k, v) for k, v in self._inner.items() if k not in other_set._inner)
 
-    def __rsub__(self, other: Iterable[T]) -> Self:
+    def __rsub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -260,7 +277,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return type(self)(item for item in other if item not in self)
 
-    def __xor__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
+    def __xor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -273,7 +290,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
             )
         )
 
-    def __rxor__(self, other: Iterable[T]) -> Self:
+    def __rxor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -291,7 +308,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
     def remove(self, item: T):
         del self._inner[self.make_key(item)]
 
-    def pop(self) -> T:
+    def pop(self):
         try:
             return self._inner.pop(next(reversed(self._inner)))
         except StopIteration as e:
@@ -300,7 +317,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
     def clear(self):
         self._inner.clear()
 
-    def __iand__(self, other: Iterable[T]) -> Self:
+    def __iand__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -312,7 +329,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self
 
-    def __ixor__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
+    def __ixor__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -325,7 +342,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return self
 
-    def __isub__(self, other: Iterable[T]) -> Self:
+    def __isub__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -335,7 +352,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
         return super().__isub__(other)  # type: ignore[arg-type]
 
-    def __ior__(self, other: Iterable[T]) -> Self:  # type: ignore[override]
+    def __ior__(self, other: Iterable) -> Self:
         if not isinstance(other, Iterable):
             return NotImplemented
 
@@ -346,22 +363,22 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
 
     # only included because old InsensitiveSet implemented them (note builtins.set accepts *others)
 
-    def issubset(self, other: Set[T]) -> bool:
+    def issubset(self, other: Set) -> bool:
         return self <= other
 
-    def issuperset(self, other: Set[T]) -> bool:
+    def issuperset(self, other: Set) -> bool:
         return self >= other
 
-    def intersection(self, other: Iterable[T]) -> Self:
+    def intersection(self, other: Iterable) -> Self:
         return self & other
 
-    def difference(self, other: Iterable[T]) -> Self:
+    def difference(self, other: Iterable) -> Self:
         return self - other
 
-    def union(self, other: Iterable[T]) -> Self:
+    def union(self, other: Iterable) -> Self:
         return self | other
 
-    def symmetric_difference(self, other: Iterable[T]) -> Self:
+    def symmetric_difference(self, other: Iterable) -> Self:
         return self ^ other
 
     # generally helpful
@@ -373,121 +390,7 @@ class AbstractInsensitiveSet[T](MutableSet[T], Sequence[T], metaclass=ABCMeta):
         return f"{self.__class__.__name__}({list(self._inner.values())!r})"
 
 
-class InsensitiveSet[T: str | None](AbstractInsensitiveSet[T]):
+class InsensitiveSet(AbstractInsensitiveSet[str]):
     @staticmethod
-    def make_key(original_key: Any) -> T:
-        return _normalise_str_none(original_key)
-
-
-class AbstractInsensitiveDict[K, V](MutableMapping[K, V], metaclass=ABCMeta):
-    __slots__ = ("_inner",)
-    _inner: dict[K, V]
-
-    @staticmethod
-    @abstractmethod
-    def make_key(original_key: Any) -> K:
-        # a real implementation needs to raise TypeError if type is unworkable
-        return original_key  # type: ignore
-
-    def __init__(self, initial: Mapping[K, V] | Iterable[tuple[K, V]] = (), /):
-        self._inner = {}
-        self.update(initial)
-
-    # Mapping[K, V]
-
-    def __getitem__(self, key: K) -> V:
-        return self._inner.__getitem__(self.make_key(key))
-
-    def __iter__(self) -> Iterator[K]:
-        return self._inner.__iter__()
-
-    def __len__(self) -> int:
-        return self._inner.__len__()
-
-    # MutableMapping[K, V]
-
-    def __setitem__(self, key: K, value: V):
-        self._inner.__setitem__(self.make_key(key), value)
-
-    def __delitem__(self, key: K):
-        self._inner.__delitem__(self.make_key(key))
-
-    # Accelerate Mapping[K, V]
-
-    def __contains__(self, key: Any) -> bool:
-        try:
-            final_key = self.make_key(key)
-        except TypeError:
-            return False
-
-        return self._inner.__contains__(final_key)
-
-    def __eq__(self, other: Any) -> bool:
-        if not isinstance(other, Mapping):
-            return NotImplemented
-
-        other_dict = other if type(self) is type(other) else type(self)(other)  # type comparison deliberately strict
-
-        return self._inner.__eq__(other_dict._inner)
-
-    def items(self) -> ItemsView[K, V]:
-        return self._inner.items()
-
-    def values(self) -> ValuesView[V]:
-        return self._inner.values()
-
-    @abstractmethod
-    def keys(self) -> AbstractInsensitiveSet[K]:  # type: ignore[override]
-        ...
-
-    @overload
-    def get(self, key: K, default: None = ..., /) -> V | None: ...
-
-    @overload
-    def get(self, key: K, default: V = ..., /) -> V: ...
-
-    @overload
-    def get[X](self, key: K, default: X = ..., /) -> V | X: ...
-
-    def get[X](self, key: K, default: V | X | None = None, /) -> V | X | None:
-        try:
-            final_key = self.make_key(key)
-        except TypeError:
-            return default
-
-        return self._inner.get(final_key, default)
-
-    # Accelerate MutableMapping[K, V]
-
-    def clear(self):
-        self._inner.clear()
-
-    def update(self, other: Mapping[K, V] | Iterable[tuple[K, V]], /, **kwargs: V) -> None:  # type: ignore[override]
-        if type(self) is type(other):  # type comparison deliberately strict
-            self._inner.update(other._inner)
-        else:
-            it = other.items() if isinstance(other, Mapping) else other
-            for k, v in it:
-                self[k] = v
-
-        for k, v in kwargs.items():
-            self[k] = v  # type: ignore[index]
-
-    # bonus methods
-
-    def as_dict_with_keys(self, keys: Iterable[K]) -> dict[K, V | None]:
-        return {key: self.get(key) for key in keys}
-
-    def copy(self) -> Self:
-        other = type(self)()
-        other._inner = self._inner.copy()
-        return other
-
-
-class InsensitiveDict[K: str | None, V](AbstractInsensitiveDict[K, V]):
-    @staticmethod
-    def make_key(original_key: Any) -> K:
-        return _normalise_str_none(original_key)
-
-    def keys(self) -> InsensitiveSet[K]:  # type: ignore[override]
-        return InsensitiveSet(self)
+    def make_key(original_key: str) -> str:
+        return InsensitiveDict.make_key(original_key)
