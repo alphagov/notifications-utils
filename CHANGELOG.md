@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 123.3.0
+
+* Remove China (+86 country code) from `international_billing_rates.yml` to remove China from the international pricing page and to raise an exception if a user tries to send.
+
 ## 123.2.0
 
 * flask request logging: add ability to include `basic_auth_username` if present
