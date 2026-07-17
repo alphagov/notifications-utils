@@ -565,21 +565,6 @@
   rate_multiplier: 4
   names:
   - Vietnam
-'86':
-  attributes:
-    alpha: 'NO'
-    comment: Extremenly HIGH penalties for any traffic other than transactional
-    dlr: Carrier DLR
-    generic_sender: ''
-    numeric: LIMITED
-    sc: 'NO'
-    sender_and_registration_info: All senders CONVERTED into one available national
-      numeric sender
-    text_restrictions: Content template MUST be approved by the MNO. Transactional
-      traffic ONLY. Sufix added in the message text
-  rate_multiplier: 1
-  names:
-  - China
 '90':
   attributes:
     alpha: REG
