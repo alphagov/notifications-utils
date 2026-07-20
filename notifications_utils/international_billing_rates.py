@@ -23,4 +23,5 @@ from pathlib import Path
 import yaml
 
 INTERNATIONAL_BILLING_RATES = yaml.safe_load((Path(__file__).parent / "international_billing_rates.yml").read_text())
+DENY_LIST = set(yaml.safe_load((Path(__file__).parent / "deny_list.yml").read_text()).keys())
 COUNTRY_PREFIXES = set(INTERNATIONAL_BILLING_RATES.keys())
