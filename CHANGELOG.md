@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 123.4.0
+
+* Add `json_encodable` function to ensure plain container types are used in a data structure.
+
 ## 123.3.0
 
 * Remove China (+86 country code) from `international_billing_rates.yml` to remove China from the international pricing page and to raise an exception if a user tries to send.
