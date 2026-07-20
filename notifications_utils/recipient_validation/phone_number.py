@@ -63,8 +63,11 @@ class PhoneNumber:
         number.validate(allow_international_number = False, allow_uk_landline = False)
     """
 
-    def __init__(self, phone_number: str, is_service_contact_number: bool = False) -> None:
+    def __init__(
+        self, phone_number: str, is_service_contact_number: bool = False, skip_deny_list: bool = False
+    ) -> None:
         self.is_service_contact_number = is_service_contact_number
+        self.skip_deny_list = skip_deny_list
         try:
             self.number = self.parse_phone_number(phone_number)
         except InvalidPhoneError:
@@ -84,7 +87,11 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
     def _raise_if_unsupported_country(self):
-        if str(self.number.country_code) not in COUNTRY_PREFIXES:
+        if not self.skip_deny_list:
+            valid_prefixes = COUNTRY_PREFIXES.symmetric_difference(DENY_LIST)
+        else:
+            valid_prefixes = COUNTRY_PREFIXES
+        if str(self.number.country_code) not in valid_prefixes:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
     def validate(self, allow_international_number: bool = False, allow_uk_landline: bool = False) -> None:
