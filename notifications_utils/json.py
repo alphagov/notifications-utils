@@ -1,6 +1,8 @@
 from collections.abc import Iterator, Mapping, Sequence
 from json import JSONEncoder
 
+from flask.json.provider import DefaultJSONProvider as flask_DefaultJSONProvider
+
 type RelaxedJsonType = None | bool | int | float | str | Sequence["RelaxedJsonType"] | Mapping[str, "RelaxedJsonType"]
 
 
@@ -21,6 +23,7 @@ class RelaxedContainerJSONEncoder(JSONEncoder):
     A JSONEncoder subclass that will turn (almost) any encountered
     Sequence into a tuple and any Mapping into a plain dict.
     """
+
     def default(self, obj: RelaxedJsonType) -> StrictJsonType:
         match obj:
             case bool() | int() | float() | str() | None:
@@ -38,3 +41,7 @@ class RelaxedContainerJSONEncoder(JSONEncoder):
 
     def iterencode(self, obj: RelaxedJsonType, _one_shot: bool = False) -> Iterator[str]:
         return super().iterencode(obj, _one_shot)
+
+
+class FlaskRelaxedContainerJSONEncoder(flask_DefaultJSONProvider, RelaxedContainerJSONEncoder):
+    pass
