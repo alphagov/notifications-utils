@@ -107,6 +107,15 @@ def test_overwrite_by_pattern(
         assert redis_client_with_live_instance.get(key) == value
 
 
+def test_overwrite_by_pattern_2501_times(redis_client_with_live_instance):
+    base_pattern = "foo"
+    for i in range(2501):
+        redis_client_with_live_instance.redis_store.set(base_pattern + str(i), "original")
+    assert redis_client_with_live_instance.overwrite_by_pattern(base_pattern + "*", "overwritten") == 2501
+    for i in range(2501):
+        assert redis_client_with_live_instance.redis_store.get(base_pattern + str(i)) == b"overwritten"
+
+
 @freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
 def test_decrement_correct_number_of_tokens_for_multiple_calls_within_replenishment_interval(
     app, redis_client_with_live_instance
