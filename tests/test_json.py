@@ -1,5 +1,6 @@
 import datetime
 import json
+from collections import deque
 
 import pytest
 from requests.structures import CaseInsensitiveDict
@@ -25,9 +26,14 @@ from notifications_utils.json import RelaxedContainerJSONEncoder
         (InsensitiveDict({"foo": 123}), {"foo": 123}),
         (InsensitiveSet(("foo", "bar", "Baz")), ["foo", "bar", "Baz"]),
         (InsensitiveSet(("foo", None, "Baz")), ["foo", None, "Baz"]),
+        (deque((None, None, deque((True, False)))), [None, None, [True, False]]),
         (
-            [InsensitiveDict({"foo": (InsensitiveDict({"foo": 123}), "baa")}), InsensitiveSet(("2", "1")), None],
-            [{"foo": [{"foo": 123}, "baa"]}, ["2", "1"], None],
+            [
+                InsensitiveDict({"foo": (InsensitiveDict({"foo": deque((123, "456"))}), "baa")}),
+                InsensitiveSet(("2", "1")),
+                None,
+            ],
+            [{"foo": [{"foo": [123, "456"]}, "baa"]}, ["2", "1"], None],
         ),
     ),
 )
