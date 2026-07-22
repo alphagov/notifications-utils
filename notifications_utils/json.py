@@ -1,5 +1,6 @@
 from collections.abc import Iterator, Mapping, Sequence
 from json import JSONEncoder
+from typing import Any, Protocol
 
 from flask.json.provider import DefaultJSONProvider as flask_DefaultJSONProvider
 
@@ -18,13 +19,23 @@ type StrictJsonType = (
 )
 
 
-class RelaxedContainerJSONEncoder(JSONEncoder):
+class JSONNormalizingProtocol(Protocol):
     """
-    A JSONEncoder subclass that will turn (almost) any encountered
-    Sequence into a tuple and any Mapping into a plain dict.
+    A class that uses a `default` method to normalize a python object into an easily
+    JSON-serializable type, e.g. JSONEncoder or flask DefaultJSONProvider
     """
 
-    def default(self, obj: RelaxedJsonType) -> StrictJsonType:
+    def default(self, obj: Any) -> StrictJsonType:
+        raise NotImplementedError
+
+
+class RelaxedContainerJSONEncodingMixin:
+    """
+    Can be mixed in with any JSONNormalizingProtocol class to make it turn (almost) any
+    encountered Sequence into a tuple and any Mapping into a plain dict.
+    """
+
+    def default(self: JSONNormalizingProtocol, obj: RelaxedJsonType) -> StrictJsonType:
         match obj:
             case bool() | int() | float() | str() | None:
                 return obj
@@ -34,8 +45,10 @@ class RelaxedContainerJSONEncoder(JSONEncoder):
             case Mapping():
                 return {k: self.default(v) for k, v in obj.items()}
 
-        return super().default(obj)
+        return super().default(obj)  # type: ignore[safe-super]
 
+
+class RelaxedContainerJSONEncoder(RelaxedContainerJSONEncodingMixin, JSONEncoder):
     def encode(self, obj: RelaxedJsonType) -> str:
         return super().encode(obj)
 
@@ -43,5 +56,5 @@ class RelaxedContainerJSONEncoder(JSONEncoder):
         return super().iterencode(obj, _one_shot)
 
 
-class FlaskRelaxedContainerJSONEncoder(flask_DefaultJSONProvider, RelaxedContainerJSONEncoder):
+class FlaskRelaxedContainerJSONProvider(RelaxedContainerJSONEncodingMixin, flask_DefaultJSONProvider):
     pass
