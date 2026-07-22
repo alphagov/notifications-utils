@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 123.5.0
+
+* Add `RelaxedContainerJSONEncoder` `JSONEncoder` subclass to allow encoding of structures with alternative implementations of `Sequence` and `Mapping`.
+* Add `FlaskRelaxedContainerJSONEncoder`, combining flask's modified `JSONEncoder` with `RelaxedContainerJSONEncoder`.
+
 ## 123.4.0
 
 * Add China (+86 country code) back to `international_billing_rates.yml`
