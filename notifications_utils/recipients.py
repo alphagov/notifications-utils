@@ -76,7 +76,7 @@ class RecipientCSV:
         self.allow_sms_to_uk_landline = allow_sms_to_uk_landline
         self.remaining_messages = remaining_messages
         self.remaining_international_sms_messages = remaining_international_sms_messages
-        self.rows_as_list = None
+        self.rows_as_list = []
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
 
@@ -87,6 +87,9 @@ class RecipientCSV:
 
     def __getitem__(self, requested_index):
         return self.rows[requested_index]
+
+    def __iter__(self):
+        return self
 
     @property
     def guestlist(self) -> Sequence[Any]:
@@ -164,7 +167,7 @@ class RecipientCSV:
 
     @property
     def rows(self):
-        if self.rows_as_list is None:
+        if not isinstance(self.rows_as_list, InterruptibleIterableList):
             self.rows_as_list = InterruptibleIterableList(self.get_rows())
             self.rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
         return self.rows_as_list

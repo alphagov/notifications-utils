@@ -230,7 +230,7 @@ def test_subject_is_page_title():
         ),
         features="html.parser",
     )
-    assert email.select_one("title").text == "this is the subject"
+    assert email.select_one("title").text == "this is the subject"  # type: ignore[union-attr]
 
 
 def test_preheader_is_at_start_of_html_emails():
@@ -875,7 +875,7 @@ def test_letter_template_shows_date_and_page_count_in_welsh_if_language_set_to_w
 
     assert "31 Hydref 2023" in template.text
 
-    assert 'content: "Tudalen " counter(page) " o " counter(pages);' in template.select_one("style").text
+    assert 'content: "Tudalen " counter(page) " o " counter(pages);' in template.select_one("style").text  # type: ignore[union-attr]
 
 
 def test_letter_template_shows_welsh_subject_and_content_if_language_set_to_welsh():
@@ -1648,7 +1648,7 @@ def test_templates_extract_placeholders(
 
 def test_html_template_can_inject_personalisation_with_special_characters():
     template_content = "This is something text with (( this&that )) HTML special character personalisation <>."
-    personalisation = {"this&that": "some very lovely &"}
+    personalisation: dict[str, str] = {"this&that": "some very lovely &"}
 
     result = str(
         HTMLEmailTemplate({"content": template_content, "subject": "", "template_type": "email"}, personalisation)
@@ -2323,6 +2323,7 @@ def test_letter_qr_codes_with_too_much_data(content, values, should_error):
     error = template.has_qr_code_with_too_much_data()
 
     if should_error:
+        assert error
         assert error.data == "content" * 100
         assert error.max_bytes == 504
         assert error.num_bytes == 700

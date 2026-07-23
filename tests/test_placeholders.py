@@ -63,4 +63,5 @@ def test_placeholder_raises_if_getting_conditional_body_on_non_conditional():
 
 def test_placeholder_can_be_constructed_from_regex_match():
     match = re.search(r"\(\(.*\)\)", "foo ((bar)) baz")
+    assert match
     assert Placeholder.from_match(match).name == "bar"

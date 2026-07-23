@@ -323,7 +323,7 @@ def test_get_estimated_delivery_date_for_letter(
 
 def test_letter_timings_only_accept_real_postage_values():
     with pytest.raises(KeyError):
-        LetterTimings(datetime.now(UTC).isoformat(), postage="foo")
+        LetterTimings(datetime.now(UTC), postage="foo")  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("status", ["sending", "pending"])

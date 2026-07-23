@@ -9,7 +9,7 @@ def test_lazy_local_getter_reuses_first_constructed(request):
     # we're not supposed to construct ContextVars inside functions because they can't
     # really be garbage-collected, but otherwise it's difficult to ensure we're getting
     # a "clean" ContextVar for this test
-    cv = ContextVar(request.node.name)  # ensure name is unique across test session
+    cv: ContextVar = ContextVar(request.node.name)  # ensure name is unique across test session
 
     factory = mock.Mock(
         spec=("__call__",),
@@ -26,7 +26,7 @@ def test_lazy_local_getter_reuses_first_constructed(request):
 
 def test_lazy_local_getter_clear(request):
     # ...same caveat about locally-declared ContextVar...
-    cv = ContextVar(request.node.name)  # ensure name is unique across test session
+    cv: ContextVar = ContextVar(request.node.name)  # ensure name is unique across test session
 
     factory = mock.Mock(
         spec=("__call__",),

@@ -158,7 +158,7 @@ _trace_id_related_params = (
     ),
 )
 
-_span_id_related_params = (
+_span_id_related_params: tuple = (
     (
         # extra_config
         {},
@@ -364,10 +364,10 @@ def test_request_header(
     spanid_random_mock.randrange.return_value = _GENERATED_SPAN_VALUE
 
     with app.test_request_context(headers=extra_req_headers):
-        assert request.request_id == request.trace_id == expected_trace_id
-        assert request.span_id == expected_span_id
-        assert request.parent_span_id == expected_parent_span_id
-        assert request.get_onwards_request_headers() == expected_onwards_req_headers
+        assert request.request_id == request.trace_id == expected_trace_id  # type: ignore[attr-defined]
+        assert request.span_id == expected_span_id  # type: ignore[attr-defined]
+        assert request.parent_span_id == expected_parent_span_id  # type: ignore[attr-defined]
+        assert request.get_onwards_request_headers() == expected_onwards_req_headers  # type: ignore[attr-defined]
 
     assert traceid_random_mock.randrange.mock_calls == [] if not expect_trace_random_call else [mock.call(1 << 128)]
     assert spanid_random_mock.randrange.mock_calls == [mock.call(1 << 64)] * (2 if expect_span_random_call_self else 1)
@@ -386,9 +386,9 @@ def test_request_header_zero_padded(
     spanid_random_mock.randrange.return_value = 0xA
 
     with app.test_request_context():
-        assert request.request_id == request.trace_id == "0000000000000000000000000000beef"
-        assert request.span_id == "self-000000000000000a"
-        assert request.get_onwards_request_headers() == {
+        assert request.request_id == request.trace_id == "0000000000000000000000000000beef"  # type: ignore[attr-defined]
+        assert request.span_id == "self-000000000000000a"  # type: ignore[attr-defined]
+        assert request.get_onwards_request_headers() == {  # type: ignore[attr-defined]
             "X-B3-TraceId": "0000000000000000000000000000beef",
             "X-B3-SpanId": "000000000000000a",
             "X-B3-ParentSpanId": "self-000000000000000a",

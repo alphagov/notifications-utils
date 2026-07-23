@@ -233,7 +233,8 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
 
     rows = recipients.get_rows()
     for _ in range(3):
-        assert next(rows).recipient == "a@b.com"
+        row = next(rows)
+        assert row and row.recipient == "a@b.com"
 
     assert has_error_mock.called is False
     assert has_bad_recipient_mock.called is False
@@ -1450,7 +1451,7 @@ def test_recipient_csv_checks_should_validate_flag(should_validate):
         should_validate=should_validate,
     )
 
-    recipients._get_error_for_field = Mock(return_value=None)
+    recipients._get_error_for_field = Mock(return_value=None)  # type: ignore[method-assign]
 
     list(recipients.get_rows())
 

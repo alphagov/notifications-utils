@@ -95,7 +95,7 @@ class TestStringMatching:
 
 class TestExactIdentity:
     def test_exact_identity(self):
-        x = []
+        x: list = []
         assert (
             7,
             ExactIdentity(x),

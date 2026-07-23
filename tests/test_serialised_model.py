@@ -15,7 +15,7 @@ def test_cant_be_instatiated_with_abstract_properties():
         pass
 
     with pytest.raises(TypeError) as e:
-        SerialisedModelCollection()
+        SerialisedModelCollection([])  # type: ignore[abstract]
 
     assert str(e.value) == (
         "Can't instantiate abstract class SerialisedModelCollection without an implementation "
@@ -23,7 +23,7 @@ def test_cant_be_instatiated_with_abstract_properties():
     )
 
     with pytest.raises(TypeError) as e:
-        CustomCollection()
+        CustomCollection([])  # type: ignore[abstract]
 
     assert str(e.value) == (
         "Can't instantiate abstract class CustomCollection without an implementation for abstract method 'model'"
@@ -41,7 +41,7 @@ def test_cant_override_custom_property_from_dict():
     class Custom(SerialisedModel):
         foo: Any
 
-        @property
+        @property  # type: ignore[no-redef]
         def foo(self):
             return "bar"
 
@@ -67,7 +67,7 @@ def test_model_raises_for_unknown_attributes(json_response):
     model = Custom(json_response)
 
     with pytest.raises(AttributeError) as e:
-        model.foo  # noqa
+        assert model.foo  # type: ignore[attr-defined]
 
     assert str(e.value) == ("'Custom' object has no attribute 'foo'")
 

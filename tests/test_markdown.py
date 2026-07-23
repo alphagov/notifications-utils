@@ -283,7 +283,9 @@ def test_mailto_link_in_email_markdown_link(url, expected_link_href):
         notify_email_markdown(f"Unusual [link]({url})"),
         features="html.parser",
     )
-    assert paragraph.select_one("a")["href"] == expected_link_href
+    link = paragraph.select_one("a")
+    assert link
+    assert link["href"] == expected_link_href
 
 
 @pytest.mark.parametrize(

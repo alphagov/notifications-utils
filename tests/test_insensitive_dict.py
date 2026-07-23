@@ -36,14 +36,14 @@ def test_missing_data():
         index=1,
         error_fn=None,
         recipient_column_headers=[],
-        placeholders=[],
+        placeholders=InsensitiveSet(),
         template=template,
         allow_international_letters=False,
     )
     with pytest.raises(KeyError):
-        InsensitiveDict({})["foo"]
-    assert InsensitiveDict({}).get("foo") is None
-    assert InsensitiveDict({}).get("foo", "bar") == "bar"
+        InsensitiveDict({})["foo"]  # type: ignore[index]
+    assert InsensitiveDict({}).get("foo") is None  # type: ignore[call-overload]
+    assert InsensitiveDict({}).get("foo", "bar") == "bar"  # type: ignore[call-overload]
     assert partial_row()["foo"] == Cell()
     assert partial_row().get("foo") == Cell()
     assert partial_row().get("foo", "bar") == "bar"
@@ -86,7 +86,7 @@ def test_lookup(cls, key, should_be_present, in_dictionary):
     ],
 )
 def test_set_item(key_in, lookup_key):
-    columns = InsensitiveDict({})
+    columns: InsensitiveDict = InsensitiveDict({})
     columns[key_in] = "bar"
     assert columns[lookup_key] == "bar"
     columns[key_in] = "baz"
@@ -94,9 +94,9 @@ def test_set_item(key_in, lookup_key):
 
 
 def test_immutable_cant_set_item():
-    columns = ImmutableInsensitiveDict({})
+    columns: ImmutableInsensitiveDict = ImmutableInsensitiveDict({})
     with pytest.raises((AttributeError, TypeError)):
-        columns["foo"] = "bar"
+        columns["foo"] = "bar"  # type: ignore[index]
 
 
 @pytest.mark.parametrize(
@@ -129,10 +129,10 @@ def test_immutable_cant_del_item():
     columns = ImmutableInsensitiveDict({"foo": "bar", "baz": 123})
 
     with pytest.raises((AttributeError, TypeError)):
-        del columns["foo"]
+        del columns["foo"]  # type: ignore[attr-defined]
 
     with pytest.raises((AttributeError, TypeError)):
-        del columns["nonexistent"]
+        del columns["nonexistent"]  # type: ignore[attr-defined]
 
 
 @pytest.mark.parametrize(
@@ -165,10 +165,10 @@ def test_immutable_cant_pop_item():
     columns = ImmutableInsensitiveDict({"foo": "bar", "baz": 123})
 
     with pytest.raises((AttributeError, TypeError)):
-        columns.pop("foo")
+        columns.pop("foo")  # type: ignore[attr-defined]
 
     with pytest.raises((AttributeError, TypeError)):
-        columns.pop("nonexistent")
+        columns.pop("nonexistent")  # type: ignore[attr-defined]
 
 
 def test_maintains_insertion_order():
@@ -221,7 +221,7 @@ def test_immutable_cant_update():
         }
     )
     with pytest.raises((AttributeError, TypeError)):
-        d.update((("b ", "B2"), ("c ", "C2"), ("d_", "D1"), (" c", "C3")))
+        d.update((("b ", "B2"), ("c ", "C2"), ("d_", "D1"), (" c", "C3")))  # type: ignore[attr-defined]
 
 
 @pytest.mark.parametrize("cls", (InsensitiveDict, ImmutableInsensitiveDict))
@@ -412,7 +412,7 @@ def test_insensitive_set_pop():
 def test_immutable_insensitive_set_cant_pop():
     foobar = ImmutableInsensitiveSet(("foo", "bar", "FOO", " BAR ", "baz"))
     with pytest.raises((AttributeError, TypeError)):
-        foobar.pop()
+        foobar.pop()  # type: ignore[attr-defined]
 
 
 @pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))
@@ -644,10 +644,10 @@ def test_insensitive_set_isub_iterable(cls, expect_reassign):
 
 def test_insensitive_set_invalid_inequality():
     with pytest.raises(TypeError):
-        InsensitiveSet() <= 1  # noqa: B015
+        InsensitiveSet() <= 1  # type: ignore[operator] # noqa: B015
 
     with pytest.raises(TypeError):
-        InsensitiveSet() >= 1  # noqa: B015
+        InsensitiveSet() >= 1  # type: ignore[operator] # noqa: B015
 
 
 @pytest.mark.parametrize("cls", (InsensitiveSet, ImmutableInsensitiveSet))

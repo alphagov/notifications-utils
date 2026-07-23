@@ -26,7 +26,7 @@ class TestAssetFingerprint:
         """
         fingerprinter = AssetFingerprinter()
         fingerprinter.get_url("javascripts/application.js")
-        fingerprinter.get_asset_file_contents.assert_called_with("app/static/javascripts/application.js")
+        get_file_content_mock.assert_called_once_with("app/static/javascripts/application.js")
 
     def test_hashes_are_consistent(self, mocker):
         get_file_content_mock = mocker.patch.object(AssetFingerprinter, "get_asset_file_contents")
@@ -66,7 +66,7 @@ class TestAssetFingerprint:
         assert fingerprinter.get_url("application.css") == "/static/application.css?418e6f4a6cdf1142e45c072ed3e1c90a"
         fingerprinter._cache["application.css"] = "a1a1a1"
         assert fingerprinter.get_url("application.css") == "a1a1a1"
-        fingerprinter.get_asset_file_contents.assert_called_once_with("app/static/application.css")
+        get_file_content_mock.assert_called_once_with("app/static/application.css")
 
     def test_without_hash_if_requested(self, mocker):
         fingerprinter = AssetFingerprinter()

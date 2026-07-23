@@ -48,7 +48,7 @@ def test_s3upload_save_file_to_bucket_with_contenttype(mocker):
 def test_s3upload_raises_exception(app, mocker):
     mocked = mocker.patch("notifications_utils.s3.resource")
     response = {"Error": {"Code": 500}}
-    exception = botocore.exceptions.ClientError(response, "Bad exception")
+    exception = botocore.exceptions.ClientError(response, "Bad exception")  # type: ignore[arg-type]
     mocked.return_value.Object.return_value.put.side_effect = exception
     with pytest.raises(botocore.exceptions.ClientError):
         s3upload(filedata=contents, region=region, bucket_name=bucket, file_location="location")
@@ -97,7 +97,7 @@ def test_s3download_gets_file(mocker):
 def test_s3download_raises_on_error(mocker):
     mocked = mocker.patch("notifications_utils.s3.resource")
     mocked.return_value.Object.side_effect = botocore.exceptions.ClientError(
-        {"Error": {"Code": 404}},
+        {"Error": {"Code": "404"}},  # type: ignore[arg-type]
         "Bad exception",
     )
 
@@ -134,8 +134,8 @@ def test_s3_multipart_upload_create_with_content_type(mocker):
 
 
 def test_s3_multipart_upload_create_failure(mocker, app_with_mocked_logger):
-    response = {"Error": {"Code": 500}}
-    exception = botocore.exceptions.ClientError(response, "Bad exception")
+    response = {"Error": {"Code": "500", "Message": "foo"}}
+    exception = botocore.exceptions.ClientError(response, "Bad exception")  # type: ignore[arg-type]
 
     mocked_s3_client = mocker.patch("notifications_utils.s3.client")
     mocked_instance = mocked_s3_client.return_value
@@ -166,7 +166,7 @@ def test_s3_multipart_upload_part(mocker):
 
 def test_s3_multipart_upload_part_failure(mocker, app_with_mocked_logger):
     response = {"Error": {"Code": 500}}
-    exception = botocore.exceptions.ClientError(response, "Bad exception")
+    exception = botocore.exceptions.ClientError(response, "Bad exception")  # type: ignore[arg-type]
 
     mocked_s3_client = mocker.patch("notifications_utils.s3.client")
     mocked_instance = mocked_s3_client.return_value
@@ -196,7 +196,7 @@ def test_s3_multipart_upload_complete(mocker):
 
 def test_s3_multipart_upload_complete_failure(mocker, app_with_mocked_logger):
     response = {"Error": {"Code": 500}}
-    exception = botocore.exceptions.ClientError(response, "Bad exception")
+    exception = botocore.exceptions.ClientError(response, "Bad exception")  # type: ignore[arg-type]
 
     mocked_s3_client = mocker.patch("notifications_utils.s3.client")
     mocked_instance = mocked_s3_client.return_value
@@ -223,7 +223,7 @@ def test_s3_multipart_upload_abort(mocker):
 
 def test_s3_multipart_upload_abort_failure(mocker, app_with_mocked_logger):
     response = {"Error": {"Code": 500}}
-    exception = botocore.exceptions.ClientError(response, "Bad exception")
+    exception = botocore.exceptions.ClientError(response, "Bad exception")  # type: ignore[arg-type]
 
     mocked_s3_client = mocker.patch("notifications_utils.s3.client")
     mocked_instance = mocked_s3_client.return_value

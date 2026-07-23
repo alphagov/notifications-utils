@@ -69,7 +69,13 @@ def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
         handlers = logging.get_handlers(app, extra_filters=[])
 
         record = builtin_logging.LogRecord(
-            name="log thing", level="info", pathname="path", lineno=123, msg="message to log", exc_info=None, args=None
+            name="log thing",
+            level=builtin_logging.INFO,
+            pathname="path",
+            lineno=123,
+            msg="message to log",
+            exc_info=None,
+            args=None,
         )
         record.service_id = 1234
         assert json.loads(handlers[0].format(record))["time"] == logged_time
@@ -77,7 +83,13 @@ def test_log_timeformat_fractional_seconds(frozen_time, logged_time, tmpdir):
 
 def test_base_json_formatter_contains_service_id(tmpdir):
     record = builtin_logging.LogRecord(
-        name="log thing", level="info", pathname="path", lineno=123, msg="message to log", exc_info=None, args=None
+        name="log thing",
+        level=builtin_logging.INFO,
+        pathname="path",
+        lineno=123,
+        msg="message to log",
+        exc_info=None,
+        args=None,
     )
 
     service_id_filter = logging.ServiceIdFilter()
