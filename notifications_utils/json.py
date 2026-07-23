@@ -19,13 +19,16 @@ type StrictJsonType = (
 )
 
 
+type StrictJsonTopLevelType = None | bool | int | float | str | list[Any] | tuple[Any, ...] | dict[str, Any]
+
+
 class JSONNormalizingProtocol(Protocol):
     """
     A class that uses a `default` method to normalize a python object into an easily
     JSON-serializable type, e.g. JSONEncoder or flask DefaultJSONProvider
     """
 
-    def default(self, obj: Any) -> StrictJsonType:
+    def default(self, obj: Any) -> StrictJsonTopLevelType:
         raise NotImplementedError
 
 
@@ -35,15 +38,12 @@ class RelaxedContainerJSONEncodingMixin:
     encountered Sequence into a tuple and any Mapping into a plain dict.
     """
 
-    def default(self: JSONNormalizingProtocol, obj: RelaxedJsonType) -> StrictJsonType:
+    def default(self: JSONNormalizingProtocol, obj: RelaxedJsonType) -> StrictJsonTopLevelType:
         match obj:
-            case bool() | int() | float() | str() | None:
-                return obj
-            case Sequence() if not isinstance(obj, bytes):
-                # not str because those have already been handled
-                return tuple(self.default(inner) for inner in obj)
+            case Sequence() if not isinstance(obj, bytes):  # not str because those have already been handled
+                return tuple(obj)
             case Mapping():
-                return {k: self.default(v) for k, v in obj.items()}
+                return dict(obj)
 
         return super().default(obj)  # type: ignore[safe-super]
 

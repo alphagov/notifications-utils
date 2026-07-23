@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 124.1.0
+
+* Simplify object normalisation performed in `RelaxedContainerJSONEncodingMixin` by trusting `JSONEncoder` to recurse into our return values instead of doing this ourselves.
+* `ZendeskClient`: use `RelaxedContainerJSONEncoder` for json payloads
+
 ## 124.0.0
 
 * Rename `FlaskRelaxedContainerJSONEncoder` to `FlaskRelaxedContainerJSONProvider`, don't implement `JSONEncoder`.
