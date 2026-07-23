@@ -50,6 +50,7 @@ class RecipientCSV:
     placeholders_as_column_keys: InsensitiveSet[str]
     _guestlist: Sequence[Any]
     _placeholders: Sequence[Any]
+    _rows_as_list: Sequence["None | Row"]
 
     def __init__(
         self,
@@ -76,7 +77,6 @@ class RecipientCSV:
         self.allow_sms_to_uk_landline = allow_sms_to_uk_landline
         self.remaining_messages = remaining_messages
         self.remaining_international_sms_messages = remaining_international_sms_messages
-        self.rows_as_list = None
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
 
@@ -164,10 +164,10 @@ class RecipientCSV:
 
     @property
     def rows(self):
-        if self.rows_as_list is None:
-            self.rows_as_list = InterruptibleIterableList(self.get_rows())
-            self.rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
-        return self.rows_as_list
+        if not hasattr(self, "_rows_as_list"):
+            self._rows_as_list = InterruptibleIterableList(self.get_rows())
+            self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
+        return self._rows_as_list
 
     @property
     def _rows(self) -> Iterator[Sequence[str]]:
