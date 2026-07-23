@@ -17,6 +17,7 @@ class Config:
         return getattr(self, key, default)
 
 
+@pytest.mark.xdist_group(name="test_celery")
 @patch("notifications_utils.logging.celery.dictConfig")
 @patch("notifications_utils.logging.celery.config", Config())
 def test_setup_logging_connect_success(mock_dict_config):
@@ -75,6 +76,7 @@ def assert_command_has_outputs(tmp_path, command, filename, expected_messages, u
         pytest.fail(f"Unexpected error occurred: {e}")
 
 
+@pytest.mark.xdist_group(name="test_celery")
 @pytest.mark.slow
 def test_celery_dummy_logs(tmp_path):
     command = ["celery", "--quiet", "-A", "dummy_celery_app", "worker", "-B"]
@@ -93,6 +95,7 @@ def test_celery_dummy_logs(tmp_path):
     assert_command_has_outputs(tmp_path, command, "dummy_celery_app.py", expected_messages, env=env)
 
 
+@pytest.mark.xdist_group(name="test_celery")
 @pytest.mark.slow
 def test_celery_worker_logs_absent(tmp_path):
     command = [
