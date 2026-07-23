@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 125.0.0
+
+* Removes `RecipientCSV.rows_as_list` and `RecipientCSV.get_rows()`. Use `for row in recipient_csv_instance:`, `len(recipient_csv_instance)`, etc. instead
+
 ## 124.2.1
 
 * Fix antivirus scan when the uploaded file is a Werkzeug `FileStorage` (requests 2.34)
