@@ -231,7 +231,7 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
         max_errors_shown=3,
     )
 
-    rows = recipients.get_rows()
+    rows = recipients._get_rows()
     for _ in range(3):
         assert next(rows).recipient == "a@b.com"
 
@@ -256,7 +256,7 @@ def test_get_rows_only_iterates_over_file_once(mocker):
         template=_sample_template("email", "hello ((name))"),
     )
 
-    rows = recipients.get_rows()
+    rows = recipients._get_rows()
     for _ in range(3):
         next(rows)
 
@@ -1452,7 +1452,7 @@ def test_recipient_csv_checks_should_validate_flag(should_validate):
 
     recipients._get_error_for_field = Mock(return_value=None)
 
-    list(recipients.get_rows())
+    list(recipients._get_rows())
 
     assert template.is_message_empty.called is should_validate
     assert recipients._get_error_for_field.called is should_validate

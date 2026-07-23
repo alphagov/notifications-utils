@@ -165,7 +165,7 @@ class RecipientCSV:
     @property
     def rows(self):
         if not hasattr(self, "_rows_as_list"):
-            self._rows_as_list = InterruptibleIterableList(self.get_rows())
+            self._rows_as_list = InterruptibleIterableList(self._get_rows())
             self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
         return self._rows_as_list
 
@@ -184,7 +184,7 @@ class RecipientCSV:
                 continue  # skip the header row
             yield max((column_index for column_index, column in enumerate(row) if column), default=-1) + 1
 
-    def get_rows(self) -> "Iterator[Row | None]":
+    def _get_rows(self) -> "Iterator[Row | None]":
         index_of_first_empty_column = max(self._first_empty_column_indices, default=0)
         headers_of_populated_columns = self._raw_column_headers[:index_of_first_empty_column]
         headers_of_empty_columns = self._raw_column_headers[index_of_first_empty_column:]
@@ -201,7 +201,7 @@ class RecipientCSV:
             interruptible_iter(
                 rows_as_lists_of_columns,
                 self.get_rows_loop_interruptible_every,
-                label=f"{self.__class__.__name__}.get_rows",
+                label=f"{self.__class__.__name__}._get_rows",
             )
         ):
             if index >= self.max_rows:
