@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 124.2.0
+
+* `RequestCache`: use `RelaxedContainerJSONEncoder` to encode cached payloads
+
 ## 124.1.0
 
 * Simplify object normalisation performed in `RelaxedContainerJSONEncodingMixin` by trusting `JSONEncoder` to recurse into our return values instead of doing this ourselves.
