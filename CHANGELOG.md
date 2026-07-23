@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 125.0.0
+
+* Removes `RecipientCSV.rows_as_list`. Use `for r in recipient_csv_instance:`, `len(recipient_csv_instance)`, etc. instead
+
 ## 124.2.0
 
 * `RequestCache`: use `RelaxedContainerJSONEncoder` to encode cached payloads
