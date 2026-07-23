@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 124.0.0
+
+* Rename `FlaskRelaxedContainerJSONEncoder` to `FlaskRelaxedContainerJSONProvider`, don't implement `JSONEncoder`.
+
 ## 123.5.0
 
 * Add `RelaxedContainerJSONEncoder` `JSONEncoder` subclass to allow encoding of structures with alternative implementations of `Sequence` and `Mapping`.
