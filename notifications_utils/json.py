@@ -34,6 +34,15 @@ anything
 type StrictJsonTopLevelType = None | bool | int | float | str | list[Any] | tuple[Any, ...] | dict[str, Any]
 
 
+"""
+A StrictJsonType that only accepts lists and derivatives as the
+container type for "arrays"
+"""
+type StrictMutableJsonType = (
+    None | bool | int | float | str | list["StrictMutableJsonType"] | dict[str, "StrictMutableJsonType"]
+)
+
+
 class JSONNormalizingProtocol(Protocol):
     """
     A class that uses a `default` method to normalize a python object into an easily
