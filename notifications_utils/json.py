@@ -4,9 +4,17 @@ from typing import Any, Protocol
 
 from flask.json.provider import DefaultJSONProvider as flask_DefaultJSONProvider
 
+"""
+JSON-serializable objects that accept any Sequence or Mapping as
+container types
+"""
 type RelaxedJsonType = None | bool | int | float | str | Sequence["RelaxedJsonType"] | Mapping[str, "RelaxedJsonType"]
 
 
+"""
+JSON-serializable objects that only accept list, tuple or dict
+(and derivatives) as container types
+"""
 type StrictJsonType = (
     None
     | bool
@@ -19,6 +27,10 @@ type StrictJsonType = (
 )
 
 
+"""
+A StrictJsonType at the top-level whose containers could contain
+anything
+"""
 type StrictJsonTopLevelType = None | bool | int | float | str | list[Any] | tuple[Any, ...] | dict[str, Any]
 
 
