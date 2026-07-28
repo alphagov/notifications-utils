@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 124.2.1
+
+* Fix antivirus scan when the uploaded file is a Werkzeug `FileStorage` (requests 2.34)
+
 ## 124.2.0
 
 * `RequestCache`: use `RelaxedContainerJSONEncoder` to encode cached payloads

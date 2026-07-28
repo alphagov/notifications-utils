@@ -1,6 +1,7 @@
 import requests
 from flask import current_app, request
 from flask.ctx import has_request_context
+from werkzeug.datastructures import FileStorage
 
 
 class AntivirusError(Exception):
@@ -18,6 +19,18 @@ class AntivirusError(Exception):
             status_code = 503
 
         return cls(message, status_code)
+
+
+def _multipart_file(document_stream):
+    """
+    Format the file for the HTTP library we use to call antivirus.
+
+    - Admin uploads arrive as a FileStorage, so we send requests the stream it wraps.
+    - Document-download-api sends plain bytes, which requests can take as-is.
+    """
+    if isinstance(document_stream, FileStorage):
+        return document_stream.stream
+    return document_stream
 
 
 class AntivirusClient:
@@ -41,7 +54,7 @@ class AntivirusClient:
             response = self.requests_session.post(
                 f"{self.api_host}/scan",
                 headers=headers,
-                files={"document": document_stream},
+                files={"document": _multipart_file(document_stream)},
             )
 
             response.raise_for_status()
@@ -52,6 +65,9 @@ class AntivirusClient:
 
             raise error from e
         finally:
-            document_stream.seek(0)
+            # Only rewind when the input supports it (admin uploads, BytesIO).
+            # Document-download-api passes bytes, which have no rewind.
+            if hasattr(document_stream, "seek"):
+                document_stream.seek(0)
 
         return response.json()["ok"]
