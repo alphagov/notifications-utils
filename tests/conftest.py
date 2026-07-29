@@ -2,9 +2,11 @@ import logging
 
 import pytest
 import requests_mock
+from filelock import FileLock, Timeout
 from flask import Flask
 
 from notifications_utils import request_helper
+from notifications_utils.clients.redis.redis_client import RedisClient
 
 
 class FakeService:
@@ -60,3 +62,20 @@ def sample_service():
 def rmock():
     with requests_mock.mock() as rmock:
         yield rmock
+
+
+@pytest.fixture(scope="function")
+def redis_client_with_live_instance(app, tmp_path_factory):
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    redis_lock_file = root_tmp_dir / "redis_lock"
+    app.config["REDIS_ENABLED"] = True
+    app.config["REDIS_URL"] = "redis://localhost:6999/0"
+    lock = FileLock(str(redis_lock_file) + ".lock")
+    try:
+        with lock.acquire(timeout=10):
+            redis_client = RedisClient()
+            redis_client.init_app(app)
+            redis_client.redis_store.flushall()
+            return redis_client
+    except Timeout as e:
+        raise Exception(f"Timeout while waiting for redis lock. Detail: {e}") from e

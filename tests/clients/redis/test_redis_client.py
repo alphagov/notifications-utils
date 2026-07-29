@@ -5,9 +5,9 @@ from datetime import UTC, datetime
 from functools import partial
 from unittest.mock import Mock, call
 
+import msgpack
 import pytest
 import redis
-from filelock import FileLock, Timeout
 from freezegun import freeze_time
 from redis.exceptions import TimeoutError as redis_TimeoutError
 
@@ -26,23 +26,6 @@ def mocked_redis_pipeline():
 @pytest.fixture
 def delete_mock():
     return Mock(return_value=4)
-
-
-@pytest.fixture(scope="function")
-def redis_client_with_live_instance(app, tmp_path_factory):
-    root_tmp_dir = tmp_path_factory.getbasetemp().parent
-    redis_lock_file = root_tmp_dir / "redis_lock"
-    app.config["REDIS_ENABLED"] = True
-    app.config["REDIS_URL"] = "redis://localhost:6999/0"
-    lock = FileLock(str(redis_lock_file) + ".lock")
-    try:
-        with lock.acquire(timeout=10):
-            redis_client = RedisClient()
-            redis_client.init_app(app)
-            redis_client.redis_store.flushall()
-            return redis_client
-    except Timeout as e:
-        raise Exception(f"Timeout while waiting for redis lock. Detail: {e}") from e
 
 
 @pytest.mark.parametrize(
@@ -74,6 +57,63 @@ def test_delete_by_key_script(app, redis_client_with_live_instance, pattern, key
     for key, value in key_value_pairs:
         redis_client_with_live_instance.redis_store.set(key, value)
     assert redis_client_with_live_instance.delete_by_pattern(pattern) == number_of_matches
+    assert len([i for i, _ in key_value_pairs if redis_client_with_live_instance.get(i) is None]) == number_of_matches
+
+
+@pytest.mark.parametrize(
+    "pattern, key_value_pairs, overwritten_key_value_pairs, number_of_matches",
+    [
+        (
+            "h?llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("h3llo", "valid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            [
+                ("hello", b"overwritten"),
+                ("hallo", b"overwritten"),
+                ("h3llo", b"overwritten"),
+                ("hellllllllo", b"invalid pattern"),
+            ],
+            3,
+        ),
+        (
+            "h[a,e]llo",
+            [
+                ("hello", "valid pattern"),
+                ("hallo", "valid pattern"),
+                ("hullo", "invalid pattern"),
+                ("hellllllllo", "invalid pattern"),
+            ],
+            [
+                ("hello", b"overwritten"),
+                ("hallo", b"overwritten"),
+                ("hullo", b"invalid pattern"),
+                ("hellllllllo", b"invalid pattern"),
+            ],
+            2,
+        ),
+    ],
+)
+def test_overwrite_by_pattern(
+    app, redis_client_with_live_instance, pattern, key_value_pairs, overwritten_key_value_pairs, number_of_matches
+):
+    for key, value in key_value_pairs:
+        redis_client_with_live_instance.redis_store.set(key, value)
+    assert redis_client_with_live_instance.overwrite_by_pattern(pattern, "overwritten") == number_of_matches
+    for key, value in overwritten_key_value_pairs:
+        assert redis_client_with_live_instance.get(key) == value
+
+
+def test_overwrite_by_pattern_2501_times(redis_client_with_live_instance):
+    base_pattern = "foo"
+    for i in range(2501):
+        redis_client_with_live_instance.redis_store.set(base_pattern + str(i), "original")
+    assert redis_client_with_live_instance.overwrite_by_pattern(base_pattern + "*", "overwritten") == 2501
+    for i in range(2501):
+        assert redis_client_with_live_instance.redis_store.get(base_pattern + str(i)) == b"overwritten"
 
 
 @freeze_time("2001-01-01 12:00:00.000000", auto_tick_seconds=0.1)
@@ -426,3 +466,45 @@ def test_redis_flakey(caplog, app, mocked_redis_client):
     assert "Marking redis as flakey for remainder of app context" in caplog.messages
     assert "Not performing redis get on bar because redis is possibly flakey" in caplog.messages
     assert "Not performing redis set on baz because redis is possibly flakey" in caplog.messages
+
+
+def test_set_if_timestamp_newer(redis_client_with_live_instance):
+    import time
+
+    with freeze_time("2018-7-7 16:00:00"):
+        time_first_set = time.time()
+        assert (
+            redis_client_with_live_instance.set_if_timestamp_newer(
+                "foo",
+                msgpack.dumps(
+                    {
+                        "timestamp": time_first_set,
+                        "is_tombstone": False,
+                        "schema_version": 1,
+                        "value": msgpack.dumps("return this"),
+                    }
+                ),
+            )
+            is True
+        )
+
+    assert redis_client_with_live_instance.get("foo") == msgpack.dumps(
+        {"timestamp": time_first_set, "is_tombstone": False, "schema_version": 1, "value": msgpack.dumps("return this")}
+    )
+
+    with freeze_time("2018-7-7 15:59:59"):
+        assert not redis_client_with_live_instance.set_if_timestamp_newer(
+            "foo",
+            msgpack.dumps(
+                {
+                    "timestamp": time.time(),
+                    "is_tombstone": False,
+                    "schema_version": 1,
+                    "value": msgpack.dumps("do not return this"),
+                }
+            ),
+        )
+
+    assert redis_client_with_live_instance.get("foo") == msgpack.dumps(
+        {"timestamp": time_first_set, "is_tombstone": False, "schema_version": 1, "value": msgpack.dumps("return this")}
+    )
