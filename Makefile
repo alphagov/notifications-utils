@@ -8,7 +8,7 @@ help:
 
 .PHONY: freeze-requirements
 freeze-requirements: ## Pin all test requirements including sub dependencies into requirements_for_test.txt
-	uv pip compile requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
+	uv pip compile --quiet requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
 	uv pip sync requirements_for_test.txt
 	uv pip install -e .
 
