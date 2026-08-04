@@ -1,6 +1,5 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
-EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS ?= 7
 
 .PHONY: help
 help:
@@ -14,7 +13,7 @@ freeze-requirements: ## Pin all test requirements including sub dependencies int
 
 .PHONY: refreeze-requirements
 refreeze-requirements: ## Upgrade unpinned requirements
-	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade --exclude-newer $(EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS)d" make freeze-requirements
+	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade" make freeze-requirements
 
 .PHONY: bootstrap
 bootstrap: ## Build project
