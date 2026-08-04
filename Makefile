@@ -1,6 +1,5 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
-EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS ?= 7
 
 .PHONY: help
 help:
@@ -8,13 +7,13 @@ help:
 
 .PHONY: freeze-requirements
 freeze-requirements: ## Pin all test requirements including sub dependencies into requirements_for_test.txt
-	uv pip compile requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
+	uv pip compile --quiet requirements_for_test.in pyproject.toml --output-file requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
 	uv pip sync requirements_for_test.txt
 	uv pip install -e .
 
 .PHONY: refreeze-requirements
 refreeze-requirements: ## Upgrade unpinned requirements
-	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade --exclude-newer $(EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS)d" make freeze-requirements
+	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade" make freeze-requirements
 
 .PHONY: bootstrap
 bootstrap: ## Build project
