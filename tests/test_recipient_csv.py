@@ -231,7 +231,7 @@ def test_get_rows_does_no_error_checking_of_rows_or_cells(mocker):
         max_errors_shown=3,
     )
 
-    rows = recipients.get_rows()
+    rows = recipients._get_rows()
     for _ in range(3):
         assert next(rows).recipient == "a@b.com"
 
@@ -256,12 +256,12 @@ def test_get_rows_only_iterates_over_file_once(mocker):
         template=_sample_template("email", "hello ((name))"),
     )
 
-    rows = recipients.get_rows()
+    rows = recipients._get_rows()
     for _ in range(3):
         next(rows)
 
     assert row_mock.call_count == 3
-    assert recipients.rows_as_list is None
+    assert not hasattr(recipients, "_rows_as_list")
 
 
 @pytest.mark.parametrize(
@@ -1452,7 +1452,7 @@ def test_recipient_csv_checks_should_validate_flag(should_validate):
 
     recipients._get_error_for_field = Mock(return_value=None)
 
-    list(recipients.get_rows())
+    list(recipients._get_rows())
 
     assert template.is_message_empty.called is should_validate
     assert recipients._get_error_for_field.called is should_validate
@@ -1475,10 +1475,10 @@ def test_errors_on_qr_codes_with_too_much_data():
 
     assert recipients.has_errors is True
     assert len(list(recipients.rows_with_errors)) == 1
-    assert recipients.rows_as_list[0].has_error is False
-    assert recipients.rows_as_list[0].qr_code_too_long is None
-    assert recipients.rows_as_list[1].has_error is True
-    assert isinstance(recipients.rows_as_list[1].qr_code_too_long, QrCodeTooLong)
+    assert recipients[0].has_error is False
+    assert recipients[0].qr_code_too_long is None
+    assert recipients[1].has_error is True
+    assert isinstance(recipients[1].qr_code_too_long, QrCodeTooLong)
 
 
 def test_column_headers_are_cached(mocker):
@@ -1545,3 +1545,20 @@ def test_cell_ignore_and_error_checking(mocker):
         call("Phone Number", "789"),
         call("Name", "C"),
     ]
+
+
+def test_rows_as_list_is_not_defined_on_init():
+    recipients = RecipientCSV(
+        """
+        Phone Number, Name, Foo, Bar
+        123,          A,    foo, bar
+        456,          B,    foo, bar
+        789,          C,    foo, bar
+        """,
+        template=_sample_template("sms"),
+    )
+    with pytest.raises(AttributeError):
+        recipients._rows_as_list  # noqa: B018
+
+    assert len(recipients.rows) == 3  # Causes recipients._rows_as_list to be defined
+    assert len(recipients._rows_as_list) == 3
