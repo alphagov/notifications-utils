@@ -1,6 +1,8 @@
 import unicodedata
 from collections.abc import Mapping, Set
 
+from ordered_set import OrderedSet
+
 
 class SanitiseText:
     ALLOWED_CHARACTERS: Set[str] = set()
@@ -89,21 +91,17 @@ class SanitiseText:
 
 class SanitiseSMS(SanitiseText):
     """
-    Given an input string, makes it GSM and Welsh character compatible. This involves removing all non-gsm characters by
-    applying the following rules
-    * characters within the GSM character set (https://en.wikipedia.org/wiki/GSM_03.38)
-      and extension character set are kept
+    Given an input string, make it GSM character compatible where acceptable.
 
-    * Welsh characters not included in the default GSM character set are kept
-
-    * characters with sensible downgrades are replaced in place
-        * characters with diacritics (accents, umlauts, cedillas etc) are replaced with their base character, eg é -> e
+    Acceptable means a character replacement which does not change the meaning of the
+    message, such as:
         * en dash and em dash (– and —) are replaced with hyphen (-)
         * left/right quotation marks (‘, ’, “, ”) are replaced with ' and "
         * zero width spaces (sometimes used to stop eg "gov.uk" linkifying) are removed
         * tabs are replaced with a single space
 
-    * any remaining unicode characters (eg chinese/cyrillic/glyphs/emoji) are replaced with ?
+    Even when other characters (for example Ŵ) mean we can’t GSM-encode the message we
+    still do these replacements for consistency.
     """
 
     WELSH_DIACRITICS: Set[str] = set(
@@ -127,18 +125,18 @@ class SanitiseSMS(SanitiseText):
         | EXTENDED_GSM_CHARACTERS
     )
 
-    ALLOWED_CHARACTERS: Set[str] = GSM_CHARACTERS | WELSH_DIACRITICS
-    # some welsh characters are in GSM and some aren't - we need to distinguish between these for counting fragments
-    WELSH_NON_GSM_CHARACTERS: Set[str] = WELSH_DIACRITICS - GSM_CHARACTERS
+    CHARACTERS_NOT_REQUIRING_UNICODE: Set[str] = GSM_CHARACTERS | set(SanitiseText.REPLACEMENT_CHARACTERS)
+
+    @classmethod
+    def encode(cls, content: str) -> str:
+        return "".join(cls.REPLACEMENT_CHARACTERS.get(c, c) for c in content)
 
     @classmethod
     def get_non_gsm_characters(cls, content: str) -> Set:
         """
         Return a set of characters which can’t be encoded to GSM-7, either through replacement or decomposition.
-
-        This follows the same rules as `cls.encode`, but returns just the characters that encode would replace with `?`
         """
-        return {c for c in content if c not in cls.ALLOWED_CHARACTERS and cls.downgrade_character(c) is None}
+        return OrderedSet(content) - cls.CHARACTERS_NOT_REQUIRING_UNICODE
 
 
 class SanitiseASCII(SanitiseText):

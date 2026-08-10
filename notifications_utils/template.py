@@ -11,7 +11,6 @@ from typing import Any, Literal, cast
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from jinja2 import Template as jinja2_Template
 from markupsafe import Markup
-from ordered_set import OrderedSet
 from werkzeug.utils import cached_property
 
 from notifications_utils import (
@@ -280,11 +279,11 @@ class BaseSMSTemplate(Template):
     @property
     def non_gsm_characters(self) -> Set[str]:
         """
-        Returns a set of all the non gsm characters in a text. this doesn't include characters that we will
-        downgrade (eg emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force
+        Returns a set of all the non-GSM characters in a text. Does not include characters that we will
+        downgrade (eg ellipsis, en dash, etc). The presence of any other non-GSM characters will force
         the entire SMS to be encoded with UCS-2.
         """
-        return OrderedSet(self.unsanitised_content) & SanitiseSMS.WELSH_NON_GSM_CHARACTERS
+        return SanitiseSMS.get_non_gsm_characters(self.unsanitised_content)
 
     def is_message_too_long(self) -> bool:
         """

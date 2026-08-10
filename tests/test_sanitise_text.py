@@ -3,34 +3,34 @@ import pytest
 from notifications_utils.sanitise_text import SanitiseASCII, SanitiseSMS, SanitiseText
 
 params, ids = zip(
-    (("a", "a"), "ascii char (a)"),
+    (("a", "a", "a"), "ascii char (a)"),
     # ascii control char (not in GSM)
-    (("\t", " "), "ascii control char not in gsm (tab)"),
+    (("\t", " ", " "), "ascii control char not in gsm (tab)"),
     # these are not in GSM charset so are downgraded
-    (("ç", "c"), "decomposed unicode char (C with cedilla)"),
+    (("ç", "ç", "c"), "decomposed unicode char (C with cedilla)"),
     # these unicode chars should change to something completely different for compatibility
-    (("–", "-"), "compatibility transform unicode char (EN DASH (U+2013)"),
-    (("—", "-"), "compatibility transform unicode char (EM DASH (U+2014)"),
-    (("…", "..."), "compatibility transform unicode char (HORIZONTAL ELLIPSIS (U+2026)"),
-    (("\u200b", ""), "compatibility transform unicode char (ZERO WIDTH SPACE (U+200B)"),
-    (("‘", "'"), "compatibility transform unicode char (LEFT SINGLE QUOTATION MARK (U+2018)"),
-    (("’", "'"), "compatibility transform unicode char (RIGHT SINGLE QUOTATION MARK (U+2019)"),
-    (("“", '"'), "compatibility transform unicode char (LEFT DOUBLE QUOTATION MARK (U+201C)	"),
-    (("”", '"'), "compatibility transform unicode char (RIGHT DOUBLE QUOTATION MARK (U+201D)"),
-    (("\xa0", " "), "nobreak transform unicode char (NO-BREAK SPACE (U+00A0))"),
+    (("–", "-", "-"), "compatibility transform unicode char (EN DASH (U+2013)"),
+    (("—", "-", "-"), "compatibility transform unicode char (EM DASH (U+2014)"),
+    (("…", "...", "..."), "compatibility transform unicode char (HORIZONTAL ELLIPSIS (U+2026)"),
+    (("\u200b", "", ""), "compatibility transform unicode char (ZERO WIDTH SPACE (U+200B)"),
+    (("‘", "'", "'"), "compatibility transform unicode char (LEFT SINGLE QUOTATION MARK (U+2018)"),
+    (("’", "'", "'"), "compatibility transform unicode char (RIGHT SINGLE QUOTATION MARK (U+2019)"),
+    (("“", '"', '"'), "compatibility transform unicode char (LEFT DOUBLE QUOTATION MARK (U+201C)	"),
+    (("”", '"', '"'), "compatibility transform unicode char (RIGHT DOUBLE QUOTATION MARK (U+201D)"),
+    (("\xa0", " ", " "), "nobreak transform unicode char (NO-BREAK SPACE (U+00A0))"),
     # this unicode char is not decomposable
-    (("😬", "?"), "undecomposable unicode char (grimace emoji)"),
-    (("↉", "?"), "vulgar fraction (↉) that we do not try decomposing"),
+    (("😬", "😬", "?"), "undecomposable unicode char (grimace emoji)"),
+    (("↉", "↉", "?"), "vulgar fraction (↉) that we do not try decomposing"),
     # Unicode plane 2, decomposes but not to ASCII characters
-    (("嶲", "?"), "CJK Extension F"),
+    (("嶲", "嶲", "?"), "CJK Extension F"),
     strict=True,
 )
 
 
-@pytest.mark.parametrize("char, expected", params, ids=ids)
-@pytest.mark.parametrize("cls", [SanitiseSMS, SanitiseASCII])
-def test_encode_chars_the_same_for_ascii_and_sms(char, expected, cls):
-    assert cls.encode_char(char) == expected
+@pytest.mark.parametrize("char, expected_sms, expected_ascii", params, ids=ids)
+def test_encode_chars_the_same_for_ascii_and_sms(char, expected_sms, expected_ascii):
+    assert SanitiseSMS.encode(char) == expected_sms
+    assert SanitiseASCII.encode(char) == expected_ascii
 
 
 params, ids = zip(
@@ -52,8 +52,8 @@ params, ids = zip(
 
 @pytest.mark.parametrize("char, expected_sms, expected_ascii", params, ids=ids)
 def test_encode_chars_different_between_ascii_and_sms(char, expected_sms, expected_ascii):
-    assert SanitiseSMS.encode_char(char) == expected_sms
-    assert SanitiseASCII.encode_char(char) == expected_ascii
+    assert SanitiseSMS.encode(char) == expected_sms
+    assert SanitiseASCII.encode(char) == expected_ascii
 
 
 @pytest.mark.parametrize(
@@ -74,16 +74,20 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
 
 
 @pytest.mark.parametrize(
-    "content, expected",
+    "content, expected_sms, expected_ascii",
     [
-        ("Łōdź", "Lodz"),
-        ("It Just Works™", "It Just Works?"),
-        ("The quick brown fox jumps over the lazy dog", "The quick brown fox jumps over the lazy dog"),
+        ("Łōdź", "Lōdź", "Lodz"),
+        ("It Just Works™", "It Just Works™", "It Just Works?"),
+        (
+            "The quick brown fox jumps over the lazy dog",
+            "The quick brown fox jumps over the lazy dog",
+            "The quick brown fox jumps over the lazy dog",
+        ),
     ],
 )
-def test_encode_string(content, expected):
-    assert SanitiseSMS.encode(content) == expected
-    assert SanitiseASCII.encode(content) == expected
+def test_encode_string(content, expected_sms, expected_ascii):
+    assert SanitiseSMS.encode(content) == expected_sms
+    assert SanitiseASCII.encode(content) == expected_ascii
 
 
 @pytest.mark.parametrize(
@@ -92,7 +96,7 @@ def test_encode_string(content, expected):
         ("The quick brown fox jumps over the lazy dog", set()),
         ("The “quick” brown fox has some downgradable characters\xa0", set()),
         ("Need more 🐮🔔", {"🐮", "🔔"}),
-        ("Ŵêlsh chârâctêrs ârê cômpâtîblê wîth SanitiseSMS", set()),
+        ("Ŵêlsh chârâctêrs ârê cômpâtîblê wîth SanitiseSMS", {"Ŵ", "ê", "â", "ô", "î"}),
         ("Lots of GSM chars that arent ascii compatible:\n\r€", set()),
         ("Obscure\u00a0whitespace\u202fcharacters which \u2028we \u2029normalise o\u180eut", set()),
     ],
