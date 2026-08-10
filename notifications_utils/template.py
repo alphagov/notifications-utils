@@ -246,10 +246,12 @@ class BaseSMSTemplate(Template):
 
     @property
     def content_count_without_prefix(self) -> int:
-        # subtract 2 extra characters to account for the colon and the space,
-        # added max zero in case the content is empty the __str__ methods strips the white space.
         if self.prefix:
+            # See docstring of `content_count` for explanation
             prefix_length = len(sms_encode(self.prefix).encode("utf-16-le")) // 2
+
+            # subtract 2 extra characters to account for the colon and the space,
+            # added max zero in case the content is empty the __str__ methods strips the white space.
             return max((self.content_count - prefix_length - 2), 0)
         else:
             return self.content_count
