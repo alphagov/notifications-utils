@@ -11,8 +11,6 @@ from urllib.parse import quote
 import smartypants
 from markupsafe import Markup
 
-from notifications_utils.sanitise_text import SanitiseSMS
-
 from . import email_with_smart_quotes_regex
 
 OBSCURE_ZERO_WIDTH_WHITESPACE = (
@@ -152,10 +150,6 @@ def create_sanitised_html_for_url(
 
 def prepend_subject(body: str, subject: str) -> str:
     return f"# {subject}\n\n{body}"
-
-
-def sms_encode(content: str) -> str:
-    return SanitiseSMS.encode(content)
 
 
 """

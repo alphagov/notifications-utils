@@ -11,7 +11,6 @@ from notifications_utils.formatters import (
     remove_smart_quotes_from_email_addresses,
     remove_whitespace_before_punctuation,
     replace_hyphens_with_en_dashes,
-    sms_encode,
     strip_all_whitespace,
     strip_and_remove_obscure_whitespace,
     strip_unsupported_characters,
@@ -147,12 +146,6 @@ def test_sms_preview_adds_newlines():
     template.prefix = None
     template.sender = None
     assert "<br>" in str(template)
-
-
-def test_sms_encode(mocker):
-    sanitise_mock = mocker.patch("notifications_utils.formatters.SanitiseSMS")
-    assert sms_encode("foo") == sanitise_mock.encode.return_value
-    sanitise_mock.encode.assert_called_once_with("foo")
 
 
 @pytest.mark.parametrize(
