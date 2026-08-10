@@ -1056,100 +1056,119 @@ def test_character_count_for_sms_templates(
     [
         SMSMessageTemplate,
         SMSPreviewTemplate,
+        SMSBodyPreviewTemplate,
     ],
 )
 @pytest.mark.parametrize(
-    "content, expected_count",
+    "content, expected_count, expected_message",
     [
         (
             # Short Arabic (RTL)
             "مرحبا",
             5,
+            "مرحبا",
         ),
         (
             # Arabic sentence (RTL)
             "تم إرسال رسالتك",
             15,
+            "تم إرسال رسالتك",
         ),
         (
             # Arabic + Eastern Arabic numerals
             "اختبار ١٢٣",
             10,
+            "اختبار ١٢٣",
         ),
         (
             # Mixed LTR + RTL
             "Hello مرحبا",
             11,
+            "Hello مرحبا",
         ),
         (
             # Complex CJK (U+20BB7)
             "𠮷",
             2,
+            "𠮷",
         ),
         (
             # Complex char in Latin context
             "Test 𠮷 char",
             12,
+            "Test 𠮷 char",
         ),
         (
             # CJK Extension F (U+2F9F4)
             "嶲",
             2,
+            "嶲",
         ),
         (
             # Welsh (existing allowed set)
             "Croeso Ŵ",
             8,
+            "Croeso Ŵ",
         ),
         (
             # Polish diacritics (ń)
             "Dzień dobry",
             11,
+            "Dzień dobry",
         ),
         (
             # Hindi (Devanagari)
             "नमस्ते",
             6,
+            "नमस्ते",
         ),
         (
             # Chinese (Simplified)
             "你好",
             2,
+            "你好",
         ),
         (
             # Emoji (full Unicode)
             "Test 😀",
             7,
+            "Test 😀",
         ),
         (
             # ZWJ family emoji (counts as multiple code points)
             "👨‍👩‍👧‍👦",
-            11,
+            8,
+            "👨👩👧👦",
         ),
         (
             # GSM baseline (control — should be 160-char encoding)
             "Your code is 123456",
             19,
+            "Your code is 123456",
         ),
         (
             # “Smart punctuation” vs GSM hyphen (en-dash U+2013)
             "–",
             1,
+            "-",  # Downgraded to hyphen
         ),
         (
             # Polish quotation marks + ś, ć
             '„Cześć"',
             7,
+            '"Cześć"',  # Intial quotation mark downgraded to "
         ),
         (
             # Arabic + English + CJK + emoji in one message
             "مرحبا Test 𠮷 😀",
             16,
+            "مرحبا Test 𠮷 😀",
         ),
         (
             # En dash, em dash, curly quotes, ellipsis (all non-GSM-7 punctuation)
             "– — “ ” …",
-            9,
+            11,
+            '- - " " ...',  # Downgraded to ASCII equivalents
         ),
     ],
 )
@@ -1157,15 +1176,12 @@ def test_character_count_for_unicode_sms_templates(
     template_class,
     content,
     expected_count,
+    expected_message,
     mocker,
 ):
-    # Once we allow a wide range of unicode characters in text message templates we can
-    # remove this mock and pass `content` directly to the `"content"` field of the template
-    # dict
-    mocker.patch.object(template_class, "content_with_placeholders_filled_in", content)
-
-    template = template_class({"content": "MOCKED", "template_type": "sms"})
+    template = template_class({"content": content, "template_type": "sms"})
     assert template.content_count == expected_count, f"Wrong count ({content=}, {expected_count=})"
+    assert expected_message in str(template)
 
 
 @pytest.mark.parametrize(
@@ -1178,17 +1194,11 @@ def test_character_count_for_unicode_sms_templates(
 def test_character_count_for_unicode_sms_template_with_unicode_prefix(template_class):
     template = template_class({"content": "嶲", "template_type": "sms"}, prefix="👨‍👩‍👧‍👦")
 
-    # This encodes to:
-    #     Index:     1234567
-    #     Character: ????: ?
-    # It should change when we support wider range of unicode characters
-    assert template.content_count == 7
+    # 8 characters for prefix, 2 for colon and space, 2 for complex Chinese character
+    assert template.content_count == 12
 
-    # This counts:
-    #     Index:     1
-    #     Character: ?
-    # It should change when we support wider range of unicode characters
-    assert template.content_count_without_prefix == 1
+    # Just the complex Chinese character, which counts as 2 characters
+    assert template.content_count_without_prefix == 2
 
 
 @pytest.mark.parametrize(
@@ -1214,8 +1224,8 @@ def test_character_count_for_unicode_sms_template_with_unicode_prefix(template_c
         ("ÿ" * 402, 6, 67),
         ("ÿ" * 403, 7, 1),
         ("à" * 70 + "ÿ", 2, 1),  # just one non-gsm character means it's sent at unicode
-        ("🚀" * 160, 1, 160),  # non-welsh unicode characters are downgraded to gsm, so are only one fragment long
-        ("🚀" * 161, 2, 1),
+        ("🚀" * 35, 1, 70),  # An emoji takes 2 characters and is sent as unicode
+        ("🚀" * 36, 2, 2),
     ],
 )
 @pytest.mark.parametrize(
@@ -1286,7 +1296,7 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
         ("ÿ", {"ÿ"}),  # Welsh character not in GSM, so send as unicode
         ("ÿŴ", {"ÿ", "Ŵ"}),  # Each character only returned once
         ("àÿ", {"ÿ"}),  # Only non-GSM characters returned
-        ("🚀", set()),  # emoji downgraded to ?, which is in GSM
+        ("🚀", set("🚀")),  # No emoji in GSM
         ("…", set()),  # HORIZONTAL ELLIPSIS (U+2026) downgraded to ..., which is 3 GSM characters
         ("ŸẄÜÖÏËÄ", OrderedSet("ŸẄÏË")),  # Content order is preserved
     ],
@@ -1959,8 +1969,8 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
         ("Ŵ", 917, 1),
         ("Ŵ", 1_000, 84),
         # Character not in GSM-7 and encodes to multiple unicode codepoints (🏳 + joiner + 🌈)
-        ("🏳️‍🌈", 917, 1_835),
-        ("🏳️‍🌈", 1_000, 2_084),
+        ("🏳️‍🌈", 917, 3669),
+        ("🏳️‍🌈", 1_000, 4084),
     ),
 )
 def test_message_too_long_ignoring_prefix(
