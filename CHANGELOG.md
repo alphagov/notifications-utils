@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 125.0.1
+
+* Fixes a number of bugs with counting characters in text message templates
+
 ## 125.0.0
 
 * Removes `RecipientCSV.rows_as_list` and `RecipientCSV.get_rows()`. Use `for row in recipient_csv_instance:`, `len(recipient_csv_instance)`, etc. instead
