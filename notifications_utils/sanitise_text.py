@@ -102,17 +102,6 @@ class SanitiseSMS(SanitiseText):
     still do these replacements for consistency.
     """
 
-    WELSH_DIACRITICS: Set[str] = set(
-        "àèìòùẁỳ"
-        "ÀÈÌÒÙẀỲ"  # grave
-        "áéíóúẃý"
-        "ÁÉÍÓÚẂÝ"  # acute
-        "äëïöüẅÿ"
-        "ÄËÏÖÜẄŸ"  # diaeresis
-        "âêîôûŵŷ"
-        "ÂÊÎÔÛŴŶ"  # carets
-    )
-
     EXTENDED_GSM_CHARACTERS: Set[str] = set("^{}\\[~]|€")
 
     GSM_CHARACTERS: Set[str] = (
