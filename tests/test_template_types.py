@@ -643,8 +643,8 @@ def test_sms_message_normalises_newlines(content):
 )
 def test_phone_templates_normalise_whitespace(template_class):
     content = "  Hi\u00a0there\u00a0 what's\u200d up\t"
-    assert (
-        str(template_class({"content": content, "template_type": template_class.template_type})) == "Hi there what's up"
+    assert str(template_class({"content": content, "template_type": template_class.template_type})) == (
+        "Hi there what's\u200d up"
     )
 
 
@@ -1137,8 +1137,8 @@ def test_character_count_for_sms_templates(
         (
             # ZWJ family emoji (counts as multiple code points)
             "👨‍👩‍👧‍👦",
-            8,
-            "👨👩👧👦",
+            11,
+            "👨‍👩‍👧‍👦",
         ),
         (
             # GSM baseline (control — should be 160-char encoding)
@@ -1194,11 +1194,19 @@ def test_character_count_for_unicode_sms_templates(
 def test_character_count_for_unicode_sms_template_with_unicode_prefix(template_class):
     template = template_class({"content": "嶲", "template_type": "sms"}, prefix="👨‍👩‍👧‍👦")
 
-    # 8 characters for prefix, 2 for colon and space, 2 for complex Chinese character
-    assert template.content_count == 12
+    assert "👨‍👩‍👧‍👦: 嶲" in str(template)
+
+    # 11 characters for prefix, 2 for colon and space, 2 for complex Chinese character
+    assert template.content_count == 15
 
     # Just the complex Chinese character, which counts as 2 characters
     assert template.content_count_without_prefix == 2
+
+
+def test_unicode_in_sms_body_preview_template():
+    template = SMSBodyPreviewTemplate({"content": "👨‍👩‍👧‍👦嶲", "template_type": "sms"})
+    assert str(template) == "👨‍👩‍👧‍👦嶲"
+    assert template.content_count == 13
 
 
 @pytest.mark.parametrize(
@@ -1969,8 +1977,8 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
         ("Ŵ", 917, 1),
         ("Ŵ", 1_000, 84),
         # Character not in GSM-7 and encodes to multiple unicode codepoints (🏳 + joiner + 🌈)
-        ("🏳️‍🌈", 917, 3669),
-        ("🏳️‍🌈", 1_000, 4084),
+        ("🏳️‍🌈", 917, 4_586),
+        ("🏳️‍🌈", 1_000, 5_084),
     ),
 )
 def test_message_too_long_ignoring_prefix(

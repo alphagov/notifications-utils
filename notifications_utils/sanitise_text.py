@@ -22,7 +22,6 @@ class SanitiseText:
         "\u180e": "",  # Mongolian vowel separator
         "\u200b": "",  # zero width space
         "\u200c": "",  # zero width non-joiner
-        "\u200d": "",  # zero width joiner
         "\u2060": "",  # word joiner
         "\ufeff": "",  # zero width non-breaking space
         "\u2028": "",  # line separator
@@ -135,6 +134,7 @@ class SanitiseASCII(SanitiseText):
     REPLACEMENT_CHARACTERS: Mapping[str, str] = dict(SanitiseText.REPLACEMENT_CHARACTERS) | {
         "Ł": "L",  # LATIN CAPITAL LETTER L WITH STROKE (U+0141)
         "ł": "l",  # LATIN SMALL LETTER L WITH STROKE (U+0142)
+        "\u200d": "",  # zero width joiner
     }
 
     ALLOWED_CHARACTERS: Set[str] = set(

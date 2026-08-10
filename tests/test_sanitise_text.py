@@ -83,6 +83,7 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
             "The quick brown fox jumps over the lazy dog",
             "The quick brown fox jumps over the lazy dog",
         ),
+        ("🏳️‍🌈", "🏳️‍🌈", "???"),  # Rainbow flag is 🏳 + joiner + 🌈
     ],
 )
 def test_encode_string(content, expected_sms, expected_ascii):
