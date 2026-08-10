@@ -76,7 +76,7 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
 @pytest.mark.parametrize(
     "content, expected_sms, expected_ascii",
     [
-        ("Łōdź", "Lōdź", "Lodz"),
+        ("Łōdź", "Łōdź", "Lodz"),
         ("It Just Works™", "It Just Works™", "It Just Works?"),
         (
             "The quick brown fox jumps over the lazy dog",

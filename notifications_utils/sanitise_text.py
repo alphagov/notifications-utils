@@ -30,8 +30,6 @@ class SanitiseText:
         "\u00a0": " ",  # NON BREAKING WHITE SPACE (U+200B)
         "\u202f": " ",  # narrow no break space
         "\t": " ",  # TAB
-        "Ł": "L",  # LATIN CAPITAL LETTER L WITH STROKE (U+0141)
-        "ł": "l",  # LATIN SMALL LETTER L WITH STROKE (U+0142)
     }
 
     @classmethod
@@ -144,6 +142,11 @@ class SanitiseASCII(SanitiseText):
     As SMS above, but the allowed characters are printable ascii, from character range 32 to 126 inclusive.
     [chr(x) for x in range(32, 127)]
     """
+
+    REPLACEMENT_CHARACTERS: Mapping[str, str] = dict(SanitiseText.REPLACEMENT_CHARACTERS) | {
+        "Ł": "L",  # LATIN CAPITAL LETTER L WITH STROKE (U+0141)
+        "ł": "l",  # LATIN SMALL LETTER L WITH STROKE (U+0142)
+    }
 
     ALLOWED_CHARACTERS: Set[str] = set(
         " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
