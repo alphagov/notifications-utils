@@ -1,11 +1,11 @@
 import unicodedata
-from collections.abc import Set
+from collections.abc import Mapping, Set
 
 
 class SanitiseText:
     ALLOWED_CHARACTERS: Set[str] = set()
 
-    REPLACEMENT_CHARACTERS = {
+    REPLACEMENT_CHARACTERS: Mapping[str, str] = {
         "‑": "-",  # NON-BREAKING HYPHEN (U+2011)
         "–": "-",  # EN DASH (U+2013)
         "—": "-",  # EM DASH (U+2014)
@@ -31,11 +31,11 @@ class SanitiseText:
     }
 
     @classmethod
-    def encode(cls, content):
+    def encode(cls, content: str) -> str:
         return "".join(cls.encode_char(char) for char in content)
 
     @classmethod
-    def get_non_compatible_characters(cls, content):
+    def get_non_compatible_characters(cls, content: str) -> Set:
         """
         Given an input string, return a set of non compatible characters.
 
@@ -44,7 +44,7 @@ class SanitiseText:
         return {c for c in content if c not in cls.ALLOWED_CHARACTERS and cls.downgrade_character(c) is None}
 
     @staticmethod
-    def get_unicode_char_from_codepoint(codepoint):
+    def get_unicode_char_from_codepoint(codepoint: str) -> str:
         """
         Given a unicode codepoint (eg 002E for '.', 0061 for 'a', etc), return that actual unicode character.
 
@@ -56,7 +56,7 @@ class SanitiseText:
         return eval(f'"\\u{codepoint}"')
 
     @classmethod
-    def downgrade_character(cls, c):
+    def downgrade_character(cls, c: str) -> str | None:
         """
         Attempt to downgrade a non-compatible character to the allowed character set. May downgrade to multiple
         characters, eg `… -> ...`
@@ -79,7 +79,7 @@ class SanitiseText:
             return cls.REPLACEMENT_CHARACTERS.get(c)
 
     @classmethod
-    def encode_char(cls, c):
+    def encode_char(cls, c: str) -> str:
         """
         Given a single unicode character, return a compatible character from the allowed set.
         """
@@ -87,8 +87,8 @@ class SanitiseText:
         if c in cls.ALLOWED_CHARACTERS:
             return c
         else:
-            c = cls.downgrade_character(c)
-            return c if c is not None else "?"
+            downgraded = cls.downgrade_character(c)
+            return downgraded if downgraded is not None else "?"
 
 
 class SanitiseSMS(SanitiseText):
@@ -110,7 +110,7 @@ class SanitiseSMS(SanitiseText):
     * any remaining unicode characters (eg chinese/cyrillic/glyphs/emoji) are replaced with ?
     """
 
-    WELSH_DIACRITICS = set(
+    WELSH_DIACRITICS: Set[str] = set(
         "àèìòùẁỳ"
         "ÀÈÌÒÙẀỲ"  # grave
         "áéíóúẃý"
@@ -121,9 +121,9 @@ class SanitiseSMS(SanitiseText):
         "ÂÊÎÔÛŴŶ"  # carets
     )
 
-    EXTENDED_GSM_CHARACTERS = set("^{}\\[~]|€")
+    EXTENDED_GSM_CHARACTERS: Set[str] = set("^{}\\[~]|€")
 
-    GSM_CHARACTERS = (
+    GSM_CHARACTERS: Set[str] = (
         set(
             "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ\x1bÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?"
             "¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
@@ -131,9 +131,9 @@ class SanitiseSMS(SanitiseText):
         | EXTENDED_GSM_CHARACTERS
     )
 
-    ALLOWED_CHARACTERS = GSM_CHARACTERS | WELSH_DIACRITICS
+    ALLOWED_CHARACTERS: Set[str] = GSM_CHARACTERS | WELSH_DIACRITICS
     # some welsh characters are in GSM and some aren't - we need to distinguish between these for counting fragments
-    WELSH_NON_GSM_CHARACTERS = WELSH_DIACRITICS - GSM_CHARACTERS
+    WELSH_NON_GSM_CHARACTERS: Set[str] = WELSH_DIACRITICS - GSM_CHARACTERS
 
 
 class SanitiseASCII(SanitiseText):
@@ -142,6 +142,6 @@ class SanitiseASCII(SanitiseText):
     [chr(x) for x in range(32, 127)]
     """
 
-    ALLOWED_CHARACTERS = set(
+    ALLOWED_CHARACTERS: Set[str] = set(
         " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
     )
