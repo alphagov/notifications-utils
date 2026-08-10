@@ -262,15 +262,17 @@ def restore_svg_dashes(value: str) -> str:
     return value.replace(SVG_DASH_REPLACEMENT, "-")
 
 
-def normalise_whitespace_and_newlines(value: str) -> str:
-    return "\n".join(get_lines_with_normalised_whitespace(value))
+def normalise_whitespace_and_newlines(value: str, *, preserve_zero_width_joiner: bool = False) -> str:
+    return "\n".join(get_lines_with_normalised_whitespace(value, preserve_zero_width_joiner=preserve_zero_width_joiner))
 
 
-def get_lines_with_normalised_whitespace(value: str) -> list:
-    return [normalise_whitespace(line) for line in value.splitlines()]
+def get_lines_with_normalised_whitespace(value: str, *, preserve_zero_width_joiner: bool = False) -> list:
+    return [
+        normalise_whitespace(line, preserve_zero_width_joiner=preserve_zero_width_joiner) for line in value.splitlines()
+    ]
 
 
-def normalise_whitespace(value: str) -> str:
+def normalise_whitespace(value: str, *, preserve_zero_width_joiner: bool = False) -> str:
     # leading and trailing whitespace removed
     # inner whitespace with width becomes a single space
     # inner whitespace with zero width is removed
@@ -278,7 +280,12 @@ def normalise_whitespace(value: str) -> str:
     for character in OBSCURE_FULL_WIDTH_WHITESPACE:
         value = value.replace(character, " ")
 
-    for character in OBSCURE_ZERO_WIDTH_WHITESPACE:
+    obscure_zero_width_whitespace = set(OBSCURE_ZERO_WIDTH_WHITESPACE)
+
+    if preserve_zero_width_joiner:
+        obscure_zero_width_whitespace -= {"\u200d"}
+
+    for character in obscure_zero_width_whitespace:
         value = value.replace(character, "")
 
     return " ".join(value.split())
