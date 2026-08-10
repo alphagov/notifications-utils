@@ -230,13 +230,14 @@ class BaseSMSTemplate(Template):
     @cached_property
     def content_count(self) -> int:
         """
-        Return the number of characters in the message. Note that we don't distinguish between GSM and non-GSM
-        characters at this point, as `get_sms_fragment_count` handles that separately.
+        Return the number of characters in the message, after sanitising the
+        content.
 
-        Also note that if values aren't provided, will calculate the raw length of the unsubstituted placeholders,
-        as in the message `foo ((placeholder))` has a length of 19.
+        Note: if values are not provided, this will calculate the raw length of
+        the unsubstituted placeholders, for example `foo ((placeholder))` has
+        a length of 19.
         """
-        return len(self.unsanitised_content)
+        return len(self.content_with_placeholders_filled_in)
 
     @property
     def content_count_without_prefix(self) -> int:
