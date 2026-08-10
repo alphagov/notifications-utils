@@ -1556,7 +1556,7 @@ def test_templates_handle_html_and_redacting(
             "email",
             {},
             [
-                mock.call("\n\ncontent"),
+                mock.call("\n\ncontent…"),
                 mock.call(Markup("subject")),
                 mock.call(Markup("subject")),
             ],
@@ -1568,9 +1568,9 @@ def test_templates_handle_html_and_redacting(
             [
                 mock.call(Markup("subject")),
                 mock.call(
-                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">content</p>'
+                    '<p style="Margin: 0 0 20px 0; font-size: 19px; line-height: 25px; color: #0B0C0C;">content…</p>'
                 ),
-                mock.call("\n\ncontent"),
+                mock.call("\n\ncontent…"),
                 mock.call(Markup("subject")),
                 mock.call(Markup("subject")),
             ],
@@ -1580,7 +1580,7 @@ def test_templates_handle_html_and_redacting(
             "sms",
             {},
             [
-                mock.call("content"),
+                mock.call("content…"),
             ],
         ),
         (
@@ -1588,7 +1588,7 @@ def test_templates_handle_html_and_redacting(
             "sms",
             {},
             [
-                mock.call("content"),
+                mock.call("content…"),
             ],
         ),
         (
@@ -1596,7 +1596,7 @@ def test_templates_handle_html_and_redacting(
             "sms",
             {},
             [
-                mock.call("content"),
+                mock.call("content…"),
             ],
         ),
         (
@@ -1605,7 +1605,7 @@ def test_templates_handle_html_and_redacting(
             {"contact_block": "www.gov.uk"},
             [
                 mock.call(Markup("subject")),
-                mock.call(Markup("<p>content</p>")),
+                mock.call(Markup("<p>content…</p>")),
                 mock.call(Markup("www.gov.uk")),
                 mock.call(Markup("subject")),
                 mock.call(Markup("subject")),
@@ -1622,7 +1622,7 @@ def test_templates_remove_whitespace_before_punctuation(
     expected_remove_whitespace_calls,
 ):
     template = template_class(
-        {"content": "content", "subject": "subject", "template_type": template_type}, **extra_args
+        {"content": "content…", "subject": "subject", "template_type": template_type}, **extra_args
     )
 
     assert str(template)
