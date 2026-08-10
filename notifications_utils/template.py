@@ -233,18 +233,24 @@ class BaseSMSTemplate(Template):
         Return the number of characters in the message, after sanitising the
         content.
 
+        Encoding as `utf-16-le` (little endian) instead of `utf-16` gives us
+        bytes without a preceding BOM (byte-order mark). Each code point in
+        UTF-16 takes 2 bytes, so we floor divide by 2 to get the number of
+        code points.
+
         Note: if values are not provided, this will calculate the raw length of
         the unsubstituted placeholders, for example `foo ((placeholder))` has
         a length of 19.
         """
-        return len(self.content_with_placeholders_filled_in)
+        return len(self.content_with_placeholders_filled_in.encode("utf-16-le")) // 2
 
     @property
     def content_count_without_prefix(self) -> int:
         # subtract 2 extra characters to account for the colon and the space,
         # added max zero in case the content is empty the __str__ methods strips the white space.
         if self.prefix:
-            return max((self.content_count - len(self.prefix) - 2), 0)
+            prefix_length = len(sms_encode(self.prefix).encode("utf-16-le")) // 2
+            return max((self.content_count - prefix_length - 2), 0)
         else:
             return self.content_count
 

@@ -1052,6 +1052,146 @@ def test_character_count_for_sms_templates(
 
 
 @pytest.mark.parametrize(
+    "template_class",
+    [
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ],
+)
+@pytest.mark.parametrize(
+    "content, expected_count",
+    [
+        (
+            # Short Arabic (RTL)
+            "مرحبا",
+            5,
+        ),
+        (
+            # Arabic sentence (RTL)
+            "تم إرسال رسالتك",
+            15,
+        ),
+        (
+            # Arabic + Eastern Arabic numerals
+            "اختبار ١٢٣",
+            10,
+        ),
+        (
+            # Mixed LTR + RTL
+            "Hello مرحبا",
+            11,
+        ),
+        (
+            # Complex CJK (U+20BB7)
+            "𠮷",
+            2,
+        ),
+        (
+            # Complex char in Latin context
+            "Test 𠮷 char",
+            12,
+        ),
+        (
+            # CJK Extension F (U+2F9F4)
+            "嶲",
+            2,
+        ),
+        (
+            # Welsh (existing allowed set)
+            "Croeso Ŵ",
+            8,
+        ),
+        (
+            # Polish diacritics (ń)
+            "Dzień dobry",
+            11,
+        ),
+        (
+            # Hindi (Devanagari)
+            "नमस्ते",
+            6,
+        ),
+        (
+            # Chinese (Simplified)
+            "你好",
+            2,
+        ),
+        (
+            # Emoji (full Unicode)
+            "Test 😀",
+            7,
+        ),
+        (
+            # ZWJ family emoji (counts as multiple code points)
+            "👨‍👩‍👧‍👦",
+            11,
+        ),
+        (
+            # GSM baseline (control — should be 160-char encoding)
+            "Your code is 123456",
+            19,
+        ),
+        (
+            # “Smart punctuation” vs GSM hyphen (en-dash U+2013)
+            "–",
+            1,
+        ),
+        (
+            # Polish quotation marks + ś, ć
+            '„Cześć"',
+            7,
+        ),
+        (
+            # Arabic + English + CJK + emoji in one message
+            "مرحبا Test 𠮷 😀",
+            16,
+        ),
+        (
+            # En dash, em dash, curly quotes, ellipsis (all non-GSM-7 punctuation)
+            "– — “ ” …",
+            9,
+        ),
+    ],
+)
+def test_character_count_for_unicode_sms_templates(
+    template_class,
+    content,
+    expected_count,
+    mocker,
+):
+    # Once we allow a wide range of unicode characters in text message templates we can
+    # remove this mock and pass `content` directly to the `"content"` field of the template
+    # dict
+    mocker.patch.object(template_class, "content_with_placeholders_filled_in", content)
+
+    template = template_class({"content": "MOCKED", "template_type": "sms"})
+    assert template.content_count == expected_count, f"Wrong count ({content=}, {expected_count=})"
+
+
+@pytest.mark.parametrize(
+    "template_class",
+    [
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ],
+)
+def test_character_count_for_unicode_sms_template_with_unicode_prefix(template_class):
+    template = template_class({"content": "嶲", "template_type": "sms"}, prefix="👨‍👩‍👧‍👦")
+
+    # This encodes to:
+    #     Index:     1234567
+    #     Character: ????: ?
+    # It should change when we support wider range of unicode characters
+    assert template.content_count == 7
+
+    # This counts:
+    #     Index:     1
+    #     Character: ?
+    # It should change when we support wider range of unicode characters
+    assert template.content_count_without_prefix == 1
+
+
+@pytest.mark.parametrize(
     "template_content, expected_sms_fragment_count, expected_count_of_characters_above_previous_fragment_boundary",
     [
         ("à" * 71, 1, 71),  # welsh character in GSM
