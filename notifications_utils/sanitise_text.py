@@ -71,9 +71,12 @@ class SanitiseText:
             # For a full list of the types, see here: https://www.compart.com/en/unicode/decomposition.
             # If it's got a mapping, we're not sure how best to downgrade it, so just see if it's in the
             # REPLACEMENT_CHARACTERS map. If not, then it's probably a letter with a modifier, eg á
-            # ASSUMPTION: The first character of a combined unicode character (eg 'á' == '0061 0301')
-            # will be the ascii char
-            return cls.get_unicode_char_from_codepoint(decomposed.split()[0])
+            # If this is the case then the first character of a combined unicode character (eg 'á' == '0061 0301')
+            # will be an ASCII char in ALLOWED_CHARACTERS
+            first_character_of_decomposition = cls.get_unicode_char_from_codepoint(decomposed.split()[0])
+            if first_character_of_decomposition in cls.ALLOWED_CHARACTERS:
+                return first_character_of_decomposition
+            return None
         else:
             # try and find a mapping (eg en dash -> hyphen ('–': '-')), else return None
             return cls.REPLACEMENT_CHARACTERS.get(c)
