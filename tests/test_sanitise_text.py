@@ -21,6 +21,8 @@ params, ids = zip(
     # this unicode char is not decomposable
     (("😬", "?"), "undecomposable unicode char (grimace emoji)"),
     (("↉", "?"), "vulgar fraction (↉) that we do not try decomposing"),
+    # Unicode plane 2, decomposes but not to ASCII characters
+    (("嶲", "?"), "CJK Extension F"),
     strict=True,
 )
 
