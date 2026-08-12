@@ -2,6 +2,7 @@ import logging
 import time
 from contextlib import contextmanager, nullcontext
 from os import getpid
+from time import thread_time_ns
 
 from celery import Celery, Task
 from celery.backends.base import DisabledBackend
@@ -9,6 +10,8 @@ from flask import Flask, current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 from opentelemetry import metrics
 
+from notifications_utils.eventlet import greenlet_thread_time_ns  # not that we (currently) use eventlet with celery
+from notifications_utils.logging.formatting import _ns_per_s
 from notifications_utils.semconv import TASK_DURATION_HISTOGRAM_BUCKETS
 
 duration_histogram = metrics.get_meter(__name__).create_histogram(
@@ -18,10 +21,18 @@ duration_histogram = metrics.get_meter(__name__).create_histogram(
     explicit_bucket_boundaries_advisory=TASK_DURATION_HISTOGRAM_BUCKETS,
 )
 
+celery_task_cpu_time_histogram = metrics.get_meter(__name__).create_histogram(
+    "celery.task.cpu_time",
+    unit="s",
+    description="The total python thread_time used by a celery task execution.",
+    explicit_bucket_boundaries_advisory=TASK_DURATION_HISTOGRAM_BUCKETS,
+)
+
 
 class NotifyTask(Task):
     abstract = True
     start: float
+    start_thread_time_ns: int
     app: "NotifyCelery"
 
     def __init__(self, *args, **kwargs):
@@ -53,9 +64,9 @@ class NotifyTask(Task):
             g.request_id = self.request_id
             yield
 
-    def _record_duration(self, duration: float, status: str) -> None:
-        duration_histogram.record(
-            duration,
+    def _record_histogram(self, histogram: metrics.Histogram, value: float, status: str) -> None:
+        histogram.record(
+            value,
             {
                 "celery.task.name": self.name,
                 "celery.task.status": status,
@@ -67,6 +78,9 @@ class NotifyTask(Task):
         # enables request id tracing for these logs
         with self.app_context():
             elapsed_time = time.monotonic() - self.start
+            elapsed_thread_time = (
+                (greenlet_thread_time_ns() or thread_time_ns()) - self.start_thread_time_ns
+            ) * _ns_per_s
 
             self.app.flask_app.logger.info(
                 "Celery task %s (queue: %s) took %.4f",
@@ -79,17 +93,22 @@ class NotifyTask(Task):
                     "queue_name": self.queue_name,
                     "retry_number": self.request.retries,
                     "duration": elapsed_time,
+                    "celery_task_cpu_time": elapsed_thread_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
                 },
             )
 
-            self._record_duration(elapsed_time, "success")
+            self._record_histogram(duration_histogram, elapsed_time, "success")
+            self._record_histogram(celery_task_cpu_time_histogram, elapsed_thread_time, "success")
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
         with self.app_context():
             elapsed_time = time.monotonic() - self.start
+            elapsed_thread_time = (
+                (greenlet_thread_time_ns() or thread_time_ns()) - self.start_thread_time_ns
+            ) * _ns_per_s
 
             self.app.flask_app.logger.warning(
                 "Celery task %s (queue: %s) failed for retry after %.4f",
@@ -103,17 +122,22 @@ class NotifyTask(Task):
                     "queue_name": self.queue_name,
                     "retry_number": self.request.retries,
                     "duration": elapsed_time,
+                    "celery_task_cpu_time": elapsed_thread_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
                 },
             )
 
-            self._record_duration(elapsed_time, "retry")
+            self._record_histogram(duration_histogram, elapsed_time, "retry")
+            self._record_histogram(celery_task_cpu_time_histogram, elapsed_thread_time, "retry")
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         # enables request id tracing for these logs
         with self.app_context():
             elapsed_time = time.monotonic() - self.start
+            elapsed_thread_time = (
+                (greenlet_thread_time_ns() or thread_time_ns()) - self.start_thread_time_ns
+            ) * _ns_per_s
 
             self.app.flask_app.logger.exception(
                 "Celery task %s (queue: %s) failed after %.4f",
@@ -126,17 +150,20 @@ class NotifyTask(Task):
                     "queue_name": self.queue_name,
                     "retry_number": self.request.retries,
                     "duration": elapsed_time,
+                    "celery_task_cpu_time": elapsed_thread_time,
                     # avoid name collision with LogRecord's own `process` attribute
                     "process_": getpid(),
                 },
             )
 
-            self._record_duration(elapsed_time, "failure")
+            self._record_histogram(duration_histogram, elapsed_time, "failure")
+            self._record_histogram(celery_task_cpu_time_histogram, elapsed_thread_time, "failure")
 
     def __call__(self, *args, **kwargs):
         # ensure task has flask context to access config, logger, etc
         with self.app_context():
             self.start = time.monotonic()
+            self.start_thread_time_ns = greenlet_thread_time_ns() or thread_time_ns()
 
             if self.request.id is not None:
                 # we're not being called synchronously
