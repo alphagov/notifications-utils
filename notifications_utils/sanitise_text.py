@@ -1,12 +1,11 @@
 import unicodedata
+from abc import ABC, abstractmethod
 from collections.abc import Mapping, Set
 
 from ordered_set import OrderedSet
 
 
-class SanitiseText:
-    ALLOWED_CHARACTERS: Set[str] = set()
-
+class SanitiseText(ABC):
     REPLACEMENT_CHARACTERS: Mapping[str, str] = {
         "‑": "-",  # NON-BREAKING HYPHEN (U+2011)
         "–": "-",  # EN DASH (U+2013)
@@ -32,8 +31,9 @@ class SanitiseText:
     }
 
     @classmethod
+    @abstractmethod
     def encode(cls, content: str) -> str:
-        return "".join(cls.encode_char(char) for char in content)
+        pass
 
     @staticmethod
     def get_unicode_char_from_codepoint(codepoint: str) -> str:
@@ -46,44 +46,6 @@ class SanitiseText:
         if not set(codepoint) <= set("0123456789ABCDEF") or not len(codepoint) == 4:
             raise ValueError(f"{codepoint} is not a valid unicode codepoint")
         return eval(f'"\\u{codepoint}"')
-
-    @classmethod
-    def downgrade_character(cls, c: str) -> str | None:
-        """
-        Attempt to downgrade a non-compatible character to the allowed character set. May downgrade to multiple
-        characters, eg `… -> ...`
-
-        Will return None if character is either already valid or has no known downgrade
-        """
-        decomposed = unicodedata.decomposition(c)
-        if decomposed != "" and "<" not in decomposed:
-            # decomposition lists the unicode code points a character is made up of, if it's made up of multiple
-            # points. For example the á character returns '0061 0301', as in, the character a, followed by a combining
-            # acute accent. The decomposition might, however, also contain a decomposition mapping in angle brackets.
-            # For a full list of the types, see here: https://www.compart.com/en/unicode/decomposition.
-            # If it's got a mapping, we're not sure how best to downgrade it, so just see if it's in the
-            # REPLACEMENT_CHARACTERS map. If not, then it's probably a letter with a modifier, eg á
-            # If this is the case then the first character of a combined unicode character (eg 'á' == '0061 0301')
-            # will be an ASCII char in ALLOWED_CHARACTERS
-            first_character_of_decomposition = cls.get_unicode_char_from_codepoint(decomposed.split()[0])
-            if first_character_of_decomposition in cls.ALLOWED_CHARACTERS:
-                return first_character_of_decomposition
-            return None
-        else:
-            # try and find a mapping (eg en dash -> hyphen ('–': '-')), else return None
-            return cls.REPLACEMENT_CHARACTERS.get(c)
-
-    @classmethod
-    def encode_char(cls, c: str) -> str:
-        """
-        Given a single unicode character, return a compatible character from the allowed set.
-        """
-        # char is a good character already - return that native character.
-        if c in cls.ALLOWED_CHARACTERS:
-            return c
-        else:
-            downgraded = cls.downgrade_character(c)
-            return downgraded if downgraded is not None else "?"
 
 
 class SanitiseSMS(SanitiseText):
@@ -127,7 +89,7 @@ class SanitiseSMS(SanitiseText):
 
 class SanitiseASCII(SanitiseText):
     """
-    As SMS above, but the allowed characters are printable ascii, from character range 32 to 126 inclusive.
+    Allow only printable ascii, from character range 32 to 126 inclusive.
     [chr(x) for x in range(32, 127)]
     """
 
@@ -140,3 +102,45 @@ class SanitiseASCII(SanitiseText):
     ALLOWED_CHARACTERS: Set[str] = set(
         " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
     )
+
+    @classmethod
+    def encode(cls, content: str) -> str:
+        return "".join(cls.encode_char(char) for char in content)
+
+    @classmethod
+    def downgrade_character(cls, c: str) -> str | None:
+        """
+        Attempt to downgrade a non-compatible character to the allowed character set. May downgrade to multiple
+        characters, eg `… -> ...`
+
+        Will return None if character is either already valid or has no known downgrade
+        """
+        decomposed = unicodedata.decomposition(c)
+        if decomposed != "" and "<" not in decomposed:
+            # decomposition lists the unicode code points a character is made up of, if it's made up of multiple
+            # points. For example the á character returns '0061 0301', as in, the character a, followed by a combining
+            # acute accent. The decomposition might, however, also contain a decomposition mapping in angle brackets.
+            # For a full list of the types, see here: https://www.compart.com/en/unicode/decomposition.
+            # If it's got a mapping, we're not sure how best to downgrade it, so just see if it's in the
+            # REPLACEMENT_CHARACTERS map. If not, then it's probably a letter with a modifier, eg á
+            # If this is the case then the first character of a combined unicode character (eg 'á' == '0061 0301')
+            # will be an ASCII char in ALLOWED_CHARACTERS
+            first_character_of_decomposition = cls.get_unicode_char_from_codepoint(decomposed.split()[0])
+            if first_character_of_decomposition in cls.ALLOWED_CHARACTERS:
+                return first_character_of_decomposition
+            return None
+        else:
+            # try and find a mapping (eg en dash -> hyphen ('–': '-')), else return None
+            return cls.REPLACEMENT_CHARACTERS.get(c)
+
+    @classmethod
+    def encode_char(cls, c: str) -> str:
+        """
+        Given a single unicode character, return a compatible character from the allowed set.
+        """
+        # char is a good character already - return that native character.
+        if c in cls.ALLOWED_CHARACTERS:
+            return c
+        else:
+            downgraded = cls.downgrade_character(c)
+            return downgraded if downgraded is not None else "?"

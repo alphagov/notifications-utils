@@ -64,7 +64,7 @@ def test_encode_chars_different_between_ascii_and_sms(char, expected_sms, expect
     ],
 )
 def test_get_unicode_char_from_codepoint(codepoint, char):
-    assert SanitiseText.get_unicode_char_from_codepoint(codepoint) == char
+    assert SanitiseASCII.get_unicode_char_from_codepoint(codepoint) == char
 
 
 @pytest.mark.parametrize("bad_input", ["", "GJ", "00001", '0001";import sys;sys.exit(0)"'])
