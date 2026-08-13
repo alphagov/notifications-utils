@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 125.1.0
+
+* `NotifyTask`: measure thread time used by celery task execution, annotate this on to completion log messages and emit a metric.
+
 ## 125.0.1
 
 * Fixes a number of bugs with counting characters in text message templates
