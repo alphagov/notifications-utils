@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 128.0.0
+
+* Allows a full range of unicode characters in text messages
+* Removes `SanitiseSMS.downgrade_character` and `SanitiseSMS.encode_char`, `SanitiseSMS.WELSH_DIACRITICS` and `SanitiseSMS.ALLOWED_CHARACTERS` (should not be used anywhere)
+* Removes `SanitiseSMS.get_non_gsm_characters()` (use `template.non_gsm_characters` instead)
+* `formatters.normalise_whitespace_and_newlines` and `formatters.normalise_whitespace` have a new, optional `preserve_zero_width_joiner` argument (no change in behaviour if not set to `True`)
+
 ## 127.0.0
 
 * Removes `SanitiseText.get_non_compatible_characters()` (for text message content use `SanitiseText.get_non_gsm_characters()` instead)
