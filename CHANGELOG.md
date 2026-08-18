@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 125.1.1
+
+* Ran `make refreeze-requirements` during dependency day
+
 ## 125.1.0
 
 * `NotifyTask`: measure thread time used by celery task execution, annotate this on to completion log messages and emit a metric.

@@ -5,4 +5,4 @@
 # - `make version-minor` for new features
 # - `make version-patch` for bug fixes
 
-__version__ = "125.1.0"  # 909d86735c524d0abac04d89479efa46
+__version__ = "125.1.1"  # c450e79e21d3207134f44afb3f0b5266
