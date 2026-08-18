@@ -468,8 +468,23 @@ def test_redis_flakey(caplog, app, mocked_redis_client):
     assert "Not performing redis set on baz because redis is possibly flakey" in caplog.messages
 
 
-def test_set_if_timestamp_newer(redis_client_with_live_instance):
+@pytest.mark.parametrize("existing_key", [True, False])
+def test_set_if_timestamp_newer(redis_client_with_live_instance, existing_key):
     import time
+
+    if existing_key:
+        with freeze_time("2018-7-7 15:59:00"):
+            redis_client_with_live_instance.set(
+                "foo",
+                msgpack.dumps(
+                    {
+                        "timestamp": time.time(),
+                        "is_tombstone": False,
+                        "schema_version": 1,
+                        "value": msgpack.dumps("don't return this"),
+                    }
+                ),
+            )
 
     with freeze_time("2018-7-7 16:00:00"):
         time_first_set = time.time()
