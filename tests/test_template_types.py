@@ -1950,14 +1950,26 @@ def test_lists_in_combination_with_other_elements_in_letters(markdown, expected)
     ],
 )
 @pytest.mark.parametrize(
-    "repeat_character_count, expected_count_above_limit",
+    "character, repeat_character_count, expected_count_above_limit",
     (
-        (917, 1),
-        (1_000, 84),
+        # Character in GSM-7
+        ("b", 917, 1),
+        ("b", 1_000, 84),
+        # Character not in GSM-7 and encodes to a single unicode codepoint
+        ("Ŵ", 917, 1),
+        ("Ŵ", 1_000, 84),
+        # Character not in GSM-7 and encodes to multiple unicode codepoints (🏳 + joiner + 🌈)
+        ("🏳️‍🌈", 917, 1_835),
+        ("🏳️‍🌈", 1_000, 2_084),
     ),
 )
-def test_message_too_long_ignoring_prefix(template_class, repeat_character_count, expected_count_above_limit):
-    template_content = ("b" * repeat_character_count) + "((foo))"
+def test_message_too_long_ignoring_prefix(
+    template_class,
+    character,
+    repeat_character_count,
+    expected_count_above_limit,
+):
+    template_content = (character * repeat_character_count) + "((foo))"
     template = template_class(
         {"content": template_content, "template_type": template_class.template_type},
         prefix="a" * 100,
