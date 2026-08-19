@@ -132,9 +132,9 @@ class SanitiseSMS(SanitiseText):
     WELSH_NON_GSM_CHARACTERS: Set[str] = WELSH_DIACRITICS - GSM_CHARACTERS
 
     @classmethod
-    def get_non_compatible_characters(cls, content: str) -> Set:
+    def get_non_gsm_characters(cls, content: str) -> Set:
         """
-        Given an input string, return a set of non compatible characters.
+        Return a set of characters which can’t be encoded to GSM-7, either through replacement or decomposition.
 
         This follows the same rules as `cls.encode`, but returns just the characters that encode would replace with `?`
         """
