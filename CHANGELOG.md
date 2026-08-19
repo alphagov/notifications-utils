@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 126.0.0
+
+* Removes `formatters.sms_encode` (use `sanitise_text.SantiseSMS.encode` directly instead)
+
 ## 125.1.1
 
 * Ran `make refreeze-requirements` during dependency day

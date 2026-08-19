@@ -36,7 +36,6 @@ from notifications_utils.formatters import (
     replace_hyphens_with_en_dashes,
     replace_hyphens_with_non_breaking_hyphens,
     restore_svg_dashes,
-    sms_encode,
     strip_leading_whitespace,
     strip_unsupported_characters,
     unlink_govuk_escaped,
@@ -248,7 +247,7 @@ class BaseSMSTemplate(Template):
     def content_count_without_prefix(self) -> int:
         if self.prefix:
             # See docstring of `content_count` for explanation
-            prefix_length = len(sms_encode(self.prefix).encode("utf-16-le")) // 2
+            prefix_length = len(SanitiseSMS.encode(self.prefix).encode("utf-16-le")) // 2
 
             # subtract 2 extra characters to account for the colon and the space,
             # added max zero in case the content is empty the __str__ methods strips the white space.
@@ -328,7 +327,7 @@ class BaseSMSTemplate(Template):
 
 class SMSMessageTemplate(BaseSMSTemplate):
     def __str__(self: BaseSMSTemplate) -> str:
-        return sms_encode(self.unsanitised_content)
+        return SanitiseSMS.encode(self.unsanitised_content)
 
 
 class SMSBodyPreviewTemplate(BaseSMSTemplate):
@@ -349,7 +348,7 @@ class SMSBodyPreviewTemplate(BaseSMSTemplate):
                     redact_missing_personalisation=True,
                 )
             )
-            .then(sms_encode)
+            .then(SanitiseSMS.encode)
             .then(remove_whitespace_before_punctuation)
             .then(normalise_whitespace_and_newlines)
             .then(normalise_multiple_newlines)
@@ -400,7 +399,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
                         )
                     )
                     .then(add_prefix, escape_html(self.prefix))
-                    .then(sms_encode if self.downgrade_non_sms_characters else str)
+                    .then(SanitiseSMS.encode if self.downgrade_non_sms_characters else str)
                     .then(remove_whitespace_before_punctuation)
                     .then(normalise_whitespace_and_newlines)
                     .then(normalise_multiple_newlines)

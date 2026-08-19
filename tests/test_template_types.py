@@ -577,7 +577,7 @@ def test_sms_message_preview_hides_sender_by_default():
     assert SMSPreviewTemplate({"content": "foo", "template_type": "sms"}).show_sender is False
 
 
-@mock.patch("notifications_utils.template.sms_encode", return_value="downgraded")
+@mock.patch("notifications_utils.template.SanitiseSMS.encode", return_value="downgraded")
 @pytest.mark.parametrize(
     "template_class, extra_args, expected_call",
     (
@@ -597,7 +597,7 @@ def test_sms_messages_downgrade_non_sms(
     mock_sms_encode.assert_called_once_with(expected_call)
 
 
-@mock.patch("notifications_utils.template.sms_encode", return_value="downgraded")
+@mock.patch("notifications_utils.template.SanitiseSMS.encode", return_value="downgraded")
 def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode):
     template = str(
         SMSPreviewTemplate(
