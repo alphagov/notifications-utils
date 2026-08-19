@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 126.0.1
+
+* Runs `remove_whitespace_before_punctuation` before GSM-7-encoding in subclasses of `BaseSMSTemplate`
+
 ## 126.0.0
 
 * Removes `formatters.sms_encode` (use `sanitise_text.SantiseSMS.encode` directly instead)
