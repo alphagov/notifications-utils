@@ -36,15 +36,6 @@ class SanitiseText:
     def encode(cls, content: str) -> str:
         return "".join(cls.encode_char(char) for char in content)
 
-    @classmethod
-    def get_non_compatible_characters(cls, content: str) -> Set:
-        """
-        Given an input string, return a set of non compatible characters.
-
-        This follows the same rules as `cls.encode`, but returns just the characters that encode would replace with `?`
-        """
-        return {c for c in content if c not in cls.ALLOWED_CHARACTERS and cls.downgrade_character(c) is None}
-
     @staticmethod
     def get_unicode_char_from_codepoint(codepoint: str) -> str:
         """
@@ -139,6 +130,15 @@ class SanitiseSMS(SanitiseText):
     ALLOWED_CHARACTERS: Set[str] = GSM_CHARACTERS | WELSH_DIACRITICS
     # some welsh characters are in GSM and some aren't - we need to distinguish between these for counting fragments
     WELSH_NON_GSM_CHARACTERS: Set[str] = WELSH_DIACRITICS - GSM_CHARACTERS
+
+    @classmethod
+    def get_non_gsm_characters(cls, content: str) -> Set:
+        """
+        Return a set of characters which can’t be encoded to GSM-7, either through replacement or decomposition.
+
+        This follows the same rules as `cls.encode`, but returns just the characters that encode would replace with `?`
+        """
+        return {c for c in content if c not in cls.ALLOWED_CHARACTERS and cls.downgrade_character(c) is None}
 
 
 class SanitiseASCII(SanitiseText):

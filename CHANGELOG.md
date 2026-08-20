@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 127.0.0
+
+* Removes `SanitiseText.get_non_compatible_characters()` (for text message content use `SanitiseText.get_non_gsm_characters()` instead)
+
 ## 126.0.1
 
 * Runs `remove_whitespace_before_punctuation` before GSM-7-encoding in subclasses of `BaseSMSTemplate`

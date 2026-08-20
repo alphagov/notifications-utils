@@ -87,16 +87,15 @@ def test_encode_string(content, expected):
 
 
 @pytest.mark.parametrize(
-    "content, cls, expected",
+    "content, expected",
     [
-        ("The quick brown fox jumps over the lazy dog", SanitiseSMS, set()),
-        ("The “quick” brown fox has some downgradable characters\xa0", SanitiseSMS, set()),
-        ("Need more 🐮🔔", SanitiseSMS, {"🐮", "🔔"}),
-        ("Ŵêlsh chârâctêrs ârê cômpâtîblê wîth SanitiseSMS", SanitiseSMS, set()),
-        ("Lots of GSM chars that arent ascii compatible:\n\r€", SanitiseSMS, set()),
-        ("Lots of GSM chars that arent ascii compatible:\n\r€", SanitiseASCII, {"\n", "\r", "€"}),
-        ("Obscure\u00a0whitespace\u202fcharacters which \u2028we \u2029normalise o\u180eut", SanitiseSMS, set()),
+        ("The quick brown fox jumps over the lazy dog", set()),
+        ("The “quick” brown fox has some downgradable characters\xa0", set()),
+        ("Need more 🐮🔔", {"🐮", "🔔"}),
+        ("Ŵêlsh chârâctêrs ârê cômpâtîblê wîth SanitiseSMS", set()),
+        ("Lots of GSM chars that arent ascii compatible:\n\r€", set()),
+        ("Obscure\u00a0whitespace\u202fcharacters which \u2028we \u2029normalise o\u180eut", set()),
     ],
 )
-def test_sms_encoding_get_non_compatible_characters(content, cls, expected):
-    assert cls.get_non_compatible_characters(content) == expected
+def test_sms_encoding_get_non_gsm_characters(content, expected):
+    assert SanitiseSMS.get_non_gsm_characters(content) == expected
