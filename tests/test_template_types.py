@@ -1307,6 +1307,12 @@ def test_sms_fragment_count_accounts_for_extended_gsm_characters(
         ("🚀", set("🚀")),  # No emoji in GSM
         ("…", set()),  # HORIZONTAL ELLIPSIS (U+2026) downgraded to ..., which is 3 GSM characters
         ("ŸẄÜÖÏËÄ", OrderedSet("ŸẄÏË")),  # Content order is preserved
+        ("The quick brown fox jumps over the lazy dog", set()),
+        ("The “quick” brown fox has some downgradable characters\xa0", set()),
+        ("Need more 🐮🔔", {"🐮", "🔔"}),
+        ("Ŵêlsh chârâctêrs ârê cômpâtîblê wîth SanitiseSMS", {"Ŵ", "ê", "â", "ô", "î"}),
+        ("Lots of GSM chars that arent ascii compatible:\n\r€", set()),
+        ("Obscure\u00a0whitespace\u202fcharacters which \u2028we \u2029normalise o\u180eut", set()),
     ],
 )
 @pytest.mark.parametrize(
