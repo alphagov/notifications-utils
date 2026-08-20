@@ -15,6 +15,8 @@ class SanitiseText:
         "’": "'",  # RIGHT SINGLE QUOTATION MARK (U+2019)
         "“": '"',  # LEFT DOUBLE QUOTATION MARK (U+201C)
         "”": '"',  # RIGHT DOUBLE QUOTATION MARK (U+201D)
+        "‚": "'",  # SINGLE LOW-9 QUOTATION MARK (U+201A)
+        "„": '"',  # DOUBLE LOW-9 QUOTATION MARK (U+201E)
         "\u180e": "",  # Mongolian vowel separator
         "\u200b": "",  # zero width space
         "\u200c": "",  # zero width non-joiner
