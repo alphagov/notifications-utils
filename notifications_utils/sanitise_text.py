@@ -2,8 +2,6 @@ import unicodedata
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Set
 
-from ordered_set import OrderedSet
-
 
 class SanitiseText(ABC):
     REPLACEMENT_CHARACTERS: Mapping[str, str] = {
@@ -78,13 +76,6 @@ class SanitiseSMS(SanitiseText):
     @classmethod
     def encode(cls, content: str) -> str:
         return "".join(cls.REPLACEMENT_CHARACTERS.get(c, c) for c in content)
-
-    @classmethod
-    def get_non_gsm_characters(cls, content: str) -> Set:
-        """
-        Return a set of characters which can’t be encoded to GSM-7, either through replacement or decomposition.
-        """
-        return OrderedSet(content) - cls.CHARACTERS_NOT_REQUIRING_UNICODE
 
 
 class SanitiseASCII(SanitiseText):

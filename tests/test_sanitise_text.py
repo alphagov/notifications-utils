@@ -89,18 +89,3 @@ def test_get_unicode_char_from_codepoint_rejects_bad_input(bad_input):
 def test_encode_string(content, expected_sms, expected_ascii):
     assert SanitiseSMS.encode(content) == expected_sms
     assert SanitiseASCII.encode(content) == expected_ascii
-
-
-@pytest.mark.parametrize(
-    "content, expected",
-    [
-        ("The quick brown fox jumps over the lazy dog", set()),
-        ("The “quick” brown fox has some downgradable characters\xa0", set()),
-        ("Need more 🐮🔔", {"🐮", "🔔"}),
-        ("Ŵêlsh chârâctêrs ârê cômpâtîblê wîth SanitiseSMS", {"Ŵ", "ê", "â", "ô", "î"}),
-        ("Lots of GSM chars that arent ascii compatible:\n\r€", set()),
-        ("Obscure\u00a0whitespace\u202fcharacters which \u2028we \u2029normalise o\u180eut", set()),
-    ],
-)
-def test_sms_encoding_get_non_gsm_characters(content, expected):
-    assert SanitiseSMS.get_non_gsm_characters(content) == expected
