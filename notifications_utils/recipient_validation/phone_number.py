@@ -64,7 +64,7 @@ class PhoneNumber:
         number.validate(allow_international_number = False, allow_uk_landline = False)
     """
 
-    def __init__(self, phone_number: str, is_service_contact_number: bool = False) -> None:
+    def __init__(self, phone_number: str, is_service_contact_number: bool = False):
         self.is_service_contact_number = is_service_contact_number
         try:
             self.number = self.parse_phone_number(phone_number)
@@ -73,18 +73,18 @@ class PhoneNumber:
             self.number = self.parse_phone_number(phone_number)
         self._phone_number = phone_number
 
-    def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False):
+    def _raise_if_service_cannot_send_to_international_but_tries_to(self, allow_international: bool = False) -> None:
         if not (allow_international or self.is_uk_phone_number()):
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
-    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, allow_uk_landline: bool = False):
+    def _raise_if_service_cannot_send_to_uk_landline_but_tries_to(self, allow_uk_landline: bool = False) -> None:
         if self.number.country_code != int(UK_PREFIX):
             return
         is_landline = phonenumbers.number_type(self.number) in LANDLINE_CODES
         if not allow_uk_landline and is_landline:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.NOT_A_UK_MOBILE)
 
-    def _raise_if_unsupported_country(self):
+    def _raise_if_unsupported_country(self) -> None:
         if str(self.number.country_code) not in COUNTRY_PREFIXES:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
@@ -94,7 +94,7 @@ class PhoneNumber:
         self._raise_if_unsupported_country()
 
     @staticmethod
-    def _try_parse_number(phone_number):
+    def _try_parse_number(phone_number: str) -> phonenumbers.PhoneNumber:
         try:
             # parse number as GB - if there's no country code, try and parse it as a UK number
             return phonenumbers.parse(phone_number, "GB")
@@ -207,7 +207,7 @@ class PhoneNumber:
         return None
 
     @property
-    def prefix(self):
+    def prefix(self) -> str:
         """
         Returns the international dialing code for looking up data in our international_billing_rates.yml file
 
@@ -222,14 +222,14 @@ class PhoneNumber:
                 return country_and_area_code
         return str(self.number.country_code)
 
-    def is_uk_phone_number(self):
+    def is_uk_phone_number(self) -> bool:
         """
         Returns if the number starts with +44. Note, this includes international numbers for crown dependencies such as
         jersey/guernsey.
         """
         return self.number.country_code == int(UK_PREFIX)
 
-    def get_international_phone_info(self):
+    def get_international_phone_info(self) -> InternationalPhoneInfo:
         if is_international := self.is_international_number():
             rate_multiplier = INTERNATIONAL_BILLING_RATES[self.prefix]["rate_multiplier"]
         else:
@@ -242,7 +242,7 @@ class PhoneNumber:
             rate_multiplier=rate_multiplier,
         )
 
-    def is_international_number(self):
+    def is_international_number(self) -> bool:
         """
         Returns True for phone numbers that either have a GB country code
         or that are OFCOM TV numbers. libphonenumber only contains actually
@@ -257,7 +257,7 @@ class PhoneNumber:
         else:
             return True
 
-    def is_a_crown_dependency_number(self):
+    def is_a_crown_dependency_number(self) -> bool:
         """
         Returns True for phone numbers from Jersey, Guernsey, Isle of Man, etc
         TV numbers are an edge case where libphonenumber cannot accurately
@@ -269,13 +269,13 @@ class PhoneNumber:
         else:
             return self.is_uk_phone_number() and phonenumbers.region_code_for_number(self.number) != "GB"
 
-    def should_use_numeric_sender(self):
+    def should_use_numeric_sender(self) -> bool:
         """
         Some countries need a specific sender to be used rather than whatever the service has specified
         """
         return INTERNATIONAL_BILLING_RATES[self.prefix]["attributes"]["alpha"] == "NO"
 
-    def get_normalised_format(self):
+    def get_normalised_format(self) -> str:
         return str(self)
 
     def __str__(self):
@@ -287,7 +287,7 @@ class PhoneNumber:
         # TODO: If our suppliers let us send the plus, then we should do so, for consistency/accuracy.
         return formatted[1:]
 
-    def get_human_readable_format(self):
+    def get_human_readable_format(self) -> str:
         # comparable to `format_phone_number_human_readable`
         return phonenumbers.format_number(
             self.number,
@@ -298,10 +298,10 @@ class PhoneNumber:
             ),
         )
 
-    def is_uk_mobile_number(self):
+    def is_uk_mobile_number(self) -> bool:
         return (
             phonenumbers.number_type(self.number) == phonenumbers.PhoneNumberType.MOBILE and self.is_uk_phone_number()
         )
 
-    def get_carrier_info(self):
+    def get_carrier_info(self) -> str:
         return carrier.name_for_number(self.number, "en")
