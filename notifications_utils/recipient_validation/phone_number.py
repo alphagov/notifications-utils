@@ -3,6 +3,7 @@ from collections import namedtuple
 from contextlib import suppress
 
 import phonenumbers
+from phonenumbers import carrier
 
 from notifications_utils.formatters import (
     ALL_WHITESPACE,
@@ -296,3 +297,11 @@ class PhoneNumber:
                 else phonenumbers.PhoneNumberFormat.INTERNATIONAL
             ),
         )
+
+    def is_uk_mobile_number(self):
+        return (
+            phonenumbers.number_type(self.number) == phonenumbers.PhoneNumberType.MOBILE and self.is_uk_phone_number()
+        )
+
+    def get_carrier_info(self):
+        return carrier.name_for_number(self.number, "en")

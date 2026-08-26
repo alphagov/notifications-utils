@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 127.1.0
+
+* Adds additional methods to `recipient_validation.phone_number.PhoneNumber`, `is_uk_mobile_number` and `get_carrier_info`
+
 ## 127.0.0
 
 * Removes `SanitiseText.get_non_compatible_characters()` (for text message content use `SanitiseText.get_non_gsm_characters()` instead)
