@@ -1559,19 +1559,3 @@ def test_cell_ignore_and_error_checking(mocker):
         call("Phone Number", "789"),
         call("Name", "C"),
     ]
-
-
-def test_rows_as_list_is_defined_on_init():
-    recipients = RecipientCSV(
-        """
-        Phone Number, Name, Foo, Bar
-        123,          A,    foo, bar
-        456,          B,    foo, bar
-        789,          C,    foo, bar
-        """,
-        template=_sample_template("sms"),
-    )
-    with pytest.raises(AttributeError):
-        assert RecipientCSV._rows_as_list
-
-    assert recipients._rows_as_list

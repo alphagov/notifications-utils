@@ -152,7 +152,7 @@ class InterruptibleIterableMixin[T]:
         )
 
 
-class InterruptibleIterableList(InterruptibleIterableMixin, list):
+class InterruptibleIterableList[T](InterruptibleIterableMixin, list):
     pass
 
 
