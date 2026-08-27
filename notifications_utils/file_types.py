@@ -1,4 +1,4 @@
-EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES = (
+EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES: tuple[tuple[str, str, str], ...] = (
     ("pdf", "application/pdf", "PDF"),
     ("csv", "text/csv", "CSV file"),
     ("txt", "text/plain", "text file"),
@@ -13,28 +13,29 @@ EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES = (
     ("jpeg", "image/jpeg", "JPEG file"),
     ("png", "image/png", "PNG file"),
 )
-EXTENSIONS = {ext for ext, _mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
-MIME_TYPES_TO_EXTENSIONS = {mime: ext for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
-EXTENSIONS_TO_MIME_TYPES = {ext: mime for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
+EXTENSIONS: set[str] = {ext for ext, _mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
+MIME_TYPES_TO_EXTENSIONS: dict[str, str] = {mime: ext for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
+EXTENSIONS_TO_MIME_TYPES: dict[str, str] = {ext: mime for ext, mime, _pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES}
 
 
-def is_allowed_file_extension(extension):
+def is_allowed_file_extension(extension: str) -> bool:
     return extension.lower() in EXTENSIONS
 
 
-def is_allowed_mime_type(mime_type):
+def is_allowed_mime_type(mime_type: str) -> bool:
     return mime_type in MIME_TYPES_TO_EXTENSIONS
 
 
-def extension_from_mime_type(mime_type):
+def extension_from_mime_type(mime_type: str) -> str:
     return MIME_TYPES_TO_EXTENSIONS[mime_type]
 
 
-def mime_type_from_extension(extension):
+def mime_type_from_extension(extension: str) -> str:
     return EXTENSIONS_TO_MIME_TYPES[extension.lower()]
 
 
-def format_file_type(extension):
+def format_file_type(extension: str) -> str | None:
     for ext, _mime, pretty in EXTENSIONS_MIMETYPES_AND_PRETTY_NAMES:
         if extension.lower() == ext:
             return pretty
+    return None

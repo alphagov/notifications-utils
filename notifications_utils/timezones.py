@@ -6,7 +6,7 @@ from dateutil import parser
 local_timezone = ZoneInfo("Europe/London")
 
 
-def utc_string_to_aware_gmt_datetime(date):
+def utc_string_to_aware_gmt_datetime(date: str | datetime) -> datetime:
     """
     Date can either be a string, naive UTC datetime or an aware UTC datetime
     Returns an aware London datetime, essentially the time you'd see on your clock
@@ -18,14 +18,14 @@ def utc_string_to_aware_gmt_datetime(date):
     return forced_utc.astimezone(local_timezone)
 
 
-def convert_utc_to_bst(utc_dt):
+def convert_utc_to_bst(utc_dt: datetime) -> datetime:
     """
     Takes a naive UTC datetime and returns a naive London datetime
     """
     return utc_dt.replace(tzinfo=UTC).astimezone(local_timezone).replace(tzinfo=None)
 
 
-def convert_bst_to_utc(date):
+def convert_bst_to_utc(date: datetime) -> datetime:
     """
     Takes a naive London datetime and returns a naive UTC datetime
     """

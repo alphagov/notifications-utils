@@ -5,24 +5,28 @@ from textwrap import dedent
 
 import segno
 
-QR_CODE_MAX_BYTES = 504
-paragraph_is_qr_code_markup_regex = re.compile(r"^[\s]*qr[\s]*:[\s]*(.+)", re.I)
+QR_CODE_MAX_BYTES: int = 504
+paragraph_is_qr_code_markup_regex: re.Pattern = re.compile(r"^[\s]*qr[\s]*:[\s]*(.+)", re.I)
 
 
 class QrCodeTooLong(ValueError):
-    def __init__(self, num_bytes, data):
+    data: str
+    num_bytes: int
+    max_bytes: int
+
+    def __init__(self, num_bytes: int, data: str):
         super().__init__(f"Too much data for QR code (num_bytes={num_bytes}, max_bytes={QR_CODE_MAX_BYTES})")
         self.num_bytes = num_bytes
         self.max_bytes = QR_CODE_MAX_BYTES
         self.data = data
 
 
-def qr_code_as_svg(data):
+def qr_code_as_svg(data: str) -> str:
     qr = segno.make(data, error="m", micro=False)
     return qr.svg_inline(border=0, svgclass=None, lineclass=None, omitsize=True)
 
 
-def qr_code_placeholder(link):
+def qr_code_placeholder(link: str) -> str:
     return dedent(
         f"""
             <div class='qrcode-placeholder'>
