@@ -423,9 +423,9 @@ class TestPhoneNumberClass:
     @pytest.mark.parametrize("phone_number, error_message", invalid_uk_mobile_phone_numbers)
     def test_rejects_invalid_uk_mobile_phone_numbers(self, phone_number, error_message):
         # problem is `invalid_uk_mobile_phone_numbers` also includes valid uk landlines
-        with pytest.raises(InvalidPhoneError):
+        with pytest.raises(InvalidPhoneError) as e:
             PhoneNumber(phone_number)
-        # assert e.value.code == InvalidPhoneError.Codes.INVALID_NUMBER
+        assert InvalidPhoneError.ERROR_MESSAGES[e.value.code] == error_message
 
     @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers_without_carrier + valid_uk_landlines)
     def test_sending_to_uk_mobiles_without_carrier_validates_and_returns_correct_carrier_info(self, phone_number):
