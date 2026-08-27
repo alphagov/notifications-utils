@@ -297,11 +297,7 @@ class RecipientCSV:
 
     @property
     def missing_column_headers(self) -> set[str]:
-        return {
-            key
-            for key in self.placeholders
-            if (key not in self.insensitive_column_headers and not self.is_address_column(key))
-        }
+        return {key for key in self.placeholders - self.insensitive_column_headers if not self.is_address_column(key)}
 
     @cached_property
     def duplicate_recipient_column_headers(self) -> OrderedSet[str]:
