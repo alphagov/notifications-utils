@@ -360,33 +360,29 @@ class RecipientCSV:
 
         return False
 
-    def _get_error_for_field(self, key, value) -> str | None:  # noqa: C901
+    def _get_error_for_field(self, key, value) -> str | None:
         if self.is_address_column(key):
             return None
 
         if key in self.recipient_column_headers_as_column_keys:
-            if value in [None, ""] or isinstance(value, list):
-                if self.duplicate_recipient_column_headers:
-                    return None
-                else:
-                    return Cell.missing_field_error
+            if self.duplicate_recipient_column_headers:
+                return None
+
+            if value in [None, ""]:
+                return Cell.missing_field_error
+
             try:
                 if self.template_type == "email":
                     email_address.validate_email_address(value)
-                if self.template_type == "sms":
-                    if self.should_validate_phone_number:
-                        number = get_phone_number_object(value)
-                        number.validate(
-                            allow_international_number=self.allow_international_sms,
-                            allow_uk_landline=self.allow_sms_to_uk_landline,
-                        )
+                if self.template_type == "sms" and self.should_validate_phone_number:
+                    get_phone_number_object(value).validate(
+                        allow_international_number=self.allow_international_sms,
+                        allow_uk_landline=self.allow_sms_to_uk_landline,
+                    )
             except InvalidRecipientError as error:
                 return str(error)
 
-        if key not in self.placeholders_as_column_keys:
-            return None
-
-        if value in [None, ""]:
+        if key in self.placeholders_as_column_keys and value in [None, ""]:
             return Cell.missing_field_error
 
         return None
