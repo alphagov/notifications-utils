@@ -82,7 +82,7 @@ class RecipientCSV:
             self._len = len(self.rows)
         return self._len
 
-    def __getitem__(self, requested_index) -> "Row":
+    def __getitem__(self, requested_index) -> "Row | None":
         return self.rows[requested_index]
 
     @property
@@ -127,7 +127,7 @@ class RecipientCSV:
             return True
         if not self.guestlist:
             return True
-        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows)
+        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows if row)
 
     @cached_property
     def international_sms_count(self) -> int:
@@ -137,6 +137,8 @@ class RecipientCSV:
 
     def _international_sms_count_generator(self) -> Iterator[bool]:
         for row in self.rows:
+            if not row:
+                continue
             with suppress(InvalidPhoneError):
                 yield not get_phone_number_object(row.recipient).is_uk_phone_number()
 
@@ -147,7 +149,7 @@ class RecipientCSV:
         return self.international_sms_count > max(self.remaining_international_sms_messages, 0)
 
     @property
-    def rows(self):
+    def rows(self) -> "Sequence[Row | None]":
         if not hasattr(self, "_rows_as_list"):
             self._rows_as_list = InterruptibleIterableList(self._get_rows())
             self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
