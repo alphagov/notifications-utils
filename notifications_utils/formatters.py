@@ -72,7 +72,7 @@ def add_prefix(body: str, prefix: str | None = None) -> str:
     return body
 
 
-def make_link_from_url(linked_part, *, classes=""):
+def make_link_from_url(linked_part: str, *, classes: str = "") -> str:
     """
     Takes something which looks like a URL, works out which trailing characters shouldn’t
     be considered part of the link and returns an HTML <a> tag
@@ -105,7 +105,7 @@ def make_link_from_url(linked_part, *, classes=""):
     return f"{create_sanitised_html_for_url(linked_part, classes=classes)}{trailing_characters}"
 
 
-def autolink_urls(value, *, classes=""):
+def autolink_urls(value: str, *, classes: str = ""):
     return Markup(
         url.sub(
             lambda match: make_link_from_url(
