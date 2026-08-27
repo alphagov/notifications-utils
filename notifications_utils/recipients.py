@@ -34,8 +34,6 @@ first_column_headings = {
     "letter": [line.replace("_", " ") for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]],
 }
 
-address_columns = InsensitiveSet(first_column_headings["letter"])
-
 
 class RecipientCSV:
     max_rows: int = 100_000
@@ -296,8 +294,8 @@ class RecipientCSV:
         return InsensitiveSet(self.column_headers)
 
     @property
-    def missing_column_headers(self) -> set[str]:
-        return {key for key in self.placeholders - self.insensitive_column_headers if not self.is_address_column(key)}
+    def missing_column_headers(self) -> InsensitiveSet[str]:
+        return self.placeholders - self.insensitive_column_headers - self.address_columns
 
     @cached_property
     def duplicate_recipient_column_headers(self) -> OrderedSet[str]:
@@ -313,8 +311,9 @@ class RecipientCSV:
             if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
         )
 
-    def is_address_column(self, key) -> bool:
-        return self.template_type == "letter" and key in address_columns
+    @property
+    def address_columns(self) -> InsensitiveSet:
+        return self.recipient_column_headers if self.template_type == "letter" else InsensitiveSet()
 
     @property
     def count_of_required_recipient_columns(self) -> int:
@@ -348,7 +347,7 @@ class RecipientCSV:
         return False
 
     def _get_error_for_field(self, key, value) -> str | None:
-        if self.is_address_column(key):
+        if key in self.address_columns:
             return None
 
         if key in self.recipient_column_headers:
