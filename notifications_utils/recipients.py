@@ -47,9 +47,8 @@ class RecipientCSV:
     _template: Template
     template_type: str
     recipient_column_headers_as_column_keys: InsensitiveSet[str]
-    placeholders_as_column_keys: InsensitiveSet[str]
     _guestlist: Sequence[Any]
-    _placeholders: Sequence[Any]
+    _placeholders: InsensitiveSet[Any]
     _rows_as_list: Sequence["None | Row"]
 
     def __init__(
@@ -113,17 +112,13 @@ class RecipientCSV:
         self.placeholders = self._template.placeholders
 
     @property
-    def placeholders(self) -> Sequence[Any]:
+    def placeholders(self) -> InsensitiveSet[Any]:
         return self._placeholders
 
     @placeholders.setter
-    def placeholders(self, value):
-        try:
-            self._placeholders = list(value) + self.recipient_column_headers
-        except TypeError:
-            self._placeholders = self.recipient_column_headers
-        self.placeholders_as_column_keys = InsensitiveSet(self._placeholders)
+    def placeholders(self, value: InsensitiveSet):
         self.recipient_column_headers_as_column_keys = InsensitiveSet(self.recipient_column_headers)
+        self._placeholders = value | self.recipient_column_headers_as_column_keys
 
     @property
     def has_errors(self) -> bool:
@@ -232,7 +227,7 @@ class RecipientCSV:
                 index=index,
                 error_fn=self._get_error_for_field,
                 recipient_column_headers=self.recipient_column_headers,
-                placeholders=self.placeholders_as_column_keys,
+                placeholders=self.placeholders,
                 template=self.template,
                 allow_international_letters=self.allow_international_letters,
                 validate_row=self.should_validate,
@@ -382,7 +377,7 @@ class RecipientCSV:
             except InvalidRecipientError as error:
                 return str(error)
 
-        if key in self.placeholders_as_column_keys and value in [None, ""]:
+        if key in self.placeholders and value in [None, ""]:
             return Cell.missing_field_error
 
         return None
