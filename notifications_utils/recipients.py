@@ -46,7 +46,7 @@ class RecipientCSV:
     template_type: str
     recipient_column_headers: InsensitiveSet[str]
     _guestlist: Sequence[Any]
-    _placeholders: InsensitiveSet[Any]
+    placeholders: InsensitiveSet[str]
     _rows_as_list: Sequence["None | Row"]
 
     def __init__(
@@ -107,15 +107,7 @@ class RecipientCSV:
         self._template = value
         self.template_type = self._template.template_type
         self.recipient_column_headers = InsensitiveSet(first_column_headings[self.template_type])
-        self.placeholders = self._template.placeholders
-
-    @property
-    def placeholders(self) -> InsensitiveSet[Any]:
-        return self._placeholders
-
-    @placeholders.setter
-    def placeholders(self, value: InsensitiveSet):
-        self._placeholders = value | self.recipient_column_headers
+        self.placeholders = self._template.placeholders | self.recipient_column_headers
 
     @property
     def has_errors(self) -> bool:
