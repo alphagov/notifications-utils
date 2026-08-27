@@ -46,7 +46,7 @@ class RecipientCSV:
 
     _template: Template
     template_type: str
-    recipient_column_headers_as_column_keys: InsensitiveSet[str]
+    recipient_column_headers: InsensitiveSet[str]
     _guestlist: Sequence[Any]
     _placeholders: InsensitiveSet[Any]
     _rows_as_list: Sequence["None | Row"]
@@ -108,7 +108,7 @@ class RecipientCSV:
             raise TypeError("template must be an instance of notifications_utils.template.Template")
         self._template = value
         self.template_type = self._template.template_type
-        self.recipient_column_headers = first_column_headings[self.template_type]
+        self.recipient_column_headers = InsensitiveSet(first_column_headings[self.template_type])
         self.placeholders = self._template.placeholders
 
     @property
@@ -117,8 +117,7 @@ class RecipientCSV:
 
     @placeholders.setter
     def placeholders(self, value: InsensitiveSet):
-        self.recipient_column_headers_as_column_keys = InsensitiveSet(self.recipient_column_headers)
-        self._placeholders = value | self.recipient_column_headers_as_column_keys
+        self._placeholders = value | self.recipient_column_headers
 
     @property
     def has_errors(self) -> bool:
@@ -208,7 +207,7 @@ class RecipientCSV:
             for column_name, column_value in zip(column_headers, row[:length_of_widest_row], strict=False):
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
-                if column_name in self.recipient_column_headers_as_column_keys:
+                if column_name in self.recipient_column_headers:
                     output_dict[column_name] = column_value or None
                 else:
                     insert_or_append_to_dict(output_dict, column_name, column_value or None)
@@ -312,7 +311,7 @@ class RecipientCSV:
         raw_recipient_column_headers: list[str] = [
             InsensitiveDict.make_key(column_header)
             for column_header in self._raw_column_headers
-            if column_header in self.recipient_column_headers_as_column_keys
+            if column_header in self.recipient_column_headers
         ]
 
         return OrderedSet(
@@ -338,7 +337,7 @@ class RecipientCSV:
             ]
         else:
             sets_to_check = [
-                self.recipient_column_headers_as_column_keys,
+                self.recipient_column_headers,
             ]
 
         for set_to_check in sets_to_check:
@@ -359,7 +358,7 @@ class RecipientCSV:
         if self.is_address_column(key):
             return None
 
-        if key in self.recipient_column_headers_as_column_keys:
+        if key in self.recipient_column_headers:
             if self.duplicate_recipient_column_headers:
                 return None
 
