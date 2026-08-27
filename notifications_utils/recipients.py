@@ -35,19 +35,18 @@ first_column_headings = {
 }
 
 
-class RecipientCSV:
+class RecipientCSV(InterruptibleIterableList["Row | None"]):
     max_rows: int = 100_000
     get_rows_loop_interruptible_every: int = 128
     # we're less certain a significant amount of work is going to be done on each iteration
     # through the resultant row list
-    rows_list_iteration_interruptible_every: int = 512
+    INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY: int = 512
 
     _template: Template
     template_type: str
     recipient_column_headers: InsensitiveSet[str]
     _guestlist: Sequence[Any]
     placeholders: InsensitiveSet[str]
-    _rows_as_list: Sequence["None | Row"]
 
     def __init__(
         self,
@@ -76,17 +75,7 @@ class RecipientCSV:
         self.remaining_international_sms_messages = remaining_international_sms_messages
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
-        self._rows_as_list = InterruptibleIterableList(self._get_rows())
-        self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
-
-    def __len__(self):
-        return len(self._rows_as_list)
-
-    def __getitem__(self, requested_index) -> "Row | None":
-        return self._rows_as_list[requested_index]
-
-    def __iter__(self) -> Iterator["Row | None"]:
-        return iter(self._rows_as_list)
+        super().__init__(self._get_rows())
 
     @property
     def guestlist(self) -> Sequence[Any]:
