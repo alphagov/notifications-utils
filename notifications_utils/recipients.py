@@ -85,6 +85,9 @@ class RecipientCSV:
     def __getitem__(self, requested_index) -> "Row | None":
         return self.rows[requested_index]
 
+    def __iter__(self) -> Iterator["Row | None"]:
+        return iter(self.rows)
+
     @property
     def guestlist(self) -> Sequence[Any]:
         return self._guestlist
