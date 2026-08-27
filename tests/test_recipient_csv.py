@@ -1250,7 +1250,7 @@ def test_multiple_sms_recipient_columns(international_sms):
         allow_international_sms=international_sms,
     )
     assert recipients.column_headers == ["phone number", "phone_number", "foo"]
-    assert recipients.column_headers_as_column_keys == {"phonenumber": "", "foo": ""}.keys()
+    assert recipients.insensitive_column_headers == {"phonenumber": "", "foo": ""}.keys()
     assert recipients.rows[0].get("phone number").data == ("07900 900333")
     assert recipients.rows[0].get("phone_number").data == ("07900 900333")
     assert recipients.rows[0].get("phone number").error is None
@@ -1274,7 +1274,7 @@ def test_multiple_sms_recipient_columns_with_missing_data(column_name):
     if column_name != "phone number":
         expected_column_headers.append(column_name)
     assert recipients.column_headers == expected_column_headers
-    assert recipients.column_headers_as_column_keys == {"phonenumber": "", "names": ""}.keys()
+    assert recipients.insensitive_column_headers == {"phonenumber": "", "names": ""}.keys()
     # A piece of weirdness uncovered: since rows are created before spaces in column names are normalised, when
     # there are duplicate recipient columns and there is data for only one of the columns, if the columns have the same
     # spacing, phone number data will be the correct phone number, while if the spacing style differs between two
@@ -1491,7 +1491,7 @@ def test_column_headers_are_cached(mocker):
     for _ in range(3):
         assert recipients._raw_column_headers == ("phone_number", "PhoneNumber", "name", "name")
         assert recipients.column_headers == ["phone_number", "PhoneNumber", "name"]
-        assert recipients.column_headers_as_column_keys == OrderedSet(["phonenumber", "name"])
+        assert recipients.insensitive_column_headers == OrderedSet(["phonenumber", "name"])
 
     assert mock_csv_reader.call_args_list == [mocker.call(ANY, quoting=0, skipinitialspace=True)]
 

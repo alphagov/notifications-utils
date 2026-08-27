@@ -292,7 +292,7 @@ class RecipientCSV:
         return list(OrderedSet(self._raw_column_headers))
 
     @property
-    def column_headers_as_column_keys(self) -> InsensitiveSet[str]:
+    def insensitive_column_headers(self) -> InsensitiveSet[str]:
         return InsensitiveSet(self.column_headers)
 
     @property
@@ -300,10 +300,7 @@ class RecipientCSV:
         return {
             key
             for key in self.placeholders
-            if (
-                InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys
-                and not self.is_address_column(key)
-            )
+            if (key not in self.insensitive_column_headers and not self.is_address_column(key))
         }
 
     @cached_property
@@ -346,7 +343,7 @@ class RecipientCSV:
                     # Work out which columns are shared between the possible
                     # letter address columns and the columns in the user’s
                     # spreadsheet (`&` means set intersection)
-                    set_to_check & self.column_headers_as_column_keys
+                    set_to_check & self.insensitive_column_headers
                 )
                 >= self.count_of_required_recipient_columns
             ):
