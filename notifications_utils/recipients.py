@@ -85,7 +85,7 @@ class RecipientCSV:
             self._len = len(self.rows)
         return self._len
 
-    def __getitem__(self, requested_index):
+    def __getitem__(self, requested_index) -> "Row":
         return self.rows[requested_index]
 
     @property
@@ -294,7 +294,7 @@ class RecipientCSV:
         return []
 
     @property
-    def column_headers(self):
+    def column_headers(self) -> Sequence[str]:
         return list(OrderedSet(self._raw_column_headers))
 
     @property
@@ -302,7 +302,7 @@ class RecipientCSV:
         return InsensitiveSet(self.column_headers)
 
     @property
-    def missing_column_headers(self):
+    def missing_column_headers(self) -> set[str]:
         return {
             key
             for key in self.placeholders
@@ -313,7 +313,7 @@ class RecipientCSV:
         }
 
     @cached_property
-    def duplicate_recipient_column_headers(self):
+    def duplicate_recipient_column_headers(self) -> OrderedSet[str]:
         raw_recipient_column_headers: list[str] = [
             InsensitiveDict.make_key(column_header)
             for column_header in self._raw_column_headers
