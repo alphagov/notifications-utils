@@ -130,7 +130,7 @@ class RecipientCSV:
             return True
         if not self.guestlist:
             return True
-        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self if row)
+        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self._filter_rows())
 
     @cached_property
     def international_sms_count(self) -> int:
@@ -139,9 +139,7 @@ class RecipientCSV:
         return sum(self._international_sms_count_generator())
 
     def _international_sms_count_generator(self) -> Iterator[bool]:
-        for row in self:
-            if not row:
-                continue
+        for row in self._filter_rows():
             with suppress(InvalidPhoneError):
                 yield not get_phone_number_object(row.recipient).is_uk_phone_number()
 
@@ -238,8 +236,8 @@ class RecipientCSV:
             return self.initial_rows_with_errors
         return self.initial_rows
 
-    def _filter_rows(self, attr) -> "Iterator[Row]":
-        return (row for row in self if row and getattr(row, attr))
+    def _filter_rows(self, attr: str | None = None) -> "Iterator[Row]":
+        return (row for row in self if row and (attr is None or getattr(row, attr)))
 
     @property
     def rows_with_errors(self) -> "Iterator[Row]":
