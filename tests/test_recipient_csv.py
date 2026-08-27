@@ -380,11 +380,13 @@ def test_overly_big_list_stops_processing_rows_beyond_max(mocker):
         "notifications_utils.recipients.insert_or_append_to_dict",
     )
 
-    big_csv = RecipientCSV(
+    class Max10RowsRecipientCSV(RecipientCSV):
+        max_rows = 10
+
+    big_csv = Max10RowsRecipientCSV(
         "phonenumber,name\n" + ("07700900123,example\n" * 123),
         template=_sample_template("sms", content="hello ((name))"),
     )
-    big_csv.max_rows = 10
 
     # Our CSV has lots of rows…
     assert big_csv.too_many_rows
