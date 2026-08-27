@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 129.0.0
+
+* Running `make lint` will now flag commented-out code (per https://docs.astral.sh/ruff/rules/commented-out-code/)
+
 ## 128.0.0
 
 * Allows a full range of unicode characters in text messages

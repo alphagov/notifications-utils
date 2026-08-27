@@ -66,7 +66,7 @@ class AbstractImmutableInsensitiveSet[T](Set[T], Sequence[T], metaclass=ABCMeta)
             if k not in self._inner:
                 self._inner[k] = v
 
-    # Set[T]
+    # Implements Set[T]
 
     def __contains__(self, item) -> bool:
         return self.make_key(item) in self._inner
@@ -77,7 +77,7 @@ class AbstractImmutableInsensitiveSet[T](Set[T], Sequence[T], metaclass=ABCMeta)
     def __len__(self) -> int:
         return len(self._inner)
 
-    # Sequence[T]
+    # Implements Sequence[T]
 
     @overload
     def __getitem__(self, index: int) -> T: ...
@@ -325,7 +325,7 @@ class AbstractImmutableInsensitiveSet[T](Set[T], Sequence[T], metaclass=ABCMeta)
 class AbstractMutableInsensitiveSet[T](AbstractImmutableInsensitiveSet[T], MutableSet[T], metaclass=ABCMeta):
     _immutable_type: type[AbstractImmutableInsensitiveSet[T]] | None = None
 
-    # MutableSet[T]
+    # Implements MutableSet[T]
 
     def add(self, item: T):
         key = self.make_key(item)
@@ -448,7 +448,7 @@ class AbstractImmutableInsensitiveDict[K, V](Mapping[K, V], metaclass=ABCMeta):
         for k, v in kwargs.items():
             self._inner[self.make_key(k)] = v  # type: ignore[index]
 
-    # Mapping[K, V]
+    # Implements Mapping[K, V]
 
     def __getitem__(self, key: K) -> V:
         return self._inner.__getitem__(self.make_key(key))
@@ -523,7 +523,7 @@ class AbstractMutableInsensitiveDict[K, V](
 ):
     _immutable_type: type[AbstractImmutableInsensitiveDict[K, V]] | None = None
 
-    # MutableMapping[K, V]
+    # Implements MutableMapping[K, V]
 
     def __setitem__(self, key: K, value: V):
         self._inner.__setitem__(self.make_key(key), value)

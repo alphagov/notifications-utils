@@ -28,5 +28,6 @@ select = [
     "PIE",  # flake8-pie
     "N804",  # First argument of a class method should be named `cls`
     "RUF100",  # Checks for noqa directives that are no longer applicable
+    "ERA001",  # Checks for commented-out code
 ]
 ignore = []

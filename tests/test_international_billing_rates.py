@@ -45,4 +45,3 @@ def test_country_codes():
 def test_use_numeric_sender(number, expected):
     number = PhoneNumber(number)
     assert number.should_use_numeric_sender() == expected
-    # assert use_numeric_sender(number) == expected

@@ -198,10 +198,8 @@ class NotifySupportTicket:
     TYPE_QUESTION = "question"
     TYPE_TASK = "task"
 
-    # Group: 3rd Line--Notify Support
-    NOTIFY_GROUP_ID = 360000036529
-    # Organization: GDS
-    NOTIFY_ORG_ID = 21891972
+    NOTIFY_GROUP_ID = 360000036529  # Group: 3rd Line--Notify Support
+    NOTIFY_ORG_ID = 21891972  # Organization: GDS
     NOTIFY_TICKET_FORM_ID = 14226867890588
 
     def __init__(
