@@ -77,7 +77,7 @@ class InvalidPhoneError(InvalidRecipientError):
 
         return cls(code=code)
 
-    def get_legacy_v2_api_error_message(self):
+    def get_legacy_v2_api_error_message(self) -> str:
         return self.LEGACY_V2_API_ERROR_MESSAGES[self.code]
 
 

@@ -15,7 +15,7 @@ VALID_LOCAL_CHARS = r"a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\-"
 EMAIL_REGEX_PATTERN = rf"^[{VALID_LOCAL_CHARS}]+@([^.@][^@\s]+)$"
 
 
-def validate_email_address(email_address):
+def validate_email_address(email_address: str) -> str:
     # almost exactly the same as by https://github.com/wtforms/wtforms/blob/master/wtforms/validators.py,
     # with minor tweaks for SES compatibility - to avoid complications we are a lot stricter with the local part
     # than neccessary - we don't allow any double quotes or semicolons to prevent SES Technical Failures
@@ -58,9 +58,9 @@ def validate_email_address(email_address):
     return email_address
 
 
-def format_email_address(email_address):
+def format_email_address(email_address: str) -> str:
     return strip_and_remove_obscure_whitespace(email_address.lower())
 
 
-def validate_and_format_email_address(email_address):
+def validate_and_format_email_address(email_address: str) -> str:
     return validate_email_address(email_address).lower()
