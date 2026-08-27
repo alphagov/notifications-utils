@@ -76,23 +76,16 @@ class RecipientCSV:
         self.remaining_international_sms_messages = remaining_international_sms_messages
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
+        self._rows_as_list = InterruptibleIterableList(self._get_rows())
+        self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
 
     def __len__(self):
-        if not hasattr(self, "_rows_as_list"):
-            iter(self)
-        if not hasattr(self, "_len"):
-            self._len = len(self._rows_as_list)
-        return self._len
+        return len(self._rows_as_list)
 
     def __getitem__(self, requested_index) -> "Row | None":
-        if not hasattr(self, "_rows_as_list"):
-            iter(self)
         return self._rows_as_list[requested_index]
 
     def __iter__(self) -> Iterator["Row | None"]:
-        if not hasattr(self, "_rows_as_list"):
-            self._rows_as_list = InterruptibleIterableList(self._get_rows())
-            self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
         return iter(self._rows_as_list)
 
     @property

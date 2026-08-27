@@ -256,12 +256,10 @@ def test_get_rows_only_iterates_over_file_once(mocker):
         template=_sample_template("email", "hello ((name))"),
     )
 
-    rows = recipients._get_rows()
-    for _ in range(3):
-        next(rows)
+    for _ in range(10):
+        list(recipients)
 
     assert row_mock.call_count == 3
-    assert not hasattr(recipients, "_rows_as_list")
 
 
 @pytest.mark.parametrize(
@@ -930,15 +928,18 @@ def test_sms_to_uk_landlines(file_contents, rows_with_bad_recipients):
 
 
 def test_errors_when_too_many_rows():
-    recipients = RecipientCSV(
+    class Max100RowsRecipientCSV(RecipientCSV):
+        max_rows = 100
+
+    recipients = Max100RowsRecipientCSV(
         "email address\n" + ("a@b.com\n" * 101),
         template=_sample_template("email"),
     )
 
     # Confirm the normal max_row limit
-    assert recipients.max_rows == 100_000
-    # Override to make this test faster
-    recipients.max_rows = 100
+    assert RecipientCSV.max_rows == 100_000
+    # Confirm our instance has a lower limit to make the test faster
+    assert recipients.max_rows == 100
 
     assert recipients.too_many_rows is True
     assert recipients.has_errors is True
@@ -1485,17 +1486,25 @@ def test_errors_on_qr_codes_with_too_much_data():
 
 def test_column_headers_are_cached(mocker):
     mock_csv_reader = mocker.patch(
-        "notifications_utils.recipients.csv.reader", return_value=(("phone_number", "PhoneNumber", "name", "name"),)
+        "notifications_utils.recipients.csv.reader",
+        side_effect=lambda *args, **kwargs: iter((("phone_number", "PhoneNumber", "name", "name"),)),
     )
     template = _sample_template("sms", content="Hello")
     recipients = RecipientCSV("mocked", template=template)
 
-    for _ in range(3):
+    for _ in range(5):
         assert recipients._raw_column_headers == ("phone_number", "PhoneNumber", "name", "name")
         assert recipients.column_headers == ["phone_number", "PhoneNumber", "name"]
         assert recipients.insensitive_column_headers == OrderedSet(["phonenumber", "name"])
 
-    assert mock_csv_reader.call_args_list == [mocker.call(ANY, quoting=0, skipinitialspace=True)]
+    assert mock_csv_reader.call_args_list == [
+        # First pass over the file to work out index_of_first_empty_column
+        mocker.call(ANY, quoting=0, skipinitialspace=True),
+        # Second pass over the file (first row only) to get the column headers
+        mocker.call(ANY, quoting=0, skipinitialspace=True),
+        # Third pass over the file to build the Row objects
+        mocker.call(ANY, quoting=0, skipinitialspace=True),
+    ]
 
 
 def test_duplicate_headers_are_cached(mocker):
@@ -1512,6 +1521,9 @@ def test_duplicate_headers_are_cached(mocker):
         assert recipients.duplicate_recipient_column_headers == OrderedSet(("phone_number", "PhoneNumber"))
 
     assert mock_column_headers.call_args_list == [
+        # 2 calls on RecipientCSV.__init__
+        mocker.call(),
+        mocker.call(),
         # 2 calls per loop, but cached after the first of 3 loops
         mocker.call(),
         mocker.call(),
@@ -1549,7 +1561,7 @@ def test_cell_ignore_and_error_checking(mocker):
     ]
 
 
-def test_rows_as_list_is_not_defined_on_init():
+def test_rows_as_list_is_defined_on_init():
     recipients = RecipientCSV(
         """
         Phone Number, Name, Foo, Bar
@@ -1560,7 +1572,6 @@ def test_rows_as_list_is_not_defined_on_init():
         template=_sample_template("sms"),
     )
     with pytest.raises(AttributeError):
-        recipients._rows_as_list  # noqa: B018
+        assert RecipientCSV._rows_as_list
 
-    assert len(recipients) == 3  # Causes recipients._rows_as_list to be defined
-    assert len(recipients._rows_as_list) == 3
+    assert recipients._rows_as_list
