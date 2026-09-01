@@ -1117,13 +1117,13 @@ def test_character_count_for_sms_templates(
             "Dzień dobry",
         ),
         (
-            # Hindi (Devanagari)
+            # Devanagari (script used in Hindi, among other languages)
             "नमस्ते",
             6,
             "नमस्ते",
         ),
         (
-            # Chinese (Simplified)
+            # Simplified Chinese
             "你好",
             2,
             "你好",

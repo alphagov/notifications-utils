@@ -40,7 +40,7 @@ class Placeholder:
             raise ValueError(f"{self} not conditional")
 
     def get_conditional_body(self, show_conditional) -> str:
-        # note: unsanitised/converted
+        # Note: return value is unsanitised/converted
         if self.is_conditional():
             return self.conditional_text if str2bool(show_conditional) else ""
         else:
