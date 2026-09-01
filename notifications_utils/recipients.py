@@ -281,7 +281,7 @@ class RecipientCSV:
     def column_headers(self) -> Sequence[str]:
         return list(OrderedSet(self._raw_column_headers))
 
-    @property
+    @cached_property
     def insensitive_column_headers(self) -> InsensitiveSet[str]:
         return InsensitiveSet(self.column_headers)
 
@@ -303,7 +303,7 @@ class RecipientCSV:
             if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
         )
 
-    @property
+    @cached_property
     def address_columns(self) -> InsensitiveSet:
         return self.recipient_column_headers if self.template_type == "letter" else InsensitiveSet()
 
