@@ -280,11 +280,11 @@ class BaseSMSTemplate(Template):
     @property
     def non_gsm_characters(self) -> Set[str]:
         """
-        Returns a set of all the non gsm characters in a text. this doesn't include characters that we will
-        downgrade (eg emoji, ellipsis, ñ, etc). This only includes welsh non gsm characters that will force
+        Returns a set of all the non-GSM characters in a text. Does not include characters that we will
+        downgrade (eg ellipsis, en dash, etc). The presence of any other non-GSM characters will force
         the entire SMS to be encoded with UCS-2.
         """
-        return OrderedSet(self.unsanitised_content) & SanitiseSMS.WELSH_NON_GSM_CHARACTERS
+        return OrderedSet(self.unsanitised_content) - SanitiseSMS.CHARACTERS_NOT_REQUIRING_UNICODE
 
     def is_message_too_long(self) -> bool:
         """
@@ -318,7 +318,7 @@ class BaseSMSTemplate(Template):
             Take(PlainTextField(self.content, values, html="passthrough"))
             .then(add_prefix, self.prefix)
             .then(remove_whitespace_before_punctuation)
-            .then(normalise_whitespace_and_newlines)
+            .then(normalise_whitespace_and_newlines, preserve_zero_width_joiner=True)
             .then(normalise_multiple_newlines)
             .then(str.strip)
             .then(str.replace, MAGIC_SEQUENCE, "")
@@ -350,7 +350,7 @@ class SMSBodyPreviewTemplate(BaseSMSTemplate):
             )
             .then(remove_whitespace_before_punctuation)
             .then(SanitiseSMS.encode)
-            .then(normalise_whitespace_and_newlines)
+            .then(normalise_whitespace_and_newlines, preserve_zero_width_joiner=True)
             .then(normalise_multiple_newlines)
             .then(str.strip)
         )
@@ -401,7 +401,7 @@ class SMSPreviewTemplate(BaseSMSTemplate):
                     .then(add_prefix, escape_html(self.prefix))
                     .then(remove_whitespace_before_punctuation)
                     .then(SanitiseSMS.encode if self.downgrade_non_sms_characters else str)
-                    .then(normalise_whitespace_and_newlines)
+                    .then(normalise_whitespace_and_newlines, preserve_zero_width_joiner=True)
                     .then(normalise_multiple_newlines)
                     .then(nl2br)
                     .then(
