@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.0.0
+
+* Removes `RecipientCSV.rows`, `RecipientCSV._rows_as_list` (use, for example `for r in RecipientCSV(…)` instead)
+
 ## 130.0.0
 
 * Removes `RecipientCSV.placeholders_as_column_keys` (use `RecipientCSV.placeholders` instead, now an instance of `InsensitiveSet`)
