@@ -34,8 +34,6 @@ first_column_headings = {
     "letter": [line.replace("_", " ") for line in address_lines_1_to_6_and_postcode_keys + [address_line_7_key]],
 }
 
-address_columns = InsensitiveSet(first_column_headings["letter"])
-
 
 class RecipientCSV:
     max_rows: int = 100_000
@@ -46,10 +44,9 @@ class RecipientCSV:
 
     _template: Template
     template_type: str
-    recipient_column_headers_as_column_keys: InsensitiveSet[str]
-    placeholders_as_column_keys: InsensitiveSet[str]
+    recipient_column_headers: InsensitiveSet[str]
     _guestlist: Sequence[Any]
-    _placeholders: Sequence[Any]
+    placeholders: InsensitiveSet[str]
     _rows_as_list: Sequence["None | Row"]
 
     def __init__(
@@ -109,21 +106,8 @@ class RecipientCSV:
             raise TypeError("template must be an instance of notifications_utils.template.Template")
         self._template = value
         self.template_type = self._template.template_type
-        self.recipient_column_headers = first_column_headings[self.template_type]
-        self.placeholders = self._template.placeholders
-
-    @property
-    def placeholders(self) -> Sequence[Any]:
-        return self._placeholders
-
-    @placeholders.setter
-    def placeholders(self, value):
-        try:
-            self._placeholders = list(value) + self.recipient_column_headers
-        except TypeError:
-            self._placeholders = self.recipient_column_headers
-        self.placeholders_as_column_keys = InsensitiveSet(self._placeholders)
-        self.recipient_column_headers_as_column_keys = InsensitiveSet(self.recipient_column_headers)
+        self.recipient_column_headers = InsensitiveSet(first_column_headings[self.template_type])
+        self.placeholders = self._template.placeholders | self.recipient_column_headers
 
     @property
     def has_errors(self) -> bool:
@@ -213,7 +197,7 @@ class RecipientCSV:
             for column_name, column_value in zip(column_headers, row[:length_of_widest_row], strict=False):
                 column_value = strip_and_remove_obscure_whitespace(column_value)
 
-                if column_name in self.recipient_column_headers_as_column_keys:
+                if column_name in self.recipient_column_headers:
                     output_dict[column_name] = column_value or None
                 else:
                     insert_or_append_to_dict(output_dict, column_name, column_value or None)
@@ -232,7 +216,7 @@ class RecipientCSV:
                 index=index,
                 error_fn=self._get_error_for_field,
                 recipient_column_headers=self.recipient_column_headers,
-                placeholders=self.placeholders_as_column_keys,
+                placeholders=self.placeholders,
                 template=self.template,
                 allow_international_letters=self.allow_international_letters,
                 validate_row=self.should_validate,
@@ -297,27 +281,20 @@ class RecipientCSV:
     def column_headers(self) -> Sequence[str]:
         return list(OrderedSet(self._raw_column_headers))
 
-    @property
-    def column_headers_as_column_keys(self) -> InsensitiveSet[str]:
+    @cached_property
+    def insensitive_column_headers(self) -> InsensitiveSet[str]:
         return InsensitiveSet(self.column_headers)
 
     @property
-    def missing_column_headers(self) -> set[str]:
-        return {
-            key
-            for key in self.placeholders
-            if (
-                InsensitiveDict.make_key(key) not in self.column_headers_as_column_keys
-                and not self.is_address_column(key)
-            )
-        }
+    def missing_column_headers(self) -> InsensitiveSet[str]:
+        return self.placeholders - self.insensitive_column_headers - self.address_columns
 
     @cached_property
     def duplicate_recipient_column_headers(self) -> OrderedSet[str]:
         raw_recipient_column_headers: list[str] = [
             InsensitiveDict.make_key(column_header)
             for column_header in self._raw_column_headers
-            if column_header in self.recipient_column_headers_as_column_keys
+            if column_header in self.recipient_column_headers
         ]
 
         return OrderedSet(
@@ -326,8 +303,9 @@ class RecipientCSV:
             if raw_recipient_column_headers.count(InsensitiveDict.make_key(column_header)) > 1
         )
 
-    def is_address_column(self, key) -> bool:
-        return self.template_type == "letter" and key in address_columns
+    @cached_property
+    def address_columns(self) -> InsensitiveSet:
+        return self.recipient_column_headers if self.template_type == "letter" else InsensitiveSet()
 
     @property
     def count_of_required_recipient_columns(self) -> int:
@@ -343,7 +321,7 @@ class RecipientCSV:
             ]
         else:
             sets_to_check = [
-                self.recipient_column_headers_as_column_keys,
+                self.recipient_column_headers,
             ]
 
         for set_to_check in sets_to_check:
@@ -352,7 +330,7 @@ class RecipientCSV:
                     # Work out which columns are shared between the possible
                     # letter address columns and the columns in the user’s
                     # spreadsheet (`&` means set intersection)
-                    set_to_check & self.column_headers_as_column_keys
+                    set_to_check & self.insensitive_column_headers
                 )
                 >= self.count_of_required_recipient_columns
             ):
@@ -361,10 +339,10 @@ class RecipientCSV:
         return False
 
     def _get_error_for_field(self, key, value) -> str | None:
-        if self.is_address_column(key):
+        if key in self.address_columns:
             return None
 
-        if key in self.recipient_column_headers_as_column_keys:
+        if key in self.recipient_column_headers:
             if self.duplicate_recipient_column_headers:
                 return None
 
@@ -382,7 +360,7 @@ class RecipientCSV:
             except InvalidRecipientError as error:
                 return str(error)
 
-        if key in self.placeholders_as_column_keys and value in [None, ""]:
+        if key in self.placeholders and value in [None, ""]:
             return Cell.missing_field_error
 
         return None

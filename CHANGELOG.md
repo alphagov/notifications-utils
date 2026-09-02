@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 130.0.0
+
+* Removes `RecipientCSV.placeholders_as_column_keys` (use `RecipientCSV.placeholders` instead, now an instance of `InsensitiveSet`)
+* Removes `RecipientCSV.recipient_column_headers_as_column_keys` (use `RecipientCSV.recipient_column_headers` instead, now an instance of `InsensitiveSet`)
+* Renames `RecipientCSV.column_headers_as_column_keys` to `RecipientCSV.insensitive_column_headers`
+* Removes `RecipientCSV.is_address_column(key)` (use `key in RecipientCSV.address_columns` instead)
+* Removes `recipients.address_columns` (use `RecipientCSV.address_columns` instead)
+
 ## 129.0.0
 
 * Running `make lint` will now flag commented-out code (per https://docs.astral.sh/ruff/rules/commented-out-code/)
