@@ -35,19 +35,18 @@ first_column_headings = {
 }
 
 
-class RecipientCSV:
+class RecipientCSV(InterruptibleIterableList["Row | None"]):
     max_rows: int = 100_000
     get_rows_loop_interruptible_every: int = 128
     # we're less certain a significant amount of work is going to be done on each iteration
     # through the resultant row list
-    rows_list_iteration_interruptible_every: int = 512
+    INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY: int = 512
 
     _template: Template
     template_type: str
     recipient_column_headers: InsensitiveSet[str]
     _guestlist: Sequence[Any]
     placeholders: InsensitiveSet[str]
-    _rows_as_list: Sequence["None | Row"]
 
     def __init__(
         self,
@@ -76,14 +75,7 @@ class RecipientCSV:
         self.remaining_international_sms_messages = remaining_international_sms_messages
         self.should_validate = should_validate
         self.should_validate_phone_number = should_validate_phone_number
-
-    def __len__(self):
-        if not hasattr(self, "_len"):
-            self._len = len(self.rows)
-        return self._len
-
-    def __getitem__(self, requested_index) -> "Row":
-        return self.rows[requested_index]
+        super().__init__(self._get_rows())
 
     @property
     def guestlist(self) -> Sequence[Any]:
@@ -127,7 +119,7 @@ class RecipientCSV:
             return True
         if not self.guestlist:
             return True
-        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self.rows)
+        return all(allowed_to_send_to(row.recipient, self.guestlist) for row in self._filter_rows())
 
     @cached_property
     def international_sms_count(self) -> int:
@@ -136,7 +128,7 @@ class RecipientCSV:
         return sum(self._international_sms_count_generator())
 
     def _international_sms_count_generator(self) -> Iterator[bool]:
-        for row in self.rows:
+        for row in self._filter_rows():
             with suppress(InvalidPhoneError):
                 yield not get_phone_number_object(row.recipient).is_uk_phone_number()
 
@@ -145,13 +137,6 @@ class RecipientCSV:
         if self.template_type != "sms":
             return False
         return self.international_sms_count > max(self.remaining_international_sms_messages, 0)
-
-    @property
-    def rows(self):
-        if not hasattr(self, "_rows_as_list"):
-            self._rows_as_list = InterruptibleIterableList(self._get_rows())
-            self._rows_as_list.INTERRUPTIBLE_ITERABLE_INTERRUPTIBLE_EVERY = self.rows_list_iteration_interruptible_every
-        return self._rows_as_list
 
     @property
     def _rows(self) -> Iterator[Sequence[str]]:
@@ -232,7 +217,7 @@ class RecipientCSV:
 
     @property
     def initial_rows(self) -> "Iterator[Row | None]":
-        return islice(self.rows, self.max_initial_rows_shown)
+        return islice(self, self.max_initial_rows_shown)
 
     @property
     def displayed_rows(self) -> "Iterator[Row | None]":
@@ -240,8 +225,8 @@ class RecipientCSV:
             return self.initial_rows_with_errors
         return self.initial_rows
 
-    def _filter_rows(self, attr) -> "Iterator[Row]":
-        return (row for row in self.rows if row and getattr(row, attr))
+    def _filter_rows(self, attr: str | None = None) -> "Iterator[Row]":
+        return (row for row in self if row and (attr is None or getattr(row, attr)))
 
     @property
     def rows_with_errors(self) -> "Iterator[Row]":
