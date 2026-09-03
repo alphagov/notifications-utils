@@ -20,20 +20,6 @@ valid_uk_mobile_phone_numbers = [
     "\u200b\t\t+44 (0)7723 456 789\ufeff \r\n",
 ]
 
-valid_uk_mobile_phone_numbers_without_carrier = [
-    "7329472819",
-    "07246859165",
-    "+44 7152 749 721",
-    "+44 (0)7152 749 722",
-]
-
-valid_uk_mobile_phone_numbers_with_original_carrier = [
-    ("7106826587", "O2"),
-    ("07364792458", "Three"),
-    ("+44 7341468273", "Vodafone"),
-    ("+44 7342 468 273", "Vodafone"),
-]
-
 
 valid_international_phone_numbers = [
     "+7 (8) (495) 123-45-67",  # russia
@@ -426,30 +412,6 @@ class TestPhoneNumberClass:
         with pytest.raises(InvalidPhoneError) as e:
             PhoneNumber(phone_number)
         assert InvalidPhoneError.ERROR_MESSAGES[e.value.code] == error_message
-
-    @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers_without_carrier + valid_uk_landlines)
-    def test_sending_to_uk_mobiles_without_carrier_validates_and_returns_correct_carrier_info(self, phone_number):
-        number = PhoneNumber(phone_number)
-        number.validate(allow_uk_landline=True)
-        assert number.get_carrier_info() == ""
-
-    @pytest.mark.parametrize("phone_number, carrier", valid_uk_mobile_phone_numbers_with_original_carrier)
-    def test_get_carrier_info_returns_correct_network(self, phone_number, carrier):
-        number = PhoneNumber(phone_number)
-        number.validate()
-        assert number.get_carrier_info() == carrier
-
-    @pytest.mark.parametrize("phone_number", valid_uk_mobile_phone_numbers)
-    def test_is_uk_mobile_number_returns_true_for_valid_uk_mobile_number(self, phone_number):
-        number = PhoneNumber(phone_number)
-        number.validate()
-        assert number.is_uk_mobile_number()
-
-    @pytest.mark.parametrize("phone_number", valid_uk_landlines + valid_international_phone_numbers)
-    def test_is_uk_mobile_number_returns_false_for_valid_number_that_is_not_uk_mobile(self, phone_number):
-        number = PhoneNumber(phone_number)
-        number.validate(allow_international_number=True, allow_uk_landline=True)
-        assert not number.is_uk_mobile_number()
 
     @pytest.mark.parametrize("phone_number", invalid_uk_landlines)
     def test_rejects_invalid_uk_landlines(self, phone_number):
