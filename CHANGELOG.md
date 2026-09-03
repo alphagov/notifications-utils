@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 130.1.0
+
+* Reverts change in 127.1.0. notifications-api is no longer using these methods.
+
 ## 130.0.0
 
 * Removes `RecipientCSV.placeholders_as_column_keys` (use `RecipientCSV.placeholders` instead, now an instance of `InsensitiveSet`)
