@@ -1,7 +1,13 @@
+import re
+
 import pytest
 
 from notifications_utils.recipient_validation.errors import InvalidPhoneError
-from notifications_utils.recipient_validation.phone_number import InternationalPhoneInfo, PhoneNumber
+from notifications_utils.recipient_validation.phone_number import (
+    InternationalPhoneInfo,
+    PhoneNumber,
+    get_S7_protected_prefixes,
+)
 from notifications_utils.recipients import (
     allowed_to_send_to,
     format_recipient,
@@ -241,6 +247,16 @@ international_phone_info_fixtures = [
         ),
     ),
 ]
+
+
+mock_S7_prefixes = (
+    "70346",
+    "703470",
+    "703477",
+    "70348",
+    "703490",
+    "7075",
+)
 
 
 @pytest.mark.parametrize("phone_number", valid_international_phone_numbers)
@@ -622,6 +638,39 @@ class TestPhoneNumberClass:
         with pytest.raises(InvalidPhoneError) as exc:
             number.validate(allow_international_number=True, allow_uk_landline=False)
         assert exc.value.code == InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE
+
+    @pytest.mark.parametrize(
+        "candidate_number,expected_result",
+        (
+            ("07000000000", False),
+            ("07011100876", False),
+            ("07034700000", True),
+            ("07034701000", True),
+            ("07034710000", False),
+            ("07034777777", True),
+            ("07074971099", False),
+            ("07075971077", True),
+            ("07999999999", False),
+            # non-uk number
+            ("+1 202-483-3000", False),
+        ),
+    )
+    def test_is_number_in_S7_protected_range(self, candidate_number, expected_result, mocker):
+        mocker.patch(
+            "notifications_utils.recipient_validation.phone_number.get_S7_protected_prefixes",
+            return_value=mock_S7_prefixes,
+        )
+        assert PhoneNumber(candidate_number).is_number_in_S7_protected_range() == expected_result
+
+
+def test_get_S7_protected_prefixes():
+    "Ensure our bundled data passes some sanity checks"
+    prefixes = get_S7_protected_prefixes()
+
+    assert prefixes
+    assert all(prefixes)
+    assert tuple(sorted(prefixes)) == prefixes
+    assert all(re.fullmatch(r"7\d+", s) for s in prefixes)
 
 
 def test_empty_phone_number_is_rejected_with_correct_v2_error_message():
