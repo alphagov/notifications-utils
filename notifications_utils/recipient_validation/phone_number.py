@@ -1,6 +1,10 @@
 import re
+from bisect import bisect_right
 from collections import namedtuple
+from collections.abc import Sequence
 from contextlib import suppress
+from functools import cache
+from importlib import resources as importlib_resources
 
 import phonenumbers
 
@@ -48,6 +52,18 @@ InternationalPhoneInfo = namedtuple(
         "rate_multiplier",
     ],
 )
+
+
+@cache
+def get_S7_protected_prefixes() -> Sequence[str]:
+    prefixes = (
+        importlib_resources.files("notifications_utils")
+        .joinpath("data/ofcom/S7_protected_prefixes.txt")
+        .read_text()
+        .split()
+    )
+    prefixes.sort()
+    return tuple(prefixes)  # ensure cached result can't be mutated
 
 
 class PhoneNumber:
@@ -227,6 +243,22 @@ class PhoneNumber:
         jersey/guernsey.
         """
         return self.number.country_code == int(UK_PREFIX)
+
+    def is_number_in_S7_protected_range(self) -> bool:
+        """
+        Returns whether the number is, according to the OFCOM S7 file, within a range that is "protected".
+        """
+        if not self.is_uk_phone_number():
+            return False
+
+        prefixes = get_S7_protected_prefixes()
+        national_number = str(self.number.national_number)
+
+        # bisect is slight overkill but we can't be certain someone's not going to update
+        # our prefixes file with a massive list, so prioritize scalability
+        i = bisect_right(prefixes, national_number)
+
+        return bool(i) and national_number.startswith(prefixes[i - 1])
 
     def get_international_phone_info(self) -> InternationalPhoneInfo:
         if is_international := self.is_international_number():

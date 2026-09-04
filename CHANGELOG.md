@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 130.2.0
+
+* Bundles a reduced list of "protected" phone prefixes from OFCOM's `S7.csv` file and provides a new `PhoneNumber` method, `is_number_in_S7_protected_range()` to efficiently query it.
+
 ## 130.1.0
 
 * Reverts change in 127.1.0. notifications-api is no longer using these methods.
