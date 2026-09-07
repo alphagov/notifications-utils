@@ -427,6 +427,25 @@ class RedisClient:
 
         return None
 
+    def sadd(
+        self,
+        key: str,
+        *values: bytes | str | float,
+        raise_exception: bool = False,
+        always_raise: tuple[type[BaseException], ...] | type[INSTANCE_DEFAULT] = INSTANCE_DEFAULT,
+    ) -> Any:
+        redis_operation = "sadd"
+        key = prepare_value(key)
+        values = tuple(prepare_value(value) for value in values)
+
+        if self.active:
+            try:
+                return self.redis_store.sadd(key, *values)
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, always_raise, redis_operation, key)
+
+        return None
+
     def get_lock(self, key_name: str, **kwargs) -> Lock | StubLock:
         if self.active:
             return Lock(self.redis_store, key_name, **kwargs)
