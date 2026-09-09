@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.1.0
+
+* `Redis-client`: Add `sadd` and `expire` methods.
+
 ## 131.0.0
 
 * Removes `RecipientCSV.rows`, `RecipientCSV._rows_as_list` (use, for example `for r in RecipientCSV(…)` instead)
