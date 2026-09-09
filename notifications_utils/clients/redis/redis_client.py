@@ -446,6 +446,24 @@ class RedisClient:
 
         return None
 
+    def expire(
+        self,
+        key: str,
+        seconds: int,
+        raise_exception: bool = False,
+        always_raise: tuple[type[BaseException], ...] | type[INSTANCE_DEFAULT] = INSTANCE_DEFAULT,
+    ) -> Any:
+        redis_operation = "expire"
+        key = prepare_value(key)
+
+        if self.active:
+            try:
+                return self.redis_store.expire(key, seconds)
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, always_raise, redis_operation, key)
+
+        return None
+
     def get_lock(self, key_name: str, **kwargs) -> Lock | StubLock:
         if self.active:
             return Lock(self.redis_store, key_name, **kwargs)

@@ -135,6 +135,8 @@ def mocked_redis_client(app, mocked_redis_pipeline, delete_mock, mocker):
     mocker.patch.object(redis_client.redis_store, "incr")
     mocker.patch.object(redis_client.redis_store, "decrby")
     mocker.patch.object(redis_client.redis_store, "delete")
+    mocker.patch.object(redis_client.redis_store, "sadd")
+    mocker.patch.object(redis_client.redis_store, "expire")
     mocker.patch.object(redis_client.redis_store, "pipeline", return_value=mocked_redis_pipeline)
 
     mocker.patch.object(redis_client, "scripts", {"delete-keys-by-pattern": delete_mock})
@@ -157,6 +159,8 @@ def failing_redis_client(mocked_redis_client, delete_mock):
     mocked_redis_client.redis_store.get.side_effect = MyException("get failed")
     mocked_redis_client.redis_store.set.side_effect = MyException("set failed")
     mocked_redis_client.redis_store.incr.side_effect = MyException("incr failed")
+    mocked_redis_client.redis_store.sadd.side_effect = MyException("sadd failed")
+    mocked_redis_client.redis_store.expire.side_effect = MyException("expire failed")
     mocked_redis_client.redis_store.decrby.side_effect = MyException("decrby failed")
     mocked_redis_client.redis_store.pipeline.side_effect = MyException("pipeline failed")
     mocked_redis_client.redis_store.delete.side_effect = MyException("delete failed")
@@ -169,6 +173,8 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_r
         assert failing_redis_client.get("get_key") is None
         assert failing_redis_client.set("set_key", "set_value") is None
         assert failing_redis_client.incr("incr_key") is None
+        assert failing_redis_client.sadd("sadd_key") is None
+        assert failing_redis_client.expire("expire_key", 3600) is None
         assert failing_redis_client.decrby("decrby_key", 5) is None
         assert failing_redis_client.exceeded_rate_limit("rate_limit_key", 100, 100) is False
         assert failing_redis_client.delete("delete_key") is None
@@ -179,6 +185,8 @@ def test_should_not_raise_exception_if_raise_set_to_false(app, caplog, failing_r
         "Redis error performing get on get_key",
         "Redis error performing set on set_key",
         "Redis error performing incr on incr_key",
+        "Redis error performing sadd on sadd_key",
+        "Redis error performing expire on expire_key",
         "Redis error performing decrby on decrby_key",
         "Redis error performing rate-limit-pipeline on rate_limit_key",
         "Redis error performing delete on delete_key",
@@ -202,6 +210,14 @@ def test_should_raise_exception_if_raise_set_to_true(
     with pytest.raises(MyException) as e:
         failing_redis_client.incr("test", raise_exception=True)
     assert str(e.value) == "incr failed"
+
+    with pytest.raises(MyException) as e:
+        failing_redis_client.sadd("test", raise_exception=True)
+    assert str(e.value) == "sadd failed"
+
+    with pytest.raises(MyException) as e:
+        failing_redis_client.expire("test", 3600, raise_exception=True)
+    assert str(e.value) == "expire failed"
 
     with pytest.raises(MyException) as e:
         failing_redis_client.decrby("test", 7, raise_exception=True)
@@ -256,6 +272,8 @@ def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     assert mocked_redis_client.get("get_key") is None
     assert mocked_redis_client.set("set_key", "set_value") is None
     assert mocked_redis_client.incr("incr_key") is None
+    assert mocked_redis_client.sadd("sadd_key") is None
+    assert mocked_redis_client.expire("expire_key", "seconds") is None
     assert mocked_redis_client.decrby("decrby_key", 5) is None
     assert mocked_redis_client.exceeded_rate_limit("rate_limit_key", 100, 100) is False
     assert mocked_redis_client.delete("delete_key") is None
@@ -264,6 +282,8 @@ def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
     mocked_redis_client.redis_store.get.assert_not_called()
     mocked_redis_client.redis_store.set.assert_not_called()
     mocked_redis_client.redis_store.incr.assert_not_called()
+    mocked_redis_client.redis_store.sadd.assert_not_called()
+    mocked_redis_client.redis_store.expire.assert_not_called()
     mocked_redis_client.redis_store.delete.assert_not_called()
     mocked_redis_client.redis_store.pipeline.assert_not_called()
     delete_mock.assert_not_called()
@@ -272,6 +292,16 @@ def test_should_not_call_if_not_enabled(mocked_redis_client, delete_mock):
 def test_should_call_set_if_enabled(mocked_redis_client):
     mocked_redis_client.set("key", "value")
     mocked_redis_client.redis_store.set.assert_called_with("key", "value", None, None, False, False)
+
+
+def test_should_call_sadd_if_enabled(mocked_redis_client):
+    mocked_redis_client.sadd("key", "set-member")
+    mocked_redis_client.redis_store.sadd.assert_called_with("key", "set-member")
+
+
+def test_should_call_expire_if_enabled(mocked_redis_client):
+    mocked_redis_client.expire("key", 3600)
+    mocked_redis_client.redis_store.expire.assert_called_with("key", 3600)
 
 
 def test_should_call_get_if_enabled(mocked_redis_client):
