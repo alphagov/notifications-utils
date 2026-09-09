@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.0.0
+
+* Removes `RecipientCSV.rows`, `RecipientCSV._rows_as_list` (use, for example `for r in RecipientCSV(…)` instead)
+
 ## 130.2.0
 
 * Bundles a reduced list of "protected" phone prefixes from OFCOM's `S7.csv` file and provides a new `PhoneNumber` method, `is_number_in_S7_protected_range()` to efficiently query it.
