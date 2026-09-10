@@ -160,7 +160,7 @@ class PhoneNumber:
             # is_possible just checks the length of a number for that country/region. is_valid checks if it's
             # a valid sequence of numbers. This doesn't cover "is this number registered to an MNO".
             # For example UK numbers cannot start "06" as that hasn't been assigned to a purpose by ofcom
-            if self._is_tv_number(number):
+            if self.is_tv_number(number):
                 return number
             else:
                 raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
@@ -176,7 +176,7 @@ class PhoneNumber:
         return False
 
     @staticmethod
-    def _is_tv_number(phone_number) -> bool:
+    def is_tv_number(phone_number) -> bool:
         """
         The phonenumbers library does not consider TV numbers (fake numbers OFCOM reserves use in TV, film etc)
         valid. This method checks whether a normalised phone number that has failed the library's validation is
@@ -283,7 +283,7 @@ class PhoneNumber:
         """
         if phonenumbers.region_code_for_number(self.number) == "GB":
             return False
-        elif self._is_tv_number(self.number):
+        elif self.is_tv_number(self.number):
             return False
         else:
             return True
@@ -295,7 +295,7 @@ class PhoneNumber:
         handle them (they're not actually valid numbers). In that case we
         always want to return False as we consider them to be UK numbers.
         """
-        if self._is_tv_number(self.number):
+        if self.is_tv_number(self.number):
             return False
         else:
             return self.is_uk_phone_number() and phonenumbers.region_code_for_number(self.number) != "GB"
