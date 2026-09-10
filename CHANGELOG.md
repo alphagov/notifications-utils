@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.1.0
+
+* Makes `PhoneNumber._is_tv_number` a public method (`PhoneNumber.is_tv_number`)
+
 ## 131.0.0
 
 * Removes `RecipientCSV.rows`, `RecipientCSV._rows_as_list` (use, for example `for r in RecipientCSV(…)` instead)
