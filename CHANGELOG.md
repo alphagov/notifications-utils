@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.1.0
+
+* Update `is_number_in_S7_protected_range` to return False if number is a TV number or smoke test number
+
 ## 131.0.0
 
 * Removes `RecipientCSV.rows`, `RecipientCSV._rows_as_list` (use, for example `for r in RecipientCSV(…)` instead)

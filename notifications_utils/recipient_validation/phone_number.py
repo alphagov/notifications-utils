@@ -25,6 +25,12 @@ EMERGENCY_THREE_DIGIT_NUMBERS = [
     "112",
 ]
 
+SMOKE_TEST_NUMBERS = [
+    "7700900000",
+    "7700900111",
+    "7700900222",
+]
+
 LANDLINE_CODES = {
     phonenumbers.PhoneNumberType.FIXED_LINE,
     phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE,
@@ -248,7 +254,11 @@ class PhoneNumber:
         """
         Returns whether the number is, according to the OFCOM S7 file, within a range that is "protected".
         """
-        if not self.is_uk_phone_number():
+        if (
+            not self.is_uk_phone_number()
+            or (self.number.national_number) in SMOKE_TEST_NUMBERS
+            or self._is_tv_number(self.number)
+        ):
             return False
 
         prefixes = get_S7_protected_prefixes()

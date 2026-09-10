@@ -256,6 +256,7 @@ mock_S7_prefixes = (
     "70348",
     "703490",
     "7075",
+    "77009",  # prefix for smoke test number
 )
 
 
@@ -653,6 +654,8 @@ class TestPhoneNumberClass:
             ("07999999999", False),
             # non-uk number
             ("+1 202-483-3000", False),
+            # smoke test numbers
+            ("07700900111", False),
         ),
     )
     def test_is_number_in_S7_protected_range(self, candidate_number, expected_result, mocker):
