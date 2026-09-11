@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.2.0
+
+* Adds `block_ofcom_protected_ranges` as an optional argument to `PhoneNumber.validate`
+
 ## 131.1.0
 
 * Makes `PhoneNumber._is_tv_number` a public method (`PhoneNumber.is_tv_number`)
