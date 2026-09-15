@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.2.1
+
+* Fixes a bug with HTML escaping in `template.HTMLEmailTemplate`
+
 ## 131.2.0
 
 * Adds `block_ofcom_protected_ranges` as an optional argument to `PhoneNumber.validate`

@@ -606,12 +606,12 @@ class HTMLEmailTemplate(BaseEmailTemplate):
                 "body": self.html_body,
                 "preheader": self.preheader,
                 "govuk_banner": self.govuk_banner,
-                "complete_html": self.complete_html,
-                "brand_logo": self.brand_logo,
-                "brand_text": self.brand_text,
-                "brand_colour": self.brand_colour,
                 "brand_banner": self.brand_banner,
-                "brand_alt_text": self.brand_alt_text,
+                "complete_html": self.complete_html,
+                "brand_logo": escape_html(self.brand_logo, quote=True),
+                "brand_text": escape_html(self.brand_text, quote=True),
+                "brand_colour": escape_html(self.brand_colour, quote=True),
+                "brand_alt_text": escape_html(self.brand_alt_text, quote=True),
                 "rebrand": self.rebrand,
             }
         )

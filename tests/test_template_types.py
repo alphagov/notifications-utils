@@ -3,6 +3,7 @@ import os
 from time import process_time
 from unittest import mock
 
+import html5lib
 import pytest
 from bs4 import BeautifulSoup
 from freezegun import freeze_time
@@ -23,6 +24,8 @@ from notifications_utils.template import (
     SMSPreviewTemplate,
     Template,
 )
+
+html5parser = html5lib.HTMLParser()
 
 
 @pytest.mark.parametrize(
@@ -128,6 +131,38 @@ def test_brand_data_shows(brand_logo, brand_text, brand_colour):
         assert brand_text in email
     if brand_colour:
         assert f'bgcolor="{brand_colour}"' in email
+
+
+@pytest.mark.parametrize(
+    "template_instance",
+    (
+        # With image and alt text
+        HTMLEmailTemplate(
+            {"content": "hello world", "subject": "", "template_type": "email"},
+            brand_banner=True,
+            govuk_banner=False,
+            brand_logo='http://example.com/image.png"> <blink>',
+            brand_colour='"> <blink> <td',
+            brand_alt_text='"> <blink> <img src="http://example.com/image.png"',
+        ),
+        # With text banner and no alt text
+        HTMLEmailTemplate(
+            {"content": "hello world", "subject": "", "template_type": "email"},
+            brand_banner=True,
+            govuk_banner=False,
+            brand_text="<blink>",
+            brand_colour='"> <blink> <td',
+        ),
+    ),
+)
+def test_brand_data_is_escaped(template_instance):
+    email = str(template_instance)
+
+    assert "<blink>" not in email
+    assert "&lt;blink&gt;" in email
+
+    html5parser.parse(email)
+    assert not html5parser.errors
 
 
 def test_alt_text_with_brand_text_and_govuk_banner_shown():
