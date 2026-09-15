@@ -167,7 +167,7 @@ def unescape_strict(s: str) -> str:
     return _charref.sub(_replace_charref, s)
 
 
-def escape_html(value: str | None) -> str | None:
+def escape_html(value: str | None, quote: bool = False) -> str | None:
     if not value:
         return value
     value = str(value)
@@ -175,7 +175,7 @@ def escape_html(value: str | None) -> str | None:
     for entity, temporary_replacement in HTML_ENTITY_MAPPING:
         value = value.replace(entity, temporary_replacement)
 
-    value = escape(unescape_strict(value), quote=False)
+    value = escape(unescape_strict(value), quote=quote)
 
     for entity, temporary_replacement in HTML_ENTITY_MAPPING:
         value = value.replace(temporary_replacement, entity)

@@ -5,6 +5,7 @@ celery~=5.6.0
 redis~=7.2
 filelock~=3.24
 
+html5lib
 mypy
 boto3-stubs
 celery-types
