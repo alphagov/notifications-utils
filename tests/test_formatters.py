@@ -62,9 +62,17 @@ def test_HTML_template_has_URLs_replaced_with_links():
     )
 
 
-def test_escaping_govuk_in_email_templates():
-    template_content = "GOV.UK"
-    expected = "GOV.\u200bUK"
+@pytest.mark.parametrize(
+    "template_content, expected",
+    [
+        ("GOV.UK", "GOV.\u200bUK"),
+        (
+            "read the ‘GOV.UK One Login Privacy Notice’ on GOV.UK.",
+            "read the ‘GOV.\u200bUK One Login Privacy Notice’ on GOV.\u200bUK.",
+        ),
+    ],
+)
+def test_escaping_govuk_in_email_templates(template_content, expected):
     assert unlink_govuk_escaped(template_content) == expected
     template_json = {"content": template_content, "subject": "", "template_type": "email"}
     assert expected in str(PlainTextEmailTemplate(template_json))
@@ -86,6 +94,14 @@ def test_escaping_govuk_in_email_templates():
         (" #GOV.UK", " #GOV.\u200bUK"),
         ("GOV.UK with CONTENT after", "GOV.\u200bUK with CONTENT after"),
         ("#GOV.UK with CONTENT after", "#GOV.\u200bUK with CONTENT after"),
+        ("'GOV.UK", "'GOV.\u200bUK"),
+        ('"GOV.UK', '"GOV.\u200bUK'),
+        ("‘GOV.UK", "‘GOV.\u200bUK"),
+        ("“GOV.UK", "“GOV.\u200bUK"),
+        (
+            "read the ‘GOV.UK One Login Privacy Notice’ on GOV.UK.",
+            "read the ‘GOV.\u200bUK One Login Privacy Notice’ on GOV.\u200bUK.",
+        ),
         # Cases that we don't add the breaking space
         ("https://gov.uk", "https://gov.uk"),
         ("https://www.gov.uk", "https://www.gov.uk"),

@@ -30,7 +30,10 @@ ALL_WHITESPACE = string.whitespace + OBSCURE_ZERO_WIDTH_WHITESPACE + OBSCURE_FUL
 
 RECOGNISED_URL_PROTOCOLS = tuple(f"{protocol}:" for protocol in {"ftp", "file", "http", "https", "mailto", "tel"})
 
-govuk_not_a_link = re.compile(r"(^|\s)(#|\*|\^)?(GOV)\.(UK)(?!\/|\?|#)", re.IGNORECASE)
+govuk_not_a_link = re.compile(
+    r"""(^|\s|['"‘’“”])(#|\*|\^)?(GOV)\.(UK)(?!\/|\?|#)""",
+    re.IGNORECASE,
+)
 
 smartypants.tags_to_skip = smartypants.tags_to_skip + ["a"]
 

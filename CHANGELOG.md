@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 131.2.2
+
+* Insert a zero-width space into quoted `GOV.UK` brand names so email clients do not autolink them
+
 ## 131.2.1
 
 * Fixes a bug with HTML escaping in `template.HTMLEmailTemplate`
