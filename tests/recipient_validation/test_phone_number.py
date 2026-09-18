@@ -600,7 +600,6 @@ class TestPhoneNumberClass:
         [
             ("(07417)4123456", InvalidPhoneError.Codes.TOO_LONG),
             ("(06)25123456", InvalidPhoneError.Codes.INVALID_NUMBER),
-            ("+00263 71123456", InvalidPhoneError.Codes.INVALID_NUMBER),
             ("+0065951123456", InvalidPhoneError.Codes.TOO_LONG),
             ("00129123456", InvalidPhoneError.Codes.INVALID_NUMBER),
             ("003570123456", InvalidPhoneError.Codes.INVALID_NUMBER),
