@@ -499,18 +499,18 @@ class TestPhoneNumberClass:
             ("+1 202-483-3000", False),
         ),
     )
-    @pytest.mark.parametrize("block_ofcom_protected_ranges", [True, False])
+    @pytest.mark.parametrize("block_ofcom_protected_blocks", [True, False])
     def test_PhoneNumber_rejects_valid_uk_mobiles_if_in_ofcom_protected_range(
-        self, phone_number, should_raise, block_ofcom_protected_ranges, mock_get_S7_protected_prefixes
+        self, phone_number, should_raise, block_ofcom_protected_blocks, mock_get_S7_protected_prefixes
     ):
         number = PhoneNumber(phone_number)
-        if should_raise and block_ofcom_protected_ranges:
+        if should_raise and block_ofcom_protected_blocks:
             with pytest.raises(InvalidPhoneError):
                 number.validate(
-                    allow_international_number=True, block_ofcom_protected_ranges=block_ofcom_protected_ranges
+                    allow_international_number=True, block_ofcom_protected_blocks=block_ofcom_protected_blocks
                 )
         else:
-            number.validate(allow_international_number=True, block_ofcom_protected_ranges=block_ofcom_protected_ranges)
+            number.validate(allow_international_number=True, block_ofcom_protected_blocks=block_ofcom_protected_blocks)
 
     @pytest.mark.parametrize("phone_number, expected_info", international_phone_info_fixtures)
     def test_get_international_phone_info(self, phone_number, expected_info):
