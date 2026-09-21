@@ -104,9 +104,9 @@ class PhoneNumber:
             raise InvalidPhoneError(code=InvalidPhoneError.Codes.UNSUPPORTED_COUNTRY_CODE)
 
     def _raise_if_service_who_blocked_it_tries_sending_to_ofcom_protected_ranges(
-        self, block_ofcom_protected_ranges: bool = False
+        self, block_ofcom_protected_blocks: bool = False
     ):
-        if block_ofcom_protected_ranges:
+        if block_ofcom_protected_blocks:
             if self.is_number_in_S7_protected_range() and not self.is_tv_number(self.number):
                 raise InvalidPhoneError(code=InvalidPhoneError.Codes.INVALID_NUMBER)
 
@@ -114,12 +114,12 @@ class PhoneNumber:
         self,
         allow_international_number: bool = False,
         allow_uk_landline: bool = False,
-        block_ofcom_protected_ranges: bool = False,
+        block_ofcom_protected_blocks: bool = False,
     ) -> None:
         self._raise_if_service_cannot_send_to_international_but_tries_to(allow_international=allow_international_number)
         self._raise_if_service_cannot_send_to_uk_landline_but_tries_to(allow_uk_landline=allow_uk_landline)
         self._raise_if_service_who_blocked_it_tries_sending_to_ofcom_protected_ranges(
-            block_ofcom_protected_ranges=block_ofcom_protected_ranges
+            block_ofcom_protected_blocks=block_ofcom_protected_blocks
         )
         self._raise_if_unsupported_country()
 
