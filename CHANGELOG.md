@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 132.0.1
+
+* Ran `make refreeze-requirements` during dependency day
+
 ## 132.0.0
 
 * Renames `block_ofcom_protected_ranges` to `block_ofcom_protected_block` as argument in `PhoneNumber.validate`
