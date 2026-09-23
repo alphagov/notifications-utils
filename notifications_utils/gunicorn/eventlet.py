@@ -34,3 +34,22 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
         g.gr_context = contextvars.Context()
 
         return ret
+
+
+# The OTel auto-instrumentation has to happen at a very specific part of the
+# worker lifecycle: after the Eventlet hub has been reset post-fork (which
+# happens in `EventletWorker.init_process`), but before the WSGI app is
+# initialised. The most natural place to do this is just before `load_wsgi`
+# runs, but there's no hook for that, so we need a custom worker class.
+class OtelAwareEventletWorker(geventlet.EventletWorker):
+    def load_wsgi(self) -> None:
+        import os
+
+        if os.environ.get("OTEL_SERVICE_NAME") is not None:
+            from opentelemetry.instrumentation import auto_instrumentation
+
+            from notifications_utils.semconv import set_service_instance_id
+
+            set_service_instance_id()
+            auto_instrumentation.initialize()
+        super().load_wsgi()
