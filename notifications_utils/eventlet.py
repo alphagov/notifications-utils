@@ -253,7 +253,7 @@ else:
     greenlet_thread_time_ns = lambda: None  # noqa
     greenlet_perf_counter_ns = lambda: None  # noqa
     reset_greenlet_stats = lambda: None  # noqa
-    greenlet_perf_count_ns_max_continuous = lambda: None  # noqa
+    greenlet_perf_counter_ns_max_continuous = lambda: None  # noqa
     greenlet_thread_time_ns_max_continuous = lambda: None  # noqa
     greenlet_context_switch_count = lambda: None  # noqa
     get_main_greenlets_debug_info = lambda: {}  # noqa
