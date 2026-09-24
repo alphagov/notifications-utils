@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 132.1.0
+
+* Adds `OtelAwareEventletWorker`
+
 ## 132.0.2
 
 * Fixes `greenlet_perf_counter_ns_max_continuous` fallback when Eventlet is not detected
