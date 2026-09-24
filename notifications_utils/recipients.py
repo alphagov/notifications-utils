@@ -60,6 +60,7 @@ class RecipientCSV(InterruptibleIterableList["Row | None"]):
         allow_international_sms=False,
         allow_international_letters=False,
         allow_sms_to_uk_landline=False,
+        block_ofcom_protected_blocks=False,
         should_validate=True,
         should_validate_phone_number=True,
     ):
@@ -71,6 +72,7 @@ class RecipientCSV(InterruptibleIterableList["Row | None"]):
         self.allow_international_sms = allow_international_sms
         self.allow_international_letters = allow_international_letters
         self.allow_sms_to_uk_landline = allow_sms_to_uk_landline
+        self.block_ofcom_protected_blocks = block_ofcom_protected_blocks
         self.remaining_messages = remaining_messages
         self.remaining_international_sms_messages = remaining_international_sms_messages
         self.should_validate = should_validate
@@ -341,6 +343,7 @@ class RecipientCSV(InterruptibleIterableList["Row | None"]):
                     get_phone_number_object(value).validate(
                         allow_international_number=self.allow_international_sms,
                         allow_uk_landline=self.allow_sms_to_uk_landline,
+                        block_ofcom_protected_blocks=self.block_ofcom_protected_blocks,
                     )
             except InvalidRecipientError as error:
                 return str(error)
