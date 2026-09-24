@@ -823,6 +823,42 @@ def test_international_recipients(file_contents, rows_with_bad_recipients, expec
 
 
 @pytest.mark.parametrize(
+    "file_contents, rows_with_bad_recipients, block_ofcom_protected_block",
+    [
+        (
+            """
+            phone number
+            07034700000
+            07988957264
+            +447810573844
+        """,
+            {0},
+            True,
+        ),
+        (
+            """
+            phone number
+            07034700000
+            07988957264
+            +447810573844
+        """,
+            set(),
+            False,
+        ),
+    ],
+)
+def test_ofcom_recipients_in_ofcom_protected_block(
+    file_contents, rows_with_bad_recipients, block_ofcom_protected_block
+):
+    recipients = RecipientCSV(
+        file_contents,
+        template=_sample_template("sms"),
+        block_ofcom_protected_blocks=block_ofcom_protected_block,
+    )
+    assert _index_rows(recipients.rows_with_bad_recipients) == rows_with_bad_recipients
+
+
+@pytest.mark.parametrize(
     "extra_args, too_many",
     (
         ({"remaining_international_sms_messages": 2}, True),

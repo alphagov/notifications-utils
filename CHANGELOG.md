@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 132.2.0
+
+* Add `block_ofcom_protected_blocks` as attribute to RecipientCSV to use in phone number validation
+
 ## 132.1.0
 
 * Adds `OtelAwareEventletWorker`
