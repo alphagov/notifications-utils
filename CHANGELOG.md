@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 132.2.1
+
+* Fix rendering of email addresses with hyphenated domains in text message previews
+
 ## 132.2.0
 
 * Add `block_ofcom_protected_blocks` as attribute to RecipientCSV to use in phone number validation
