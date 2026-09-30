@@ -525,6 +525,26 @@ def test_normalise_whitespace(value):
             "with-subdomain@test.example.com",
             "with-subdomain@test.example.com",
         ),
+        (
+            "milton-keynes@hyphenated-example.com",
+            "milton-keynes@hyphenated-example.com",
+        ),
+        (
+            "hyphenated-example.com",
+            '<a href="http://hyphenated-example.com">hyphenated-example.com</a>',
+        ),
+        (
+            "subdomain.hyphenated-example.com",
+            '<a href="http://subdomain.hyphenated-example.com">subdomain.hyphenated-example.com</a>',
+        ),
+        (
+            "-example.com",
+            "-example.com",
+        ),
+        (
+            "broken.-example.com",
+            "broken.-example.com",
+        ),
     ),
 )
 def test_autolink_urls_matches_correctly(content, expected_html):
