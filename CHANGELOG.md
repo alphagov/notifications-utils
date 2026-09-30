@@ -1,13 +1,12 @@
 # CHANGELOG
 
+## 133.0.1
+
+* Fix rendering of email addresses with hyphenated domains in text message previews
+
 ## 133.0.0
 
 * `SerialisedModel` now supports some union types, for example before: `created_by_id: str`, after: `created_by_id: str | None`
-* `SerialisedModel.coerce_value_to_type` is now a regular method, not a class method, and has a different signature – any subclasses will need to change their implementation
-
-## 132.2.1
-
-* Only puts the SMS sender ID on its own line when the message contains right-to-left characters
 
 ## 132.2.0
 
