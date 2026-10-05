@@ -68,7 +68,9 @@ def nl2br(value: str) -> str:
 
 def add_prefix(body: str, prefix: str | None = None) -> str:
     if prefix:
-        return f"{prefix.strip()}: {body}"
+        # Keep the sender on its own line. A leading alphanumeric sender would
+        # otherwise set the whole message to left-to-right, including RTL text.
+        return f"{prefix.strip()}:\n{body}"
     return body
 
 

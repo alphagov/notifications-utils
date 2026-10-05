@@ -120,7 +120,7 @@ def test_unlink_govuk_escaped(template_content, expected):
 @pytest.mark.parametrize(
     "prefix, body, expected",
     [
-        ("a", "b", "a: b"),
+        ("a", "b", "a:\nb"),
         (None, "b", "b"),
     ],
 )

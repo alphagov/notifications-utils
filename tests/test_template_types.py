@@ -616,8 +616,8 @@ def test_sms_message_preview_hides_sender_by_default():
 @pytest.mark.parametrize(
     "template_class, extra_args, expected_call",
     (
-        (SMSMessageTemplate, {"prefix": "Service name"}, "Service name: Message"),
-        (SMSPreviewTemplate, {"prefix": "Service name"}, "Service name: Message"),
+        (SMSMessageTemplate, {"prefix": "Service name"}, "Service name:\nMessage"),
+        (SMSPreviewTemplate, {"prefix": "Service name"}, "Service name:\nMessage"),
         (SMSBodyPreviewTemplate, {}, "Message"),
     ),
 )
@@ -641,8 +641,30 @@ def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode
             downgrade_non_sms_characters=False,
         )
     )
-    assert "👉: 😎" in str(template)
+    assert "👉:<br>😎" in str(template)
     assert mock_sms_encode.called is False
+
+
+def test_sms_prefix_is_separated_from_body_so_rtl_text_can_set_its_own_direction():
+    content = "\n".join(
+        [
+            "الثعلب البني السريع يقفز فوق الكلب.",
+            "",
+            "The quick brown fox jumps over the dog.",
+            "",
+            "敏捷的棕色狐狸跳过了狗。",
+            "",
+            "השועל החום המהיר קופץ מעל הכלב.",
+        ]
+    )
+    template_json = {"content": content, "template_type": "sms"}
+
+    assert str(SMSMessageTemplate(template_json, prefix="isabel test")) == f"isabel test:\n{content}"
+
+    preview = str(SMSPreviewTemplate(template_json, prefix="isabel test", show_recipient=True))
+    assert "isabel test:<br>الثعلب البني السريع يقفز فوق الكلب." in preview
+    assert "isabel test: الثعلب" not in preview
+    assert 'dir="auto"' in preview
 
 
 @mock.patch("notifications_utils.template.nl2br")
@@ -1229,9 +1251,13 @@ def test_character_count_for_unicode_sms_templates(
 def test_character_count_for_unicode_sms_template_with_unicode_prefix(template_class):
     template = template_class({"content": "嶲", "template_type": "sms"}, prefix="👨‍👩‍👧‍👦")
 
-    assert "👨‍👩‍👧‍👦: 嶲" in str(template)
+    rendered = str(template)
+    if template_class is SMSPreviewTemplate:
+        assert "👨‍👩‍👧‍👦:<br>嶲" in rendered
+    else:
+        assert rendered == "👨‍👩‍👧‍👦:\n嶲"
 
-    # 11 characters for prefix, 2 for colon and space, 2 for complex Chinese character
+    # 11 characters for prefix, 2 for colon and newline, 2 for complex Chinese character
     assert template.content_count == 15
 
     # Just the complex Chinese character, which counts as 2 characters
