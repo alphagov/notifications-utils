@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 134.0.0
+
+* Renames `notifications_utils.eventlet` to `notifications_utils.greenlet`. Therein, renames:
+  * `EventletTimeoutMiddleware` to `RequestHandlingTimeoutMiddleware` and makes it work with gevent
+  * `EventletTimeout` to `RequestHandlingTimeout`
+  * `HardEventletTimeout` to `HardRequestHandlingTimeout`
+  * `SoftEventletTimeout` to `SoftRequestHandlingTimeout`
+* Renames flask config variables:
+  * `NOTIFY_EVENTLET_STATS` to `NOTIFY_GREENLET_STATS`
+  * `NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS` to `NOTIFY_GREENLET_STATS_VERBOSE_THRESHOLD_SECONDS`
+
 ## 133.0.0
 
 * `SerialisedModel` now supports some union types, for example before: `created_by_id: str`, after: `created_by_id: str | None`
