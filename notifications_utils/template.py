@@ -249,7 +249,7 @@ class BaseSMSTemplate(Template):
             # See docstring of `content_count` for explanation
             prefix_length = len(SanitiseSMS.encode(self.prefix).encode("utf-16-le")) // 2
 
-            # subtract 2 extra characters to account for the colon and the newline,
+            # subtract 2 extra characters to account for the colon and the space or newline,
             # added max zero in case the content is empty the __str__ methods strips the white space.
             return max((self.content_count - prefix_length - 2), 0)
         else:

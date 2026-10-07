@@ -1,5 +1,6 @@
 import re
 import string
+import unicodedata
 from collections.abc import Sequence
 
 # Type hint error ignored (until mypy brings in https://github.com/python/typeshed/pull/15925)
@@ -66,11 +67,24 @@ def nl2br(value: str) -> str:
     return re.sub(r"\n|\r", "<br>", value.strip())
 
 
+# https://www.unicode.org/reports/tr44/#Bidi_Class_Values
+_RIGHT_TO_LEFT_BIDI_CLASSES = {
+    "R",  # any strong right-to-left (non-Arabic-type) character
+    "AL",  # any strong right-to-left (Arabic-type) character
+}
+
+
+def contains_right_to_left_text(value: str) -> bool:
+    return any(unicodedata.bidirectional(character) in _RIGHT_TO_LEFT_BIDI_CLASSES for character in value)
+
+
 def add_prefix(body: str, prefix: str | None = None) -> str:
     if prefix:
-        # Keep the sender on its own line. A leading alphanumeric sender would
-        # otherwise set the whole message to left-to-right, including RTL text.
-        return f"{prefix.strip()}:\n{body}"
+        # A leading alphanumeric sender on the same line as RTL text would set
+        # the whole message to left-to-right. Keep the sender on its own line
+        # only when the body contains right-to-left characters.
+        separator = "\n" if contains_right_to_left_text(body) else " "
+        return f"{prefix.strip()}:{separator}{body}"
     return body
 
 
