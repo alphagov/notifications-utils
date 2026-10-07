@@ -10,6 +10,7 @@ mypy
 boto3-stubs
 celery-types
 types-PyYAML
+types-gevent
 types-greenlet
 types-python-dateutil
 types-gunicorn
