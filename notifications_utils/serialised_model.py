@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from inspect import get_annotations, isclass
+from types import UnionType
 from typing import Any
 
 from notifications_utils.timezones import utc_string_to_aware_gmt_datetime
@@ -26,18 +27,49 @@ class SerialisedModel:
     """
 
     def __init_subclass__(cls, **kwargs):
+        for annotation, type_ in get_annotations(cls).items():
+            if type_ is None:
+                raise TypeError(
+                    f"SerialisedModel does not allow None-only types, {cls.__name__}.{annotation} should use a "
+                    f"union type or remove the attribute"
+                )
+            if isinstance(type_, UnionType):
+                if len(type_.__args__) != 2:
+                    raise TypeError(
+                        f"SerialisedModel only allows union of a single type with None, {cls.__name__}.{annotation} "
+                        f"has a union of {len(type_.__args__)} types ({type_})"
+                    )
+
+                if type(None) not in type_.__args__:
+                    raise TypeError(
+                        f"SerialisedModel only allows unions with None, {cls.__name__}.{annotation} has {type_}"
+                    )
+
+                if Any in type_.__args__:
+                    raise TypeError(
+                        f"SerialisedModel does not allow unions with Any, {cls.__name__}.{annotation} has {type_}"
+                    )
+
         for parent in cls.__mro__:
             cls.__annotations__ = get_annotations(parent) | get_annotations(cls)
 
     def __init__(self, _dict):
         for property, type_ in get_annotations(type(self)).items():
-            value = self.coerce_value_to_type(_dict[property], type_)
+            value = self.coerce_value_to_type(property, _dict[property], type_)
             setattr(self, property, value)
 
-    @staticmethod
-    def coerce_value_to_type(value, type_):
-        if type_ is Any or value is None:
+    def coerce_value_to_type(self, property, value, type_):
+        if type_ is Any:
             return value
+
+        if isinstance(type_, UnionType):
+            if value is None:
+                return None
+
+            type_ = next(t for t in type_.__args__ if t is not type(None))
+
+        if value is None:
+            raise TypeError(f"{type(self).__name__}.{property} must be {type_.__name__}, not {value}")
 
         if isclass(type_) and issubclass(type_, datetime):
             return utc_string_to_aware_gmt_datetime(value).astimezone(UTC)

@@ -133,10 +133,21 @@ def test_attribute_inheritence():
     assert instance.baz == "3"
 
 
-def test_none_values_are_not_coerced():
+def test_none_values_raise_type_errors():
     class Custom(SerialisedModel):
         foo: str
         bar: int
+
+    with pytest.raises(TypeError) as e:
+        Custom({"foo": None, "bar": None})
+
+    assert str(e.value) == "Custom.foo must be str, not None"
+
+
+def test_none_values_dont_raise_if_types_contain_none():
+    class Custom(SerialisedModel):
+        foo: str | None
+        bar: int | None
 
     instance = Custom({"foo": None, "bar": None})
 
@@ -144,7 +155,59 @@ def test_none_values_are_not_coerced():
     assert instance.bar is None
 
 
-def test_types_are_coerced():
+def test_values_are_coerced_if_type_is_union_containing_none():
+    class Custom(SerialisedModel):
+        foo: str | None
+        bar: None | int
+
+    instance = Custom({"foo": 1, "bar": "3"})
+
+    assert instance.foo == "1"
+    assert instance.bar == 3
+
+
+def test_invalid_union_type_more_than_2_items():
+    with pytest.raises(TypeError) as e:
+
+        class TripleUnion(SerialisedModel):
+            foo: str | int | None
+
+    assert str(e.value) == (
+        "SerialisedModel only allows union of a single type with None, TripleUnion.foo has a union of 3 types "
+        "(str | int | None)"
+    )
+
+
+def test_invalid_union_type_no_none():
+    with pytest.raises(TypeError) as e:
+
+        class NonNoneUnion(SerialisedModel):
+            foo: str | int
+
+    assert str(e.value) == "SerialisedModel only allows unions with None, NonNoneUnion.foo has str | int"
+
+
+def test_invalid_union_type_any():
+    with pytest.raises(TypeError) as e:
+
+        class AnyNoneUnion(SerialisedModel):
+            foo: Any | None
+
+    assert str(e.value) == "SerialisedModel does not allow unions with Any, AnyNoneUnion.foo has typing.Any | None"
+
+
+def test_invalid_type_none_only():
+    with pytest.raises(TypeError) as e:
+
+        class NoneOnly(SerialisedModel):
+            foo: None
+
+    assert str(e.value) == (
+        "SerialisedModel does not allow None-only types, NoneOnly.foo should use a union type or remove the attribute"
+    )
+
+
+def test_other_types_are_coerced():
     class Custom(SerialisedModel):
         id: UUID
         year: str
@@ -152,6 +215,7 @@ def test_types_are_coerced():
         rate: float
         created_at: datetime
         permissions: list[str]
+        active: bool
 
     instance = Custom(
         {
@@ -161,6 +225,7 @@ def test_types_are_coerced():
             "rate": "1.234",
             "created_at": "2024-03-02T01:00:00.000000Z",
             "permissions": ["send_messages", "manage_api_keys"],
+            "active": "",
         }
     )
 
@@ -170,6 +235,7 @@ def test_types_are_coerced():
     assert instance.rate == 1.234
     assert instance.created_at == datetime(2024, 3, 2, 1, 0, tzinfo=UTC)
     assert instance.permissions == ["send_messages", "manage_api_keys"]
+    assert instance.active is False
 
 
 def test_raises_if_coercion_fails():
