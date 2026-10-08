@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 132.2.1
+
+* Only puts the SMS sender ID on its own line when the message contains right-to-left characters
+
 ## 132.2.0
 
 * Add `block_ofcom_protected_blocks` as attribute to RecipientCSV to use in phone number validation

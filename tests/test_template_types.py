@@ -616,8 +616,8 @@ def test_sms_message_preview_hides_sender_by_default():
 @pytest.mark.parametrize(
     "template_class, extra_args, expected_call",
     (
-        (SMSMessageTemplate, {"prefix": "Service name"}, "Service name:\nMessage"),
-        (SMSPreviewTemplate, {"prefix": "Service name"}, "Service name:\nMessage"),
+        (SMSMessageTemplate, {"prefix": "Service name"}, "Service name: Message"),
+        (SMSPreviewTemplate, {"prefix": "Service name"}, "Service name: Message"),
         (SMSBodyPreviewTemplate, {}, "Message"),
     ),
 )
@@ -641,8 +641,18 @@ def test_sms_messages_dont_downgrade_non_sms_if_setting_is_false(mock_sms_encode
             downgrade_non_sms_characters=False,
         )
     )
-    assert "👉:<br>😎" in str(template)
+    assert "👉: 😎" in str(template)
     assert mock_sms_encode.called is False
+
+
+def test_sms_prefix_stays_on_same_line_for_left_to_right_text():
+    template_json = {"content": "hello", "template_type": "sms"}
+
+    assert str(SMSMessageTemplate(template_json, prefix="isabel test")) == "isabel test: hello"
+
+    preview = str(SMSPreviewTemplate(template_json, prefix="isabel test", show_recipient=True))
+    assert "isabel test: hello" in preview
+    assert "isabel test:<br>hello" not in preview
 
 
 def test_sms_prefix_is_separated_from_body_so_rtl_text_can_set_its_own_direction():
@@ -1251,17 +1261,34 @@ def test_character_count_for_unicode_sms_templates(
 def test_character_count_for_unicode_sms_template_with_unicode_prefix(template_class):
     template = template_class({"content": "嶲", "template_type": "sms"}, prefix="👨‍👩‍👧‍👦")
 
-    rendered = str(template)
-    if template_class is SMSPreviewTemplate:
-        assert "👨‍👩‍👧‍👦:<br>嶲" in rendered
-    else:
-        assert rendered == "👨‍👩‍👧‍👦:\n嶲"
+    assert "👨‍👩‍👧‍👦: 嶲" in str(template)
 
-    # 11 characters for prefix, 2 for colon and newline, 2 for complex Chinese character
+    # 11 characters for prefix, 2 for colon and space, 2 for complex Chinese character
     assert template.content_count == 15
 
     # Just the complex Chinese character, which counts as 2 characters
     assert template.content_count_without_prefix == 2
+
+
+@pytest.mark.parametrize(
+    "template_class",
+    [
+        SMSMessageTemplate,
+        SMSPreviewTemplate,
+    ],
+)
+def test_character_count_for_sms_template_with_rtl_body_and_prefix(template_class):
+    template = template_class({"content": "مرحبا", "template_type": "sms"}, prefix="GOVUK")
+
+    rendered = str(template)
+    if template_class is SMSPreviewTemplate:
+        assert "GOVUK:<br>مرحبا" in rendered
+    else:
+        assert rendered == "GOVUK:\nمرحبا"
+
+    # 5 for prefix, 2 for colon and newline, 5 for Arabic
+    assert template.content_count == 12
+    assert template.content_count_without_prefix == 5
 
 
 def test_unicode_in_sms_body_preview_template():

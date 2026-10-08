@@ -2,7 +2,9 @@ import pytest
 from markupsafe import Markup
 
 from notifications_utils.formatters import (
+    add_prefix,
     autolink_urls,
+    contains_right_to_left_text,
     escape_html,
     format_file_size,
     formatted_list,
@@ -118,10 +120,44 @@ def test_unlink_govuk_escaped(template_content, expected):
 
 
 @pytest.mark.parametrize(
+    "value, expected",
+    [
+        ("hello", False),
+        ("你好", False),
+        ("Test 😀", False),
+        ("١٢٣", False),  # Eastern Arabic numerals are numbers, not strong RTL
+        ("مرحبا", True),
+        ("שלום", True),
+        ("Hello مرحبا", True),
+        ("The fox.\n\nالثعلب.", True),
+    ],
+)
+def test_contains_right_to_left_text(value, expected):
+    assert contains_right_to_left_text(value) is expected
+
+
+@pytest.mark.parametrize(
     "prefix, body, expected",
     [
-        ("a", "b", "a:\nb"),
+        (None, "hello", "hello"),
+        ("GOVUK", "hello", "GOVUK: hello"),
+        (" GOVUK ", "hello", "GOVUK: hello"),
+        ("GOVUK", "你好", "GOVUK: 你好"),
+        ("GOVUK", "مرحبا", "GOVUK:\nمرحبا"),
+        ("GOVUK", "שלום", "GOVUK:\nשלום"),
+        ("GOVUK", "Hello مرحبا", "GOVUK:\nHello مرحبا"),
+    ],
+)
+def test_add_prefix(prefix, body, expected):
+    assert add_prefix(body, prefix) == expected
+
+
+@pytest.mark.parametrize(
+    "prefix, body, expected",
+    [
+        ("a", "b", "a: b"),
         (None, "b", "b"),
+        ("GOVUK", "مرحبا", "GOVUK:\nمرحبا"),
     ],
 )
 def test_sms_message_adds_prefix(prefix, body, expected):
