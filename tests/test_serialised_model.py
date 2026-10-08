@@ -172,7 +172,10 @@ def test_invalid_union_type_more_than_2_items():
         class TripleUnion(SerialisedModel):
             foo: str | int | None
 
-    assert str(e.value) == "SerialisedModel only allows unions of 2 types, TripleUnion.foo has str | int | None"
+    assert str(e.value) == (
+        "SerialisedModel only allows union of a single type with None, TripleUnion.foo has a union of 3 types "
+        "(str | int | None)"
+    )
 
 
 def test_invalid_union_type_no_none():

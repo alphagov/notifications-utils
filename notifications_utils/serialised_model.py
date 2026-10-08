@@ -36,7 +36,8 @@ class SerialisedModel:
             if isinstance(type_, UnionType):
                 if len(type_.__args__) != 2:
                     raise TypeError(
-                        f"SerialisedModel only allows unions of 2 types, {cls.__name__}.{annotation} has {type_}"
+                        f"SerialisedModel only allows union of a single type with None, {cls.__name__}.{annotation} "
+                        f"has a union of {len(type_.__args__)} types ({type_})"
                     )
 
                 if type(None) not in type_.__args__:
