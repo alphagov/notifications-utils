@@ -10,7 +10,7 @@ from flask import Flask, current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 from opentelemetry import metrics
 
-from notifications_utils.eventlet import greenlet_thread_time_ns  # not that we (currently) use eventlet with celery
+from notifications_utils.greenlet import greenlet_thread_time_ns  # not that we (currently) use eventlet with celery
 from notifications_utils.logging.formatting import _ns_per_s
 from notifications_utils.semconv import TASK_DURATION_HISTOGRAM_BUCKETS
 
