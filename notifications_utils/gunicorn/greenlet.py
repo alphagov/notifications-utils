@@ -2,16 +2,18 @@ import contextvars
 from collections import deque
 
 import greenlet
-from gunicorn.workers import geventlet
+from gunicorn.workers.base import Worker
+from gunicorn.workers.base_async import AsyncWorker
 
 
-class ContextRecyclingEventletWorker(geventlet.EventletWorker):
+class ContextRecyclingWorkerMixin(AsyncWorker):
     """
-    Because eventlet's GreenPool discards GreenThreads after they have performed a task,
-    to reduce wasteful continual re-creation of thread-local resources this class will
-    maintain a pool of thread contexts suitable for reuse with new GreenThreads. In
-    theory at least this means we will never have more thread contexts than the maximum
-    number of concurrent GreenThreads handling connections we've ever had.
+    Because eventlet's `GreenPool` & gevent's `Pool` discard greenlets after they have
+    performed a task, to reduce wasteful continual re-creation of thread-local resources
+    this class will maintain a pool of thread contexts suitable for reuse with new
+    greenlets. In theory at least this means we will never have more thread contexts
+    than the maximum number of concurrent greenlets handling connections we've ever
+    had.
     """
 
     context_pool: deque
@@ -37,11 +39,12 @@ class ContextRecyclingEventletWorker(geventlet.EventletWorker):
 
 
 # The OTel auto-instrumentation has to happen at a very specific part of the
-# worker lifecycle: after the Eventlet hub has been reset post-fork (which
-# happens in `EventletWorker.init_process`), but before the WSGI app is
-# initialised. The most natural place to do this is just before `load_wsgi`
-# runs, but there's no hook for that, so we need a custom worker class.
-class OtelAwareEventletWorker(geventlet.EventletWorker):
+# worker lifecycle: after the event loop hub has been reset post-fork (which
+# happens in `EventletWorker.init_process`/`GeventWorker.init_process`), but
+# before the WSGI app is initialised. The most natural place to do this is
+# just before `load_wsgi` runs, but there's no hook for that, so we need a
+# custom worker class.
+class OtelAwareWorkerMixin(Worker):
     def load_wsgi(self) -> None:
         import os
 
