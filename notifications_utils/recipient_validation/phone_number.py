@@ -1,3 +1,4 @@
+import os
 import re
 from bisect import bisect_right
 from collections import namedtuple
@@ -343,3 +344,10 @@ class PhoneNumber:
                 else phonenumbers.PhoneNumberFormat.INTERNATIONAL
             ),
         )
+
+    def is_in_offcom_protected_block(self) -> bool:
+        with open(os.path.join(os.path.dirname(__file__), "data/offcom_protected.txt")) as prefixes:
+            PREFIXES = [line.strip() for line in prefixes]
+            for prefix in PREFIXES:
+                if self.number.national_number[:len(prefix)] == prefix:
+                    return True
