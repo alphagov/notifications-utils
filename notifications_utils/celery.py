@@ -3,9 +3,12 @@ import time
 from contextlib import contextmanager, nullcontext
 from os import getpid
 from time import thread_time_ns
+from typing import Any
 
 from celery import Celery, Task
+from celery.app.task import Context
 from celery.backends.base import DisabledBackend
+from celery.canvas import Signature
 from flask import Flask, current_app, g, request
 from flask.ctx import has_app_context, has_request_context
 from opentelemetry import metrics
@@ -55,6 +58,25 @@ class NotifyTask(Task):
     @property
     def message_group_id(self):
         return self.request.get("notify_message_group_id")
+
+    def signature_from_request(
+        self,
+        request: Context | None = None,
+        args: tuple[Any, ...] | None = None,
+        kwargs: dict[str, Any] | None = None,
+        queue: str | None = None,
+        **extra_options,
+    ) -> Signature:
+        sig = super().signature_from_request(request=request, args=args, kwargs=kwargs, queue=queue, **extra_options)
+        req = self.request if request is None else request
+        req_mgid = req.get("notify_message_group_id")
+        if sig.options.get("MessageGroupId") or not req_mgid:
+            return sig
+
+        # NotifyCelery is responsible for stripping this if ENABLE_SQS_MESSAGE_GROUP_IDS is disabled
+        return sig.set(MessageGroupId=req_mgid)  # type: ignore[call-arg]  # celery stubs don't acknowledge arbitrary args
+
+    subtask_from_request = signature_from_request  # ensure this alias is also overridden
 
     @contextmanager
     def app_context(self):

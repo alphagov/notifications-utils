@@ -6,11 +6,12 @@ import pytest
 from celery import Task
 from celery.backends.base import DisabledBackend
 from celery.backends.redis import RedisBackend
+from celery.exceptions import Retry as celery_Retry
 from flask import g
 from freezegun import freeze_time
 
 from notifications_utils.celery import NotifyCelery, celery_task_cpu_time_histogram, duration_histogram
-from notifications_utils.testing.comparisons import RestrictedAny
+from notifications_utils.testing.comparisons import AnySupersetOf, RestrictedAny
 
 
 @pytest.fixture
@@ -39,6 +40,15 @@ def celery_task_early_debug(notify_celery):
 
 
 @pytest.fixture
+def celery_task_retrying(notify_celery):
+    @notify_celery.task(name=uuid.uuid4(), base=notify_celery.task_cls, bind=True)
+    def test_task(self, delivery_info=None, retry_args=None, retry_kwargs=None):
+        self.retry(*(retry_args or ()), **(retry_kwargs or {}))
+
+    return test_task
+
+
+@pytest.fixture
 def async_task(celery_task):
     celery_task.push_request(called_directly=False, delivery_info={"routing_key": "test-queue"}, id=1234)
     yield celery_task
@@ -59,6 +69,20 @@ def request_id_task(celery_task):
     celery_task.push_request(called_directly=False, notify_request_id="1234", id=1234)
     yield celery_task
     celery_task.pop_request()
+
+
+@pytest.fixture
+def message_group_id_retrying_task(celery_task_retrying):
+    celery_task_retrying.push_request(called_directly=False, notify_message_group_id="9876", id=1234)
+    yield celery_task_retrying
+    celery_task_retrying.pop_request()
+
+
+@pytest.fixture
+def no_message_group_id_retrying_task(celery_task_retrying):
+    celery_task_retrying.push_request(called_directly=False, id=1234)
+    yield celery_task_retrying
+    celery_task_retrying.pop_request()
 
 
 def test_success_should_log_and_record_timing(async_task, caplog, mocker):
@@ -526,3 +550,87 @@ def test_send_task_warns_when_message_group_id_explicitly_empty(
     call_kwargs = super_send.call_args[1]
     assert "MessageGroupId" not in call_kwargs
     super_send.assert_called_once()
+
+
+def test_retrying_automatically_inherits_message_group_id_if_enabled(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    with pytest.raises(celery_Retry):
+        message_group_id_retrying_task()
+
+    assert super_send.mock_calls == [
+        (mocker.ANY, AnySupersetOf({"MessageGroupId": "9876"})),
+    ]
+
+
+def test_retrying_doesnt_automatically_inherit_message_group_id_if_disabled(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = False
+    with pytest.raises(celery_Retry):
+        message_group_id_retrying_task()
+
+    assert super_send.mock_calls == [
+        (
+            mocker.ANY,
+            RestrictedAny(lambda x: "MessageGroupId" not in x and "notify_message_group_id" not in x["headers"]),
+        ),
+    ]
+
+
+def test_retrying_with_explicit_message_group_id_overrides_automatic(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    with pytest.raises(celery_Retry):
+        message_group_id_retrying_task(retry_kwargs={"MessageGroupId": "31415"})
+
+    assert super_send.mock_calls == [
+        (
+            mocker.ANY,
+            AnySupersetOf({"MessageGroupId": "31415", "headers": AnySupersetOf({"notify_message_group_id": "31415"})}),
+        ),
+    ]
+
+
+def test_retrying_without_message_group_id_ignores_it(
+    celery_app,
+    no_message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    with pytest.raises(celery_Retry):
+        no_message_group_id_retrying_task()
+
+    assert super_send.mock_calls == [
+        (
+            mocker.ANY,
+            RestrictedAny(lambda x: "MessageGroupId" not in x and "notify_message_group_id" not in x["headers"]),
+        ),
+    ]
+
+
+def test_retrying_automatically_inherits_message_group_id_if_not_throwing(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+
+    message_group_id_retrying_task(retry_kwargs={"throw": False})
+
+    assert super_send.mock_calls == [
+        (mocker.ANY, AnySupersetOf({"MessageGroupId": "9876"})),
+    ]
