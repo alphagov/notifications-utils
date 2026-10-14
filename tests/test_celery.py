@@ -305,19 +305,19 @@ def test_failure_queue_when_applied_synchronously(celery_task, caplog, mocker):
     assert f"Celery task {celery_task.name} (queue: none) failed after 5.0000" in caplog.messages
 
 
-def test_call_exports_request_id_from_headers(mocker, request_id_task):
+def test_call_exports_request_id_from_headers(request_id_task, mocker):
     g = mocker.patch("notifications_utils.celery.g", spec=())
     request_id_task()
     assert g.request_id == "1234"
 
 
-def test_copes_if_request_id_not_in_headers(mocker, celery_task):
+def test_copes_if_request_id_not_in_headers(celery_task, mocker):
     g = mocker.patch("notifications_utils.celery.g", spec=())
     celery_task()
     assert g.request_id is None
 
 
-def test_injects_celery_task_id_if_no_request_id(mocker, celery_task):
+def test_injects_celery_task_id_if_no_request_id(celery_task, mocker):
     mocker.patch("celery.app.task.uuid", return_value="my-random-uuid")
     g = mocker.patch("notifications_utils.celery.g", spec=())
     celery_task.apply()
@@ -325,8 +325,8 @@ def test_injects_celery_task_id_if_no_request_id(mocker, celery_task):
 
 
 def test_send_task_injects_global_request_id_into_headers(
-    mocker,
     notify_celery,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     g.request_id = "1234"
@@ -341,8 +341,8 @@ def test_send_task_injects_global_request_id_into_headers(
 
 
 def test_send_task_injects_request_id_with_existing_headers(
-    mocker,
     notify_celery,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     g.request_id = "1234"
@@ -358,8 +358,8 @@ def test_send_task_injects_request_id_with_existing_headers(
 
 
 def test_send_task_injects_request_id_with_none_headers(
-    mocker,
     notify_celery,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     g.request_id = "1234"
@@ -380,9 +380,9 @@ def test_send_task_injects_request_id_with_none_headers(
 
 
 def test_send_task_injects_id_from_request(
-    mocker,
     notify_celery,
     celery_app,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     request_id_header = celery_app.config["NOTIFY_TRACE_ID_HEADER"]
@@ -498,8 +498,8 @@ def test_send_task_strips_falsy_message_group_id_when_sqs_message_group_ids_enab
 def test_send_task_warns_when_message_group_id_explicitly_empty(
     notify_celery,
     celery_app,
-    mocker,
     caplog,
+    mocker,
 ):
     super_send = mocker.patch("celery.Celery.send_task")
     celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
