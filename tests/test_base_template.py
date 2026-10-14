@@ -5,6 +5,7 @@ from notifications_utils.template import (
     LetterPreviewTemplate,
     LetterPrintTemplate,
     PlainTextEmailTemplate,
+    SMSPreviewTemplate,
     Template,
 )
 
@@ -130,3 +131,71 @@ def test__template_property_defined_early_enough():
                 return super().placeholders
 
     assert Custom({"content": "foo"}, {"foo": "bar"}).placeholders == {}
+
+
+@pytest.mark.parametrize(
+    "template_class, content, subject, expected",
+    (
+        (
+            HTMLEmailTemplate,
+            "((non)) ((conditional??foo))",
+            "((CONDITIONAL??foo))",
+            True,
+        ),
+        (
+            PlainTextEmailTemplate,
+            "((non)) ((conditional??foo))",
+            "((CONDITIONAL??foo))",
+            True,
+        ),
+        (
+            LetterPreviewTemplate,
+            "((non)) ((conditional??foo))",
+            "((CONDITIONAL??foo))",
+            True,
+        ),
+        (
+            LetterPrintTemplate,
+            "((non)) ((conditional??foo))",
+            "((CONDITIONAL??foo))",
+            True,
+        ),
+        (
+            SMSPreviewTemplate,
+            "((non)) ((conditional??foo)) ((CONDITIONAL??foo))",
+            "N/A",
+            True,
+        ),
+        (
+            SMSPreviewTemplate,
+            "((non)) ((conditional??foo)) ((CONDITIONAL))",
+            "N/A",
+            False,
+        ),
+        (
+            HTMLEmailTemplate,
+            "((non)) ((conditional??foo))",
+            "((CONDITIONAL))",
+            False,
+        ),
+        (
+            LetterPreviewTemplate,
+            "((non)) ((conditional??foo))",
+            "((CONDITIONAL))",
+            False,
+        ),
+    ),
+)
+def test_placeholder_is_only_used_conditionally(template_class, content, subject, expected):
+    template_instance = template_class(
+        {
+            "content": content,
+            "subject": subject,
+            "template_type": template_class.template_type,
+        }
+    )
+    assert template_instance.placeholder_is_only_used_conditionally("con-ditional") is expected
+    assert template_instance.placeholder_is_only_used_conditionally("Non") is False
+    with pytest.raises(KeyError) as e:
+        template_instance.placeholder_is_only_used_conditionally("missing")
+    assert str(e.value).startswith("'((missing)) not found in ")
