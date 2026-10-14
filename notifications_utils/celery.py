@@ -225,6 +225,7 @@ class NotifyCelery(Celery):
             other_kwargs["headers"]["notify_message_group_id"] = message_group_id
         if drop_message_group_id:
             other_kwargs.pop("MessageGroupId", None)
+            other_kwargs["headers"].pop("notify_message_group_id", None)
 
         return super().send_task(name, args, kwargs, *positional_args, **other_kwargs)
 

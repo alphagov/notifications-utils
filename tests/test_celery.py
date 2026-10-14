@@ -477,7 +477,7 @@ def test_send_task_pops_message_group_id_when_sqs_message_group_ids_disabled(
 
     call_kwargs = super_send.call_args[1]
     assert "MessageGroupId" not in call_kwargs
-    assert call_kwargs["headers"].get("notify_message_group_id") is None
+    assert "notify_message_group_id" not in call_kwargs["headers"]
 
 
 def test_send_task_propagates_message_group_id_in_headers_when_sqs_message_group_ids_enabled(
@@ -506,7 +506,7 @@ def test_send_task_strips_falsy_message_group_id_when_sqs_message_group_ids_enab
 
     call_kwargs = super_send.call_args[1]
     assert "MessageGroupId" not in call_kwargs
-    assert call_kwargs["headers"]["notify_message_group_id"] == ""
+    assert "notify_message_group_id" not in call_kwargs["headers"]
 
 
 def test_send_task_warns_when_message_group_id_explicitly_empty(
