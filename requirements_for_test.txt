@@ -1331,9 +1331,9 @@ pyyaml==6.0.3 \
     --hash=sha256:fa160448684b4e94d80416c0fa4aac48967a969efe22931448d853ada8baf926 \
     --hash=sha256:fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0
     # via notifications-utils (pyproject.toml)
-redis==7.4.1 \
-    --hash=sha256:1a1df5067062cf7cbe677994e391f8ee0840f499d370f1a71266e0dd3aa9308e \
-    --hash=sha256:1fa4647af1c5e93a2c685aa248ee44cce092691146d41390518dabe9a99839b0
+redis==8.1.0 \
+    --hash=sha256:6e1a19beef9225c83efd689c7e6b7da2d5215b1f42cd13b7fc3714d0a09c7b25 \
+    --hash=sha256:a4fe1aac3d3b3cc791d4b3d5931c5a956045dc951ee74d1c913ee3ac4d2ee9fb
     # via
     #   -r requirements_for_test.in
     #   flask-redis
