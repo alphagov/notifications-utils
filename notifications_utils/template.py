@@ -20,7 +20,7 @@ from notifications_utils import (
     MAGIC_SEQUENCE,
     SMS_CHAR_COUNT_LIMIT,
 )
-from notifications_utils.field import Field, PlainTextField
+from notifications_utils.field import Field, Placeholder, PlainTextField
 from notifications_utils.formatters import (
     add_prefix,
     add_trailing_newline,
@@ -134,8 +134,22 @@ class Template(ABC):
             )
 
     @property
-    def placeholders(self) -> InsensitiveSet[str]:
+    def placeholder_instances(self) -> tuple[Placeholder, ...]:
         return get_placeholders(self.content)
+
+    @property
+    def placeholders(self) -> InsensitiveSet[str]:
+        return InsensitiveSet(placeholder.name for placeholder in self.placeholder_instances)
+
+    def placeholder_is_only_used_conditionally(self, placeholder_name: str) -> bool:
+        matching_placeholders = tuple(
+            placeholder
+            for placeholder in self.placeholder_instances
+            if InsensitiveSet.make_key(placeholder.name) == InsensitiveSet.make_key(placeholder_name)
+        )
+        if not matching_placeholders:
+            raise KeyError(f"(({placeholder_name})) not found in {repr(self)}")
+        return all(placeholder.is_conditional() for placeholder in matching_placeholders)
 
     @property
     def missing_data(self) -> Sequence[str]:
@@ -446,8 +460,8 @@ class BaseEmailTemplate(Template):
         )
 
     @property
-    def placeholders(self) -> InsensitiveSet[str]:
-        return get_placeholders(self._subject) | super().placeholders
+    def placeholder_instances(self) -> tuple[Placeholder, ...]:
+        return get_placeholders(self._subject) + super().placeholder_instances
 
     @property
     def content_with_unsubscribe_link(self) -> str:
@@ -679,13 +693,13 @@ class BaseLetterTemplate(Template):
         )
 
     @property
-    def placeholders(self) -> InsensitiveSet[str]:
+    def placeholder_instances(self) -> tuple[Placeholder, ...]:
         return (
             get_placeholders(self.contact_block)
-            | get_placeholders(self._welsh_subject)
-            | get_placeholders(self.welsh_content)
-            | get_placeholders(self._subject)
-            | super().placeholders
+            + get_placeholders(self._welsh_subject)
+            + get_placeholders(self.welsh_content)
+            + get_placeholders(self._subject)
+            + super().placeholder_instances
         )
 
     @property
@@ -837,5 +851,5 @@ def do_nice_typography(value: str) -> str:
 
 
 @lru_cache(maxsize=1024)
-def get_placeholders(content: str) -> InsensitiveSet[str]:
-    return Field(content).placeholders
+def get_placeholders(content: str) -> tuple[Placeholder, ...]:
+    return Field(content).placeholder_instances
