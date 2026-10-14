@@ -40,14 +40,14 @@ def celery_task_early_debug(notify_celery):
 
 @pytest.fixture
 def async_task(celery_task):
-    celery_task.push_request(delivery_info={"routing_key": "test-queue"}, id=1234)
+    celery_task.push_request(called_directly=False, delivery_info={"routing_key": "test-queue"}, id=1234)
     yield celery_task
     celery_task.pop_request()
 
 
 @pytest.fixture
 def async_task_early_debug(celery_task_early_debug):
-    celery_task_early_debug.push_request(delivery_info={"routing_key": "test-queue"}, id=1234)
+    celery_task_early_debug.push_request(called_directly=False, delivery_info={"routing_key": "test-queue"}, id=1234)
     yield celery_task_early_debug
     celery_task_early_debug.pop_request()
 
@@ -56,7 +56,7 @@ def async_task_early_debug(celery_task_early_debug):
 def request_id_task(celery_task):
     # Note that each header is a direct attribute of the
     # task context (aka "request").
-    celery_task.push_request(notify_request_id="1234", id=1234)
+    celery_task.push_request(called_directly=False, notify_request_id="1234", id=1234)
     yield celery_task
     celery_task.pop_request()
 
