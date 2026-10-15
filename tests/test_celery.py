@@ -399,11 +399,25 @@ def test_send_task_injects_id_from_request(
     )
 
 
+def _strip_signature_annotations(sig: inspect.Signature) -> inspect.Signature:
+    "Return copy of Signature object with annotations removed"
+    return sig.replace(
+        parameters=[param.replace(annotation=inspect.Parameter.empty) for param in sig.parameters.values()],
+        return_annotation=inspect.Signature.empty,
+    )
+
+
 @pytest.mark.parametrize("method, _value", list(inspect.getmembers(Task, predicate=inspect.isfunction)))
 def test_method_signatures(celery_app, async_task, method, _value):
     if method == "run":
         return
-    assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
+
+    # this is a naive check - ideally we'd be checking properties like liskov substitutability
+    # but that is a little tricky to do. also we have to compare signatures with annotations
+    # stripped because we can't guarantee both sides are annotated.
+    assert _strip_signature_annotations(
+        inspect.signature(getattr(async_task.__class__, method))
+    ) == _strip_signature_annotations(inspect.signature(getattr(Task, method)))
 
 
 def test__get_backend_returns_DisabledBackground_object_when_result_backend_is_set_to_None(notify_celery, mocker):
