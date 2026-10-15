@@ -6,11 +6,12 @@ import pytest
 from celery import Task
 from celery.backends.base import DisabledBackend
 from celery.backends.redis import RedisBackend
+from celery.exceptions import Retry as celery_Retry
 from flask import g
 from freezegun import freeze_time
 
 from notifications_utils.celery import NotifyCelery, celery_task_cpu_time_histogram, duration_histogram
-from notifications_utils.testing.comparisons import RestrictedAny
+from notifications_utils.testing.comparisons import AnySupersetOf, RestrictedAny
 
 
 @pytest.fixture
@@ -39,15 +40,24 @@ def celery_task_early_debug(notify_celery):
 
 
 @pytest.fixture
+def celery_task_retrying(notify_celery):
+    @notify_celery.task(name=uuid.uuid4(), base=notify_celery.task_cls, bind=True)
+    def test_task(self, delivery_info=None, retry_args=None, retry_kwargs=None):
+        self.retry(*(retry_args or ()), **(retry_kwargs or {}))
+
+    return test_task
+
+
+@pytest.fixture
 def async_task(celery_task):
-    celery_task.push_request(delivery_info={"routing_key": "test-queue"}, id=1234)
+    celery_task.push_request(called_directly=False, delivery_info={"routing_key": "test-queue"}, id=1234)
     yield celery_task
     celery_task.pop_request()
 
 
 @pytest.fixture
 def async_task_early_debug(celery_task_early_debug):
-    celery_task_early_debug.push_request(delivery_info={"routing_key": "test-queue"}, id=1234)
+    celery_task_early_debug.push_request(called_directly=False, delivery_info={"routing_key": "test-queue"}, id=1234)
     yield celery_task_early_debug
     celery_task_early_debug.pop_request()
 
@@ -56,9 +66,23 @@ def async_task_early_debug(celery_task_early_debug):
 def request_id_task(celery_task):
     # Note that each header is a direct attribute of the
     # task context (aka "request").
-    celery_task.push_request(notify_request_id="1234", id=1234)
+    celery_task.push_request(called_directly=False, notify_request_id="1234", id=1234)
     yield celery_task
     celery_task.pop_request()
+
+
+@pytest.fixture
+def message_group_id_retrying_task(celery_task_retrying):
+    celery_task_retrying.push_request(called_directly=False, notify_message_group_id="9876", id=1234)
+    yield celery_task_retrying
+    celery_task_retrying.pop_request()
+
+
+@pytest.fixture
+def no_message_group_id_retrying_task(celery_task_retrying):
+    celery_task_retrying.push_request(called_directly=False, id=1234)
+    yield celery_task_retrying
+    celery_task_retrying.pop_request()
 
 
 def test_success_should_log_and_record_timing(async_task, caplog, mocker):
@@ -305,19 +329,19 @@ def test_failure_queue_when_applied_synchronously(celery_task, caplog, mocker):
     assert f"Celery task {celery_task.name} (queue: none) failed after 5.0000" in caplog.messages
 
 
-def test_call_exports_request_id_from_headers(mocker, request_id_task):
+def test_call_exports_request_id_from_headers(request_id_task, mocker):
     g = mocker.patch("notifications_utils.celery.g", spec=())
     request_id_task()
     assert g.request_id == "1234"
 
 
-def test_copes_if_request_id_not_in_headers(mocker, celery_task):
+def test_copes_if_request_id_not_in_headers(celery_task, mocker):
     g = mocker.patch("notifications_utils.celery.g", spec=())
     celery_task()
     assert g.request_id is None
 
 
-def test_injects_celery_task_id_if_no_request_id(mocker, celery_task):
+def test_injects_celery_task_id_if_no_request_id(celery_task, mocker):
     mocker.patch("celery.app.task.uuid", return_value="my-random-uuid")
     g = mocker.patch("notifications_utils.celery.g", spec=())
     celery_task.apply()
@@ -325,8 +349,8 @@ def test_injects_celery_task_id_if_no_request_id(mocker, celery_task):
 
 
 def test_send_task_injects_global_request_id_into_headers(
-    mocker,
     notify_celery,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     g.request_id = "1234"
@@ -341,8 +365,8 @@ def test_send_task_injects_global_request_id_into_headers(
 
 
 def test_send_task_injects_request_id_with_existing_headers(
-    mocker,
     notify_celery,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     g.request_id = "1234"
@@ -358,8 +382,8 @@ def test_send_task_injects_request_id_with_existing_headers(
 
 
 def test_send_task_injects_request_id_with_none_headers(
-    mocker,
     notify_celery,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     g.request_id = "1234"
@@ -380,9 +404,9 @@ def test_send_task_injects_request_id_with_none_headers(
 
 
 def test_send_task_injects_id_from_request(
-    mocker,
     notify_celery,
     celery_app,
+    mocker,
 ):
     super_apply = mocker.patch("celery.Celery.send_task")
     request_id_header = celery_app.config["NOTIFY_TRACE_ID_HEADER"]
@@ -399,11 +423,25 @@ def test_send_task_injects_id_from_request(
     )
 
 
+def _strip_signature_annotations(sig: inspect.Signature) -> inspect.Signature:
+    "Return copy of Signature object with annotations removed"
+    return sig.replace(
+        parameters=[param.replace(annotation=inspect.Parameter.empty) for param in sig.parameters.values()],
+        return_annotation=inspect.Signature.empty,
+    )
+
+
 @pytest.mark.parametrize("method, _value", list(inspect.getmembers(Task, predicate=inspect.isfunction)))
 def test_method_signatures(celery_app, async_task, method, _value):
     if method == "run":
         return
-    assert inspect.signature(getattr(async_task.__class__, method)) == inspect.signature(getattr(Task, method))
+
+    # this is a naive check - ideally we'd be checking properties like liskov substitutability
+    # but that is a little tricky to do. also we have to compare signatures with annotations
+    # stripped because we can't guarantee both sides are annotated.
+    assert _strip_signature_annotations(
+        inspect.signature(getattr(async_task.__class__, method))
+    ) == _strip_signature_annotations(inspect.signature(getattr(Task, method)))
 
 
 def test__get_backend_returns_DisabledBackground_object_when_result_backend_is_set_to_None(notify_celery, mocker):
@@ -463,7 +501,7 @@ def test_send_task_pops_message_group_id_when_sqs_message_group_ids_disabled(
 
     call_kwargs = super_send.call_args[1]
     assert "MessageGroupId" not in call_kwargs
-    assert call_kwargs["headers"].get("notify_message_group_id") is None
+    assert "notify_message_group_id" not in call_kwargs["headers"]
 
 
 def test_send_task_propagates_message_group_id_in_headers_when_sqs_message_group_ids_enabled(
@@ -492,14 +530,14 @@ def test_send_task_strips_falsy_message_group_id_when_sqs_message_group_ids_enab
 
     call_kwargs = super_send.call_args[1]
     assert "MessageGroupId" not in call_kwargs
-    assert call_kwargs["headers"]["notify_message_group_id"] == ""
+    assert "notify_message_group_id" not in call_kwargs["headers"]
 
 
 def test_send_task_warns_when_message_group_id_explicitly_empty(
     notify_celery,
     celery_app,
-    mocker,
     caplog,
+    mocker,
 ):
     super_send = mocker.patch("celery.Celery.send_task")
     celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
@@ -512,3 +550,87 @@ def test_send_task_warns_when_message_group_id_explicitly_empty(
     call_kwargs = super_send.call_args[1]
     assert "MessageGroupId" not in call_kwargs
     super_send.assert_called_once()
+
+
+def test_retrying_automatically_inherits_message_group_id_if_enabled(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    with pytest.raises(celery_Retry):
+        message_group_id_retrying_task()
+
+    assert super_send.mock_calls == [
+        (mocker.ANY, AnySupersetOf({"MessageGroupId": "9876"})),
+    ]
+
+
+def test_retrying_doesnt_automatically_inherit_message_group_id_if_disabled(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = False
+    with pytest.raises(celery_Retry):
+        message_group_id_retrying_task()
+
+    assert super_send.mock_calls == [
+        (
+            mocker.ANY,
+            RestrictedAny(lambda x: "MessageGroupId" not in x and "notify_message_group_id" not in x["headers"]),
+        ),
+    ]
+
+
+def test_retrying_with_explicit_message_group_id_overrides_automatic(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    with pytest.raises(celery_Retry):
+        message_group_id_retrying_task(retry_kwargs={"MessageGroupId": "31415"})
+
+    assert super_send.mock_calls == [
+        (
+            mocker.ANY,
+            AnySupersetOf({"MessageGroupId": "31415", "headers": AnySupersetOf({"notify_message_group_id": "31415"})}),
+        ),
+    ]
+
+
+def test_retrying_without_message_group_id_ignores_it(
+    celery_app,
+    no_message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+    with pytest.raises(celery_Retry):
+        no_message_group_id_retrying_task()
+
+    assert super_send.mock_calls == [
+        (
+            mocker.ANY,
+            RestrictedAny(lambda x: "MessageGroupId" not in x and "notify_message_group_id" not in x["headers"]),
+        ),
+    ]
+
+
+def test_retrying_automatically_inherits_message_group_id_if_not_throwing(
+    celery_app,
+    message_group_id_retrying_task,
+    mocker,
+):
+    super_send = mocker.patch("celery.Celery.send_task")
+    celery_app.config["ENABLE_SQS_MESSAGE_GROUP_IDS"] = True
+
+    message_group_id_retrying_task(retry_kwargs={"throw": False})
+
+    assert super_send.mock_calls == [
+        (mocker.ANY, AnySupersetOf({"MessageGroupId": "9876"})),
+    ]
