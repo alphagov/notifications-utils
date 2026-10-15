@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 133.1.0
+
+* `NotifyTask` now automatically (re-)applies the same `MessageGroupId` to retries. A `MessageGroupId` argument manually specified to the retry call will still take priority over this value, and `ENABLE_SQS_MESSAGE_GROUP_IDS` will still prevent it from being sent to SQS.
+* When `MessageGroupId` is purged from a task dispatch, we also make sure we purge the `notify_message_group_id` header.
+
 ## 133.0.0
 
 * `SerialisedModel` now supports some union types, for example before: `created_by_id: str`, after: `created_by_id: str | None`
