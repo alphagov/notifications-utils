@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 134.0.0
+
+* Renames `notifications_utils.eventlet` to `notifications_utils.greenlet`. Therein, renames:
+  * `EventletTimeoutMiddleware` to `RequestHandlingTimeoutMiddleware` and makes it work with gevent
+  * `EventletTimeout` to `RequestHandlingTimeout`
+  * `HardEventletTimeout` to `HardRequestHandlingTimeout`
+  * `SoftEventletTimeout` to `SoftRequestHandlingTimeout`
+* Renames flask config variables:
+  * `NOTIFY_EVENTLET_STATS` to `NOTIFY_GREENLET_STATS`
+  * `NOTIFY_EVENTLET_STATS_VERBOSE_THRESHOLD_SECONDS` to `NOTIFY_GREENLET_STATS_VERBOSE_THRESHOLD_SECONDS`
+
 ## 133.1.0
 
 * `NotifyTask` now automatically (re-)applies the same `MessageGroupId` to retries. A `MessageGroupId` argument manually specified to the retry call will still take priority over this value, and `ENABLE_SQS_MESSAGE_GROUP_IDS` will still prevent it from being sent to SQS.

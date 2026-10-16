@@ -22,7 +22,7 @@ from redis.exceptions import TimeoutError as redis_TimeoutError
 from redis.lock import Lock
 from redis.typing import Number
 
-from notifications_utils.eventlet import HardEventletTimeout, SoftEventletTimeout
+from notifications_utils.greenlet import HardRequestHandlingTimeout, SoftRequestHandlingTimeout
 
 
 @overload
@@ -128,11 +128,11 @@ class RedisClient:
     redis_store: Redis = FlaskRedis()  # type: ignore[assignment]
     active: bool = False
     scripts: dict[str, Script] = {}
-    always_raise: tuple[type[BaseException], ...] = (HardEventletTimeout,)
+    always_raise: tuple[type[BaseException], ...] = (HardRequestHandlingTimeout,)
     # default flakey_exceptions are those that will have already wasted valuable time, where we'd
     # rather not waste any more time waiting for redis requests in this app context
     flakey_exceptions: tuple[type[BaseException], ...] = (
-        SoftEventletTimeout,
+        SoftRequestHandlingTimeout,
         redis_TimeoutError,
     )
 
