@@ -5,12 +5,15 @@ from datetime import UTC, datetime
 from functools import partial
 from unittest.mock import Mock, call
 
+import msgpack
 import pytest
 import redis
 from filelock import FileLock, Timeout
 from freezegun import freeze_time
+from redis.exceptions import ResponseError
 from redis.exceptions import TimeoutError as redis_TimeoutError
 
+from notifications_utils.clients.redis import RequestCache
 from notifications_utils.clients.redis.redis_client import (
     RedisClient,
     StubLock,
@@ -426,3 +429,120 @@ def test_redis_flakey(caplog, app, mocked_redis_client):
     assert "Marking redis as flakey for remainder of app context" in caplog.messages
     assert "Not performing redis get on bar because redis is possibly flakey" in caplog.messages
     assert "Not performing redis set on baz because redis is possibly flakey" in caplog.messages
+
+
+def _unpack(raw):
+    return msgpack.unpackb(raw, raw=False)
+
+
+def test_set_if_timestamp_newer_stores_a_missing_key(redis_client_with_live_instance):
+    stored = redis_client_with_live_instance.set_if_timestamp_newer(
+        "cache-key",
+        RequestCache.pack_cache_value({"name": "fresh"}, 10.0),
+        ex=30,
+    )
+
+    assert stored is True
+    assert _unpack(redis_client_with_live_instance.get("cache-key"))["value"] == '{"name": "fresh"}'
+    assert 0 < redis_client_with_live_instance.redis_store.ttl("cache-key") <= 30
+
+
+def test_set_if_timestamp_newer_rejects_an_older_value(redis_client_with_live_instance):
+    redis_client_with_live_instance.set("cache-key", RequestCache.pack_cache_value({"name": "fresh"}, 50.0), ex=30)
+
+    stored = redis_client_with_live_instance.set_if_timestamp_newer(
+        "cache-key",
+        RequestCache.pack_cache_value({"name": "stale"}, 10.0),
+        ex=30,
+    )
+
+    assert stored is False
+    assert _unpack(redis_client_with_live_instance.get("cache-key"))["value"] == '{"name": "fresh"}'
+
+
+def test_set_if_timestamp_newer_rejects_an_equal_timestamp(redis_client_with_live_instance):
+    redis_client_with_live_instance.set("cache-key", RequestCache.pack_cache_value("first", 10.0), ex=30)
+
+    stored = redis_client_with_live_instance.set_if_timestamp_newer(
+        "cache-key",
+        RequestCache.pack_cache_value("second", 10.0),
+        ex=30,
+    )
+
+    assert stored is False
+    assert _unpack(redis_client_with_live_instance.get("cache-key"))["value"] == '"first"'
+
+
+def test_set_if_timestamp_newer_overwrites_legacy_json(redis_client_with_live_instance):
+    redis_client_with_live_instance.set("cache-key", b'"legacy"', ex=30)
+
+    stored = redis_client_with_live_instance.set_if_timestamp_newer(
+        "cache-key",
+        RequestCache.pack_cache_value("fresh", 10.0),
+        ex=30,
+    )
+
+    assert stored is True
+    assert _unpack(redis_client_with_live_instance.get("cache-key"))["value"] == '"fresh"'
+
+
+def test_set_if_timestamp_newer_rejects_a_value_without_a_timestamp(redis_client_with_live_instance):
+    with pytest.raises(ResponseError):
+        redis_client_with_live_instance.set_if_timestamp_newer(
+            "cache-key",
+            msgpack.packb({"name": "no-timestamp"}),
+            raise_exception=True,
+        )
+
+
+def test_overwrite_by_pattern_writes_a_tombstone_and_expiry(redis_client_with_live_instance):
+    redis_client_with_live_instance.set("pre-a", b"1")
+    redis_client_with_live_instance.set("pre-b", b"2")
+    redis_client_with_live_instance.set("other", b"3")
+    tombstone = RequestCache.pack_tombstone(10.0)
+
+    overwritten = redis_client_with_live_instance.overwrite_by_pattern("pre-*", tombstone, ex=60)
+
+    assert overwritten == 2
+    assert _unpack(redis_client_with_live_instance.get("pre-a"))["is_tombstone"] is True
+    assert _unpack(redis_client_with_live_instance.get("pre-b"))["is_tombstone"] is True
+    assert redis_client_with_live_instance.get("other") == b"3"
+    assert 0 < redis_client_with_live_instance.redis_store.ttl("pre-a") <= 60
+
+
+def test_request_cache_keeps_a_newer_tombstone(redis_client_with_live_instance):
+    redis_client_with_live_instance.set("widget-1", RequestCache.pack_tombstone(9_999_999_999), ex=600)
+    cache = RequestCache(redis_client_with_live_instance)
+
+    @cache.set("widget-{widget_id}")
+    def get_widget(widget_id):
+        return {"name": "stale"}
+
+    assert get_widget("1") == {"name": "stale"}
+    assert _unpack(redis_client_with_live_instance.get("widget-1"))["is_tombstone"] is True
+
+
+def test_request_cache_repopulates_after_a_tombstone(redis_client_with_live_instance):
+    cache = RequestCache(redis_client_with_live_instance)
+    state = {"name": "v1"}
+
+    @cache.set("widget-{widget_id}", ttl_in_seconds=60)
+    def get_widget(widget_id):
+        return dict(state)
+
+    @cache.delete("widget-{widget_id}")
+    def update_widget(widget_id):
+        state["name"] = "v2"
+        return "ok"
+
+    with freeze_time("2020-01-01 00:00:00") as clock:
+        assert get_widget("1") == {"name": "v1"}
+        clock.tick(5)
+        assert update_widget("1") == "ok"
+        assert _unpack(redis_client_with_live_instance.get("widget-1"))["is_tombstone"] is True
+        clock.tick(5)
+        assert get_widget("1") == {"name": "v2"}
+
+    stored = _unpack(redis_client_with_live_instance.get("widget-1"))
+    assert stored["is_tombstone"] is False
+    assert stored["value"] == '{"name": "v2"}'

@@ -159,6 +159,68 @@ class RedisClient:
             return deleted
             """
         )
+        # Set every key matching a pattern to the same value. Used to write a tombstone
+        # across a group of cache keys. The value is repeated once per key; tombstones are
+        # small, so the command stays modest. Like delete-keys-by-pattern, the key list is
+        # discovered inside the script, which Redis Cluster cannot route.
+        self.scripts["overwrite-keys-by-pattern"] = self.redis_store.register_script(
+            """
+            local pattern = ARGV[1]
+            local new_value = ARGV[2]
+            local ttl = tonumber(ARGV[3])
+
+            local keys = redis.call('keys', pattern)
+            local overwritten = 0
+            for i=1, #keys, 2500 do
+                local last = math.min(i + 2499, #keys)
+                local mset_args = {}
+                for j=i, last do
+                    table.insert(mset_args, keys[j])
+                    table.insert(mset_args, new_value)
+                end
+                redis.call('mset', unpack(mset_args))
+                if ttl ~= nil then
+                    for j=i, last do
+                        redis.call('expire', keys[j], ttl)
+                    end
+                end
+                overwritten = overwritten + (last - i + 1)
+            end
+            return overwritten
+            """
+        )
+        # Atomically store a msgpack map only when its `timestamp` is newer than the one
+        # already stored. A legacy value with no timestamp is overwritten. Returns 1 when
+        # the value is stored and 0 when it is rejected.
+        self.scripts["set-if-timestamp-newer"] = self.redis_store.register_script(
+            """
+            local key = KEYS[1]
+            local new_value = ARGV[1]
+            local ttl = tonumber(ARGV[2])
+
+            local unpacked_new_value = cmsgpack.unpack(new_value)
+            if type(unpacked_new_value) ~= 'table' or unpacked_new_value['timestamp'] == nil then
+                return redis.error_reply('set-if-timestamp-newer requires a msgpack map with a timestamp')
+            end
+
+            local existing_value = redis.call('get', key)
+            if existing_value then
+                local ok, unpacked_existing_value = pcall(cmsgpack.unpack, existing_value)
+                if ok and type(unpacked_existing_value) == 'table' and unpacked_existing_value['timestamp'] ~= nil then
+                    if unpacked_existing_value['timestamp'] >= unpacked_new_value['timestamp'] then
+                        return 0
+                    end
+                end
+            end
+
+            if ttl ~= nil then
+                redis.call('set', key, new_value, 'EX', ttl)
+            else
+                redis.call('set', key, new_value)
+            end
+            return 1
+            """
+        )
         # checks whether a token-bucket-based rate-limiter has currently
         # exceeded its rate limit, deducting 1 from the token-bucket in
         # the process of doing so (down to a limit of bucket_min). the
@@ -269,6 +331,25 @@ class RedisClient:
 
         return 0
 
+    def overwrite_by_pattern(
+        self,
+        pattern: str,
+        value: bytes | str | float | uuid.UUID,
+        ex: int | None = None,
+        raise_exception: bool = False,
+        always_raise: tuple[type[BaseException], ...] | type[INSTANCE_DEFAULT] = INSTANCE_DEFAULT,
+    ) -> int:
+        """Overwrite every key matching `pattern` with `value`, and return how many keys were written."""
+        value = prepare_value(value)
+        if self.active:
+            try:
+                ttl_arg = "" if ex is None else int(ex)
+                return int(self.scripts["overwrite-keys-by-pattern"](args=[pattern, value, ttl_arg]))
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, always_raise, "overwrite-by-pattern", pattern)
+
+        return 0
+
     def exceeded_rate_limit(
         self,
         cache_key: str,
@@ -323,6 +404,44 @@ class RedisClient:
                 return False
         else:
             return False
+
+    def set_if_timestamp_newer(
+        self,
+        key: str,
+        value: bytes | str | float | uuid.UUID,
+        ex: int | None = None,
+        raise_exception: bool = False,
+        always_raise: tuple[type[BaseException], ...] | type[INSTANCE_DEFAULT] = INSTANCE_DEFAULT,
+        skippable: bool = False,
+    ) -> bool:
+        """
+        Store `value` only when it is a msgpack map whose `timestamp` is newer than the one already
+        stored at `key`. A missing key, or a value with no timestamp, is overwritten.
+
+        Returns whether the value was stored.
+        """
+        redis_operation = "set-if-timestamp-newer"
+        key = prepare_value(key)
+        value = prepare_value(value)
+
+        if skippable and self.__is_flakey():
+            current_app.logger.warning(
+                "Not performing redis %s on %s because redis is possibly flakey",
+                redis_operation,
+                key,
+                extra={"redis_operation": redis_operation, "redis_key": key},
+            )
+            return False
+
+        if self.active:
+            try:
+                ttl_arg = "" if ex is None else int(ex)
+                result = self.scripts["set-if-timestamp-newer"](keys=[key], args=[value, ttl_arg])
+                return result is True or result == 1
+            except Exception as e:
+                self.__handle_exception(e, raise_exception, always_raise, redis_operation, key)
+
+        return False
 
     def set(
         self,

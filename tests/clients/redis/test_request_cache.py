@@ -1,8 +1,10 @@
 import logging
+import time
 from unittest.mock import MagicMock, call
 
 import msgpack
 import pytest
+from freezegun import freeze_time
 
 from notifications_utils.clients.redis import RequestCache
 from notifications_utils.clients.redis.redis_client import RedisClient
@@ -44,6 +46,7 @@ def cache(mocked_redis_client):
         ),
     ),
 )
+@freeze_time("2020-01-01 00:00:00")
 def test_set(
     mocked_redis_client,
     cache,
@@ -54,7 +57,7 @@ def test_set(
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mock_redis_get = mocker.patch.object(
         mocked_redis_client,
@@ -75,7 +78,7 @@ def test_set(
 
     mock_redis_set.assert_called_once_with(
         expected_cache_key,
-        '"bar"',
+        RequestCache.pack_cache_value("bar", time.time()),
         ex=2_419_200,
         skippable=True,
     )
@@ -90,6 +93,7 @@ def test_set(
         ("2000", 2_000),
     ),
 )
+@freeze_time("2020-01-01 00:00:00")
 def test_set_with_custom_ttl(
     mocked_redis_client,
     cache,
@@ -99,7 +103,7 @@ def test_set_with_custom_ttl(
 ):
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mocker.patch.object(
         mocked_redis_client,
@@ -115,7 +119,7 @@ def test_set_with_custom_ttl(
 
     mock_redis_set.assert_called_once_with(
         "foo",
-        '"bar"',
+        RequestCache.pack_cache_value("bar", time.time()),
         ex=expected_redis_client_ttl,
         skippable=True,
     )
@@ -142,6 +146,7 @@ def test_raises_if_key_doesnt_match_arguments(cache):
         (True, 234, 234),
     ),
 )
+@freeze_time("2020-01-01 00:00:00")
 def test_set_result_wrapper(
     cache_decision, ttl_in_seconds_override, expect_set_call_ttl, mocked_redis_client, cache, mocker
 ):
@@ -151,7 +156,7 @@ def test_set_result_wrapper(
 
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mocker.patch.object(
         mocked_redis_client,
@@ -163,13 +168,18 @@ def test_set_result_wrapper(
 
     assert ret == {"blah": "123-quack"}
 
-    assert (
-        mock_redis_set.mock_calls == []
-        if cache_decision is None
-        else [mocker.call("quack-xyz", '{"blah": "123-quack"}', ex=expect_set_call_ttl)]
-    )
+    if cache_decision:
+        mock_redis_set.assert_called_once_with(
+            "quack-xyz",
+            RequestCache.pack_cache_value({"blah": "123-quack"}, time.time()),
+            ex=expect_set_call_ttl,
+            skippable=True,
+        )
+    else:
+        mock_redis_set.assert_not_called()
 
 
+@freeze_time("2020-01-01 00:00:00")
 def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
     @cache.get_cache_decision.register
     def _(result: float):
@@ -185,7 +195,7 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 
     mock_redis_set = mocker.patch.object(
         mocked_redis_client,
-        "set",
+        "set_if_timestamp_newer",
     )
     mocker.patch.object(
         mocked_redis_client,
@@ -203,7 +213,9 @@ def test_set_result_custom_get_decision(mocked_redis_client, cache, mocker):
 
     assert ret2 == 80.0
 
-    assert mock_redis_set.mock_calls == [mocker.call("8-xyz", "80.0", ex=160, skippable=True)]
+    assert mock_redis_set.mock_calls == [
+        mocker.call("8-xyz", RequestCache.pack_cache_value(80.0, time.time()), ex=160, skippable=True)
+    ]
 
 
 @pytest.mark.parametrize(
@@ -253,10 +265,11 @@ def test_get(mocked_redis_client, cache, args, expected_cache_key, mocker):
         ),
     ),
 )
+@freeze_time("2020-01-01 00:00:00")
 def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
-        "delete",
+        "set",
     )
 
     @cache.delete("{a}-{b}-{c}")
@@ -265,12 +278,17 @@ def test_delete(mocked_redis_client, cache, args, expected_cache_key, mocker):
 
     assert foo(*args) == "bar"
 
-    expected_call = call(expected_cache_key, raise_exception=True)
+    expected_call = call(
+        expected_cache_key,
+        RequestCache.pack_tombstone(time.time()),
+        ex=RequestCache.TOMBSTONE_TTL,
+        raise_exception=True,
+    )
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
 def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, mocker):
-    mocker.patch.object(mocked_redis_client, "delete", side_effect=RuntimeError("API update failed"))
+    mocker.patch.object(mocked_redis_client, "set", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
     @cache.delete("bar")
@@ -283,10 +301,11 @@ def test_doesnt_update_api_if_redis_delete_fails(mocked_redis_client, cache, moc
     fake_api_call.assert_not_called()
 
 
+@freeze_time("2020-01-01 00:00:00")
 def test_delete_by_pattern(mocked_redis_client, cache, mocker):
     mock_redis_delete = mocker.patch.object(
         mocked_redis_client,
-        "delete_by_pattern",
+        "overwrite_by_pattern",
     )
 
     @cache.delete_by_pattern("{a}-{b}-{c}-???")
@@ -295,7 +314,12 @@ def test_delete_by_pattern(mocked_redis_client, cache, mocker):
 
     assert foo(1, 2, 3) == "bar"
 
-    expected_call = call("1-2-3-???", raise_exception=True)
+    expected_call = call(
+        "1-2-3-???",
+        RequestCache.pack_tombstone(time.time()),
+        ex=RequestCache.TOMBSTONE_TTL,
+        raise_exception=True,
+    )
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
 
 
@@ -305,7 +329,7 @@ def test_wrapped_value_is_returned_without_calling_the_function(mocked_redis_cli
         "get",
         return_value=RequestCache.pack_cache_value({"ok": True}, timestamp=10.0),
     )
-    mock_redis_set = mocker.patch.object(mocked_redis_client, "set")
+    mock_redis_set = mocker.patch.object(mocked_redis_client, "set_if_timestamp_newer")
 
     @cache.set("foo")
     def foo():
@@ -315,13 +339,14 @@ def test_wrapped_value_is_returned_without_calling_the_function(mocked_redis_cli
     mock_redis_set.assert_not_called()
 
 
-def test_tombstone_is_a_miss_and_the_result_is_stored_as_json(mocked_redis_client, cache, mocker):
+@freeze_time("2020-01-01 00:00:00")
+def test_tombstone_is_a_miss_and_the_result_is_stored_when_newer(mocked_redis_client, cache, mocker):
     mocker.patch.object(
         mocked_redis_client,
         "get",
         return_value=RequestCache.pack_tombstone(timestamp=10.0),
     )
-    mock_redis_set = mocker.patch.object(mocked_redis_client, "set")
+    mock_redis_set = mocker.patch.object(mocked_redis_client, "set_if_timestamp_newer")
 
     @cache.set("foo")
     def foo():
@@ -330,7 +355,7 @@ def test_tombstone_is_a_miss_and_the_result_is_stored_as_json(mocked_redis_clien
     assert foo() == {"ok": True}
     mock_redis_set.assert_called_once_with(
         "foo",
-        '{"ok": true}',
+        RequestCache.pack_cache_value({"ok": True}, time.time()),
         ex=RequestCache.DEFAULT_TTL,
         skippable=True,
     )
@@ -350,7 +375,7 @@ def test_unknown_wrapper_schema_is_a_miss(mocked_redis_client, cache, mocker, ca
             use_bin_type=True,
         ),
     )
-    mock_redis_set = mocker.patch.object(mocked_redis_client, "set")
+    mock_redis_set = mocker.patch.object(mocked_redis_client, "set_if_timestamp_newer")
 
     @cache.set("foo")
     def foo():
@@ -378,7 +403,7 @@ def test_cached_json_null_is_still_a_hit(mocked_redis_client, cache, mocker):
 
 
 def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker):
-    mocker.patch.object(mocked_redis_client, "delete_by_pattern", side_effect=RuntimeError("API update failed"))
+    mocker.patch.object(mocked_redis_client, "overwrite_by_pattern", side_effect=RuntimeError("API update failed"))
     fake_api_call = MagicMock()
 
     @cache.delete_by_pattern("bar-???")

@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import timedelta
@@ -205,6 +206,10 @@ class RequestCache:
                     if entry.hit:
                         return entry.value
 
+                # Taken before the inner request, so it is the oldest moment the response could
+                # describe. A tombstone written after this point wins, and the response is still
+                # returned to the caller.
+                pessimistic_timestamp = time.time()
                 result = client_method(*args, **kwargs)
 
                 value = self.get_cache_value(result)
@@ -214,9 +219,9 @@ class RequestCache:
                     if final_ttl is None:
                         final_ttl = ttl_in_seconds
 
-                    self.redis_client.set(
+                    self.redis_client.set_if_timestamp_newer(
                         redis_key,
-                        RCJSONEncoder().encode(value),
+                        RequestCache.pack_cache_value(value, pessimistic_timestamp),
                         ex=int(final_ttl),
                         # client_method was (hopefully) side-effect free so this should not be an invalidation
                         skippable=True,
@@ -238,7 +243,7 @@ class RequestCache:
                 # if it is unsuccessful. If we didn't, then we risk having a successful API
                 # call that updates the database, but redis left with stale data. Stale data
                 # is worse then failing the users requests
-                self.redis_client.delete(redis_key, raise_exception=True)
+                self._write_tombstone(redis_key)
 
                 api_response = client_method(*args, **kwargs)
 
@@ -247,7 +252,7 @@ class RequestCache:
                 # before the database has been updated. We want to raise an exception if the call
                 # to redis here fails because that will hopefully prompt the user that something
                 # went wrong and they should retry their action (hopefully resolving the problem).
-                self.redis_client.delete(redis_key, raise_exception=True)
+                self._write_tombstone(redis_key)
                 return api_response
 
             return new_client_method
@@ -261,11 +266,27 @@ class RequestCache:
                 # See equivalent comments above for why we attempt the redis delete before and
                 # after the API call
                 redis_key = self._make_key(key_format, client_method, args, kwargs)
-                self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
+                self._write_tombstone_by_pattern(redis_key)
                 api_response = client_method(*args, **kwargs)
-                self.redis_client.delete_by_pattern(redis_key, raise_exception=True)
+                self._write_tombstone_by_pattern(redis_key)
                 return api_response
 
             return new_client_method
 
         return _delete
+
+    def _write_tombstone(self, redis_key: str) -> None:
+        self.redis_client.set(
+            redis_key,
+            RequestCache.pack_tombstone(time.time()),
+            ex=RequestCache.TOMBSTONE_TTL,
+            raise_exception=True,
+        )
+
+    def _write_tombstone_by_pattern(self, pattern: str) -> None:
+        self.redis_client.overwrite_by_pattern(
+            pattern,
+            RequestCache.pack_tombstone(time.time()),
+            ex=RequestCache.TOMBSTONE_TTL,
+            raise_exception=True,
+        )

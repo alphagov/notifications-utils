@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 135.0.0
+
+* `RequestCache` deletions write a timestamped tombstone instead of removing the key. `@cache.set` stores a msgpack wrapper and only writes it when its timestamp is newer than the value already in Redis. The caller still gets the response when the write is rejected.
+* Do not deploy this until 134.1.0 is running everywhere that shares the cache. Admin and the API use the same Redis database. A process from before 134.1.0 cannot read a tombstone or a wrapped value.
+* `delete_by_pattern` writes the same tombstone onto each matching key.
+
 ## 134.1.0
 
 * `RequestCache` can read a msgpack cache wrapper, and treats a tombstone as a cache miss. It still writes plain JSON and still deletes keys. Deploy this to every app that uses `RequestCache` before deploying the release that writes tombstones. Admin and the API share a Redis database, so both need this release running before either starts writing the new format.
