@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 134.1.0
+
+* Turn gunicorn eventlet worker subclasses into async-generic mixins in the `gunicorn.greenlet` module, introduce gevent variants under the `gunicorn.gevent` module.
+
 ## 134.0.0
 
 * Renames `notifications_utils.eventlet` to `notifications_utils.greenlet`. Therein, renames:
