@@ -1,5 +1,7 @@
+import logging
 from unittest.mock import MagicMock, call
 
+import msgpack
 import pytest
 
 from notifications_utils.clients.redis import RequestCache
@@ -295,6 +297,84 @@ def test_delete_by_pattern(mocked_redis_client, cache, mocker):
 
     expected_call = call("1-2-3-???", raise_exception=True)
     mock_redis_delete.assert_has_calls([expected_call, expected_call])
+
+
+def test_wrapped_value_is_returned_without_calling_the_function(mocked_redis_client, cache, mocker):
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=RequestCache.pack_cache_value({"ok": True}, timestamp=10.0),
+    )
+    mock_redis_set = mocker.patch.object(mocked_redis_client, "set")
+
+    @cache.set("foo")
+    def foo():
+        raise RuntimeError
+
+    assert foo() == {"ok": True}
+    mock_redis_set.assert_not_called()
+
+
+def test_tombstone_is_a_miss_and_the_result_is_stored_as_json(mocked_redis_client, cache, mocker):
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=RequestCache.pack_tombstone(timestamp=10.0),
+    )
+    mock_redis_set = mocker.patch.object(mocked_redis_client, "set")
+
+    @cache.set("foo")
+    def foo():
+        return {"ok": True}
+
+    assert foo() == {"ok": True}
+    mock_redis_set.assert_called_once_with(
+        "foo",
+        '{"ok": true}',
+        ex=RequestCache.DEFAULT_TTL,
+        skippable=True,
+    )
+
+
+def test_unknown_wrapper_schema_is_a_miss(mocked_redis_client, cache, mocker, caplog):
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=msgpack.packb(
+            {
+                "schema_version": 99,
+                "timestamp": 10.0,
+                "is_tombstone": False,
+                "value": '{"ok": true}',
+            },
+            use_bin_type=True,
+        ),
+    )
+    mock_redis_set = mocker.patch.object(mocked_redis_client, "set")
+
+    @cache.set("foo")
+    def foo():
+        return {"ok": False}
+
+    with caplog.at_level(logging.WARNING):
+        assert foo() == {"ok": False}
+
+    assert "schema mismatch" in caplog.text
+    mock_redis_set.assert_called_once()
+
+
+def test_cached_json_null_is_still_a_hit(mocked_redis_client, cache, mocker):
+    mocker.patch.object(
+        mocked_redis_client,
+        "get",
+        return_value=RequestCache.pack_cache_value(None, timestamp=10.0),
+    )
+
+    @cache.set("foo")
+    def foo():
+        raise RuntimeError
+
+    assert foo() is None
 
 
 def test_doesnt_update_api_if_redis_delete_by_pattern_fails(mocked_redis_client, cache, mocker):

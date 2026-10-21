@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 134.1.0
+
+* `RequestCache` can read a msgpack cache wrapper, and treats a tombstone as a cache miss. It still writes plain JSON and still deletes keys. Deploy this to every app that uses `RequestCache` before deploying the release that writes tombstones. Admin and the API share a Redis database, so both need this release running before either starts writing the new format.
+
 ## 134.0.0
 
 * Renames `notifications_utils.eventlet` to `notifications_utils.greenlet`. Therein, renames:

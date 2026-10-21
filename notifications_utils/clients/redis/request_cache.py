@@ -1,4 +1,5 @@
 import json
+import logging
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import timedelta
@@ -6,13 +7,82 @@ from functools import singledispatch, wraps
 from inspect import signature
 from uuid import UUID
 
+import msgpack
+
 from notifications_utils.json import RelaxedContainerJSONEncoder as RCJSONEncoder
 
 type _JSON = dict[str, "_JSON"] | list["_JSON"] | str | int | float | bool | None
 
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class _CachedEntry:
+    """A cache hit, or a miss that should fall through to the inner request."""
+
+    hit: bool
+    value: _JSON = None
+
+
+def _pack_wrapper(payload: dict) -> bytes:
+    packed = msgpack.packb(payload, use_bin_type=True)
+    if not isinstance(packed, bytes):
+        raise TypeError("msgpack.packb did not return bytes")
+    return packed
+
+
+def _unpack_wrapper(raw: bytes) -> dict | None:
+    """Return the wrapper dict, or None when `raw` is a legacy JSON value."""
+    try:
+        unpacked = msgpack.unpackb(raw, raw=False)
+    except (msgpack.ExtraData, msgpack.UnpackException, ValueError, TypeError):
+        return None
+    if isinstance(unpacked, dict) and {"is_tombstone", "schema_version", "value"} & unpacked.keys():
+        return unpacked
+    return None
+
+
+def _read_cached_entry(cached: bytes | str, *, client_method_name: str) -> _CachedEntry:
+    """
+    Read either a legacy JSON value or a msgpack wrapper.
+
+    A tombstone, or a wrapper this process does not understand, is a miss. The
+    caller still receives whatever the inner request returns; only the cache
+    read is skipped.
+    """
+    raw = cached.encode("utf-8") if isinstance(cached, str) else cached
+    wrapper = _unpack_wrapper(raw)
+    if wrapper is None:
+        return _CachedEntry(hit=True, value=json.loads(raw.decode("utf-8")))
+
+    if wrapper.get("is_tombstone"):
+        return _CachedEntry(hit=False)
+
+    schema_version = wrapper.get("schema_version")
+    if schema_version != RequestCache.SCHEMA_VERSION:
+        logger.warning(
+            "Cached value has schema mismatch: cached %s, expecting %s. Ignoring.",
+            schema_version,
+            RequestCache.SCHEMA_VERSION,
+            extra={
+                "schema_version_cached": schema_version,
+                "schema_version_expected": RequestCache.SCHEMA_VERSION,
+                "client_method_name": client_method_name,
+            },
+        )
+        return _CachedEntry(hit=False)
+
+    encoded_value = wrapper.get("value")
+    if not isinstance(encoded_value, str):
+        return _CachedEntry(hit=False)
+    return _CachedEntry(hit=True, value=json.loads(encoded_value))
+
 
 class RequestCache:
     DEFAULT_TTL = int(timedelta(days=28).total_seconds())
+    # Tombstones only need to outlive the longest in-flight `@set` call.
+    TOMBSTONE_TTL = int(timedelta(minutes=10).total_seconds())
+    SCHEMA_VERSION = 1
 
     @dataclass
     class CacheResultWrapper:
@@ -91,6 +161,29 @@ class RequestCache:
         raise TypeError("{client_method.__name__}() takes no argument called '{argument_name}'")
 
     @staticmethod
+    def pack_cache_value(value: _JSON, timestamp: float) -> bytes:
+        """Msgpack wrapper around the JSON payload. The timestamp is the age of that payload."""
+        return _pack_wrapper(
+            {
+                "schema_version": RequestCache.SCHEMA_VERSION,
+                "timestamp": timestamp,
+                "is_tombstone": False,
+                "value": RCJSONEncoder().encode(value),
+            }
+        )
+
+    @staticmethod
+    def pack_tombstone(timestamp: float) -> bytes:
+        """A delete marker. Readers treat this as an empty cache entry."""
+        return _pack_wrapper(
+            {
+                "schema_version": RequestCache.SCHEMA_VERSION,
+                "timestamp": timestamp,
+                "is_tombstone": True,
+            }
+        )
+
+    @staticmethod
     def _make_key(key_format, client_method, args, kwargs):
         return key_format.format(
             **{
@@ -108,7 +201,9 @@ class RequestCache:
                 redis_key = RequestCache._make_key(key_format, client_method, args, kwargs)
                 cached = self.redis_client.get(redis_key, skippable=True)
                 if cached:
-                    return json.loads(cached.decode("utf-8"))
+                    entry = _read_cached_entry(cached, client_method_name=client_method.__name__)
+                    if entry.hit:
+                        return entry.value
 
                 result = client_method(*args, **kwargs)
 
