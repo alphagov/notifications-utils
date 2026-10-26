@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 135.0.1
+
+* Removes the temporary `exclude-newer-package` from `uv.toml` added in 134.1.1. Consuming apps are free to specify their own `exclude-newer-package` directive in `uv-overrides.toml` again.
+
 ## 135.0.0
 
 * `template.Template` (and subclasses) have a new method `placeholder_is_only_used_conditionally()`
@@ -13,8 +17,8 @@
 ## 134.1.1
 
 * Temporarily adds an `exclude-newer-package` directive to `uv.toml` to allow a newer version of `certifi`. This will break apps which specify their own `exclude-newer-package` directive in `uv-overrides.toml`. Consuming apps should either:
-- remove their own `exclude-newer-package` directive 
-- wait until 31 October 2026 and remove the `exclude-newer-package` from this repo’s `uv.toml`
+  - remove their own `exclude-newer-package` directive 
+  - wait until 31 October 2026 and remove the `exclude-newer-package` from this repo’s `uv.toml`
 
 ## 134.1.0
 
