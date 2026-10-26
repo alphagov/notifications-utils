@@ -2,5 +2,3 @@ exclude-newer = "7 days"
 
 [pip]
 generate-hashes = true
-
-exclude-newer-package = { certifi = "1d" }
