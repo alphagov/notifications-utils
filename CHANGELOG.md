@@ -1,10 +1,14 @@
 # CHANGELOG
 
+## 134.1.2
+
+* Removes the temporary `exclude-newer-package` directive from `uv.toml`. Consuming apps no longer need to do the work required in the 134.1.1 upgrade, if moving straight to this version
+
 ## 134.1.1
 
 * Temporarily adds an `exclude-newer-package` directive to `uv.toml` to allow a newer version of `certifi`. This will break apps which specify their own `exclude-newer-package` directive in `uv-overrides.toml`. Consuming apps should either:
-- remove their own `exclude-newer-package` directive 
-- wait until 31 October 2026 and remove the `exclude-newer-package` from this repo’s `uv.toml`
+  - remove their own `exclude-newer-package` directive 
+  - wait until 31 October 2026 and remove the `exclude-newer-package` from this repo’s `uv.toml`
 
 ## 134.1.0
 
