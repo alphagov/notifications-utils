@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 135.0.0
+
+* `template.Template` (and subclasses) have a new method `placeholder_is_only_used_conditionally()`
+* `template.Template` (and subclasses) have a new property `placeholder_instances`
+* `template.get_placeholders` now returns `tuple[Placeholder, ...]`, rather than an `InsensitiveSet[str]` (breaking change in theory but isn’t used by any of the apps)
+
 ## 134.1.2
 
 * Fix rendering of email addresses with hyphenated domains in text message previews

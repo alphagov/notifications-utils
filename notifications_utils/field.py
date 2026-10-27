@@ -182,10 +182,14 @@ class Field:
         return Markup(self._raw_formatted)
 
     @property
-    def placeholders(self) -> InsensitiveSet[str]:
+    def placeholder_instances(self) -> tuple[Placeholder, ...]:
         if not self.content or "(" not in self.content:
-            return InsensitiveSet()
-        return InsensitiveSet(Placeholder(body).name for body in re.findall(self.placeholder_pattern, self.content))
+            return ()
+        return tuple(Placeholder(body) for body in re.findall(self.placeholder_pattern, self.content))
+
+    @property
+    def placeholders(self) -> InsensitiveSet[str]:
+        return InsensitiveSet(placeholder.name for placeholder in self.placeholder_instances)
 
     @property
     def replaced(self) -> str:
