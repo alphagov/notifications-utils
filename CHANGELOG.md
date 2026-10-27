@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 134.1.2
+
+* Fix rendering of email addresses with hyphenated domains in text message previews
+
 ## 134.1.1
 
 * Temporarily adds an `exclude-newer-package` directive to `uv.toml` to allow a newer version of `certifi`. This will break apps which specify their own `exclude-newer-package` directive in `uv-overrides.toml`. Consuming apps should either:
