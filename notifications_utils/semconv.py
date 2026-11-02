@@ -1,8 +1,12 @@
 import os
-from collections.abc import MutableMapping
+from collections import deque
+from collections.abc import Callable, Iterable, MutableMapping
 from sys import exception
+from typing import Any
 from uuid import uuid4
 
+import flask
+from opentelemetry.metrics import CallbackOptions, Observation
 from opentelemetry.util.types import AttributeValue
 
 # Buckets ranging from milliseconds to 30 minutes,
@@ -73,3 +77,62 @@ def set_service_instance_id() -> None:
     old_value = os.environ.get("OTEL_RESOURCE_ATTRIBUTES")
     new_value = f"service.instance.id={uuid4()}"
     os.environ["OTEL_RESOURCE_ATTRIBUTES"] = f"{old_value},{new_value}" if old_value is not None else new_value
+
+
+_oneshot_gauge_next_observations_consumer_strong_refs: list[Callable[[CallbackOptions], Iterable[Observation]]] = []
+
+
+def oneshot_gauge_next_observations_consumer(
+    next_observations_deque: deque[Observation],
+) -> Callable[[CallbackOptions], Iterable[Observation]]:
+    """
+    Returns a function that, when called with `CallbackOptions`, will consumer the contents of
+    `next_observations_deque`, deduplicate them by their attributes and return the last for each
+    attribute-set.
+
+    This is intended for use as a callback with an ObservableGauge to make it act like an old-style "one-shot"
+    asynchronous gauge - a gauge that will *not* output its most recent value indefinitely (like
+    synchronous gauges do in opentelemetry-sdk >= 1.45), instead stopping after the first collection period
+    that doesn't contain an Observation for a particular time-series (like synchronous gauges did in
+    opentelemetry-sdk < 1.45).
+
+    Metric recording functions are expected to append their `Observation`s to the next_observations_deque
+    for a particular metric and trust the opentelemetry collection loop to consume the queue on its next
+    cycle.
+    """
+
+    def _oneshot_consumer(opts: CallbackOptions) -> Iterable[Observation]:
+        observations_dedup_map: dict[Any, Observation] = {}
+        while next_observations_deque:
+            try:
+                # deque.popleft() is allegedly atomic
+                observation = next_observations_deque.popleft()
+            except IndexError:
+                # could something else have popped the last value since we checked for emptiness?
+                # anyway nothing left
+                break
+            else:
+                # callbacks must not return observations with duplicate attrs in one collection cycle, so
+                # deduplicate with later observations always taking priority
+                dedup_key = (
+                    tuple(sorted(str(x) for x in observation.attributes.items())) if observation.attributes else ()
+                )
+                observations_dedup_map[dedup_key] = observation
+
+        return observations_dedup_map.values()
+
+    # opentelemetry-sdk really likes using weakrefs. we need to ensure our callback doesn't get
+    # garbage collected.
+    _oneshot_gauge_next_observations_consumer_strong_refs.append(_oneshot_consumer)
+    # but let's give us a chance of noticing if it gets excessive (but don't spam the logs)
+    strong_ref_count = len(_oneshot_gauge_next_observations_consumer_strong_refs)
+    if strong_ref_count >= 1_000 and strong_ref_count % 1_000 == 0 and flask.has_app_context():
+        extra = {"strong_ref_count": strong_ref_count}
+        flask.current_app.logger.warning(
+            "oneshot_gauge_next_observations_consumer is holding %(strong_ref_count)s strong refs - "
+            "this is probably not intentional",
+            extra,
+            extra=extra,
+        )
+
+    return _oneshot_consumer
