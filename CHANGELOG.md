@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 135.1.0
+
+* Add function `semconv.oneshot_gauge_next_observations_consumer` to generate a callback function that will consume, deduplicate and return the contents of a `deque[Observation]` when called. Intended for use as an `ObservableGauge`'s callback function.
+
 ## 135.0.2
 
 * Fixes handling of addresses featuring a UK country appearing on a line before the postcode
