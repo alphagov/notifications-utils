@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 135.1.0
+
+* Add function `semconv.oneshot_gauge_next_observations_consumer` to generate a callback function that will consume, deduplicate and return the contents of a `deque[Observation]` when called. Intended for use as an `ObservableGauge`'s callback function.
+
 ## 135.0.1
 
 * Removes the temporary `exclude-newer-package` from `uv.toml` added in 134.1.1. Consuming apps are free to specify their own `exclude-newer-package` directive in `uv-overrides.toml` again.
