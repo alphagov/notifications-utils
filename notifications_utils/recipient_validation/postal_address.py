@@ -1,6 +1,5 @@
 import re
 from collections.abc import Generator, Mapping, Sequence
-from contextlib import suppress
 from functools import lru_cache
 from typing import Self
 
@@ -84,11 +83,13 @@ class PostalAddress:
     @staticmethod
     def trailing_uk_countries(lines: Sequence[str]) -> Generator[str | None]:
         for line in reversed(lines):
-            with suppress(CountryNotFoundError):
+            try:
                 if Country(line) == country_UK:
                     yield line
                 else:
                     return
+            except CountryNotFoundError:
+                return
 
     @classmethod
     def from_personalisation(cls, personalisation_dict: Mapping, allow_international_letters: bool = False) -> Self:
