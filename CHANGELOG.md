@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 135.0.2
+
+* Fixes handling of addresses featuring a UK country appearing on a line before the postcode
+
 ## 135.0.1
 
 * Removes the temporary `exclude-newer-package` from `uv.toml` added in 134.1.1. Consuming apps are free to specify their own `exclude-newer-package` directive in `uv-overrides.toml` again.
