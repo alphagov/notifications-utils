@@ -428,6 +428,89 @@ def test_international(address, expected_international):
 
 
 @pytest.mark.parametrize(
+    "address",
+    (
+        """
+        Government House
+        The Queen's Road
+        GY1 1GH
+        GG
+    """,
+        """
+        Government House
+        The Queen's Road
+        GY1 1GH
+        Guernsey
+        United Kingdom
+    """,
+        """
+        Government House
+        The Queen's Road
+        GY1 1GH
+        Guernsey
+    """,
+        """
+        Government House
+        The Queen's Road
+        Guernsey
+        GY1 1GH
+        GG
+    """,
+        """
+        Government House
+        The Queen's Road
+        Alderney
+        GY1 1GH
+        GG
+    """,
+    ),
+)
+@pytest.mark.parametrize(
+    "extra_args",
+    (
+        {},
+        {"allow_international_letters": True},
+    ),
+)
+def test_crown_dependencies(address, extra_args):
+    postal_address = PostalAddress(address, **extra_args)
+    assert postal_address.valid
+    assert not postal_address.international
+    assert postal_address.postage == "united-kingdom"
+    assert postal_address.postcode == "GY1 1GH"
+
+
+def test_address_with_many_countries():
+    postal_address = PostalAddress(
+        """
+        123 Example Street
+        City of Town
+        United Kingdom
+        United Kingdom
+        Italy
+        Germany
+        France
+    """,
+        allow_international_letters=True,
+    )
+    assert postal_address.valid
+    assert postal_address.normalised_lines == [
+        # This is a valid French address as far as we are concerned, and
+        # it shouldn’t be normalised otherwise, for example by stripping
+        # country names or de-dupeing lines
+        "123 Example Street",
+        "City of Town",
+        "United Kingdom",
+        "United Kingdom",
+        "Italy",
+        "Germany",
+        "France",
+    ]
+    assert postal_address.country == Country("FR")
+    assert postal_address.postage == "europe"
+
+
+@pytest.mark.parametrize(
     "address, expected_normalised, expected_as_single_line",
     (
         (
