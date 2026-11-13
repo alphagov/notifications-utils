@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 135.0.3
+
+* Bumps `ruff` to version `0.17.4` which may introduce new linter errors
+
 ## 135.0.2
 
 * Fixes handling of addresses featuring a UK country appearing on a line before the postcode
