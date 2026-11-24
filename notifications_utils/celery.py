@@ -253,7 +253,7 @@ class NotifyCelery(Celery):
 
     def _get_backend(self):
         # We want it to instantly return a DisabledBackend object if result_backend is None without expending
-        # resources in scanning for a none existent backend store.
+        # resources in scanning for a none existent backend store
         if self.conf.result_backend is None:
             return DisabledBackend(app=self)
         return super()._get_backend()  # type: ignore[misc]
